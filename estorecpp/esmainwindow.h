@@ -12,6 +12,15 @@ public:
 	ESMainWindow(QWidget *parent = 0);
 	~ESMainWindow();
 
+public slots:
+	void slotManageStockItems();
+	void slotManageItems();
+	void slotManageItemCategories();
+	void slotManageItemPrices();
+	void slotAddBill();
+	void slotCurrentBills();
+	void slotLogin();
+
 private:
 	Ui::ESMainWindowClass ui;
 };

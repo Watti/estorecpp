@@ -1,29 +1,123 @@
-<UI version="4.0" >
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
  <class>ESMainWindowClass</class>
- <widget class="QMainWindow" name="ESMainWindowClass" >
-  <property name="objectName" >
-   <string notr="true">ESMainWindowClass</string>
-  </property>
-  <property name="geometry" >
+ <widget class="QMainWindow" name="ESMainWindowClass">
+  <property name="geometry">
    <rect>
-	<x>0</x>
-	<y>0</y>
-	<width>600</width>
-	<height>400</height>
+    <x>0</x>
+    <y>0</y>
+    <width>600</width>
+    <height>400</height>
    </rect>
   </property>
-  <property name="windowTitle" >
-   <string>ESMainWindow</string>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Maximum" vsizetype="Minimum">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
-  <widget class="QMenuBar" name="menuBar" />
-  <widget class="QToolBar" name="mainToolBar" />
-  <widget class="QWidget" name="centralWidget" />
-  <widget class="QStatusBar" name="statusBar" />
+  <property name="windowTitle">
+   <string>EStore</string>
+  </property>
+  <property name="layoutDirection">
+   <enum>Qt::LeftToRight</enum>
+  </property>
+  <widget class="QWidget" name="centralWidget"/>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>600</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuStock">
+    <property name="title">
+     <string>Stock</string>
+    </property>
+    <addaction name="actionManageStockItems"/>
+   </widget>
+   <widget class="QMenu" name="menuItems">
+    <property name="title">
+     <string>Items</string>
+    </property>
+    <addaction name="actionManageItems"/>
+    <addaction name="actionManageItemCategories"/>
+    <addaction name="actionManageItemPrices"/>
+   </widget>
+   <widget class="QMenu" name="menuBilling">
+    <property name="title">
+     <string>Billing</string>
+    </property>
+    <addaction name="actionAddBill"/>
+    <addaction name="actionCurrentBills"/>
+   </widget>
+   <widget class="QMenu" name="menuOrders">
+    <property name="title">
+     <string>Orders</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menuReports">
+    <property name="title">
+     <string>Reports</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+   </widget>
+   <addaction name="menuStock"/>
+   <addaction name="menuItems"/>
+   <addaction name="menuBilling"/>
+   <addaction name="menuOrders"/>
+   <addaction name="menuReports"/>
+   <addaction name="menuHelp"/>
+  </widget>
+  <widget class="QToolBar" name="mainToolBar">
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+  <action name="actionManageStockItems">
+   <property name="text">
+    <string>Manage Stock Items</string>
+   </property>
+  </action>
+  <action name="actionManageItems">
+   <property name="text">
+    <string>Manage Items</string>
+   </property>
+  </action>
+  <action name="actionManageItemCategories">
+   <property name="text">
+    <string>Manage Item Categories</string>
+   </property>
+  </action>
+  <action name="actionManageItemPrices">
+   <property name="text">
+    <string>Manage Item Prices</string>
+   </property>
+  </action>
+  <action name="actionAddBill">
+   <property name="text">
+    <string>Add Bill</string>
+   </property>
+  </action>
+  <action name="actionCurrentBills">
+   <property name="text">
+    <string>Current Bills</string>
+   </property>
+  </action>
  </widget>
- <layoutDefault spacing="6" margin="11" />
- <pixmapfunction></pixmapfunction>
+ <layoutdefault spacing="6" margin="11"/>
  <resources>
-   <include location="esmainwindow.qrc"/>
+  <include location="esmainwindow.qrc"/>
  </resources>
  <connections/>
-</UI>
+</ui>
