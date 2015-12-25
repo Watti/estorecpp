@@ -1,4 +1,5 @@
 #include "esmainwindow.h"
+#include "esloginwidget.h"
 
 ESMainWindow::ESMainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -61,6 +62,8 @@ void ESMainWindow::slotCurrentBills()
 
 void ESMainWindow::slotLogin()
 {
-	close();
+	ESLoginWidget* loginWidget = new ESLoginWidget(this);
+	this->setCentralWidget(loginWidget);
+	loginWidget->show();
 }
 
