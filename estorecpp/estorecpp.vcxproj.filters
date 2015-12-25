@@ -62,6 +62,15 @@
     <ClCompile Include="esdbconnection.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_esmanagestockitems.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_esmanagestockitems.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="esmanagestockitems.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="esmainwindow.h">
@@ -79,6 +88,12 @@
     <CustomBuild Include="esloginwidget.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
+    <CustomBuild Include="managestockitems.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="esmanagestockitems.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GeneratedFiles\ui_esmainwindow.h">
@@ -89,6 +104,9 @@
     </ClInclude>
     <ClInclude Include="esdbconnection.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GeneratedFiles\ui_managestockitems.h">
+      <Filter>Generated Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

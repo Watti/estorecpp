@@ -1,5 +1,6 @@
 #include "esmainwindow.h"
 #include "esloginwidget.h"
+#include "esmanagestockitems.h"
 
 ESMainWindow::ESMainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -32,7 +33,9 @@ ESMainWindow::~ESMainWindow()
 
 void ESMainWindow::slotManageStockItems()
 {
-	close();
+	ESManageStockItems* manageStockItems = new ESManageStockItems(this);
+	this->setCentralWidget(manageStockItems);
+	manageStockItems->show();
 }
 
 void ESMainWindow::slotManageItems()
