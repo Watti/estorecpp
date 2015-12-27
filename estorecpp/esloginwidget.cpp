@@ -27,9 +27,6 @@ void ESLoginWidget::slotLogin()
 	}
 	else
 	{
-		QMessageBox mbox;
-		mbox.setIcon(QMessageBox::Information);
-		mbox.setText(QString("Successfully connected to the database"));
-		mbox.exec();
+		
 	}
 }

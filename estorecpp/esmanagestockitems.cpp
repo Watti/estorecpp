@@ -24,7 +24,9 @@ ESManageStockItems::ESManageStockItems(QWidget *parent /*= 0*/)
 	ui.tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	ui.tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
 	ui.tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
-	
+	ui.prevBtn->setDisabled(true);
+	ui.nextBtn->setDisabled(true);
+
 	// populate with data
 	if (!ES::DbConnection::instance()->open())
 	{

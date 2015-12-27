@@ -10,8 +10,12 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	QMenuBar* rightMenubar = new QMenuBar(ui.menuBar);
 	QMenu* menuLogin = new QMenu("User", rightMenubar);
 
-	QAction* actionLogin = new QAction("Login", menuLogin);
-	menuLogin->addAction(actionLogin);
+	m_actionLogin = new QAction("Login", menuLogin);
+	menuLogin->addAction(m_actionLogin);
+	m_actionProfile = new QAction("Profile", menuLogin);
+	//menuLogin->addAction(m_actionProfile);
+	m_actionLogout = new QAction("Logout", menuLogin);
+	//menuLogin->addAction(m_actionLogout);
 
 	rightMenubar->addMenu(menuLogin);
 	ui.menuBar->setCornerWidget(rightMenubar);
@@ -23,7 +27,7 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	QObject::connect(ui.actionManageItemPrices, SIGNAL(triggered()), this, SLOT(slotManageItemPrices()));
 	QObject::connect(ui.actionAddBill, SIGNAL(triggered()), this, SLOT(slotAddBill()));
 	QObject::connect(ui.actionCurrentBills, SIGNAL(triggered()), this, SLOT(slotCurrentBills()));
-	QObject::connect(actionLogin, SIGNAL(triggered()), this, SLOT(slotLogin()));
+	QObject::connect(m_actionLogin, SIGNAL(triggered()), this, SLOT(slotLogin()));
 }
 
 ESMainWindow::~ESMainWindow()

@@ -23,6 +23,9 @@ public slots:
 
 private:
 	Ui::ESMainWindowClass ui;
+	QAction* m_actionLogin;
+	QAction* m_actionLogout;
+	QAction* m_actionProfile;
 };
 
 #endif // ESMAINWINDOW_H
