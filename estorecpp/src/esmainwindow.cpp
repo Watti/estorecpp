@@ -1,6 +1,7 @@
 #include "esmainwindow.h"
 #include "esloginwidget.h"
 #include "esmanagestockitems.h"
+#include "utility/esmenumanager.h"
 
 ESMainWindow::ESMainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -28,6 +29,32 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	QObject::connect(ui.actionAddBill, SIGNAL(triggered()), this, SLOT(slotAddBill()));
 	QObject::connect(ui.actionCurrentBills, SIGNAL(triggered()), this, SLOT(slotCurrentBills()));
 	QObject::connect(m_actionLogin, SIGNAL(triggered()), this, SLOT(slotLogin()));
+
+	// initialize menu manager
+	ES::MenuManager* mmgr = ES::MenuManager::instance();
+	mmgr->addMenu("Stock", ui.menuStock);
+	mmgr->addMenu("Items", ui.menuItems);
+	mmgr->addMenu("Billing", ui.menuBilling);
+	mmgr->addMenu("Orders", ui.menuOrders);
+	mmgr->addMenu("Reports", ui.menuReports);
+	mmgr->addMenu("Help", ui.menuHelp);
+
+	mmgr->addAction("Manage Stock Items", ui.actionManageStockItems);
+	mmgr->addAction("Manage Items", ui.actionManageItems);
+	mmgr->addAction("Manage Item Categories", ui.actionManageItemCategories);
+	mmgr->addAction("Manage Item Prices", ui.actionManageItemPrices);
+	mmgr->addAction("Add Bill", ui.actionAddBill);
+	mmgr->addAction("Current Bills", ui.actionCurrentBills);
+
+	mmgr->addMenuActionMapping("Stock", "Manage Stock Items");
+	mmgr->addMenuActionMapping("Items", "Manage Items");
+	mmgr->addMenuActionMapping("Items", "Manage Item Categories");
+	mmgr->addMenuActionMapping("Items", "Manage Item Prices");
+	mmgr->addMenuActionMapping("Billing", "Add Bill");
+	mmgr->addMenuActionMapping("Billing", "Current Bills");
+
+	mmgr->disableAll();
+
 }
 
 ESMainWindow::~ESMainWindow()
@@ -72,5 +99,10 @@ void ESMainWindow::slotLogin()
 	ESLoginWidget* loginWidget = new ESLoginWidget(this);
 	this->setCentralWidget(loginWidget);
 	loginWidget->show();
+}
+
+void ESMainWindow::reloadMenus()
+{
+
 }
 

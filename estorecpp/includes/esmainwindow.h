@@ -12,6 +12,8 @@ public:
 	ESMainWindow(QWidget *parent = 0);
 	~ESMainWindow();
 
+	void reloadMenus();
+
 public slots:
 	void slotManageStockItems();
 	void slotManageItems();
