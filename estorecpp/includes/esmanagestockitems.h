@@ -14,6 +14,7 @@ public:
 public slots:
 	void slotUpdate();
 	void slotRemove();
+	void slotSearch(QString text);
 
 private:
 	Ui::ManageStockItems ui;
