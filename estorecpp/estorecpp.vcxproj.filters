@@ -39,6 +39,12 @@
     <Filter Include="Source Files\utility">
       <UniqueIdentifier>{b3f8ab4c-27cd-4641-b778-4a6cfb514c36}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\enities">
+      <UniqueIdentifier>{9cc1b953-0a2d-4129-9f76-59a27ec57b03}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\entities">
+      <UniqueIdentifier>{6b800a71-c8d3-4a0f-94a8-bed79dc0ca01}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\utility\esdbconnection.cpp">
@@ -74,6 +80,12 @@
     <ClCompile Include="GeneratedFiles\Release\moc_esmanagestockitems.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
+    <ClCompile Include="src\utility\session.cpp">
+      <Filter>Source Files\utility</Filter>
+    </ClCompile>
+    <ClCompile Include="src\entities\user.cpp">
+      <Filter>Source Files\entities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="esmainwindow.ui">
@@ -101,6 +113,12 @@
   <ItemGroup>
     <ClInclude Include="includes\utility\esdbconnection.h">
       <Filter>Header Files\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="includes\utility\session.h">
+      <Filter>Header Files\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="includes\entities\user.h">
+      <Filter>Header Files\enities</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
