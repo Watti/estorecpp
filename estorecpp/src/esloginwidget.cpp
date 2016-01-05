@@ -33,7 +33,6 @@ void ESLoginWidget::slotLogin()
 	}
 	else
 	{
-
 		QString uName = ui.usernameText->text();
 		QString pWord = ui.passwordText->text();
 		QString encryptedPWrod = QString(QCryptographicHash::hash((pWord.toStdString().c_str()), QCryptographicHash::Md5).toHex());

@@ -41,6 +41,8 @@ namespace ES
 
 	void MenuManager::reload(QString permissions)
 	{
+		disableAll();
+
 		QStringList allPerms = permissions.split(",");
 		QStringListIterator iter(allPerms);
 
