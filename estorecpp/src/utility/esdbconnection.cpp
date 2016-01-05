@@ -1,4 +1,4 @@
-#include "esdbconnection.h"
+#include "utility/esdbconnection.h"
 
 namespace ES
 {

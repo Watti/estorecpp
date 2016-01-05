@@ -1,5 +1,5 @@
 #include "esmanagestockitems.h"
-#include "esdbconnection.h"
+#include "utility/esdbconnection.h"
 #include <QMessageBox>
 #include <QPushButton>
 
