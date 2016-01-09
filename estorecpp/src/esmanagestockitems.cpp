@@ -29,7 +29,24 @@ ESManageStockItems::ESManageStockItems(QWidget *parent /*= 0*/)
 	ui.nextBtn->setDisabled(true);
 
 	QObject::connect(ui.searchTextBox, SIGNAL(textChanged(QString)), this, SLOT(slotSearch(QString)));
-
+	QObject::connect(ui.categoryComboBox, SIGNAL(activated(QString)), this, SLOT(slotSearch(QString)));
+	if (!ES::DbConnection::instance()->open())
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Critical);
+		mbox.setText(QString("Cannot connect to the database : ESManageStockItems::displayStockItems "));
+		mbox.exec();
+	}
+	else
+	{
+		QSqlQuery queryCategory("SELECT * FROM item_category");
+		QStringList catogory;
+		while (queryCategory.next())
+		{
+			catogory.append(queryCategory.value(2).toString());
+		}
+		ui.categoryComboBox->addItems(catogory);
+	}
 	// populate with data
 	displayStockItems();
 
@@ -87,7 +104,7 @@ void ESManageStockItems::slotSearch(QString text)
 		ui.tableWidget->removeRow(0);
 	}
 
-	QString q = "SELECT * FROM item";
+	QString q = "SELECT * FROM item WHERE deleted = 0";
 
 	if (ui.inStockCheckBox->isChecked())
 	{
@@ -96,12 +113,13 @@ void ESManageStockItems::slotSearch(QString text)
 
 	if (!ui.categoryComboBox->currentText().isEmpty())
 	{
-
+		ui.categoryComboBox->currentText();
 	}
 
 	if (!text.isEmpty())
 	{
-		q.append(" WHERE item_code LIKE '%" + text + "%' OR item_name LIKE '%" + text + "%'");
+		q = "SELECT * FROM item";
+		q.append(" WHERE deleted = 0 AND ( item_code LIKE '%" + text + "%' OR item_name LIKE '%" + text + "%')");
 	}
 
 	QSqlQuery query1(q);
@@ -190,8 +208,7 @@ void ESManageStockItems::displayStockItems()
 	}
 	else
 	{
-
-		QSqlQuery query1("SELECT * FROM item");
+		QSqlQuery query1("SELECT * FROM item WHERE deleted = 0");
 		while (query1.next())
 		{
 			QString itemId = query1.value(0).toString();
@@ -272,3 +289,4 @@ void ESManageStockItems::displayStockItems()
 		}
 	}
 }
+
