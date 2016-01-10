@@ -19,6 +19,7 @@ public:
 	void slotRemove(QString itemId);
 	void slotSearch(QString text);
 	void slotCombo(QString text);
+	void slotInStock(int inStock);
 
 private:
 	Ui::ManageStockItems ui;
@@ -27,7 +28,6 @@ private:
 
 	void displayStockItems();
 	void displayStockTableRow(StockTableRow row, QString itemId, bool inStock = true);
-
 };
 
 #endif

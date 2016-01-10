@@ -30,6 +30,7 @@ ESManageStockItems::ESManageStockItems(QWidget *parent /*= 0*/)
 
 	QObject::connect(ui.searchTextBox, SIGNAL(textChanged(QString)), this, SLOT(slotSearch(QString)));
 	QObject::connect(ui.categoryComboBox, SIGNAL(activated(QString)), this, SLOT(slotCombo(QString)));
+	QObject::connect(ui.inStockCheckBox, SIGNAL(stateChanged(int)), this, SLOT(slotInStock(int)));
 	if (!ES::DbConnection::instance()->open())
 	{
 		QMessageBox mbox;
@@ -104,11 +105,11 @@ void ESManageStockItems::slotSearch(QString text)
 		ui.tableWidget->removeRow(0);
 	}
 
-	if (ui.inStockCheckBox->isChecked())
-	{
-		QString q = "SELECT * FROM item";
-		//TODO
-	}
+// 	if (ui.inStockCheckBox->isChecked())
+// 	{
+// 		QString q = "SELECT * FROM item";
+// 		//TODO
+// 	}
 
 	// 	else if (!ui.categoryComboBox->currentText().isEmpty())
 	// 	{
@@ -116,7 +117,7 @@ void ESManageStockItems::slotSearch(QString text)
 	// 		ui.categoryComboBox->currentText();
 	// 	}
 
-	else if (!text.isEmpty())
+	if (!text.isEmpty())
 	{
 		QString q = "SELECT * FROM item";
 		q.append(" WHERE deleted = 0 AND ( item_code LIKE '%" + text + "%' OR item_name LIKE '%" + text + "%')");
@@ -341,6 +342,71 @@ void ESManageStockItems::slotCombo(QString text)
 			}
 			displayStockTableRow(rowItems, itemId, inStock);
 		}
+	}
+}
+
+void ESManageStockItems::slotInStock(int checked)
+{
+	while (ui.tableWidget->rowCount() > 0)
+	{
+		ui.tableWidget->removeRow(0);
+	}
+
+	if (checked > 0)
+	{
+		if (!ES::DbConnection::instance()->open())
+		{
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Critical);
+			mbox.setText(QString("Cannot connect to the database : ESManageStockItems::slotCombo "));
+			mbox.exec();
+		}
+		else
+		{
+			QString text;
+			QString q("SELECT * FROM item");
+
+			QSqlQuery query(q);
+			while (query.next())
+			{
+				QString itemId = query.value("item_id").toString();
+				QString code = query.value("item_code").toString();
+				QString name = query.value("item_name").toString();
+				QString categoryName = query.value("itemcategory_name").toString();
+				QString description = query.value("description").toString();
+				QString unit = query.value("unit").toString();
+				QString qty = "", minQty = "", unitPrice = "";
+				QSqlQuery query1("SELECT * from item_price WHERE itemprice_id=" + itemId);
+				QStringList rowItems;
+				if (query1.first())
+				{
+					unitPrice = query1.value("unit_price").toString();
+
+					QSqlQuery query2("SELECT * FROM stock WHERE item_id=" + itemId);
+					if (query2.first())
+					{
+						qty = query2.value("qty").toString();
+						minQty = query2.value("min_qty").toString();
+						if ((qty != "" && qty.toInt() > 0) && (minQty != "" && minQty.toInt() > 0))
+						{
+							rowItems.append(code);
+							rowItems.append(name);
+							rowItems.append(categoryName);
+							rowItems.append(qty);
+							rowItems.append(minQty);
+							rowItems.append(unit);
+							rowItems.append(unitPrice);
+							rowItems.append(description);
+							displayStockTableRow(rowItems, itemId, true);
+						}
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		displayStockItems();
 	}
 }
 
