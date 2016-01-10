@@ -76,23 +76,30 @@ void ESManageStockItems::slotRemove(QString itemId)
 	else
 	{
 		QSqlQuery query;
-		int id = itemId.toInt();
-		if (query.exec("UPDATE item SET deleted = 1 WHERE item_id = " + itemId))
-		{
-			while (ui.tableWidget->rowCount() > 0)
-			{
-				ui.tableWidget->removeRow(0);
-			}
-			displayStockItems();
-		}
-		else
-		{
+		int id = itemId.toInt(); 
 
-			QMessageBox mbox;
-			mbox.setIcon(QMessageBox::Warning);
-			mbox.setText(QString("Unable to remove selected item"));
-			mbox.exec();
+ 		if (query.exec("UPDATE stock SET qty = 0, min_qty = 0 WHERE item_id = " + itemId))
+		{
+			QString itemPriceId = query.value("itemprice_id").toString();
+			QString q("UPDATE item_price SET unit_price = 0, discount_type = 0 WHERE itemprice_id = (SELECT itemprice_id from stock where item_id = " + itemId + ")");
+			QSqlQuery query1;
+			if (query1.exec(q))
+			{
+				while (ui.tableWidget->rowCount() > 0)
+				{
+					ui.tableWidget->removeRow(0);
+				}
+				displayStockItems();
+			}
 		}
+// 		else
+// 		{
+// 
+// 			QMessageBox mbox;
+// 			mbox.setIcon(QMessageBox::Warning);
+// 			mbox.setText(QString("Unable to remove selected item"));
+// 			mbox.exec();
+// 		}
 
 	}
 
@@ -227,7 +234,7 @@ void ESManageStockItems::displayStockItems()
 			rowItems.append(query1.value(6).toString());
 			bool inStock = true;
 
-			if (qty == "Not in stock")
+			if (qty == "Not in stock" || (qty.toInt() == 0))
 			{
 				inStock = false;
 			}
@@ -376,19 +383,20 @@ void ESManageStockItems::slotInStock(int checked)
 				QString description = query.value("description").toString();
 				QString unit = query.value("unit").toString();
 				QString qty = "", minQty = "", unitPrice = "";
-				QSqlQuery query1("SELECT * from item_price WHERE itemprice_id=" + itemId);
+				QSqlQuery query1("SELECT * from stock WHERE item_id=" + itemId);
 				QStringList rowItems;
 				if (query1.first())
 				{
-					unitPrice = query1.value("unit_price").toString();
-
-					QSqlQuery query2("SELECT * FROM stock WHERE item_id=" + itemId);
-					if (query2.first())
+					qty = query1.value("qty").toString();
+					minQty = query1.value("min_qty").toString();
+					if ((qty != "" && qty.toInt() > 0) && (minQty != "" && minQty.toInt() > 0))
 					{
-						qty = query2.value("qty").toString();
-						minQty = query2.value("min_qty").toString();
-						if ((qty != "" && qty.toInt() > 0) && (minQty != "" && minQty.toInt() > 0))
+						QString itemPriceId = query1.value("itemprice_id").toString();
+						QSqlQuery query2("SELECT * FROM item_price WHERE itemprice_id=" + itemPriceId);
+						if (query2.first())
 						{
+							unitPrice = query1.value("unit_price").toString();
+
 							rowItems.append(code);
 							rowItems.append(name);
 							rowItems.append(categoryName);
@@ -400,6 +408,25 @@ void ESManageStockItems::slotInStock(int checked)
 							displayStockTableRow(rowItems, itemId, true);
 						}
 					}
+
+// 					QSqlQuery query2("SELECT * FROM stock WHERE item_id=" + itemId);
+// 					if (query2.first())
+// 					{
+// 						qty = query2.value("qty").toString();
+// 						minQty = query2.value("min_qty").toString();
+// 						if ((qty != "" && qty.toInt() > 0) && (minQty != "" && minQty.toInt() > 0))
+// 						{
+// 							rowItems.append(code);
+// 							rowItems.append(name);
+// 							rowItems.append(categoryName);
+// 							rowItems.append(qty);
+// 							rowItems.append(minQty);
+// 							rowItems.append(unit);
+// 							rowItems.append(unitPrice);
+// 							rowItems.append(description);
+// 							displayStockTableRow(rowItems, itemId, true);
+// 						}
+// 					}
 				}
 			}
 		}
