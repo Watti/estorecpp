@@ -15,7 +15,7 @@ public:
 	~ESManageStockItems();
 
 	public slots:
-	void slotUpdate();
+	void slotUpdate(QString itemId);
 	void slotRemove(QString itemId);
 	void slotSearch(QString text);
 	void slotCombo(QString text);
@@ -23,8 +23,8 @@ public:
 
 private:
 	Ui::ManageStockItems ui;
-	QStandardItemModel* m_model;
-	QSignalMapper m_buttonSignalMapper;
+	QSignalMapper* m_updateButtonSignalMapper;
+	QSignalMapper* m_removeButtonSignalMapper;
 
 	void displayStockItems();
 	void displayStockTableRow(StockTableRow row, QString itemId, bool inStock = true);

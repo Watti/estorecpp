@@ -8,6 +8,11 @@ ESManageStockItems::ESManageStockItems(QWidget *parent /*= 0*/)
 : QWidget(parent)
 {
 	ui.setupUi(this);
+	m_updateButtonSignalMapper = new QSignalMapper(this);
+	m_removeButtonSignalMapper = new QSignalMapper(this);
+
+	QObject::connect(m_updateButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotUpdate(QString)));
+	QObject::connect(m_removeButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotRemove(QString)));
 
 	QStringList headerLabels;
 	headerLabels.append("Item Code");
@@ -22,6 +27,7 @@ ESManageStockItems::ESManageStockItems(QWidget *parent /*= 0*/)
 
 	ui.tableWidget->setHorizontalHeaderLabels(headerLabels);
 	ui.tableWidget->horizontalHeader()->setStretchLastSection(true);
+	ui.tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 	ui.tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	ui.tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
 	ui.tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -58,13 +64,20 @@ ESManageStockItems::~ESManageStockItems()
 
 }
 
-void ESManageStockItems::slotUpdate()
+void ESManageStockItems::slotUpdate(QString itemId)
 {
-
+	QMessageBox mbox;
+	mbox.setIcon(QMessageBox::Critical);
+	mbox.setText(QString("slotUpdate : ") + itemId);
+	mbox.exec();
 }
 
 void ESManageStockItems::slotRemove(QString itemId)
 {
+	QMessageBox mbox;
+	mbox.setIcon(QMessageBox::Critical);
+	mbox.setText(QString("slotRemove : ") + itemId);
+	mbox.exec();
 
 	if (!ES::DbConnection::instance()->open())
 	{
@@ -92,14 +105,6 @@ void ESManageStockItems::slotRemove(QString itemId)
 				displayStockItems();
 			}
 		}
-// 		else
-// 		{
-// 
-// 			QMessageBox mbox;
-// 			mbox.setIcon(QMessageBox::Warning);
-// 			mbox.setText(QString("Unable to remove selected item"));
-// 			mbox.exec();
-// 		}
 
 	}
 
@@ -111,18 +116,6 @@ void ESManageStockItems::slotSearch(QString text)
 	{
 		ui.tableWidget->removeRow(0);
 	}
-
-// 	if (ui.inStockCheckBox->isChecked())
-// 	{
-// 		QString q = "SELECT * FROM item";
-// 		//TODO
-// 	}
-
-	// 	else if (!ui.categoryComboBox->currentText().isEmpty())
-	// 	{
-	// 		//TODO move this to somewhere else otherwise when having search text and combo value result cannot be defined
-	// 		ui.categoryComboBox->currentText();
-	// 	}
 
 	if (!text.isEmpty())
 	{
@@ -275,11 +268,11 @@ void ESManageStockItems::displayStockTableRow(StockTableRow rowContent, QString 
 		QPushButton* removeBtn = new QPushButton("Remove", base);
 		removeBtn->setMaximumWidth(100);
 
+		m_updateButtonSignalMapper->setMapping(updateBtn, itemId);
+		QObject::connect(updateBtn, SIGNAL(clicked()), m_updateButtonSignalMapper, SLOT(map()));
 
-		connect(removeBtn, SIGNAL(clicked()), &m_buttonSignalMapper, SLOT(map()));
-		m_buttonSignalMapper.setMapping(removeBtn, itemId);
-		connect(&m_buttonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotRemove(QString)));
-
+		QObject::connect(removeBtn, SIGNAL(clicked()), m_removeButtonSignalMapper, SLOT(map()));
+		m_removeButtonSignalMapper->setMapping(removeBtn, itemId);
 
 		QHBoxLayout *layout = new QHBoxLayout;
 		layout->setContentsMargins(0, 0, 0, 0);

@@ -1,6 +1,9 @@
 #include "esmainwindow.h"
 #include "esloginwidget.h"
 #include "esmanagestockitems.h"
+#include "esitemcategories.h"
+#include "esmanageitems.h"
+#include "esitemprices.h"
 #include "utility/esmenumanager.h"
 
 ESMainWindow::ESMainWindow(QWidget *parent)
@@ -40,9 +43,23 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	mmgr->addMenu("Help", ui.menuHelp);
 
 	mmgr->addAction("Manage Stock Items", ui.actionManageStockItems);
+	ui.actionManageStockItems->setIcon(QIcon("icons/manage_store.png"));
+	ui.mainToolBar->addAction(ui.actionManageStockItems);
+	ui.mainToolBar->addSeparator();
+
+	ui.mainToolBar->setMinimumSize(40, 40);
+
 	mmgr->addAction("Manage Items", ui.actionManageItems);
+	ui.actionManageItems->setIcon(QIcon("icons/manage_items.png"));
+	ui.mainToolBar->addAction(ui.actionManageItems);
 	mmgr->addAction("Manage Item Categories", ui.actionManageItemCategories);
+	ui.actionManageItemCategories->setIcon(QIcon("icons/manage_item_categories.png"));
+	ui.mainToolBar->addAction(ui.actionManageItemCategories);
 	mmgr->addAction("Manage Item Prices", ui.actionManageItemPrices);
+	ui.actionManageItemPrices->setIcon(QIcon("icons/manage_item_prices.png"));
+	ui.mainToolBar->addAction(ui.actionManageItemPrices);
+	ui.mainToolBar->addSeparator();
+
 	mmgr->addAction("Add Bill", ui.actionAddBill);
 	mmgr->addAction("Current Bills", ui.actionCurrentBills);
 
@@ -71,17 +88,23 @@ void ESMainWindow::slotManageStockItems()
 
 void ESMainWindow::slotManageItems()
 {
-	close();
+	ESManageItems* manageItems = new ESManageItems(this);
+	this->setCentralWidget(manageItems);
+	manageItems->show();
 }
 
 void ESMainWindow::slotManageItemCategories()
 {
-	close();
+	ESItemCategories* itemCategories = new ESItemCategories(this);
+	this->setCentralWidget(itemCategories);
+	itemCategories->show();
 }
 
 void ESMainWindow::slotManageItemPrices()
 {
-	close();
+	ESItemPrices* itemPrices = new ESItemPrices(this);
+	this->setCentralWidget(itemPrices);
+	itemPrices->show();
 }
 
 void ESMainWindow::slotAddBill()

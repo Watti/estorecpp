@@ -45,6 +45,9 @@
     <Filter Include="Source Files\entities">
       <UniqueIdentifier>{6b800a71-c8d3-4a0f-94a8-bed79dc0ca01}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Icons">
+      <UniqueIdentifier>{63054135-f1dc-40e3-9bc9-81ba6613f924}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\utility\esdbconnection.cpp">
@@ -89,6 +92,33 @@
     <ClCompile Include="src\entities\user.cpp">
       <Filter>Source Files\entities</Filter>
     </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_esitemcategories.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_esitemcategories.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="src\esitemcategories.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_esmanageitems.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="src\esmanageitems.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_esmanageitems.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_esitemprices.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_esitemprices.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="src\esitemprices.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="esmainwindow.ui">
@@ -112,6 +142,24 @@
     <CustomBuild Include="includes\esmanagestockitems.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
+    <CustomBuild Include="itemcategories.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="itemprices.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="manageitems.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="includes\esitemcategories.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="includes\esmanageitems.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="includes\esitemprices.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="includes\utility\esdbconnection.h">
@@ -126,5 +174,28 @@
     <ClInclude Include="includes\entities\user.h">
       <Filter>Header Files\enities</Filter>
     </ClInclude>
+    <ClInclude Include="GeneratedFiles\ui_itemcategories.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GeneratedFiles\ui_itemprices.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GeneratedFiles\ui_manageitems.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="icons\manage_item_categories.png">
+      <Filter>Icons</Filter>
+    </Image>
+    <Image Include="icons\manage_item_prices.png">
+      <Filter>Icons</Filter>
+    </Image>
+    <Image Include="icons\manage_items.png">
+      <Filter>Icons</Filter>
+    </Image>
+    <Image Include="icons\manage_store.png">
+      <Filter>Icons</Filter>
+    </Image>
   </ItemGroup>
 </Project>
