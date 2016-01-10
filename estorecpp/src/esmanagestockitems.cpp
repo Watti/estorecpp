@@ -29,7 +29,7 @@ ESManageStockItems::ESManageStockItems(QWidget *parent /*= 0*/)
 	ui.nextBtn->setDisabled(true);
 
 	QObject::connect(ui.searchTextBox, SIGNAL(textChanged(QString)), this, SLOT(slotSearch(QString)));
-	QObject::connect(ui.categoryComboBox, SIGNAL(activated(QString)), this, SLOT(slotSearch(QString)));
+	QObject::connect(ui.categoryComboBox, SIGNAL(activated(QString)), this, SLOT(slotCombo(QString)));
 	if (!ES::DbConnection::instance()->open())
 	{
 		QMessageBox mbox;
@@ -107,15 +107,16 @@ void ESManageStockItems::slotSearch(QString text)
 	if (ui.inStockCheckBox->isChecked())
 	{
 		QString q = "SELECT * FROM item";
-		
+		//TODO
 	}
 
-	if (!ui.categoryComboBox->currentText().isEmpty())
-	{
-		ui.categoryComboBox->currentText();
-	}
+	// 	else if (!ui.categoryComboBox->currentText().isEmpty())
+	// 	{
+	// 		//TODO move this to somewhere else otherwise when having search text and combo value result cannot be defined
+	// 		ui.categoryComboBox->currentText();
+	// 	}
 
-	if (!text.isEmpty())
+	else if (!text.isEmpty())
 	{
 		QString q = "SELECT * FROM item";
 		q.append(" WHERE deleted = 0 AND ( item_code LIKE '%" + text + "%' OR item_name LIKE '%" + text + "%')");
@@ -184,14 +185,14 @@ void ESManageStockItems::displayStockItems()
 	}
 	else
 	{
-		QSqlQuery query1("SELECT * FROM item WHERE deleted = 0");
-		
+		QSqlQuery query1("SELECT * FROM item");
+
 		while (query1.next())
 		{
 			QStringList rowItems;
 			QString itemId = query1.value(0).toString();
 			QString itemCategoryId = query1.value(1).toString();
-			bool deleted = query1.value(7).toBool();
+			/*bool deleted = query1.value(7).toBool();*/
 
 			rowItems.append(query1.value(2).toString());
 			rowItems.append(query1.value(3).toString());
@@ -225,7 +226,7 @@ void ESManageStockItems::displayStockItems()
 			rowItems.append(query1.value(6).toString());
 			bool inStock = true;
 
-			if (qty == "Not in stock" && !deleted)
+			if (qty == "Not in stock")
 			{
 				inStock = false;
 			}
@@ -280,6 +281,66 @@ void ESManageStockItems::displayStockTableRow(StockTableRow rowContent, QString 
 		base->setLayout(layout);
 		ui.tableWidget->setCellWidget(row, i, base);
 		base->show();
+	}
+}
+
+void ESManageStockItems::slotCombo(QString text)
+{
+	while (ui.tableWidget->rowCount() > 0)
+	{
+		ui.tableWidget->removeRow(0);
+	}
+	if (!ES::DbConnection::instance()->open())
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Critical);
+		mbox.setText(QString("Cannot connect to the database : ESManageStockItems::slotCombo "));
+		mbox.exec();
+	}
+	else
+	{
+		QString q("SELECT * FROM item, item_category WHERE item.itemcategory_id = item_category.itemcategory_id AND item_category.itemcategory_name = '" + text + "'");
+
+		QSqlQuery query(q);
+		while (query.next())
+		{
+			QStringList rowItems;
+			QString itemId = query.value("item_id").toString();
+			QString code = query.value("item_code").toString();
+			QString name = query.value("item_name").toString();
+			QString categoryName = query.value("itemcategory_name").toString();
+			QString description = query.value("description").toString();
+			QString unit = query.value("unit").toString();
+			QString qty = "", minQty = "", unitPrice = "";
+			QSqlQuery query1("SELECT * from item_price WHERE itemprice_id=" + itemId);
+			if (query1.first())
+			{
+				unitPrice = query1.value("unit_price").toString();
+
+				QSqlQuery query2("SELECT * FROM stock WHERE item_id=" + itemId);
+				if (query2.first())
+				{
+					qty = query2.value("qty").toString();
+					minQty = query2.value("min_qty").toString();
+				}
+			}
+
+			rowItems.append(code);
+			rowItems.append(name);
+			rowItems.append(categoryName);
+			rowItems.append(qty);
+			rowItems.append(minQty);
+			rowItems.append(unit);
+			rowItems.append(unitPrice);
+			rowItems.append(description);
+			bool inStock = true;
+
+			if (qty == "")
+			{
+				inStock = false;
+			}
+			displayStockTableRow(rowItems, itemId, inStock);
+		}
 	}
 }
 

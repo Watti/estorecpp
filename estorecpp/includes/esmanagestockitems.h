@@ -14,10 +14,11 @@ public:
 
 	~ESManageStockItems();
 
-public slots:
+	public slots:
 	void slotUpdate();
 	void slotRemove(QString itemId);
 	void slotSearch(QString text);
+	void slotCombo(QString text);
 
 private:
 	Ui::ManageStockItems ui;
