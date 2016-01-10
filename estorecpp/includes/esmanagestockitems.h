@@ -17,7 +17,7 @@ public:
 	public slots:
 	void slotUpdate();
 	void slotRemove(QString itemId);
-	void slotSearch(QString text);
+	void slotSearch();
 	void slotCombo(QString text);
 	void slotInStock(int inStock);
 
