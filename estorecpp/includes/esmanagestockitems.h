@@ -9,6 +9,7 @@ class ESManageStockItems : public QWidget
 	Q_OBJECT
 
 public:
+	typedef QStringList StockTableRow;
 	ESManageStockItems(QWidget *parent = 0);
 
 	~ESManageStockItems();
@@ -19,11 +20,12 @@ public slots:
 	void slotSearch(QString text);
 
 private:
-
-	void displayStockItems();
 	Ui::ManageStockItems ui;
 	QStandardItemModel* m_model;
 	QSignalMapper m_buttonSignalMapper;
+
+	void displayStockItems();
+	void displayStockTableRow(StockTableRow row, QString itemId, bool inStock = true);
 
 };
 
