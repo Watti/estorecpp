@@ -71,10 +71,11 @@ ESManageStockItems::~ESManageStockItems()
 
 void ESManageStockItems::slotUpdate(QString itemId)
 {
-	QMessageBox mbox;
-	mbox.setIcon(QMessageBox::Critical);
-	mbox.setText(QString("slotUpdate : ") + itemId);
-	mbox.exec();
+	AddStockItem* addStockItem = new AddStockItem(this);
+	addStockItem->getUI().groupBox->setTitle("Update Stock Item");
+	addStockItem->getUI().itemIDLabel->setText(itemId);
+	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(addStockItem);
+	addStockItem->show();
 }
 
 void ESManageStockItems::slotRemove(QString itemId)
@@ -536,6 +537,8 @@ void ESManageStockItems::slotInStock(int checked)
 void ESManageStockItems::slotAddToStock(QString itemId)
 {
 	AddStockItem* addStockItem = new AddStockItem(this);
+	addStockItem->getUI().groupBox->setTitle("Add Stock Item");
+	addStockItem->getUI().itemIDLabel->setText(itemId);
 	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(addStockItem);
 	addStockItem->show();
 }

@@ -131,6 +131,15 @@
     <ClCompile Include="src\utility\esmainwindowholder.cpp">
       <Filter>Source Files\utility</Filter>
     </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_esadditem.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="src\esadditem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_esadditem.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="esmainwindow.ui">
@@ -178,6 +187,12 @@
     <CustomBuild Include="addstockitem.ui">
       <Filter>Form Files</Filter>
     </CustomBuild>
+    <CustomBuild Include="includes\esadditem.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="additemwidget.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="includes\utility\esdbconnection.h">
@@ -206,6 +221,9 @@
     </ClInclude>
     <ClInclude Include="includes\utility\esmainwindowholder.h">
       <Filter>Header Files\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="GeneratedFiles\ui_additemwidget.h">
+      <Filter>Generated Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

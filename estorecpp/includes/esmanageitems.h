@@ -14,8 +14,8 @@ public:
 
 	public slots:
 	void slotAddNewItem();
-	void slotUpdate(QString itemCategoryId);
-	void slotRemove(QString itemCategoryId);
+	void slotUpdate(QString itemId);
+	void slotRemove(QString itemId);
 
 private:
 	Ui::ManageItems ui;

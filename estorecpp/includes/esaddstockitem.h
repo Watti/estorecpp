@@ -12,6 +12,8 @@ public:
 	AddStockItem(QWidget *parent = 0);
 	~AddStockItem();
 
+	Ui::AddStockItem& getUI() { return ui; };
+
 	public slots:
 	void slotAddStockItem();
 

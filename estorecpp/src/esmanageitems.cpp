@@ -1,4 +1,6 @@
 #include "esmanageitems.h"
+#include "esadditem.h"
+#include "utility/esmainwindowholder.h"
 #include "utility/esdbconnection.h"
 #include <QMessageBox>
 #include <QPushButton>
@@ -56,23 +58,26 @@ ESManageItems::~ESManageItems()
 
 void ESManageItems::slotAddNewItem()
 {
-	int row = ui.tableWidget->rowCount();
-	ui.tableWidget->insertRow(row);
+	AddItem* addItem = new AddItem(this);
+	addItem->getUI().groupBox->setTitle("Add Item");
+	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(addItem);
+	addItem->show();
 }
 
-void ESManageItems::slotUpdate(QString itemCategoryId)
+void ESManageItems::slotUpdate(QString itemId)
+{
+	AddItem* addItem = new AddItem(this);
+	addItem->getUI().groupBox->setTitle("Update Item");
+	addItem->getUI().itemCode->setText(itemId);
+	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(addItem);
+	addItem->show();
+}
+
+void ESManageItems::slotRemove(QString itemId)
 {
 	QMessageBox mbox;
 	mbox.setIcon(QMessageBox::Critical);
-	mbox.setText(QString("slotUpdate : ") + itemCategoryId);
-	mbox.exec();
-}
-
-void ESManageItems::slotRemove(QString itemCategoryId)
-{
-	QMessageBox mbox;
-	mbox.setIcon(QMessageBox::Critical);
-	mbox.setText(QString("slotRemove : ") + itemCategoryId);
+	mbox.setText(QString("slotRemove : ") + itemId);
 	mbox.exec();
 }
 
