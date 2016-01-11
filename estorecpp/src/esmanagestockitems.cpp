@@ -1,5 +1,7 @@
 #include "esmanagestockitems.h"
+#include "esaddstockitem.h"
 #include "utility/esdbconnection.h"
+#include "utility/esmainwindowholder.h"
 #include <QMessageBox>
 #include <QPushButton>
 
@@ -10,9 +12,11 @@ ESManageStockItems::ESManageStockItems(QWidget *parent /*= 0*/)
 	ui.setupUi(this);
 	m_updateButtonSignalMapper = new QSignalMapper(this);
 	m_removeButtonSignalMapper = new QSignalMapper(this);
+	m_addToStockButtonSignalMapper = new QSignalMapper(this);
 
 	QObject::connect(m_updateButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotUpdate(QString)));
 	QObject::connect(m_removeButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotRemove(QString)));
+	QObject::connect(m_addToStockButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotAddToStock(QString)));
 
 	QStringList headerLabels;
 	headerLabels.append("Item Code");
@@ -345,6 +349,10 @@ void ESManageStockItems::displayStockTableRow(StockTableRow rowContent, QString 
 	{
 		QWidget* base = new QWidget(ui.tableWidget);
 		QPushButton* addToStockBtn = new QPushButton("Add To Stock", base);
+
+		m_addToStockButtonSignalMapper->setMapping(addToStockBtn, itemId);
+		QObject::connect(addToStockBtn, SIGNAL(clicked()), m_addToStockButtonSignalMapper, SLOT(map()));
+
 		addToStockBtn->setMaximumWidth(120);
 		addToStockBtn->setMinimumWidth(120);
 		QHBoxLayout *layout = new QHBoxLayout;
@@ -523,5 +531,12 @@ void ESManageStockItems::slotInStock(int checked)
 	{
 		displayStockItems();
 	}
+}
+
+void ESManageStockItems::slotAddToStock(QString itemId)
+{
+	AddStockItem* addStockItem = new AddStockItem(this);
+	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(addStockItem);
+	addStockItem->show();
 }
 
