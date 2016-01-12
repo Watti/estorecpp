@@ -69,6 +69,7 @@ void ESManageItems::slotUpdate(QString itemId)
 	AddItem* addItem = new AddItem(this);
 	addItem->getUI().groupBox->setTitle("Update Item");
 	addItem->getUI().itemCode->setText(itemId);
+	addItem->getUI().itemCode->setDisabled(true);
 	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(addItem);
 	addItem->show();
 }

@@ -1,4 +1,6 @@
 #include "esitemcategories.h"
+#include "esadditemcategory.h"
+#include "utility/esmainwindowholder.h"
 #include "utility/esdbconnection.h"
 #include <QMessageBox>
 #include <QPushButton>
@@ -51,16 +53,20 @@ ESItemCategories::~ESItemCategories()
 
 void ESItemCategories::slotAddNewCategory()
 {
-	int row = ui.tableWidget->rowCount();
-	ui.tableWidget->insertRow(row);
+	AddItemCategory* addItemCategory = new AddItemCategory(this);
+	addItemCategory->getUI().groupBox->setTitle("Add Item Category");
+	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(addItemCategory);
+	addItemCategory->show();
 }
 
 void ESItemCategories::slotUpdate(QString itemCategoryId)
 {
-	QMessageBox mbox;
-	mbox.setIcon(QMessageBox::Critical);
-	mbox.setText(QString("slotUpdate : ") + itemCategoryId);
-	mbox.exec();
+	AddItemCategory* addItemCategory = new AddItemCategory(this);
+	addItemCategory->getUI().groupBox->setTitle("Update Item Category");
+	addItemCategory->getUI().itemCategoryCode->setText(itemCategoryId);
+	addItemCategory->getUI().itemCategoryCode->setDisabled(true);
+	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(addItemCategory);
+	addItemCategory->show();
 }
 
 void ESItemCategories::slotRemove(QString itemCategoryId)

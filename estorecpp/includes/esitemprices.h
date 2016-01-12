@@ -14,8 +14,8 @@ public:
 
 	public slots:
 	void slotAddNewItemPrice();
-	void slotUpdate(QString itemCategoryId);
-	void slotRemove(QString itemCategoryId);
+	void slotUpdate(QString itemPriceId);
+	void slotRemove(QString itemPriceId);
 
 private:
 	Ui::ItemPrices ui;

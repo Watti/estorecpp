@@ -1,4 +1,6 @@
 #include "esitemprices.h"
+#include "esadditemprice.h"
+#include "utility/esmainwindowholder.h"
 #include "utility/esdbconnection.h"
 #include <QMessageBox>
 #include <QPushButton>
@@ -51,23 +53,27 @@ ESItemPrices::~ESItemPrices()
 
 void ESItemPrices::slotAddNewItemPrice()
 {
-	int row = ui.tableWidget->rowCount();
-	ui.tableWidget->insertRow(row);
+	AddItemPrice* addItemPrice = new AddItemPrice(this);
+	addItemPrice->getUI().groupBox->setTitle("Add Item Price");
+	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(addItemPrice);
+	addItemPrice->show();
 }
 
-void ESItemPrices::slotUpdate(QString itemCategoryId)
+void ESItemPrices::slotUpdate(QString itemPriceId)
+{
+	AddItemPrice* addItemPrice = new AddItemPrice(this);
+	addItemPrice->getUI().groupBox->setTitle("Update Item Price");
+	addItemPrice->getUI().itemPriceCode->setText(itemPriceId);
+	addItemPrice->getUI().itemPriceCode->setDisabled(true);
+	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(addItemPrice);
+	addItemPrice->show();
+}
+
+void ESItemPrices::slotRemove(QString itemPriceId)
 {
 	QMessageBox mbox;
 	mbox.setIcon(QMessageBox::Critical);
-	mbox.setText(QString("slotUpdate : ") + itemCategoryId);
-	mbox.exec();
-}
-
-void ESItemPrices::slotRemove(QString itemCategoryId)
-{
-	QMessageBox mbox;
-	mbox.setIcon(QMessageBox::Critical);
-	mbox.setText(QString("slotRemove : ") + itemCategoryId);
+	mbox.setText(QString("slotRemove : ") + itemPriceId);
 	mbox.exec();
 }
 
