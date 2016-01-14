@@ -59,9 +59,10 @@ ESManageStockItems::ESManageStockItems(QWidget *parent /*= 0*/)
 			catogory.append(queryCategory.value(2).toString());
 		}
 		ui.categoryComboBox->addItems(catogory);
-	}
-	// populate with data
-	displayStockItems();
+		
+		// populate with data
+		displayStockItems();
+	}	
 
 }
 
