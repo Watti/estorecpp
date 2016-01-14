@@ -264,6 +264,7 @@
     <ClInclude Include="GeneratedFiles\ui_itemprices.h" />
     <ClInclude Include="GeneratedFiles\ui_manageitems.h" />
     <ClInclude Include="includes\entities\user.h" />
+    <ClInclude Include="includes\utility\utility.h" />
     <CustomBuild Include="includes\esitemcategories.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing esitemcategories.h...</Message>

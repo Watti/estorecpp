@@ -261,6 +261,9 @@
     <ClInclude Include="GeneratedFiles\ui_additempricewidget.h">
       <Filter>Generated Files</Filter>
     </ClInclude>
+    <ClInclude Include="includes\utility\utility.h">
+      <Filter>Header Files\utility</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="icons\manage_item_categories.png">
