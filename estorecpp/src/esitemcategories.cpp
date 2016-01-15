@@ -63,8 +63,15 @@ void ESItemCategories::slotUpdate(QString itemCategoryId)
 {
 	AddItemCategory* addItemCategory = new AddItemCategory(this);
 	addItemCategory->getUI().groupBox->setTitle("Update Item Category");
-	addItemCategory->getUI().itemCategoryCode->setText(itemCategoryId);
-	addItemCategory->getUI().itemCategoryCode->setDisabled(true);
+	QSqlQuery queryCategory("SELECT itemcategory_code, 	itemcategory_name, description FROM item_category WHERE itemcategory_id ="+itemCategoryId);
+	while (queryCategory.next())
+	{
+		addItemCategory->getUI().itemCategoryCode->setText(queryCategory.value(0).toString());
+		addItemCategory->getUI().itemCategoryName->setText(queryCategory.value(1).toString());
+		addItemCategory->getUI().description->setText(queryCategory.value(2).toString());
+		addItemCategory->setCategoryId(itemCategoryId);
+	}
+	addItemCategory->getUI().addItemCategoryButton->setText("Update");
 	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(addItemCategory);
 	addItemCategory->show();
 }

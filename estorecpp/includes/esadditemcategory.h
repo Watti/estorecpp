@@ -17,9 +17,13 @@ public:
 
 	public slots:
 	void slotAddItemCategory();
+	void slotUpdateItemCategory();
+	void slotRemoveItemCategory();
+	void setCategoryId(QString val);
 
 private:
 	Ui::AddItemCategoryWidget ui;
+	QString m_id;
 };
 
 #endif
