@@ -195,29 +195,35 @@ void ESManageItems::slotSearch()
 	}
 
 	QString searchQuery = "SELECT * FROM item ";
-	bool useAnd = false;
+	bool categorySelected = false;
 	if (categoryId != -1)
 	{
-		searchQuery.append(" WHERE itemcategory_id = ");
+		searchQuery.append(" WHERE deleted =0 AND itemcategory_id = ");
 		QString catId;
 		catId.setNum(categoryId);
 		searchQuery.append(catId);
-		useAnd = true;
+		categorySelected = true;
 	}
 
 	if (!searchText.isEmpty())
 	{
-		if (useAnd)
+		if (categorySelected)
 		{
 			searchQuery.append(" AND ");
 		}
 		else
 		{
-			searchQuery.append(" WHERE ");
+			searchQuery.append(" WHERE deleted = 0 AND ");
 		}
 		searchQuery.append(" (item_code LIKE '%" + searchText + "%' OR item_name LIKE '%" + searchText + "%')");
 	}
-
+	else
+	{
+		if (!categorySelected)
+		{
+			searchQuery.append(" WHERE deleted = 0");
+		}
+	}
 	ui.tableWidget->setSortingEnabled(false);
 	QSqlQuery queryItems(searchQuery);
 	displayItems(queryItems);
