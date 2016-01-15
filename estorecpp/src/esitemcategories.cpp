@@ -92,21 +92,6 @@ void ESItemCategories::slotRemove(QString itemCategoryId)
 			displayCategories();
 		}
 	}
-// 	QMessageBox::StandardButton reply;
-// 	reply = QMessageBox::question(this, "EStore ", "Do you really want to remove this?",
-// 		QMessageBox::Yes | QMessageBox::No);
-// 	if (reply == QMessageBox::Yes) {
-// 		QSqlQuery q;
-// 		QString str("UPDATE item_category SET deleted = 1 WHERE itemcategory_id = " + itemCategoryId);
-// 		if (q.exec(str))
-// 		{
-// 			while (ui.tableWidget->rowCount() > 0)
-// 			{
-// 				ui.tableWidget->removeRow(0);
-// 			}
-// 			displayCategories();
-// 		}
-// 	}
 }
 
 void ESItemCategories::displayCategories()

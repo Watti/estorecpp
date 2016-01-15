@@ -4,6 +4,7 @@
 #include "utility/esdbconnection.h"
 #include <QMessageBox>
 #include <QPushButton>
+#include "utility/utility.h"
 
 
 ESManageItems::ESManageItems(QWidget *parent /*= 0*/)
@@ -103,10 +104,20 @@ void ESManageItems::slotUpdate(QString itemId)
 
 void ESManageItems::slotRemove(QString itemId)
 {
-	QMessageBox mbox;
-	mbox.setIcon(QMessageBox::Critical);
-	mbox.setText(QString("slotRemove : ") + itemId);
-	mbox.exec();
+	if (ES::Utility::verifyUsingMessageBox(this, "EStore", "Do you really want to remove this?"))
+	{
+		QString str("UPDATE item SET deleted = 1 WHERE item_id = " + itemId);
+		QSqlQuery q;
+		if (q.exec(str))
+		{
+			while (ui.tableWidget->rowCount() > 0)
+			{
+				ui.tableWidget->removeRow(0);
+			}
+			QSqlQuery displayQuery("SELECT * from Item WHERE deleted = 0");
+			displayItems(displayQuery);
+		}
+	}
 }
 
 void ESManageItems::displayItems(QSqlQuery& queryItems)
