@@ -53,7 +53,7 @@ ESManageStockItems::ESManageStockItems(QWidget *parent /*= 0*/)
 	{
 		QSqlQuery queryCategory("SELECT * FROM item_category");
 		QStringList catogory;
-		catogory.append("select");
+		catogory.append(DEFAULT_DB_COMBO_VALUE);
 		while (queryCategory.next())
 		{
 			catogory.append(queryCategory.value(2).toString());
@@ -139,7 +139,7 @@ void ESManageStockItems::slotSearch()
 		if (!ui.categoryComboBox->currentText().isEmpty())
 		{
 			selectedCategory = ui.categoryComboBox->currentText();
-			if (selectedCategory != "select")
+			if (selectedCategory != DEFAULT_DB_COMBO_VALUE)
 			{
 				comboSelected = true;
 			}
@@ -205,7 +205,7 @@ void ESManageStockItems::slotSearch()
 		if (!ui.categoryComboBox->currentText().isEmpty())
 		{
 			selectedCategory = ui.categoryComboBox->currentText();
-			if (selectedCategory != "select")
+			if (selectedCategory != DEFAULT_DB_COMBO_VALUE)
 			{
 				comboSelected = true;
 			}

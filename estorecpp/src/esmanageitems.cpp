@@ -82,15 +82,21 @@ void ESManageItems::slotUpdate(QString itemId)
 {
 	AddItem* addItem = new AddItem(this);
 	addItem->getUI().groupBox->setTitle("Update Item");
+	addItem->getUI().addButton->setText("Update");
 	QSqlQuery queryItem("SELECT * FROM item WHERE item_id = " + itemId);
 	if (queryItem.next())
 	{
-		int categoryId = queryItem.value(1).toInt();
+		int categoryId = queryItem.value("itemcategory_id").toInt();
 		int index = addItem->getUI().itemCategoryComboBox->findData(categoryId);
 		addItem->getUI().itemCategoryComboBox->setCurrentIndex(index);
-		addItem->getUI().itemCode->setText(queryItem.value(2).toString());
-		addItem->getUI().itemCode->setDisabled(true);
+		addItem->getUI().itemCode->setText(queryItem.value("item_code").toString());
+		addItem->getUI().barCode->setText(queryItem.value("bar_code").toString());
+		addItem->getUI().unitText->setText(queryItem.value("unit").toString());
+		addItem->getUI().descriptionText->setText(queryItem.value("description").toString());
+		addItem->getUI().itemName->setText(queryItem.value("item_name").toString());
 	}
+	addItem->setUpdate(true);
+	addItem->setItemId(itemId);
 	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(addItem);
 	addItem->show();
 }
@@ -103,7 +109,7 @@ void ESManageItems::slotRemove(QString itemId)
 	mbox.exec();
 }
 
-void ESManageItems::displayStockItems(QSqlQuery& queryItems)
+void ESManageItems::displayItems(QSqlQuery& queryItems)
 {
 	int row = 0;
 	while (queryItems.next())
@@ -203,6 +209,6 @@ void ESManageItems::slotSearch()
 
 	ui.tableWidget->setSortingEnabled(false);
 	QSqlQuery queryItems(searchQuery);
-	displayStockItems(queryItems);
+	displayItems(queryItems);
 	ui.tableWidget->setSortingEnabled(true);
 }

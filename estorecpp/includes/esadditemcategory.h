@@ -18,12 +18,14 @@ public:
 	public slots:
 	void slotAddItemCategory();
 	void slotUpdateItemCategory();
-	void slotRemoveItemCategory();
 	void setCategoryId(QString val);
+	bool isUpdate() const;
+	void setUpdate(bool val);
 
 private:
 	Ui::AddItemCategoryWidget ui;
 	QString m_id;
+	bool m_isUpdate;
 };
 
 #endif

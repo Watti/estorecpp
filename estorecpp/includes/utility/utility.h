@@ -6,7 +6,7 @@
 
 
 static const QString DEFAULT_DB_NUMERICAL_TO_DISPLAY = "0";
-
+static const QString DEFAULT_DB_COMBO_VALUE = "select";
 namespace ES
 {
 	class Utility

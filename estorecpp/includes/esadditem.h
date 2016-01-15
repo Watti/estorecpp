@@ -17,9 +17,15 @@ public:
 
 	public slots:
 	void slotAddItem();
+	bool isUpdate() const;
+	void setUpdate(bool val);
+	QString getItemId() const;
+	void setItemId(QString val);
 
 private:
 	Ui::AddItemWidget ui;
+	bool m_isUpdate;
+	QString m_itemId;
 };
 
 #endif

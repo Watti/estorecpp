@@ -23,7 +23,7 @@ private:
 	QSignalMapper* m_updateButtonSignalMapper;
 	QSignalMapper* m_removeButtonSignalMapper;
 
-	void displayStockItems(QSqlQuery& queryItems);
+	void displayItems(QSqlQuery& queryItems);
 };
 
 #endif
