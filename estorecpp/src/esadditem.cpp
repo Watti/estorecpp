@@ -30,7 +30,7 @@ AddItem::AddItem(QWidget *parent /*= 0*/)
 	while (queryCategory.next())
 	{
 		catId = queryCategory.value(0).toInt();
-		ui.itemCategoryComboBox->addItem(queryCategory.value(1).toString(), catId);
+		ui.itemCategoryComboBox->addItem(queryCategory.value(1).toString() + " / " + queryCategory.value("itemcategory_name").toString(), catId);
 	}
 }
 
