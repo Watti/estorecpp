@@ -4,6 +4,7 @@
 #include "utility/esdbconnection.h"
 #include <QMessageBox>
 #include <QPushButton>
+#include "utility/utility.h"
 
 
 ESItemCategories::ESItemCategories(QWidget *parent /*= 0*/)
@@ -78,12 +79,10 @@ void ESItemCategories::slotUpdate(QString itemCategoryId)
 
 void ESItemCategories::slotRemove(QString itemCategoryId)
 {
-	QMessageBox::StandardButton reply;
-	reply = QMessageBox::question(this, "EStore ", "Do you really want to remove this?",
-		QMessageBox::Yes | QMessageBox::No);
-	if (reply == QMessageBox::Yes) {
-		QSqlQuery q;
+	if (ES::Utility::verifyUsingMessageBox(this, "EStore", "Do you really want to remove this?"))
+	{
 		QString str("UPDATE item_category SET deleted = 1 WHERE itemcategory_id = " + itemCategoryId);
+		QSqlQuery q;
 		if (q.exec(str))
 		{
 			while (ui.tableWidget->rowCount() > 0)
@@ -92,11 +91,21 @@ void ESItemCategories::slotRemove(QString itemCategoryId)
 			}
 			displayCategories();
 		}
-
-		//QApplication::quit();
 	}
-// 	else {
-// 		qDebug() << "Yes was *not* clicked";
+// 	QMessageBox::StandardButton reply;
+// 	reply = QMessageBox::question(this, "EStore ", "Do you really want to remove this?",
+// 		QMessageBox::Yes | QMessageBox::No);
+// 	if (reply == QMessageBox::Yes) {
+// 		QSqlQuery q;
+// 		QString str("UPDATE item_category SET deleted = 1 WHERE itemcategory_id = " + itemCategoryId);
+// 		if (q.exec(str))
+// 		{
+// 			while (ui.tableWidget->rowCount() > 0)
+// 			{
+// 				ui.tableWidget->removeRow(0);
+// 			}
+// 			displayCategories();
+// 		}
 // 	}
 }
 

@@ -234,6 +234,7 @@
     <ClCompile Include="src\utility\esmainwindowholder.cpp" />
     <ClCompile Include="src\utility\session.cpp" />
     <ClCompile Include="src\utility\esmenumanager.cpp" />
+    <ClCompile Include="src\utility\Utility.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="esmainwindow.ui">
