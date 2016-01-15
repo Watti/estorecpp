@@ -22,7 +22,7 @@ private:
 	QSignalMapper* m_updateButtonSignalMapper;
 	QSignalMapper* m_removeButtonSignalMapper;
 
-	void displayStockItems();
+	void displayCategories();
 };
 
 #endif

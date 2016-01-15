@@ -40,7 +40,7 @@ ESItemCategories::ESItemCategories(QWidget *parent /*= 0*/)
 	else
 	{
 		ui.tableWidget->setSortingEnabled(false);
-		displayStockItems();
+		displayCategories();
 		ui.tableWidget->setSortingEnabled(true);
 	}
 	
@@ -78,16 +78,32 @@ void ESItemCategories::slotUpdate(QString itemCategoryId)
 
 void ESItemCategories::slotRemove(QString itemCategoryId)
 {
-	QMessageBox mbox;
-	mbox.setIcon(QMessageBox::Critical);
-	mbox.setText(QString("slotRemove : ") + itemCategoryId);
-	mbox.exec();
+	QMessageBox::StandardButton reply;
+	reply = QMessageBox::question(this, "EStore ", "Do you really want to remove this?",
+		QMessageBox::Yes | QMessageBox::No);
+	if (reply == QMessageBox::Yes) {
+		QSqlQuery q;
+		QString str("UPDATE item_category SET deleted = 1 WHERE itemcategory_id = " + itemCategoryId);
+		if (q.exec(str))
+		{
+			while (ui.tableWidget->rowCount() > 0)
+			{
+				ui.tableWidget->removeRow(0);
+			}
+			displayCategories();
+		}
+
+		//QApplication::quit();
+	}
+// 	else {
+// 		qDebug() << "Yes was *not* clicked";
+// 	}
 }
 
-void ESItemCategories::displayStockItems()
+void ESItemCategories::displayCategories()
 {
 	int row = 0;
-	QSqlQuery queryCategory("SELECT * FROM item_category");
+	QSqlQuery queryCategory("SELECT * FROM item_category WHERE deleted = 0");
 	while (queryCategory.next())
 	{
 		row = ui.tableWidget->rowCount();
