@@ -59,10 +59,10 @@ ESManageStockItems::ESManageStockItems(QWidget *parent /*= 0*/)
 			catogory.append(queryCategory.value(2).toString());
 		}
 		ui.categoryComboBox->addItems(catogory);
-		
+
 		// populate with data
 		displayStockItems();
-	}	
+	}
 
 }
 
@@ -331,7 +331,7 @@ void ESManageStockItems::displayStockItems()
 
 			QSqlQuery query2("SELECT * FROM stock WHERE item_id=" + itemId);
 
-			bool inStock = true;
+			bool inStock = false;
 			if (query2.first())
 			{
 				qty = query2.value(3).toString();
@@ -342,11 +342,10 @@ void ESManageStockItems::displayStockItems()
 				{
 					unitPrice = query4.value(2).toString();
 				}
-			}
-			else
-			{
-				inStock = false;
-				//NOT in Stock
+				if (qty == DEFAULT_DB_NUMERICAL_TO_DISPLAY || qty.toInt() >= 0)
+				{
+					inStock = true;
+				}
 			}
 
 			rowItems.append(qty);
@@ -355,10 +354,10 @@ void ESManageStockItems::displayStockItems()
 			rowItems.append(unitPrice);
 			rowItems.append(query1.value(6).toString());
 
-// 			if (qty == DEFAULT_DB_NUMERICAL_TO_DISPLAY || (qty.toInt() == 0))
-// 			{
-// 				inStock = false;
-// 			}
+			// 			if (qty == DEFAULT_DB_NUMERICAL_TO_DISPLAY || (qty.toInt() == 0))
+			// 			{
+			// 				inStock = false;
+			// 			}
 			displayStockTableRow(rowItems, itemId, inStock);
 		}
 	}
@@ -446,15 +445,21 @@ void ESManageStockItems::slotCombo(QString text)
 			QString unit = query.value("unit").toString();
 			QString qty = DEFAULT_DB_NUMERICAL_TO_DISPLAY, minQty = DEFAULT_DB_NUMERICAL_TO_DISPLAY, unitPrice = DEFAULT_DB_NUMERICAL_TO_DISPLAY;
 			QSqlQuery query1("SELECT * from item_price WHERE itemprice_id=" + itemId);
+
+			bool inStock = false;
 			if (query1.first())
 			{
 				unitPrice = query1.value("unit_price").toString();
-
 				QSqlQuery query2("SELECT * FROM stock WHERE item_id=" + itemId);
 				if (query2.first())
 				{
 					qty = query2.value("qty").toString();
 					minQty = query2.value("min_qty").toString();
+
+					if (qty == DEFAULT_DB_NUMERICAL_TO_DISPLAY || qty.toInt() >= 0)
+					{
+						inStock = true;
+					}
 				}
 			}
 
@@ -466,12 +471,6 @@ void ESManageStockItems::slotCombo(QString text)
 			rowItems.append(unit);
 			rowItems.append(unitPrice);
 			rowItems.append(description);
-			bool inStock = false;
-
-			if (qty == DEFAULT_DB_NUMERICAL_TO_DISPLAY || qty.toInt() >=0)
-			{
-				inStock = true;
-			}
 			displayStockTableRow(rowItems, itemId, inStock);
 		}
 	}
@@ -564,23 +563,23 @@ void ESManageStockItems::slotInStock(int checked)
 
 void ESManageStockItems::slotAddToStock(QString itemId)
 {
-	AddStockItem* addStockItem = new AddStockItem(this); 
+	AddStockItem* addStockItem = new AddStockItem(this);
 	addStockItem->getUI().groupBox->setTitle("Add Stock Item");
 	addStockItem->getUI().itemIDLabel->setText(itemId);
-	QSqlQuery query("SELECT itemprice_id FROM stock WHERE item_id = "+itemId);
+	QSqlQuery query("SELECT itemprice_id FROM stock WHERE item_id = " + itemId);
 	QStringList priceList;
 	while (query.next())
 	{
 		QString priceId = query.value("itemprice_id").toString();
 
-		QSqlQuery priceQuery("SELECT unit_price FROM item_price WHERE itemprice_id = " + priceId+" AND deleted = 0");
+		QSqlQuery priceQuery("SELECT unit_price FROM item_price WHERE itemprice_id = " + priceId + " AND deleted = 0");
 		while (priceQuery.next())
 		{
 			QString price = priceQuery.value("unit_price").toString();
 			addStockItem->addToPriceMap(itemId, price);
 			priceList.append(price);
 		}
-		
+
 	}
 	if (priceList.empty())
 	{
