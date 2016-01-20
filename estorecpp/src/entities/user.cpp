@@ -30,4 +30,13 @@ namespace ES
 		m_name = val;
 	}
 
+	int User::getId() const
+	{
+		return m_userId;
+	}
+
+	void User::setId(int id)
+	{
+		m_userId = id;
+	}
 }

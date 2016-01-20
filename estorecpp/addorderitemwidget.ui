@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>LoginWidget</class>
- <widget class="QWidget" name="LoginWidget">
+ <class>AddOrderItemWidget</class>
+ <widget class="QWidget" name="AddOrderItemWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>510</width>
-    <height>386</height>
+    <width>670</width>
+    <height>490</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,14 +24,14 @@
      </property>
      <property name="minimumSize">
       <size>
-       <width>280</width>
-       <height>180</height>
+       <width>400</width>
+       <height>0</height>
       </size>
      </property>
      <property name="maximumSize">
       <size>
-       <width>280</width>
-       <height>180</height>
+       <width>400</width>
+       <height>16777215</height>
       </size>
      </property>
      <property name="font">
@@ -42,7 +42,7 @@
       </font>
      </property>
      <property name="title">
-      <string>Login</string>
+      <string>Order Item</string>
      </property>
      <layout class="QFormLayout" name="formLayout">
       <property name="horizontalSpacing">
@@ -52,7 +52,7 @@
        <number>10</number>
       </property>
       <item row="0" column="0">
-       <widget class="QLabel" name="label_2">
+       <widget class="QLabel" name="label">
         <property name="font">
          <font>
           <pointsize>11</pointsize>
@@ -61,12 +61,12 @@
          </font>
         </property>
         <property name="text">
-         <string>Username</string>
+         <string>Item Code</string>
         </property>
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QLineEdit" name="usernameText">
+       <widget class="QLineEdit" name="itemCode">
         <property name="font">
          <font>
           <pointsize>11</pointsize>
@@ -77,6 +77,31 @@
        </widget>
       </item>
       <item row="1" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="font">
+         <font>
+          <pointsize>11</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Unit Price</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="unitPrice">
+        <property name="font">
+         <font>
+          <pointsize>11</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
        <widget class="QLabel" name="label_3">
         <property name="font">
          <font>
@@ -86,12 +111,12 @@
          </font>
         </property>
         <property name="text">
-         <string>Password</string>
+         <string>Qty</string>
         </property>
        </widget>
       </item>
-      <item row="1" column="1">
-       <widget class="QLineEdit" name="passwordText">
+      <item row="2" column="1">
+       <widget class="QLineEdit" name="qty">
         <property name="font">
          <font>
           <pointsize>11</pointsize>
@@ -99,13 +124,10 @@
           <bold>false</bold>
          </font>
         </property>
-        <property name="echoMode">
-         <enum>QLineEdit::Password</enum>
-        </property>
        </widget>
       </item>
-      <item row="2" column="0">
-       <spacer name="horizontalSpacer_4">
+      <item row="4" column="0">
+       <spacer name="horizontalSpacer_2">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
         </property>
@@ -117,10 +139,10 @@
         </property>
        </spacer>
       </item>
-      <item row="2" column="1">
+      <item row="4" column="1">
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
-         <widget class="QPushButton" name="loginButton">
+         <widget class="QPushButton" name="addOrderItemButton">
           <property name="font">
            <font>
             <pointsize>11</pointsize>
@@ -129,7 +151,7 @@
            </font>
           </property>
           <property name="text">
-           <string>Login</string>
+           <string> Add </string>
           </property>
          </widget>
         </item>
@@ -147,6 +169,40 @@
          </spacer>
         </item>
        </layout>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="font">
+         <font>
+          <pointsize>11</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Description</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QTextEdit" name="description">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>11</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="sizeAdjustPolicy">
+         <enum>QAbstractScrollArea::AdjustToContents</enum>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>

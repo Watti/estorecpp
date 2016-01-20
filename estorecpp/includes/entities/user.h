@@ -22,9 +22,13 @@ namespace ES
 		void setType(ES::User::UserType val);
 		QString getName() const;
 		void setName(QString val);
+		int getId() const;
+		void setId(int id);
+
 	private:
 		UserType m_type;
 		QString m_name;
+		int m_userId;
 	};
 }
 #endif

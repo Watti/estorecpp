@@ -17,7 +17,7 @@ public:
 	void slotSearch();
 
 private:
-	Ui::AddOrderItemWidget ui;
+	Ui::ManageOrderItemWidget ui;
 
 	void displayItems(QSqlQuery& queryItems);
 };

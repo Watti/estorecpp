@@ -4,7 +4,7 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include "utility/utility.h"
-
+#include "esaddorderitem.h"
 
 ESManageOrderItems::ESManageOrderItems(QWidget *parent/* = 0*/)
 {
@@ -12,6 +12,7 @@ ESManageOrderItems::ESManageOrderItems(QWidget *parent/* = 0*/)
 
 	QObject::connect(ui.usernameSearch, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
 	QObject::connect(ui.itemCodeSearch, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
+	QObject::connect(ui.addOrderItemBtn, SIGNAL(clicked()), this, SLOT(slotAddNewOrderItem()));
 
 	QStringList headerLabels;
 	headerLabels.append("Item Code");
@@ -63,7 +64,9 @@ ESManageOrderItems::~ESManageOrderItems()
 
 void ESManageOrderItems::slotAddNewOrderItem()
 {
-
+	AddOrderItem* addOrderItem = new AddOrderItem(this);
+	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(addOrderItem);
+	addOrderItem->show();
 }
 
 void ESManageOrderItems::slotSearch()

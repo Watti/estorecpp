@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>AddOrderItemWidget</class>
- <widget class="QWidget" name="AddOrderItemWidget">
+ <class>ManageOrderItemWidget</class>
+ <widget class="QWidget" name="ManageOrderItemWidget">
   <property name="geometry">
    <rect>
     <x>0</x>

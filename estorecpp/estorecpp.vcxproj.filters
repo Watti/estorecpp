@@ -170,6 +170,15 @@
     <ClCompile Include="src\esmanageorderitems.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\esaddorderitem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_esaddorderitem.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_esaddorderitem.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="esmainwindow.ui">
@@ -241,6 +250,12 @@
     <CustomBuild Include="includes\esmanageorderitems.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
+    <CustomBuild Include="addorderitemwidget.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="includes\esaddorderitem.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="includes\utility\esdbconnection.h">
@@ -283,6 +298,9 @@
       <Filter>Header Files\utility</Filter>
     </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_manageorderitems.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GeneratedFiles\ui_addorderitemwidget.h">
       <Filter>Generated Files</Filter>
     </ClInclude>
   </ItemGroup>
