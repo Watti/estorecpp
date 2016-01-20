@@ -4,6 +4,7 @@
 #include "esitemcategories.h"
 #include "esmanageitems.h"
 #include "esitemprices.h"
+#include "esmanageorderitems.h"
 #include "utility/esmenumanager.h"
 
 ESMainWindow::ESMainWindow(QWidget *parent)
@@ -29,6 +30,7 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	QObject::connect(ui.actionManageItems, SIGNAL(triggered()), this, SLOT(slotManageItems()));
 	QObject::connect(ui.actionManageItemCategories, SIGNAL(triggered()), this, SLOT(slotManageItemCategories()));
 	QObject::connect(ui.actionManageItemPrices, SIGNAL(triggered()), this, SLOT(slotManageItemPrices()));
+	QObject::connect(ui.actionManageOrderItems, SIGNAL(triggered()), this, SLOT(slotManageOrderItems()));
 	QObject::connect(ui.actionAddBill, SIGNAL(triggered()), this, SLOT(slotAddBill()));
 	QObject::connect(ui.actionCurrentBills, SIGNAL(triggered()), this, SLOT(slotCurrentBills()));
 	QObject::connect(m_actionLogin, SIGNAL(triggered()), this, SLOT(slotLogin()));
@@ -105,6 +107,13 @@ void ESMainWindow::slotManageItemPrices()
 	ESItemPrices* itemPrices = new ESItemPrices(this);
 	this->setCentralWidget(itemPrices);
 	itemPrices->show();
+}
+
+void ESMainWindow::slotManageOrderItems()
+{
+	ESManageOrderItems* orderItems = new ESManageOrderItems(this);
+	this->setCentralWidget(orderItems);
+	orderItems->show();
 }
 
 void ESMainWindow::slotAddBill()

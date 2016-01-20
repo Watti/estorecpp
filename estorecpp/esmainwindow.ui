@@ -68,8 +68,15 @@
      <string>Help</string>
     </property>
    </widget>
+   <widget class="QMenu" name="menuOrders_2">
+    <property name="title">
+     <string>Orders</string>
+    </property>
+    <addaction name="actionManageOrderItems"/>
+   </widget>
    <addaction name="menuStock"/>
    <addaction name="menuItems"/>
+   <addaction name="menuOrders_2"/>
    <addaction name="menuBilling"/>
    <addaction name="menuOrders"/>
    <addaction name="menuReports"/>
@@ -112,6 +119,11 @@
   <action name="actionCurrentBills">
    <property name="text">
     <string>Current Bills</string>
+   </property>
+  </action>
+  <action name="actionManageOrderItems">
+   <property name="text">
+    <string>Manage Order Items</string>
    </property>
   </action>
  </widget>
