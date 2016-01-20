@@ -53,11 +53,6 @@
     <addaction name="actionAddBill"/>
     <addaction name="actionCurrentBills"/>
    </widget>
-   <widget class="QMenu" name="menuOrders">
-    <property name="title">
-     <string>Orders</string>
-    </property>
-   </widget>
    <widget class="QMenu" name="menuReports">
     <property name="title">
      <string>Reports</string>
@@ -68,7 +63,7 @@
      <string>Help</string>
     </property>
    </widget>
-   <widget class="QMenu" name="menuOrders_2">
+   <widget class="QMenu" name="menuOrders">
     <property name="title">
      <string>Orders</string>
     </property>
@@ -76,9 +71,8 @@
    </widget>
    <addaction name="menuStock"/>
    <addaction name="menuItems"/>
-   <addaction name="menuOrders_2"/>
-   <addaction name="menuBilling"/>
    <addaction name="menuOrders"/>
+   <addaction name="menuBilling"/>
    <addaction name="menuReports"/>
    <addaction name="menuHelp"/>
   </widget>

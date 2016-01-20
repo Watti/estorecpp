@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>510</width>
-    <height>386</height>
+    <width>506</width>
+    <height>320</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,21 +17,21 @@
    <item row="0" column="0">
     <widget class="QGroupBox" name="groupBox">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+      <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
      <property name="minimumSize">
       <size>
-       <width>280</width>
-       <height>180</height>
+       <width>0</width>
+       <height>0</height>
       </size>
      </property>
      <property name="maximumSize">
       <size>
-       <width>280</width>
-       <height>180</height>
+       <width>300</width>
+       <height>130</height>
       </size>
      </property>
      <property name="font">
@@ -45,12 +45,6 @@
       <string>Login</string>
      </property>
      <layout class="QFormLayout" name="formLayout">
-      <property name="horizontalSpacing">
-       <number>10</number>
-      </property>
-      <property name="verticalSpacing">
-       <number>10</number>
-      </property>
       <item row="0" column="0">
        <widget class="QLabel" name="label_2">
         <property name="font">

@@ -632,6 +632,7 @@
     <Image Include="icons\manage_item_categories.png" />
     <Image Include="icons\manage_item_prices.png" />
     <Image Include="icons\manage_store.png" />
+    <Image Include="icons\order_item.png" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="addstockitem.ui">
