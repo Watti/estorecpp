@@ -68,7 +68,12 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	ui.mainToolBar->addSeparator();
 
 	mmgr->addAction("Add Bill", ui.actionAddBill);
+	ui.actionAddBill->setIcon(QIcon("icons/add_bill.png"));
+	ui.mainToolBar->addAction(ui.actionAddBill);
 	mmgr->addAction("Current Bills", ui.actionCurrentBills);
+	ui.actionCurrentBills->setIcon(QIcon("icons/all_bills.png"));
+	ui.mainToolBar->addAction(ui.actionCurrentBills);
+	ui.mainToolBar->addSeparator();
 
 	mmgr->addMenuActionMapping("Stock", "Manage Stock Items");
 	mmgr->addMenuActionMapping("Items", "Manage Items");
@@ -124,12 +129,12 @@ void ESMainWindow::slotManageOrderItems()
 
 void ESMainWindow::slotAddBill()
 {
-	close();
+	
 }
 
 void ESMainWindow::slotCurrentBills()
 {
-	close();
+	
 }
 
 void ESMainWindow::slotLogin()

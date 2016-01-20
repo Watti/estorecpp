@@ -628,6 +628,8 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
+    <Image Include="icons\add_bill.png" />
+    <Image Include="icons\all_bills.png" />
     <Image Include="icons\manage_items.png" />
     <Image Include="icons\manage_item_categories.png" />
     <Image Include="icons\manage_item_prices.png" />

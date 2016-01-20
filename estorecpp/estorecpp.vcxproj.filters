@@ -320,5 +320,11 @@
     <Image Include="icons\order_item.png">
       <Filter>Icons</Filter>
     </Image>
+    <Image Include="icons\add_bill.png">
+      <Filter>Icons</Filter>
+    </Image>
+    <Image Include="icons\all_bills.png">
+      <Filter>Icons</Filter>
+    </Image>
   </ItemGroup>
 </Project>
