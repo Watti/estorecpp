@@ -165,7 +165,20 @@ void ESManageOrderItems::slotUpdate(QString itemId)
 
 }
 
-void ESManageOrderItems::slotRemove(QString itemId)
+void ESManageOrderItems::slotRemove(QString order_id)
 {
-
+	if (ES::Utility::verifyUsingMessageBox(this, "EStore", "Do you really want to remove this?"))
+	{
+		QString str("UPDATE stock_order SET deleted = 1 WHERE order_id = " + order_id);
+		QSqlQuery q;
+		if (q.exec(str))
+		{
+			while (ui.tableWidget->rowCount() > 0)
+			{
+				ui.tableWidget->removeRow(0);
+			}
+			QSqlQuery displayQuery("SELECT * from stock_order WHERE deleted = 0");
+			displayItems(displayQuery);
+		}
+	}
 }
