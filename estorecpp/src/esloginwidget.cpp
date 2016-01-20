@@ -47,7 +47,7 @@ void ESLoginWidget::slotLogin()
 			{
 				QString userType = query1.value(1).toString();
 				ES::User* user = new ES::User;
-				user->setId(query1.value(0).toInt());
+				user->setId(query.value(0).toInt());
 				user->setName(displayName);
 				if (userType.compare(QString("DEV")))
 				{
