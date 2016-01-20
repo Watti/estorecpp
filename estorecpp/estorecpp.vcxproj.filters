@@ -317,5 +317,8 @@
     <Image Include="icons\manage_store.png">
       <Filter>Icons</Filter>
     </Image>
+    <Image Include="icons\order_item.png">
+      <Filter>Icons</Filter>
+    </Image>
   </ItemGroup>
 </Project>

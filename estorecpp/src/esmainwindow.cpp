@@ -39,8 +39,8 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	ES::MenuManager* mmgr = ES::MenuManager::instance();
 	mmgr->addMenu("Stock", ui.menuStock);
 	mmgr->addMenu("Items", ui.menuItems);
-	mmgr->addMenu("Billing", ui.menuBilling);
 	mmgr->addMenu("Orders", ui.menuOrders);
+	mmgr->addMenu("Billing", ui.menuBilling);
 	mmgr->addMenu("Reports", ui.menuReports);
 	mmgr->addMenu("Help", ui.menuHelp);
 
@@ -62,6 +62,11 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	ui.mainToolBar->addAction(ui.actionManageItemPrices);
 	ui.mainToolBar->addSeparator();
 
+	mmgr->addAction("Manage Order Items", ui.actionManageOrderItems);
+	ui.actionManageOrderItems->setIcon(QIcon("icons/order_item.png"));
+	ui.mainToolBar->addAction(ui.actionManageOrderItems);
+	ui.mainToolBar->addSeparator();
+
 	mmgr->addAction("Add Bill", ui.actionAddBill);
 	mmgr->addAction("Current Bills", ui.actionCurrentBills);
 
@@ -69,6 +74,7 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	mmgr->addMenuActionMapping("Items", "Manage Items");
 	mmgr->addMenuActionMapping("Items", "Manage Item Categories");
 	mmgr->addMenuActionMapping("Items", "Manage Item Prices");
+	mmgr->addMenuActionMapping("Orders", "Manage Order Items");
 	mmgr->addMenuActionMapping("Billing", "Add Bill");
 	mmgr->addMenuActionMapping("Billing", "Current Bills");
 
