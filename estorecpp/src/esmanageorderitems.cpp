@@ -10,6 +10,11 @@ ESManageOrderItems::ESManageOrderItems(QWidget *parent/* = 0*/)
 {
 	ui.setupUi(this);
 
+	m_updateButtonSignalMapper = new QSignalMapper(this);
+	m_removeButtonSignalMapper = new QSignalMapper(this);
+
+	QObject::connect(m_updateButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotUpdate(QString)));
+	QObject::connect(m_removeButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotRemove(QString)));
 	QObject::connect(ui.usernameSearch, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
 	QObject::connect(ui.itemCodeSearch, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
 	QObject::connect(ui.addOrderItemBtn, SIGNAL(clicked()), this, SLOT(slotAddNewOrderItem()));
@@ -31,7 +36,7 @@ ESManageOrderItems::ESManageOrderItems(QWidget *parent/* = 0*/)
 	ui.tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
 	ui.prevBtn->setDisabled(true);
 	ui.nextBtn->setDisabled(true);
-	
+
 	if (!ES::DbConnection::instance()->open())
 	{
 		QMessageBox mbox;
@@ -113,6 +118,7 @@ void ESManageOrderItems::displayItems(QSqlQuery& queryOrder)
 		row = ui.tableWidget->rowCount();
 		ui.tableWidget->insertRow(row);
 		QString itemId = queryOrder.value("item_id").toString();
+		QString orderId = queryOrder.value("order_id").toString();
 
 		ui.tableWidget->setItem(row, 2, new QTableWidgetItem(queryOrder.value("date_added").toString()));
 		ui.tableWidget->setItem(row, 4, new QTableWidgetItem(queryOrder.value("quantity").toString()));
@@ -129,41 +135,37 @@ void ESManageOrderItems::displayItems(QSqlQuery& queryOrder)
 		if (queryUser.next())
 		{
 			ui.tableWidget->setItem(row, 1, new QTableWidgetItem(queryUser.value("display_name").toString()));
-			//ui.tableWidget->setItem(row, 4, new QTableWidgetItem(queryUser.value(4).toString()));
-
-			// 			QSqlQuery queryPrices("SELECT * FROM item_price WHERE itemprice_id = " + queryUser.value(2).toString());
-			// 			if (queryPrices.next())
-			// 			{
-			// 				ui.tableWidget->setItem(row, 6, new QTableWidgetItem(queryPrices.value(2).toString()));
-			// 			}
 		}
-		// 		else
-		// 		{
-		// 			ui.tableWidget->setItem(row, 3, new QTableWidgetItem("Not in Stock"));
-		// 			ui.tableWidget->setItem(row, 4, new QTableWidgetItem("Not in Stock"));
-		// 			ui.tableWidget->setItem(row, 6, new QTableWidgetItem("Not in Stock"));
-		// 		}
-
 
 		QWidget* base = new QWidget(ui.tableWidget);
-		// 		QPushButton* updateBtn = new QPushButton("Update", base);
-		// 		updateBtn->setMaximumWidth(100);
-		// 		QPushButton* removeBtn = new QPushButton("Remove", base);
-		// 		removeBtn->setMaximumWidth(100);
-		// 
-		// 		m_updateButtonSignalMapper->setMapping(updateBtn, itemId);
-		// 		QObject::connect(updateBtn, SIGNAL(clicked()), m_updateButtonSignalMapper, SLOT(map()));
-		// 
-		// 		QObject::connect(removeBtn, SIGNAL(clicked()), m_removeButtonSignalMapper, SLOT(map()));
-		// 		m_removeButtonSignalMapper->setMapping(removeBtn, itemId);
-		// 
-		//  		QHBoxLayout *layout = new QHBoxLayout;
-		//  		layout->setContentsMargins(0, 0, 0, 0);
-		//  		layout->addWidget(updateBtn);
-		//  		layout->addWidget(removeBtn);
-		//  		layout->insertStretch(2);
-		// 		base->setLayout(layout);
-		ui.tableWidget->setCellWidget(row, 8, base);
+		QPushButton* updateBtn = new QPushButton("Update", base);
+		updateBtn->setMaximumWidth(100);
+		QPushButton* removeBtn = new QPushButton("Remove", base);
+		removeBtn->setMaximumWidth(100);
+
+		m_updateButtonSignalMapper->setMapping(updateBtn, orderId);
+		QObject::connect(updateBtn, SIGNAL(clicked()), m_updateButtonSignalMapper, SLOT(map()));
+
+		QObject::connect(removeBtn, SIGNAL(clicked()), m_removeButtonSignalMapper, SLOT(map()));
+		m_removeButtonSignalMapper->setMapping(removeBtn, orderId);
+
+		QHBoxLayout *layout = new QHBoxLayout;
+		layout->setContentsMargins(0, 0, 0, 0);
+		layout->addWidget(updateBtn);
+		layout->addWidget(removeBtn);
+		layout->insertStretch(2);
+		base->setLayout(layout);
+		ui.tableWidget->setCellWidget(row, 6, base);
 		base->show();
 	}
+}
+
+void ESManageOrderItems::slotUpdate(QString itemId)
+{
+
+}
+
+void ESManageOrderItems::slotRemove(QString itemId)
+{
+
 }

@@ -33,6 +33,14 @@ void AddOrderItem::slotAddOrderItem()
 	{
 		itemId = query1.value(0).toString();
 	}
+	else
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Warning);
+		mbox.setText(QString("Invalid Item Code : This item does not exist"));
+		mbox.exec();
+		return;
+	}
 
 	int userId = ES::Session::getInstance()->getUser()->getId();
 	QString userIdStr;
