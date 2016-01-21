@@ -52,7 +52,7 @@ void AddOrderItem::slotAddOrderItem()
 	QString q;
 	if (m_update)
 	{
-		
+		q = "Update stock_order SET item_id = '" + itemId + "', user_id = '" + userIdStr + "', description = '" + description + "' ,price = '"+price+"' , quantity = '"+qty+"' WHERE order_id = " + m_orderId;
 	}
 	else
 	{
@@ -76,4 +76,14 @@ void AddOrderItem::slotAddOrderItem()
 		mbox.exec();
 	}
 
+}
+
+QString AddOrderItem::getOrderId() const
+{
+	return m_orderId;
+}
+
+void AddOrderItem::setOrderId(QString val)
+{
+	m_orderId = val;
 }

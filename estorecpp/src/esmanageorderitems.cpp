@@ -160,9 +160,31 @@ void ESManageOrderItems::displayItems(QSqlQuery& queryOrder)
 	}
 }
 
-void ESManageOrderItems::slotUpdate(QString itemId)
+void ESManageOrderItems::slotUpdate(QString orderId)
 {
 
+	AddOrderItem* addOrder = new AddOrderItem(this);
+	addOrder->getUI().groupBox->setTitle("Update Order Item");
+	addOrder->getUI().addOrderItemButton->setText("Update");
+	QSqlQuery queryOrder("SELECT * FROM stock_order WHERE order_id = " + orderId);
+	if (queryOrder.next())
+	{
+		QString price = queryOrder.value("price").toString();
+		QString itemId = queryOrder.value("item_id").toString();
+		addOrder->getUI().unitPrice->setText(price);
+		addOrder->getUI().description->setText(queryOrder.value("description").toString());
+		addOrder->getUI().qty->setText(queryOrder.value("quantity").toString());
+
+		QSqlQuery queryItem("SELECT * FROM item WHERE item_id = " + itemId);
+		if (queryItem.next())
+		{
+			addOrder->getUI().itemCode->setText(queryItem.value("item_code").toString());
+		}
+	}
+	addOrder->setUpdate(true);
+	addOrder->setOrderId(orderId);
+	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(addOrder);
+	addOrder->show();
 }
 
 void ESManageOrderItems::slotRemove(QString order_id)

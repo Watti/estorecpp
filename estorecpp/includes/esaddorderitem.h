@@ -14,6 +14,8 @@ public:
 
 	Ui::AddOrderItemWidget& getUI() { return ui; };
 	void setUpdate(bool update);
+	QString getOrderId() const;
+	void setOrderId(QString val);
 	
 	public slots:
 	void slotAddOrderItem();
@@ -21,7 +23,7 @@ public:
 private:
 	Ui::AddOrderItemWidget ui;
 	bool m_update;
-
+	QString m_orderId;
 };
 
 #endif
