@@ -146,17 +146,22 @@ void ESManageItems::displayItems(QSqlQuery& queryItems)
 			ui.tableWidget->setItem(row, 3, new QTableWidgetItem(queryStocks.value(3).toString()));
 			ui.tableWidget->setItem(row, 4, new QTableWidgetItem(queryStocks.value(4).toString()));
 
-			QSqlQuery queryPrices("SELECT * FROM item_price WHERE itemprice_id = " + queryStocks.value(2).toString());
-			if (queryPrices.next())
-			{
-				ui.tableWidget->setItem(row, 6, new QTableWidgetItem(queryPrices.value(2).toString()));
-			}
+// 			QSqlQuery queryPrices("SELECT * FROM item_price WHERE itemprice_id = " + queryStocks.value(2).toString());
+// 			if (queryPrices.next())
+// 			{
+// 				ui.tableWidget->setItem(row, 6, new QTableWidgetItem(queryPrices.value(2).toString()));
+// 			}
+		}
+		QSqlQuery queryPrices("SELECT * FROM stock_order WHERE item_id = " + itemId);
+		if (queryPrices.next())
+		{
+			ui.tableWidget->setItem(row, 6, new QTableWidgetItem(queryPrices.value("selling_price").toString()));
 		}
 		else
 		{
-			ui.tableWidget->setItem(row, 3, new QTableWidgetItem("Not in Stock"));
-			ui.tableWidget->setItem(row, 4, new QTableWidgetItem("Not in Stock"));
-			ui.tableWidget->setItem(row, 6, new QTableWidgetItem("Not in Stock"));
+			ui.tableWidget->setItem(row, 3, new QTableWidgetItem(DEFAULT_DB_NUMERICAL_TO_DISPLAY));
+			ui.tableWidget->setItem(row, 4, new QTableWidgetItem(DEFAULT_DB_NUMERICAL_TO_DISPLAY));
+			ui.tableWidget->setItem(row, 6, new QTableWidgetItem(DEFAULT_DB_NUMERICAL_TO_DISPLAY));
 		}
 
 		

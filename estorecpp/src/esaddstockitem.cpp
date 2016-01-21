@@ -20,7 +20,7 @@ void AddStockItem::slotAddStockItem()
 {
 	QString qtyStr = ui.qty->text();
 	QString minQtyStr = ui.minQty->text();
-	QString priceStr = ui.itemPriceComboBox->currentText();
+	QString priceStr = ui.itemPrice->text();
 
 	if (!qtyStr.isEmpty() && !minQtyStr.isEmpty() && !priceStr.isEmpty())
 	{
@@ -44,7 +44,7 @@ void AddStockItem::slotAddStockItem()
 		if (ES::DbConnection::instance()->open())
 		{
 			QString itemId = ui.itemIDLabel->text();
-			QString  price = ui.itemPriceComboBox->currentText();
+			QString  price = ui.itemPrice->text();
 			price.toDouble(&isValid);
 			if (isValid)
 			{
