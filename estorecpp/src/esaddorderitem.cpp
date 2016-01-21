@@ -52,12 +52,12 @@ void AddOrderItem::slotAddOrderItem()
 	QString q;
 	if (m_update)
 	{
-		q = "Update stock_order SET item_id = '" + itemId + "', user_id = '" + userIdStr + "', description = '" + description + "' ,price = '"+price+"' , quantity = '"+qty+"' WHERE order_id = " + m_orderId;
+		q = "Update stock_order SET item_id = '" + itemId + "', user_id = '" + userIdStr + "', description = '" + description + "' ,unit_price = '"+price+"', selling_price = '"+price+"' , quantity = '"+qty+"' WHERE order_id = " + m_orderId;
 	}
 	else
 	{
-		q = "INSERT INTO stock_order (item_id, user_id, price, quantity, description) VALUES (" +
-			itemId + "," + userIdStr + "," + price + "," + qty + ",'" + description + "')";
+		q = "INSERT INTO stock_order (item_id, user_id, unit_price, selling_price, quantity, description) VALUES (" +
+			itemId + "," + userIdStr + "," + price + "," +price+"," +qty + ",'" + description + "')";
 	}
 	QSqlQuery query;
 	if (query.exec(q))

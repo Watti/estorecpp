@@ -122,7 +122,7 @@ void ESManageOrderItems::displayItems(QSqlQuery& queryOrder)
 
 		ui.tableWidget->setItem(row, 2, new QTableWidgetItem(queryOrder.value("date_added").toString()));
 		ui.tableWidget->setItem(row, 4, new QTableWidgetItem(queryOrder.value("quantity").toString()));
-		ui.tableWidget->setItem(row, 3, new QTableWidgetItem(queryOrder.value("price").toString()));
+		ui.tableWidget->setItem(row, 3, new QTableWidgetItem(queryOrder.value("unit_price").toString()));
 		ui.tableWidget->setItem(row, 5, new QTableWidgetItem(queryOrder.value("description").toString()));
 
 		QSqlQuery queryItems("SELECT * FROM item WHERE item_id = " + itemId);
@@ -169,7 +169,7 @@ void ESManageOrderItems::slotUpdate(QString orderId)
 	QSqlQuery queryOrder("SELECT * FROM stock_order WHERE order_id = " + orderId);
 	if (queryOrder.next())
 	{
-		QString price = queryOrder.value("price").toString();
+		QString price = queryOrder.value("unit_price").toString();
 		QString itemId = queryOrder.value("item_id").toString();
 		addOrder->getUI().unitPrice->setText(price);
 		addOrder->getUI().description->setText(queryOrder.value("description").toString());
