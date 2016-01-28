@@ -14,6 +14,8 @@ ESLoginWidget::ESLoginWidget(QWidget* parent)
 	ui.setupUi(this);
 
 	QObject::connect(ui.loginButton, SIGNAL(clicked()), this, SLOT(slotLogin()));
+
+	ui.usernameText->setFocus();
 }
 
 ESLoginWidget::~ESLoginWidget()
