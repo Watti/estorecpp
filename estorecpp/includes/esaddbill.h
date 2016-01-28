@@ -13,7 +13,7 @@ public:
 	Ui::AddBillWidget& getUI() { return ui; };
 
 	public slots:
-	void slotAddItem();
+	void slotShowAddItem();
 
 private:
 	Ui::AddBillWidget ui;

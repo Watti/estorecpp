@@ -1,4 +1,6 @@
 #include "esaddbill.h"
+#include "esaddbillitem.h"
+#include <QShortcut>
 
 ESAddBill::ESAddBill(QWidget *parent)
 :QWidget(parent)
@@ -20,6 +22,8 @@ ESAddBill::ESAddBill(QWidget *parent)
 	ui.tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	ui.tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
 	ui.tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+
+	new QShortcut(QKeySequence(Qt::Key_F4), this, SLOT(slotShowAddItem()));
 }
 
 ESAddBill::~ESAddBill()
@@ -27,7 +31,13 @@ ESAddBill::~ESAddBill()
 
 }
 
-void ESAddBill::slotAddItem()
+void ESAddBill::slotShowAddItem()
 {
-
+	ESAddBillItem* addBillItem = new ESAddBillItem(this);
+	addBillItem->resize(QSize(900, 600));
+	addBillItem->setWindowState(Qt::WindowActive);
+	addBillItem->setWindowModality(Qt::ApplicationModal);
+	addBillItem->setAttribute(Qt::WA_DeleteOnClose);
+	addBillItem->setWindowFlags(Qt::FramelessWindowHint | Qt::Window);
+	addBillItem->show();
 }
