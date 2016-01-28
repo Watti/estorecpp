@@ -5,6 +5,7 @@
 #include "esmanageitems.h"
 #include "esitemprices.h"
 #include "esmanageorderitems.h"
+#include "esaddbill.h"
 #include "utility/esmenumanager.h"
 
 ESMainWindow::ESMainWindow(QWidget *parent)
@@ -129,7 +130,9 @@ void ESMainWindow::slotManageOrderItems()
 
 void ESMainWindow::slotAddBill()
 {
-	
+	ESAddBill* addBill = new ESAddBill(this);
+	this->setCentralWidget(addBill);
+	addBill->show();
 }
 
 void ESMainWindow::slotCurrentBills()
