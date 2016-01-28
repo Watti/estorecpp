@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>732</width>
+    <width>840</width>
     <height>490</height>
    </rect>
   </property>
@@ -20,6 +20,7 @@
       <widget class="QLabel" name="label">
        <property name="font">
         <font>
+         <family>Arial</family>
          <pointsize>11</pointsize>
         </font>
        </property>
@@ -473,11 +474,16 @@
        <widget class="QLabel" name="label_3">
         <property name="font">
          <font>
+          <family>Arial</family>
           <pointsize>11</pointsize>
+          <italic>true</italic>
          </font>
         </property>
         <property name="text">
          <string>Bill ID :</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
         </property>
        </widget>
       </item>
@@ -485,11 +491,16 @@
        <widget class="QLabel" name="label_4">
         <property name="font">
          <font>
+          <family>Arial</family>
           <pointsize>11</pointsize>
+          <italic>true</italic>
          </font>
         </property>
         <property name="text">
-         <string>Branch : </string>
+         <string>Branch :</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
         </property>
        </widget>
       </item>
@@ -497,11 +508,16 @@
        <widget class="QLabel" name="label_5">
         <property name="font">
          <font>
+          <family>Arial</family>
           <pointsize>11</pointsize>
+          <italic>true</italic>
          </font>
         </property>
         <property name="text">
          <string>Date : </string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
         </property>
        </widget>
       </item>
@@ -509,11 +525,16 @@
        <widget class="QLabel" name="label_2">
         <property name="font">
          <font>
+          <family>Arial</family>
           <pointsize>11</pointsize>
+          <italic>true</italic>
          </font>
         </property>
         <property name="text">
          <string>Billed By : </string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
         </property>
        </widget>
       </item>
@@ -525,7 +546,7 @@
          </font>
         </property>
         <property name="text">
-         <string>TextLabel</string>
+         <string/>
         </property>
        </widget>
       </item>
@@ -537,7 +558,7 @@
          </font>
         </property>
         <property name="text">
-         <string>TextLabel</string>
+         <string/>
         </property>
        </widget>
       </item>
@@ -549,7 +570,7 @@
          </font>
         </property>
         <property name="text">
-         <string>TextLabel</string>
+         <string/>
         </property>
        </widget>
       </item>
@@ -561,7 +582,7 @@
          </font>
         </property>
         <property name="text">
-         <string>TextLabel</string>
+         <string/>
         </property>
        </widget>
       </item>
@@ -1039,12 +1060,22 @@
       <bool>true</bool>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
+      <property name="leftMargin">
+       <number>20</number>
+      </property>
+      <property name="rightMargin">
+       <number>20</number>
+      </property>
+      <property name="spacing">
+       <number>10</number>
+      </property>
       <item row="0" column="0">
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
          <widget class="QLabel" name="label_6">
           <property name="font">
            <font>
+            <family>Arial</family>
             <pointsize>11</pointsize>
            </font>
           </property>
@@ -1054,9 +1085,10 @@
          </widget>
         </item>
         <item>
-         <widget class="QComboBox" name="comboBox">
+         <widget class="QComboBox" name="paymentMethodComboBox">
           <property name="font">
            <font>
+            <family>Arial</family>
             <pointsize>11</pointsize>
            </font>
           </property>
@@ -1081,21 +1113,33 @@
        <widget class="QLabel" name="label_7">
         <property name="font">
          <font>
-          <pointsize>11</pointsize>
+          <family>Arial</family>
+          <pointsize>14</pointsize>
           <weight>75</weight>
+          <italic>true</italic>
           <bold>true</bold>
          </font>
         </property>
         <property name="text">
          <string>Gross Amount : </string>
         </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
        </widget>
       </item>
       <item row="0" column="3">
-       <widget class="QLabel" name="label_9">
+       <widget class="QLabel" name="grossAmountLabel">
+        <property name="minimumSize">
+         <size>
+          <width>100</width>
+          <height>0</height>
+         </size>
+        </property>
         <property name="font">
          <font>
-          <pointsize>11</pointsize>
+          <family>Arial</family>
+          <pointsize>14</pointsize>
           <weight>75</weight>
           <bold>true</bold>
          </font>
@@ -1108,44 +1152,71 @@
       <item row="1" column="0">
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
-         <widget class="QPushButton" name="pushButton">
+         <widget class="QPushButton" name="commitButton">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>40</height>
+           </size>
+          </property>
           <property name="font">
            <font>
-            <pointsize>11</pointsize>
+            <family>Arial</family>
+            <pointsize>14</pointsize>
             <weight>75</weight>
             <bold>true</bold>
            </font>
           </property>
           <property name="text">
-           <string>COMMIT</string>
+           <string> COMMIT </string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton_2">
+         <widget class="QPushButton" name="suspendButton">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>40</height>
+           </size>
+          </property>
           <property name="font">
            <font>
-            <pointsize>11</pointsize>
+            <family>Arial</family>
+            <pointsize>14</pointsize>
             <weight>75</weight>
             <bold>true</bold>
            </font>
           </property>
           <property name="text">
-           <string>SUSPEND</string>
+           <string> SUSPEND </string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton_3">
+         <widget class="QPushButton" name="cancelButton">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="baseSize">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
           <property name="font">
            <font>
-            <pointsize>11</pointsize>
+            <family>Arial</family>
+            <pointsize>14</pointsize>
             <weight>75</weight>
             <bold>true</bold>
            </font>
           </property>
           <property name="text">
-           <string>CANCEL</string>
+           <string> CANCEL </string>
           </property>
          </widget>
         </item>
@@ -1168,21 +1239,33 @@
        <widget class="QLabel" name="label_8">
         <property name="font">
          <font>
-          <pointsize>11</pointsize>
+          <family>Arial</family>
+          <pointsize>14</pointsize>
           <weight>75</weight>
+          <italic>true</italic>
           <bold>true</bold>
          </font>
         </property>
         <property name="text">
          <string>Net Amount : </string>
         </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
        </widget>
       </item>
       <item row="1" column="3">
-       <widget class="QLabel" name="label_10">
+       <widget class="QLabel" name="netAmountLabel">
+        <property name="minimumSize">
+         <size>
+          <width>100</width>
+          <height>0</height>
+         </size>
+        </property>
         <property name="font">
          <font>
-          <pointsize>11</pointsize>
+          <family>Arial</family>
+          <pointsize>14</pointsize>
           <weight>75</weight>
           <bold>true</bold>
          </font>
