@@ -2,6 +2,7 @@
 #include <QKeyEvent>
 #include <QShortcut>
 #include <QMessageBox>
+#include <QSqlQuery>
 
 class TableWidgetEventFilter : public QObject
 {
@@ -51,6 +52,9 @@ ESAddBillItem::ESAddBillItem(QWidget *parent)
 {
 	ui.setupUi(this);
 
+	m_itemSignalMapper = new QSignalMapper(this);
+	QObject::connect(m_itemSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotAddToBill(QString)));
+
 	QStringList headerLabels;
 	headerLabels.append("Item Code");
 	headerLabels.append("Item Name");
@@ -69,6 +73,8 @@ ESAddBillItem::ESAddBillItem(QWidget *parent)
 	ui.itemText->setFocusPolicy(Qt::StrongFocus);
 
 	QObject::connect(ui.itemText, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
+
+	slotSearch();
 }
 
 ESAddBillItem::~ESAddBillItem()
@@ -84,7 +90,39 @@ void ESAddBillItem::slotShowAddItem()
 void ESAddBillItem::slotSearch()
 {
 	QString searchText = ui.itemText->text();
-	// TODO : populate the tableWidget
+
+	while (ui.tableWidget->rowCount() > 0)
+	{
+		ui.tableWidget->removeRow(0);
+	}
+
+	QSqlQuery queryStocks("SELECT item_id FROM stock");
+	while (queryStocks.next())
+	{
+		QString queryString("SELECT * FROM item WHERE item_id = " + queryStocks.value(0).toString());
+
+		if (!searchText.isEmpty())
+		{
+			queryString.append(" AND (item_code LIKE '%" + searchText + "%' OR item_name LIKE '%" + searchText + "%')");
+		}
+		
+		QSqlQuery queryItems(queryString);
+		int itemId = queryStocks.value(0).toInt();
+
+		while (queryItems.next())
+		{
+			int row = ui.tableWidget->rowCount();
+			ui.tableWidget->insertRow(row);
+
+			ui.tableWidget->setItem(row, 0, new QTableWidgetItem(queryItems.value(2).toString()));
+			ui.tableWidget->setItem(row, 1, new QTableWidgetItem(queryItems.value(3).toString()));
+			ui.tableWidget->setItem(row, 2, new QTableWidgetItem(""));
+			ui.tableWidget->setItem(row, 3, new QTableWidgetItem(""));
+
+			//m_itemSignalMapper->setMapping(ui.tableWidget, itemId);
+			//QObject::connect(ui.tableWidget, SIGNAL(itemPressed(QTableWidgetItem)), m_itemSignalMapper, SLOT(map()));
+		}
+	}
 }
 
 void ESAddBillItem::keyPressEvent(QKeyEvent * event)
@@ -114,4 +152,9 @@ void ESAddBillItem::keyPressEvent(QKeyEvent * event)
 		ui.itemText->setFocus();
 		break;
 	}
+}
+
+void ESAddBillItem::slotAddToBill(QString itemId)
+{
+
 }

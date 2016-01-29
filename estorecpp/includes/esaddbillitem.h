@@ -2,6 +2,7 @@
 #define ADDBILLITEM_H
 #include "ui_addbillitem.h"
 #include <QKeyEvent>
+#include <QtGui>
 
 class ESAddBillItem : public QWidget
 {
@@ -15,13 +16,18 @@ public:
 
 	public slots:
 	void slotShowAddItem();
+	void slotAddToBill(QString itemId);
 	void slotSearch();
+
+signals:
+	void enterPressedOnItem(QString itemId);
 
 protected:
 	void keyPressEvent(QKeyEvent * event);
 
 private:
 	Ui::AddBillItemWidget ui;
+	QSignalMapper* m_itemSignalMapper;
 
 };
 

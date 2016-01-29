@@ -1,6 +1,8 @@
 #include "esaddbill.h"
 #include "esaddbillitem.h"
 #include <QShortcut>
+#include <QDesktopWidget>
+#include <QApplication>
 
 ESAddBill::ESAddBill(QWidget *parent)
 :QWidget(parent)
@@ -33,11 +35,18 @@ ESAddBill::~ESAddBill()
 
 void ESAddBill::slotShowAddItem()
 {
+	QRect rec = QApplication::desktop()->screenGeometry();
+	int width = rec.width();
+	int height = rec.height();
+
+	width -= 200;
+	height -= 200;
+
 	ESAddBillItem* addBillItem = new ESAddBillItem(this);
-	addBillItem->resize(QSize(900, 600));
+	addBillItem->resize(QSize(width, height));
 	addBillItem->setWindowState(Qt::WindowActive);
 	addBillItem->setWindowModality(Qt::ApplicationModal);
 	addBillItem->setAttribute(Qt::WA_DeleteOnClose);
-	addBillItem->setWindowFlags(Qt::FramelessWindowHint | Qt::Window);
+	addBillItem->setWindowFlags(Qt::CustomizeWindowHint | Qt::Window);
 	addBillItem->show();
 }
