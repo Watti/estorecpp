@@ -42,7 +42,7 @@ void ESAddBill::slotShowAddItem()
 	width -= 200;
 	height -= 200;
 
-	ESAddBillItem* addBillItem = new ESAddBillItem(this);
+	ESAddBillItem* addBillItem = new ESAddBillItem(ui.tableWidget, this);
 	addBillItem->resize(QSize(width, height));
 	addBillItem->setWindowState(Qt::WindowActive);
 	addBillItem->setWindowModality(Qt::ApplicationModal);

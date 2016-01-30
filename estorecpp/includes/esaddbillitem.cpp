@@ -4,56 +4,10 @@
 #include <QMessageBox>
 #include <QSqlQuery>
 
-class TableWidgetEventFilter : public QObject
+ESAddBillItem::ESAddBillItem(QTableWidget* cart, QWidget *parent)
 {
-	QObject* m_target;
-public:
-	TableWidgetEventFilter(QObject* target = 0) : QObject(), m_target(target)
-	{}
-	~TableWidgetEventFilter()
-	{}
-
-	bool eventFilter(QObject* object, QEvent* event)
-	{
-		if (event->type() == QEvent::KeyPress)
-		{
-			QKeyEvent *keyEvent = dynamic_cast<QKeyEvent *>(event);
-
-			return true;
-		}
-
-		return QObject::eventFilter(object, event);
-	}
-};
-
-class LineEditEventFilter : public QObject
-{
-	QObject* m_target;
-public:
-	LineEditEventFilter(QObject* target = 0) : QObject(), m_target(target)
-	{}
-	~LineEditEventFilter()
-	{}
-
-	bool eventFilter(QObject* object, QEvent* event)
-	{
-		if (event->type() == QEvent::KeyPress)
-		{
-			QKeyEvent *keyEvent = dynamic_cast<QKeyEvent *>(event);
-
-			return true;
-		}
-
-		return QObject::eventFilter(object, event);
-	}
-};
-
-ESAddBillItem::ESAddBillItem(QWidget *parent)
-{
+	m_cart = cart;
 	ui.setupUi(this);
-
-	m_itemSignalMapper = new QSignalMapper(this);
-	QObject::connect(m_itemSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotAddToBill(QString)));
 
 	QStringList headerLabels;
 	headerLabels.append("Item Code");
@@ -78,11 +32,6 @@ ESAddBillItem::ESAddBillItem(QWidget *parent)
 }
 
 ESAddBillItem::~ESAddBillItem()
-{
-
-}
-
-void ESAddBillItem::slotShowAddItem()
 {
 
 }
@@ -118,11 +67,9 @@ void ESAddBillItem::slotSearch()
 			ui.tableWidget->setItem(row, 1, new QTableWidgetItem(queryItems.value(3).toString()));
 			ui.tableWidget->setItem(row, 2, new QTableWidgetItem(""));
 			ui.tableWidget->setItem(row, 3, new QTableWidgetItem(""));
-
-			//m_itemSignalMapper->setMapping(ui.tableWidget, itemId);
-			//QObject::connect(ui.tableWidget, SIGNAL(itemPressed(QTableWidgetItem)), m_itemSignalMapper, SLOT(map()));
 		}
 	}
+	ui.tableWidget->selectRow(0);
 }
 
 void ESAddBillItem::keyPressEvent(QKeyEvent * event)
@@ -132,12 +79,12 @@ void ESAddBillItem::keyPressEvent(QKeyEvent * event)
 	case Qt::Key_Return:
 	{
 		QList<QTableWidgetItem *> items = ui.tableWidget->selectedItems();
-		QString number;
-		number.setNum(items.size());
-		QMessageBox mbox;
-		mbox.setIcon(QMessageBox::Critical);
-		mbox.setText(number);
-		mbox.exec();
+		
+		if (!items.empty())
+		{
+			QTableWidgetItem* item = items.first();
+			addToBill(item->text());
+		}
 	}
 		break;
 	case Qt::Key_Up:
@@ -146,6 +93,7 @@ void ESAddBillItem::keyPressEvent(QKeyEvent * event)
 	case Qt::Key_Right:
 	{
 		ui.tableWidget->setFocus();
+		ui.tableWidget->selectRow(0);
 	}
 		break;
 	default:
@@ -154,7 +102,7 @@ void ESAddBillItem::keyPressEvent(QKeyEvent * event)
 	}
 }
 
-void ESAddBillItem::slotAddToBill(QString itemId)
+void ESAddBillItem::addToBill(QString itemCode)
 {
 
 }
