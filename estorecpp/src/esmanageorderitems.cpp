@@ -87,15 +87,15 @@ void ESManageOrderItems::slotSearch()
 
 	if (!itemCodeGiven && uNameGiven)
 	{
-		searchQuery = "SELECT * from stock_order so, user u WHERE so.user_id = u.user_id AND u.username LIKE '" + searchName + "%' AND so.deleted = 0";
+		searchQuery = "SELECT * from stock_order so, user u WHERE so.user_id = u.user_id AND u.username LIKE '%" + searchName + "%' AND so.deleted = 0";
 	}
 	else if (itemCodeGiven && !uNameGiven)
 	{
-		searchQuery = "SELECT * from stock_order so, item i WHERE so.item_id = i.item_id AND i.item_code LIKE '" + searchItemCode + "%' AND so.deleted = 0";
+		searchQuery = "SELECT * from stock_order so, item i WHERE so.item_id = i.item_id AND i.item_code LIKE '%" + searchItemCode + "%' AND so.deleted = 0";
 	}
 	else if (itemCodeGiven && uNameGiven)
 	{
-		searchQuery = "SELECT * from stock_order so, user u , item i WHERE (so.user_id = u.user_id AND so.item_id = i.item_id) AND u.username LIKE '" + searchName + "%' AND i.item_code LIKE '" + searchItemCode + "%' AND so.deleted = 0";
+		searchQuery = "SELECT * from stock_order so, user u , item i WHERE (so.user_id = u.user_id AND so.item_id = i.item_id) AND u.username LIKE '%" + searchName + "%' AND i.item_code LIKE '%" + searchItemCode + "%' AND so.deleted = 0";
 	}
 	ui.tableWidget->setSortingEnabled(false);
 	QSqlQuery queryItems(searchQuery);
