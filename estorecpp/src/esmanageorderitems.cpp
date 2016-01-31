@@ -65,7 +65,6 @@ void ESManageOrderItems::slotAddNewOrderItem()
 void ESManageOrderItems::slotSearch()
 {
 
-
 	QString searchName = ui.usernameSearch->text();
 	QString searchItemCode = ui.itemCodeSearch->text();
 
@@ -74,35 +73,29 @@ void ESManageOrderItems::slotSearch()
 		ui.tableWidget->removeRow(0);
 	}
 
-	QString searchQuery = "SELECT * FROM stock_order";
-	//bool categorySelected = false;
-	if (searchName != nullptr)
+	QString searchQuery = "SELECT * FROM stock_order WHERE deleted = 0";
+	QString uId = nullptr;
+	bool uNameGiven = false, itemCodeGiven = false;
+	if (searchName != nullptr && !searchName.isEmpty())
 	{
-		// 		searchQuery.append(" WHERE deleted =0 AND itemcategory_id = ");
-		// 		QString catId;
-		// 		catId.setNum(categoryId);
-		// 		searchQuery.append(catId);
-		//		categorySelected = true;
+		uNameGiven = true;
+	}
+	if (searchItemCode != nullptr && !searchItemCode.isEmpty())
+	{
+		itemCodeGiven = true;
 	}
 
-	if (!searchName.isEmpty())
+	if (!itemCodeGiven && uNameGiven)
 	{
-		// 		if (categorySelected)
-		// 		{
-		// 			searchQuery.append(" AND ");
-		// 		}
-		// 		else
-		// 		{
-		// 			searchQuery.append(" WHERE deleted = 0 AND ");
-		// 		}
-		// 		searchQuery.append(" (item_code LIKE '%" + searchText + "%' OR item_name LIKE '%" + searchText + "%')");
+		searchQuery = "SELECT * from stock_order so, user u WHERE so.user_id = u.user_id AND u.username LIKE '" + searchName + "%' AND so.deleted = 0";
 	}
-	else
+	else if (itemCodeGiven && !uNameGiven)
 	{
-		//if (!categorySelected)
-		{
-			searchQuery.append(" WHERE deleted=0");
-		}
+		searchQuery = "SELECT * from stock_order so, item i WHERE so.item_id = i.item_id AND i.item_code LIKE '" + searchItemCode + "%' AND so.deleted = 0";
+	}
+	else if (itemCodeGiven && uNameGiven)
+	{
+		searchQuery = "SELECT * from stock_order so, user u , item i WHERE (so.user_id = u.user_id AND so.item_id = i.item_id) AND u.username LIKE '" + searchName + "%' AND i.item_code LIKE '" + searchItemCode + "%' AND so.deleted = 0";
 	}
 	ui.tableWidget->setSortingEnabled(false);
 	QSqlQuery queryItems(searchQuery);
