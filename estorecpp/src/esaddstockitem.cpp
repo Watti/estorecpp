@@ -2,13 +2,23 @@
 #include "utility/esdbconnection.h"
 #include <QMessageBox>
 #include <QPushButton>
+#include "esmanagestockitems.h"
+#include "utility/esmainwindowholder.h"
 
 
 AddStockItem::AddStockItem(QWidget *parent /*= 0*/)
-: QWidget(parent)
+: QWidget(parent), existingQuantity(0)
 {
 	ui.setupUi(this);
 	QObject::connect(ui.addItemButton, SIGNAL(clicked()), this, SLOT(slotAddStockItem()));
+
+	if (!ES::DbConnection::instance()->open())
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Critical);
+		mbox.setText(QString("Database Connection Error : AddStockItem"));
+		mbox.exec();
+	}
 }
 
 AddStockItem::~AddStockItem()
@@ -18,59 +28,69 @@ AddStockItem::~AddStockItem()
 
 void AddStockItem::slotAddStockItem()
 {
-	QString qtyStr = ui.qty->text();
-	QString minQtyStr = ui.minQty->text();
-	QString priceStr = ui.itemPrice->text();
-
-	if (!qtyStr.isEmpty() && !minQtyStr.isEmpty() && !priceStr.isEmpty())
+	if (existingQuantity > 0)
 	{
-		bool isValid = false;
-		double quantity = qtyStr.toDouble(&isValid);
-		if (!isValid)
+		QString qtyStr = ui.qty->text();
+		QString minQtyStr = ui.minQty->text();
+		QString priceStr = ui.itemPrice->text();
+
+		if (!qtyStr.isEmpty() && !minQtyStr.isEmpty() && !priceStr.isEmpty())
 		{
-			QMessageBox mbox;
-			mbox.setIcon(QMessageBox::Warning);
-			mbox.setText(QString("Invalid input - Quantity"));
-			mbox.exec();
-		}
-		double minQty = qtyStr.toDouble(&isValid);
-		if (!isValid)
-		{
-			QMessageBox mbox;
-			mbox.setIcon(QMessageBox::Warning);
-			mbox.setText(QString("Invalid input - Minimum Quantity"));
-			mbox.exec();
-		}
-		if (ES::DbConnection::instance()->open())
-		{
-			QString itemId = ui.itemIDLabel->text();
-			QString  price = ui.itemPrice->text();
-			price.toDouble(&isValid);
-			if (isValid)
+			bool isValid = false;
+			double quantity = qtyStr.toDouble(&isValid);
+			if (!isValid)
 			{
-				for (auto it : m_priceMap.keys())
+				QMessageBox mbox;
+				mbox.setIcon(QMessageBox::Warning);
+				mbox.setText(QString("Invalid input - Quantity"));
+				mbox.exec();
+			}
+			if (quantity <= existingQuantity)
+			{
+				double minQty = qtyStr.toDouble(&isValid);
+				if (!isValid)
 				{
-					if (m_priceMap.value(it) == price)
+					QMessageBox mbox;
+					mbox.setIcon(QMessageBox::Warning);
+					mbox.setText(QString("Invalid input - Minimum Quantity"));
+					mbox.exec();
+				}
+				QString itemId = ui.itemIDLabel->text();
+				QString  price = ui.itemPrice->text();
+				price.toDouble(&isValid);
+				if (isValid)
+				{
+					QSqlQuery query;
+					QString q("INSERT INTO stock  (item_id,  qty, min_qty, deleted) VALUES(" + itemId + ", " + qtyStr + "," + minQtyStr + ", 0) ");
+					if (query.exec(q))
 					{
-						QString priceId = it;
-						QSqlQuery query;
-						QString q("INSERT INTO stock  (item_id, itemprice_id , qty, min_qty, deleted) VALUES(" + itemId + ", " + priceId + ", " + qtyStr + "," + minQtyStr + ", 0) ");
-						if (!query.exec(q))
-						{
-							QMessageBox mbox;
-							mbox.setIcon(QMessageBox::Critical);
-							mbox.setText(QString("insertion error"));
-							mbox.exec();
-						}
+						ESManageStockItems* manageStock = new ESManageStockItems();
+						ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(manageStock);
+						this->close();
+						manageStock->show();
+					}
+					else
+					{
+						QMessageBox mbox;
+						mbox.setIcon(QMessageBox::Critical);
+						mbox.setText(QString("insertion error :: slotAddStockItem"));
+						mbox.exec();
 					}
 				}
+			}
+			else
+			{
+				QMessageBox mbox;
+				mbox.setIcon(QMessageBox::Warning);
+				mbox.setText(QString("Inserted quantity value exceeds the existing quantity"));
+				mbox.exec();
 			}
 		}
 		else
 		{
 			QMessageBox mbox;
-			mbox.setIcon(QMessageBox::Critical);
-			mbox.setText(QString("Database Connection Error : AddStockItem::slotAddStockItem"));
+			mbox.setIcon(QMessageBox::Warning);
+			mbox.setText(QString("Fields are Empty"));
 			mbox.exec();
 		}
 	}
@@ -78,12 +98,18 @@ void AddStockItem::slotAddStockItem()
 	{
 		QMessageBox mbox;
 		mbox.setIcon(QMessageBox::Warning);
-		mbox.setText(QString("Fields are Empty"));
+		mbox.setText(QString("This item does not exist in the current stock"));
 		mbox.exec();
 	}
 }
 
-void AddStockItem::addToPriceMap(QString key, QString value)
+double AddStockItem::getExistingQuantity() const
 {
-	m_priceMap.insert(key, value);
+	return existingQuantity;
 }
+
+void AddStockItem::setExistingQuantity(double val)
+{
+	existingQuantity = val;
+}
+

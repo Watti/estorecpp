@@ -76,6 +76,12 @@ void ESManageStockItems::slotUpdate(QString itemId)
 	AddStockItem* addStockItem = new AddStockItem(this);
 	addStockItem->getUI().groupBox->setTitle("Update Stock Item");
 	addStockItem->getUI().itemIDLabel->setText(itemId);
+	QSqlQuery query;
+	if (query.exec("SELECT selling_price FROM stock_order WHERE item_id = " + itemId))
+	{
+		QString price = query.value("selling_price").toString();
+		addStockItem->getUI().itemPrice->setText(price);
+	}
 	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(addStockItem);
 	addStockItem->show();
 }
@@ -299,50 +305,42 @@ void ESManageStockItems::slotSearch()
 
 void ESManageStockItems::displayStockItems()
 {
-	if (!ES::DbConnection::instance()->open())
-	{
-		QMessageBox mbox;
-		mbox.setIcon(QMessageBox::Critical);
-		mbox.setText(QString("Cannot connect to the database : ESManageStockItems::displayStockItems "));
-		mbox.exec();
-	}
-	else
-	{
-		QSqlQuery query1("SELECT * FROM item");
+	QSqlQuery itemQuery("SELECT * FROM item WHERE deleted = 0");
 
-		while (query1.next())
+	while (itemQuery.next())
+	{
+		QStringList rowItems;
+		QString itemId = itemQuery.value(0).toString();
+		QString itemCategoryId = itemQuery.value(1).toString();
+
+		rowItems.append(itemQuery.value(2).toString());
+		rowItems.append(itemQuery.value(3).toString());
+
+
+		QString unitPrice = DEFAULT_DB_NUMERICAL_TO_DISPLAY;
+		QSqlQuery stockOrderQuery("SELECT * from stock_order WHERE item_id=" + itemId);
+		if (stockOrderQuery.first())
 		{
-			QStringList rowItems;
-			QString itemId = query1.value(0).toString();
-			QString itemCategoryId = query1.value(1).toString();
-			/*bool deleted = query1.value(7).toBool();*/
+			unitPrice = stockOrderQuery.value("selling_price").toString();
 
-			rowItems.append(query1.value(2).toString());
-			rowItems.append(query1.value(3).toString());
-			QSqlQuery query3("SELECT * FROM item_category WHERE itemcategory_id=" + itemCategoryId);
-			if (query3.first())
+			QSqlQuery categoryQuery("SELECT * FROM item_category WHERE itemcategory_id=" + itemCategoryId);
+			if (categoryQuery.first())
 			{
-				rowItems.append(query3.value(2).toString());
+				rowItems.append(categoryQuery.value(2).toString());
 			}
 
 			QString qty = DEFAULT_DB_NUMERICAL_TO_DISPLAY;
 			QString minQty = DEFAULT_DB_NUMERICAL_TO_DISPLAY;
-			QString unitPrice = DEFAULT_DB_NUMERICAL_TO_DISPLAY;
 
-			QSqlQuery query2("SELECT * FROM stock WHERE item_id=" + itemId);
+			QSqlQuery stockQuery("SELECT * FROM stock WHERE item_id=" + itemId + " AND deleted = 0");
 
 			bool inStock = false;
-			if (query2.first())
+			if (stockQuery.first())
 			{
-				qty = query2.value(3).toString();
-				minQty = query2.value(4).toString();
+				qty = stockQuery.value(3).toString();
+				minQty = stockQuery.value(4).toString();
 
-				QSqlQuery query4("SELECT * from item_price WHERE itemprice_id=" + query2.value(2).toString());
-				if (query4.first())
-				{
-					unitPrice = query4.value(2).toString();
-				}
-				if (qty == DEFAULT_DB_NUMERICAL_TO_DISPLAY || qty.toInt() >= 0)
+				if (qty.toDouble() >= 0)
 				{
 					inStock = true;
 				}
@@ -350,14 +348,10 @@ void ESManageStockItems::displayStockItems()
 
 			rowItems.append(qty);
 			rowItems.append(minQty);
-			rowItems.append(query1.value(5).toString());
+			rowItems.append(itemQuery.value(5).toString());
 			rowItems.append(unitPrice);
-			rowItems.append(query1.value(6).toString());
+			rowItems.append(itemQuery.value(6).toString());
 
-			// 			if (qty == DEFAULT_DB_NUMERICAL_TO_DISPLAY || (qty.toInt() == 0))
-			// 			{
-			// 				inStock = false;
-			// 			}
 			displayStockTableRow(rowItems, itemId, inStock);
 		}
 	}
@@ -566,22 +560,20 @@ void ESManageStockItems::slotAddToStock(QString itemId)
 	AddStockItem* addStockItem = new AddStockItem(this);
 	addStockItem->getUI().groupBox->setTitle("Add Stock Item");
 	addStockItem->getUI().itemIDLabel->setText(itemId);
-	QSqlQuery query("SELECT selling_price FROM stock_order WHERE item_id = " + itemId);
+	QSqlQuery query("SELECT selling_price, quantity FROM stock_order WHERE item_id = " + itemId);
 	QStringList priceList;
 	while (query.next())
 	{
 		QString price = query.value("selling_price").toString();
 		addStockItem->getUI().itemPrice->setText(price);
-
-// 		QSqlQuery priceQuery("SELECT unit_price FROM item_price WHERE itemprice_id = " + priceId + " AND deleted = 0");
-// 		while (priceQuery.next())
-// 		{
-// 			QString price = priceQuery.value("unit_price").toString();
-// 			addStockItem->addToPriceMap(itemId, price);
-// 			priceList.append(price);
-// 			addStockItem->getUI().itemPrice->setText(price);
-// 		}
-
+		QString quantity = query.value("quantity").toString();
+		addStockItem->getUI().qty->setText(quantity);
+		bool isValid = false;
+		double qtyDouble = quantity.toDouble(&isValid);
+		if (isValid)
+		{
+			addStockItem->setExistingQuantity(qtyDouble);
+		}
 	}
 	if (priceList.empty())
 	{

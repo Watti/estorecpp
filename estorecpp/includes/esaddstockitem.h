@@ -14,13 +14,14 @@ public:
 
 	Ui::AddStockItem& getUI() { return ui; };
 
-	void addToPriceMap(QString key, QString value);
 	public slots:
 	void slotAddStockItem();
+	double getExistingQuantity() const;
+	void setExistingQuantity(double val);
 
 private:
 	Ui::AddStockItem ui;
-	QMap<QString, QString> m_priceMap;
+	double existingQuantity;
 };
 
 #endif
