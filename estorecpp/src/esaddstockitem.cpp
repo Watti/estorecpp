@@ -7,7 +7,7 @@
 
 
 AddStockItem::AddStockItem(QWidget *parent /*= 0*/)
-: QWidget(parent), existingQuantity(0)
+: QWidget(parent), m_existingQuantityInMainStock(0), m_update(false), m_existingQuantityInStock(0)
 {
 	ui.setupUi(this);
 	QObject::connect(ui.addItemButton, SIGNAL(clicked()), this, SLOT(slotAddStockItem()));
@@ -28,7 +28,7 @@ AddStockItem::~AddStockItem()
 
 void AddStockItem::slotAddStockItem()
 {
-	if (existingQuantity > 0)
+	if (m_existingQuantityInMainStock > 0)
 	{
 		QString qtyStr = ui.qty->text();
 		QString minQtyStr = ui.minQty->text();
@@ -45,7 +45,7 @@ void AddStockItem::slotAddStockItem()
 				mbox.setText(QString("Invalid input - Quantity"));
 				mbox.exec();
 			}
-			if (quantity <= existingQuantity)
+			if (quantity >= 0 && quantity <= m_existingQuantityInMainStock)
 			{
 				double minQty = qtyStr.toDouble(&isValid);
 				if (!isValid)
@@ -60,10 +60,37 @@ void AddStockItem::slotAddStockItem()
 				price.toDouble(&isValid);
 				if (isValid)
 				{
+					QString q;
+					if (isUpdate())
+					{
+						q = "UPDATE stock SET qty = '" + qtyStr + "', min_qty = '" + minQtyStr + "' WHERE item_id = " + m_itemId;
+					}
+					else
+					{
+						q = "INSERT INTO stock  (item_id,  qty, min_qty, deleted) VALUES(" + itemId + ", " + qtyStr + "," + minQtyStr + ", 0) ";
+					}
+
 					QSqlQuery query;
-					QString q("INSERT INTO stock  (item_id,  qty, min_qty, deleted) VALUES(" + itemId + ", " + qtyStr + "," + minQtyStr + ", 0) ");
 					if (query.exec(q))
 					{
+						double remainingQtyInMainStock = -1;
+						if (isUpdate())
+						{
+							remainingQtyInMainStock = m_existingQuantityInMainStock + (m_existingQuantityInStock - quantity);
+						}
+						else
+						{
+							 remainingQtyInMainStock = m_existingQuantityInMainStock - quantity;
+						}
+						QString updateOrder("UPDATE stock_order SET quantity = " + QString::number(remainingQtyInMainStock)+" WHERE item_id = "+itemId);
+						QSqlQuery qUpdateOrder;
+						if (!qUpdateOrder.exec(updateOrder))
+						{
+							QMessageBox mbox;
+							mbox.setIcon(QMessageBox::Critical);
+							mbox.setText(QString("insertion error :: cannot reduce this quantity from the main stock order"));
+							mbox.exec();
+						}
 						ESManageStockItems* manageStock = new ESManageStockItems();
 						ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(manageStock);
 						this->close();
@@ -82,7 +109,7 @@ void AddStockItem::slotAddStockItem()
 			{
 				QMessageBox mbox;
 				mbox.setIcon(QMessageBox::Warning);
-				mbox.setText(QString("Inserted quantity value exceeds the existing quantity"));
+				mbox.setText(QString("Inserted quantity value exceeds the existing quantity or invalid quantity"));
 				mbox.exec();
 			}
 		}
@@ -103,13 +130,38 @@ void AddStockItem::slotAddStockItem()
 	}
 }
 
-double AddStockItem::getExistingQuantity() const
+double AddStockItem::getExistingQuantityInMainStock() const
 {
-	return existingQuantity;
+	return m_existingQuantityInMainStock;
 }
 
-void AddStockItem::setExistingQuantity(double val)
+void AddStockItem::setExistingQuantityInMainStock(double val)
 {
-	existingQuantity = val;
+	m_existingQuantityInMainStock = val;
+}
+
+void AddStockItem::setUpdate(bool val)
+{
+	m_update = val;
+}
+
+bool AddStockItem::isUpdate() const
+{
+	return m_update;
+}
+
+void AddStockItem::setItemId(QString val)
+{
+	m_itemId = val;
+}
+
+double AddStockItem::getExistingQuantityInStock() const
+{
+	return m_existingQuantityInStock;
+}
+
+void AddStockItem::setExistingQuantityInStock(double val)
+{
+	m_existingQuantityInStock = val;
 }
 

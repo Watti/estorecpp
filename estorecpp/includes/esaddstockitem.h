@@ -16,12 +16,20 @@ public:
 
 	public slots:
 	void slotAddStockItem();
-	double getExistingQuantity() const;
-	void setExistingQuantity(double val);
+	double getExistingQuantityInMainStock() const;
+	void setExistingQuantityInMainStock(double val);
+	double getExistingQuantityInStock() const;
+	void setExistingQuantityInStock(double val);
+	bool isUpdate() const;
+	void setUpdate(bool val);
+	void setItemId(QString val);
 
 private:
 	Ui::AddStockItem ui;
-	double existingQuantity;
+	double m_existingQuantityInMainStock;
+	double m_existingQuantityInStock;
+	bool m_update;
+	QString m_itemId;
 };
 
 #endif
