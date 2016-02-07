@@ -47,8 +47,14 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 
 	mmgr->addAction("Manage Stock Items", ui.actionManageStockItems);
 	ui.actionManageStockItems->setIcon(QIcon("icons/manage_store.png"));
+	
+	QLabel* logoLabel = new QLabel(ui.mainToolBar);
+	logoLabel->setMinimumWidth(90);
+	logoLabel->setPixmap(QPixmap("icons/logo2.png"));
+
+	ui.mainToolBar->addWidget(logoLabel);
 	ui.mainToolBar->addAction(ui.actionManageStockItems);
-	ui.mainToolBar->addSeparator();
+	mmgr->addSeparator(ui.mainToolBar->addSeparator());
 
 	ui.mainToolBar->setMinimumSize(40, 40);
 
@@ -61,12 +67,12 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	mmgr->addAction("Manage Item Prices", ui.actionManageItemPrices);
 	ui.actionManageItemPrices->setIcon(QIcon("icons/manage_item_prices.png"));
 	ui.mainToolBar->addAction(ui.actionManageItemPrices);
-	ui.mainToolBar->addSeparator();
+	mmgr->addSeparator(ui.mainToolBar->addSeparator());
 
 	mmgr->addAction("Manage Order Items", ui.actionManageOrderItems);
 	ui.actionManageOrderItems->setIcon(QIcon("icons/order_item.png"));
 	ui.mainToolBar->addAction(ui.actionManageOrderItems);
-	ui.mainToolBar->addSeparator();
+	mmgr->addSeparator(ui.mainToolBar->addSeparator());
 
 	mmgr->addAction("Add Bill", ui.actionAddBill);
 	ui.actionAddBill->setIcon(QIcon("icons/add_bill.png"));
@@ -74,7 +80,7 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	mmgr->addAction("Current Bills", ui.actionCurrentBills);
 	ui.actionCurrentBills->setIcon(QIcon("icons/all_bills.png"));
 	ui.mainToolBar->addAction(ui.actionCurrentBills);
-	ui.mainToolBar->addSeparator();
+	mmgr->addSeparator(ui.mainToolBar->addSeparator());
 
 	mmgr->addMenuActionMapping("Stock", "Manage Stock Items");
 	mmgr->addMenuActionMapping("Items", "Manage Items");
@@ -85,6 +91,8 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	mmgr->addMenuActionMapping("Billing", "Current Bills");
 
 	mmgr->disableAll();
+
+	slotLogin();
 
 }
 

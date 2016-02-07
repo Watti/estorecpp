@@ -27,6 +27,8 @@ namespace ES
 
 		void addMenuActionMapping(QString menu, QString action);
 
+		void addSeparator(QAction* separator);
+
 		void disableAll();
 
 		MenuManager();
@@ -36,6 +38,7 @@ namespace ES
 		std::map<QString, QMenu*> m_menuNames;
 		std::map<QString, QAction*> m_actionNames;
 		std::map<QString, std::vector<QString> > m_menuActionMappings;
+		std::list<QAction*> m_separators;
 	};
 
 }

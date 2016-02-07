@@ -39,6 +39,11 @@ namespace ES
 		menuActions.push_back(action);
 	}
 
+	void MenuManager::addSeparator(QAction* separator)
+	{
+		m_separators.push_back(separator);
+	}
+
 	void MenuManager::reload(QString permissions)
 	{
 		disableAll();
@@ -67,6 +72,10 @@ namespace ES
 						if (it->first == s.trimmed())
 							(it->second)->setVisible(true);
 					}
+					for (std::list<QAction*>::iterator it = m_separators.begin(), eit = m_separators.end(); it != eit; ++it)
+					{
+						(*it)->setVisible(true);
+					}
 				}
 			}
 		}
@@ -81,6 +90,10 @@ namespace ES
 		for (std::map<QString, QAction*>::iterator it = m_actionNames.begin(), eit = m_actionNames.end(); it != eit; ++it)
 		{
 			(it->second)->setVisible(false);
+		}
+		for (std::list<QAction*>::iterator it = m_separators.begin(), eit = m_separators.end(); it != eit; ++it)
+		{
+			(*it)->setVisible(false);
 		}
 	}
 

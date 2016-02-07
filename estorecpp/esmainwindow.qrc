@@ -1,4 +1,5 @@
 <RCC>
-    <qresource prefix="ESMainWindow">
-    </qresource>
+  <qresource prefix="ESMainWindow">
+    <file>icons/poswoman.jpg</file>
+  </qresource>
 </RCC>
