@@ -5,6 +5,8 @@
 #include <QDesktopWidget>
 #include <QApplication>
 #include <QSqlQuery>
+#include "QDateTime"
+#include "QTimer"
 
 ESAddBill::ESAddBill(QWidget *parent)
 :QWidget(parent)
@@ -27,8 +29,20 @@ ESAddBill::ESAddBill(QWidget *parent)
 	ui.tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
 	ui.tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
 
+	ui.paymentMethodComboBox->addItem("CASH", 1);
+	ui.paymentMethodComboBox->addItem("CREDIT", 2);
+	ui.paymentMethodComboBox->addItem("CARD", 3);
+	ui.paymentMethodComboBox->addItem("CHEQUE", 4);
+
+	ui.billedByLabel->setText(ES::Session::getInstance()->getUser()->getName());
+	ui.branchLabel->setText("NUGEGODA");
+
+	QTimer *timer = new QTimer(this);
+	timer->start(1000);
+
 	new QShortcut(QKeySequence(Qt::Key_F4), this, SLOT(slotShowAddItem()));
 	new QShortcut(QKeySequence(Qt::Key_F3), this, SLOT(slotStartNewBill()));
+	connect(timer, SIGNAL(timeout()), this, SLOT(showTime()));
 }
 
 ESAddBill::~ESAddBill()
@@ -76,7 +90,17 @@ void ESAddBill::slotStartNewBill()
 	ui.billedByLabel->setText(ES::Session::getInstance()->getUser()->getName());
 	ui.branchLabel->setText("NUGEGODA");
 
-	QDateTime dateTime = QDateTime::currentDateTime();
-	ui.dateLabel->setText(dateTime.toString("yyyy/MM/dd  HH:mm:ss"));
+// 	QDateTime dateTime = QDateTime::currentDateTime();
+// 	ui.dateLabel->setText(dateTime.toString("yyyy/MM/dd  HH:mm:ss"));
 
+}
+
+void ESAddBill::showTime()
+{
+	ui.dateLabel->setText(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"));
+}
+
+Ui::AddBillWidget& ESAddBill::getUI()
+{
+	return ui;
 }

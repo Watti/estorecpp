@@ -10,15 +10,15 @@ public:
 	ESAddBill(QWidget *parent = 0);
 	~ESAddBill();
 
-	Ui::AddBillWidget& getUI() { return ui; };
+	Ui::AddBillWidget& getUI();;
 
 	public slots:
 	void slotShowAddItem();
 	void slotStartNewBill();
+	void showTime();
 
 private:
 	Ui::AddBillWidget ui;
-
 };
 
 #endif
