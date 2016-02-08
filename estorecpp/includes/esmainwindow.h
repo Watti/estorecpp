@@ -24,6 +24,9 @@ public slots:
 	void slotCurrentBills();
 	void slotLogin();
 
+protected:
+	void closeEvent(QCloseEvent *event);
+
 private:
 	Ui::ESMainWindowClass ui;
 	QAction* m_actionLogin;

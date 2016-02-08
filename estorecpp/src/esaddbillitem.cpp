@@ -104,10 +104,10 @@ void ESAddBillItem::keyPressEvent(QKeyEvent * event)
 
 void ESAddBillItem::addToBill(QString itemCode)
 {
-// 	QString qryStrItems("SELECT item_id FROM Item WHERE item_code = " + itemCode);
-// 	QSqlQuery qryItems(qryStrItems);
-// 	while (qryItems.next())
-// 	{
-// 		QString itemId = qryItems.value("item_id").toString();
-// 	}
+	QString qryStrItems("SELECT item_id FROM Item WHERE item_code = " + itemCode);
+	QSqlQuery qryItems(qryStrItems);
+	while (qryItems.next())
+	{
+		QString itemId = qryItems.value("item_id").toString();
+	}
 }

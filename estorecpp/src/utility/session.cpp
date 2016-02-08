@@ -19,7 +19,7 @@ namespace ES
 		return m_session;
 	}
 
-	Session::Session() : m_user(NULL)
+	Session::Session() : m_user(NULL), m_billStarted(false)
 	{
 
 	}
@@ -32,6 +32,21 @@ namespace ES
 	void Session::setUser(User* val)
 	{
 		m_user = val;
+	}
+
+	void Session::startBill()
+	{
+		m_billStarted = true;
+	}
+
+	bool Session::isBillStarted() const
+	{
+		return m_billStarted;
+	}
+
+	void Session::endBill()
+	{
+		m_billStarted = false;
 	}
 
 }

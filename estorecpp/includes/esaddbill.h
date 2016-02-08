@@ -14,6 +14,7 @@ public:
 
 	public slots:
 	void slotShowAddItem();
+	void slotStartNewBill();
 
 private:
 	Ui::AddBillWidget ui;

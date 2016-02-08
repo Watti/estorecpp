@@ -250,6 +250,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="src\entities\bill.cpp" />
     <ClCompile Include="src\entities\user.cpp" />
     <ClCompile Include="src\esaddbill.cpp" />
     <ClCompile Include="src\esaddbillitem.cpp" />
@@ -304,6 +305,7 @@
     <ClInclude Include="GeneratedFiles\ui_itemprices.h" />
     <ClInclude Include="GeneratedFiles\ui_manageitems.h" />
     <ClInclude Include="GeneratedFiles\ui_manageorderitems.h" />
+    <ClInclude Include="includes\entities\bill.h" />
     <ClInclude Include="includes\entities\user.h" />
     <CustomBuild Include="includes\esmanageorderitems.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>

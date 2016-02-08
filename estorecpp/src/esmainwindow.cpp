@@ -7,6 +7,8 @@
 #include "esmanageorderitems.h"
 #include "esaddbill.h"
 #include "utility/esmenumanager.h"
+#include "utility/session.h"
+#include <QMessageBox>
 
 ESMainWindow::ESMainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -64,9 +66,9 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	mmgr->addAction("Manage Item Categories", ui.actionManageItemCategories);
 	ui.actionManageItemCategories->setIcon(QIcon("icons/manage_item_categories.png"));
 	ui.mainToolBar->addAction(ui.actionManageItemCategories);
-	mmgr->addAction("Manage Item Prices", ui.actionManageItemPrices);
-	ui.actionManageItemPrices->setIcon(QIcon("icons/manage_item_prices.png"));
-	ui.mainToolBar->addAction(ui.actionManageItemPrices);
+	//mmgr->addAction("Manage Item Prices", ui.actionManageItemPrices);
+	//ui.actionManageItemPrices->setIcon(QIcon("icons/manage_item_prices.png"));
+	//ui.mainToolBar->addAction(ui.actionManageItemPrices);
 	mmgr->addSeparator(ui.mainToolBar->addSeparator());
 
 	mmgr->addAction("Manage Order Items", ui.actionManageOrderItems);
@@ -85,7 +87,7 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	mmgr->addMenuActionMapping("Stock", "Manage Stock Items");
 	mmgr->addMenuActionMapping("Items", "Manage Items");
 	mmgr->addMenuActionMapping("Items", "Manage Item Categories");
-	mmgr->addMenuActionMapping("Items", "Manage Item Prices");
+	//mmgr->addMenuActionMapping("Items", "Manage Item Prices");
 	mmgr->addMenuActionMapping("Orders", "Manage Order Items");
 	mmgr->addMenuActionMapping("Billing", "Add Bill");
 	mmgr->addMenuActionMapping("Billing", "Current Bills");
@@ -158,5 +160,22 @@ void ESMainWindow::slotLogin()
 void ESMainWindow::reloadMenus()
 {
 
+}
+
+void ESMainWindow::closeEvent(QCloseEvent *event)
+{
+	if (ES::Session::getInstance()->isBillStarted())
+	{
+		int choice = QMessageBox::question(0, "Warning", "Current Bill is not finished. Do you want to discard it and quit?", 
+			QMessageBox::Yes, QMessageBox::No);
+
+		if (choice == QMessageBox::No)
+		{
+			event->ignore();
+			return;
+		}
+	}
+
+	event->accept();
 }
 

@@ -197,6 +197,9 @@
     <ClCompile Include="src\esaddbillitem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\entities\bill.cpp">
+      <Filter>Source Files\entities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="esmainwindow.ui">
@@ -338,6 +341,9 @@
     </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_addbillitem.h">
       <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="includes\entities\bill.h">
+      <Filter>Header Files\enities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

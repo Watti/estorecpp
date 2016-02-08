@@ -14,10 +14,15 @@ namespace ES
 
 		User* getUser() const;
 		void setUser(User* val);
+		void startBill();
+		bool isBillStarted() const;
+		void endBill();
+
 	private:
 		Session();
 		static Session* m_session;
 		User* m_user;
+		bool m_billStarted;
 	};
 
 }
