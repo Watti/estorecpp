@@ -58,7 +58,7 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	ui.mainToolBar->addAction(ui.actionManageStockItems);
 	mmgr->addSeparator(ui.mainToolBar->addSeparator());
 
-	ui.mainToolBar->setMinimumSize(40, 40);
+	ui.mainToolBar->setMinimumSize(80, 80);
 
 	mmgr->addAction("Manage Items", ui.actionManageItems);
 	ui.actionManageItems->setIcon(QIcon("icons/manage_items.png"));

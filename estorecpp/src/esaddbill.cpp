@@ -36,6 +36,7 @@ ESAddBill::ESAddBill(QWidget *parent)
 
 	ui.billedByLabel->setText(ES::Session::getInstance()->getUser()->getName());
 	ui.branchLabel->setText("NUGEGODA");
+	ui.billIdLabel->setText("###");
 
 	QTimer *timer = new QTimer(this);
 	timer->start(1000);
