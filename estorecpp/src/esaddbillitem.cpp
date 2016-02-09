@@ -8,7 +8,6 @@ ESAddBillItem::ESAddBillItem(QTableWidget* cart, QWidget *parent)
 {
 	m_cart = cart;
 	ui.setupUi(this);
-
 	QStringList headerLabels;
 	headerLabels.append("Item Code");
 	headerLabels.append("Item Name");
@@ -104,16 +103,22 @@ void ESAddBillItem::keyPressEvent(QKeyEvent * event)
 
 void ESAddBillItem::addToBill(QString itemCode)
 {
-	QString qryStrItems("SELECT item_id FROM Item WHERE item_code = " + itemCode);
+	QString qryStrItems("SELECT item_id, item_name FROM Item WHERE item_code = '" + itemCode+"'");
 	QSqlQuery qryItems(qryStrItems);
 	while (qryItems.next())
 	{
 		QString itemId = qryItems.value("item_id").toString();
-		QString qryStrStock("SELECT * FROM stock WHERE item_id = " + itemId);
+		QString itemName = qryItems.value("item_name").toString();
+
+		QString qryStrStock("SELECT * FROM stock_order WHERE item_id = " + itemId);
 		QSqlQuery qryStock(qryStrStock);
+		//QStringList rowItems;
 		while (qryStock.next())
 		{
-			QString stockId = qryStock.value("stock_id").toString();
+
+			QString sellingPrice = qryStock.value("selling_price").toString();
+			QString discount = qryStock.value("discount_type").toString();
+			
 		}
 	}
 }
