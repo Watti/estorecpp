@@ -17,12 +17,15 @@ namespace ES
 		void startBill();
 		bool isBillStarted() const;
 		void endBill();
+		QString getBillId() const;
+		void setBillId(QString val);
 
 	private:
 		Session();
 		static Session* m_session;
 		User* m_user;
 		bool m_billStarted;
+		QString m_billId;
 	};
 
 }

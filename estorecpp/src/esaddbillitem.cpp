@@ -3,6 +3,7 @@
 #include <QShortcut>
 #include <QMessageBox>
 #include <QSqlQuery>
+#include "utility\session.h"
 
 ESAddBillItem::ESAddBillItem(QTableWidget* cart, QWidget *parent)
 {
@@ -110,15 +111,25 @@ void ESAddBillItem::addToBill(QString itemCode)
 		QString itemId = qryItems.value("item_id").toString();
 		QString itemName = qryItems.value("item_name").toString();
 
-		QString qryStrStock("SELECT * FROM stock_order WHERE item_id = " + itemId);
-		QSqlQuery qryStock(qryStrStock);
-		//QStringList rowItems;
-		while (qryStock.next())
+		QString qryStrStockOrder("SELECT * FROM stock_order WHERE item_id = " + itemId);
+		QSqlQuery qryStockOrder(qryStrStockOrder);
+		while (qryStockOrder.next())
 		{
-
-			QString sellingPrice = qryStock.value("selling_price").toString();
-			QString discount = qryStock.value("discount_type").toString();
-			
+			QString sellingPrice = qryStockOrder.value("selling_price").toString();
+			QString discount = qryStockOrder.value("discount_type").toString();
+			QString qryStrStock("SELECT * FROM stock WHERE item_id = " + itemId);
+			QSqlQuery qryStock(qryStrStock);
+			while (qryStock.next())
+			{
+				QString stockId = qryStock.value("stock_id").toString();
+				QString billId = ES::Session::getInstance()->getBillId();
+				QString q = "INSERT INTO sale  (stock_id,  bill_id, discount, deleted) VALUES(" + stockId + ", " + billId + "," + discount + ", 0) ";
+				QSqlQuery query;
+				if (query.exec(q))
+				{
+					close();
+				}
+			}
 		}
 	}
 }

@@ -49,4 +49,14 @@ namespace ES
 		m_billStarted = false;
 	}
 
+	QString Session::getBillId() const
+	{
+		return m_billId;
+	}
+
+	void Session::setBillId(QString val)
+	{
+		m_billId = val;
+	}
+
 }

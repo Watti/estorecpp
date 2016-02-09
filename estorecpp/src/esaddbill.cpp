@@ -101,6 +101,7 @@ void ESAddBill::slotStartNewBill()
 
 	QString billID;
 	billID.setNum(id);
+	ES::Session::getInstance()->setBillId(billID);
 	ui.billIdLabel->setText(billID);
 	ui.billedByLabel->setText(ES::Session::getInstance()->getUser()->getName());
 	ui.branchLabel->setText("NUGEGODA");
