@@ -109,5 +109,11 @@ void ESAddBillItem::addToBill(QString itemCode)
 	while (qryItems.next())
 	{
 		QString itemId = qryItems.value("item_id").toString();
+		QString qryStrStock("SELECT * FROM stock WHERE item_id = " + itemId);
+		QSqlQuery qryStock(qryStrStock);
+		while (qryStock.next())
+		{
+			QString stockId = qryStock.value("stock_id").toString();
+		}
 	}
 }

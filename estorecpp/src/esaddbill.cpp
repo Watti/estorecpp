@@ -7,6 +7,8 @@
 #include <QSqlQuery>
 #include "QDateTime"
 #include "QTimer"
+#include "utility/esdbconnection.h"
+#include "QMessageBox"
 
 ESAddBill::ESAddBill(QWidget *parent)
 :QWidget(parent)
@@ -29,10 +31,22 @@ ESAddBill::ESAddBill(QWidget *parent)
 	ui.tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
 	ui.tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
 
-	ui.paymentMethodComboBox->addItem("CASH", 1);
-	ui.paymentMethodComboBox->addItem("CREDIT", 2);
-	ui.paymentMethodComboBox->addItem("CARD", 3);
-	ui.paymentMethodComboBox->addItem("CHEQUE", 4);
+	if (!ES::DbConnection::instance()->open())
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Critical);
+		mbox.setText(QString("Cannot connect to the database : ESAddBill::ESAddBill "));
+		mbox.exec();
+	}
+	else
+	{
+		QSqlQuery queryPayment("SELECT * FROM payment");
+		QStringList catogory;
+		while (queryPayment.next())
+		{
+			ui.paymentMethodComboBox->addItem(queryPayment.value("type").toString(), queryPayment.value("type_id").toInt());
+		}
+	}
 
 	ui.billedByLabel->setText(ES::Session::getInstance()->getUser()->getName());
 	ui.branchLabel->setText("NUGEGODA");
@@ -90,10 +104,6 @@ void ESAddBill::slotStartNewBill()
 	ui.billIdLabel->setText(billID);
 	ui.billedByLabel->setText(ES::Session::getInstance()->getUser()->getName());
 	ui.branchLabel->setText("NUGEGODA");
-
-// 	QDateTime dateTime = QDateTime::currentDateTime();
-// 	ui.dateLabel->setText(dateTime.toString("yyyy/MM/dd  HH:mm:ss"));
-
 }
 
 void ESAddBill::showTime()
