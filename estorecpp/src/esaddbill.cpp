@@ -23,6 +23,7 @@ ESAddBill::ESAddBill(QWidget *parent)
 	headerLabels.append("Discount");
 	headerLabels.append("Amount");
 	headerLabels.append("Actions");
+	headerLabels.append("Sale_ID");
 
 	ui.tableWidget->setHorizontalHeaderLabels(headerLabels);
 	ui.tableWidget->horizontalHeader()->setStretchLastSection(true);
@@ -30,6 +31,7 @@ ESAddBill::ESAddBill(QWidget *parent)
 	ui.tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	ui.tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
 	ui.tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+	ui.tableWidget->hideColumn(7);
 
 	if (!ES::DbConnection::instance()->open())
 	{
@@ -58,6 +60,7 @@ ESAddBill::ESAddBill(QWidget *parent)
 	new QShortcut(QKeySequence(Qt::Key_F4), this, SLOT(slotShowAddItem()));
 	new QShortcut(QKeySequence(Qt::Key_F3), this, SLOT(slotStartNewBill()));
 	connect(timer, SIGNAL(timeout()), this, SLOT(showTime()));
+	connect(ui.tableWidget, SIGNAL(cellClicked(int, int)), this, SLOT(slotEdit(int, int)));
 }
 
 ESAddBill::~ESAddBill()
@@ -77,7 +80,7 @@ void ESAddBill::slotShowAddItem()
 	width -= 200;
 	height -= 200;
 
-	ESAddBillItem* addBillItem = new ESAddBillItem(ui.tableWidget, this);
+	ESAddBillItem* addBillItem = new ESAddBillItem(this, this);
 	addBillItem->resize(QSize(width, height));
 	addBillItem->setWindowState(Qt::WindowActive);
 	addBillItem->setWindowModality(Qt::ApplicationModal);
@@ -115,4 +118,29 @@ void ESAddBill::showTime()
 Ui::AddBillWidget& ESAddBill::getUI()
 {
 	return ui;
+}
+
+void ESAddBill::slotSearch()
+{
+
+}
+
+void ESAddBill::slotReturnPressed(QString saleId)
+{
+	QLineEdit* le = qobject_cast<QLineEdit*>(sender());
+	if (le)
+	{
+		if (le->isReadOnly())
+		{
+			le->setReadOnly(false);
+		}
+		else
+		{
+			le->setReadOnly(true);
+			QString q = "Update sale SET quantity = "+le->text() + " WHERE sale_id = " + saleId;
+			QSqlQuery query(q);
+
+		}
+	}
+	le->setFocus();
 }

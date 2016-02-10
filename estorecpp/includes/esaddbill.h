@@ -16,6 +16,8 @@ public:
 	void slotShowAddItem();
 	void slotStartNewBill();
 	void showTime();
+	void slotSearch();
+	void slotReturnPressed(QString saleId);
 
 private:
 	Ui::AddBillWidget ui;

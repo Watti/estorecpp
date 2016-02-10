@@ -4,8 +4,9 @@
 #include <QMessageBox>
 #include <QSqlQuery>
 #include "utility\session.h"
+#include "entities\SaleLineEdit.h"
 
-ESAddBillItem::ESAddBillItem(QTableWidget* cart, QWidget *parent)
+ESAddBillItem::ESAddBillItem(ESAddBill* cart, QWidget *parent)
 {
 	m_cart = cart;
 	ui.setupUi(this);
@@ -106,30 +107,86 @@ void ESAddBillItem::addToBill(QString itemCode)
 {
 	QString qryStrItems("SELECT item_id, item_name FROM Item WHERE item_code = '" + itemCode+"'");
 	QSqlQuery qryItems(qryStrItems);
-	while (qryItems.next())
+	QString billId = ES::Session::getInstance()->getBillId();
+	QString lastInsertedID = "";
+
+	if (qryItems.first())
 	{
 		QString itemId = qryItems.value("item_id").toString();
 		QString itemName = qryItems.value("item_name").toString();
 
 		QString qryStrStockOrder("SELECT * FROM stock_order WHERE item_id = " + itemId);
 		QSqlQuery qryStockOrder(qryStrStockOrder);
-		while (qryStockOrder.next())
+		if (qryStockOrder.first())
 		{
 			QString sellingPrice = qryStockOrder.value("selling_price").toString();
 			QString discount = qryStockOrder.value("discount_type").toString();
 			QString qryStrStock("SELECT * FROM stock WHERE item_id = " + itemId);
 			QSqlQuery qryStock(qryStrStock);
-			while (qryStock.next())
+			if (qryStock.first())
 			{
-				QString stockId = qryStock.value("stock_id").toString();
-				QString billId = ES::Session::getInstance()->getBillId();
+				QString stockId = qryStock.value("stock_id").toString();				
 				QString q = "INSERT INTO sale  (stock_id,  bill_id, discount, deleted) VALUES(" + stockId + ", " + billId + "," + discount + ", 0) ";
 				QSqlQuery query;
 				if (query.exec(q))
 				{
-					close();
+					lastInsertedID = query.lastInsertId().value<QString>();
 				}
 			}
 		}
 	}
+
+	// Clear table
+	while (m_cart->getUI().tableWidget->rowCount() > 0)
+	{
+		m_cart->getUI().tableWidget->removeRow(0);
+	}
+	
+	// Populate table
+	QString qStr = "SELECT * FROM sale WHERE bill_id = " + billId;
+	QSqlQuery queryBillTable(qStr);	
+
+	int row = m_cart->getUI().tableWidget->rowCount();
+	while (queryBillTable.next())
+	{
+		row = m_cart->getUI().tableWidget->rowCount();
+		m_cart->getUI().tableWidget->insertRow(row);
+
+		// 						headerLabels.append("Code");
+		// 						headerLabels.append("Item");
+		// 						headerLabels.append("Price");
+		// 						headerLabels.append("Qty");
+		// 						headerLabels.append("Discount");
+		// 						headerLabels.append("Amount");
+		// 						headerLabels.append("Actions");
+
+		QString saleId = queryBillTable.value("sale_id").toString();
+		QString stockId = queryBillTable.value("stock_id").toString();
+		QSqlQuery queryItem("SELECT i.* FROM item i , stock s WHERE i.item_id = s.item_id AND s.stock_id = " + stockId);
+		if (queryItem.first())
+		{
+			QString itemCode = queryItem.value("item_code").toString();
+			QString itemName = queryItem.value("item_name").toString();
+
+			m_cart->getUI().tableWidget->setItem(row, 0, new QTableWidgetItem(itemCode));
+			m_cart->getUI().tableWidget->setItem(row, 1, new QTableWidgetItem(itemName));
+			m_cart->getUI().tableWidget->setItem(row, 2, new QTableWidgetItem(itemName));
+			m_cart->getUI().tableWidget->setItem(row, 3, new QTableWidgetItem(queryBillTable.value("quantity").toString()));
+
+			//if (!lastInsertedID.isEmpty())
+			{
+				m_cart->getUI().tableWidget->setItem(row, 7, new QTableWidgetItem(saleId));	
+			}
+		}
+	}
+	if (row >= 0)
+	{
+		ES::SaleLineEdit* le = new ES::SaleLineEdit(lastInsertedID);
+		m_cart->getUI().tableWidget->setCellWidget(row, 3, le);
+		le->setFocus();
+		connect(le, SIGNAL(returnPressed()), le, SLOT(slotQuantityUpdate()));
+		connect(le, SIGNAL(notifyQuantityUpdate(QString)), m_cart, SLOT(slotReturnPressed(QString)));
+	}
+
+	close();
 }

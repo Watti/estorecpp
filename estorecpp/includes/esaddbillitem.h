@@ -3,13 +3,14 @@
 #include "ui_addbillitem.h"
 #include <QKeyEvent>
 #include <QtGui>
+#include "esaddbill.h"
 
 class ESAddBillItem : public QWidget
 {
 	Q_OBJECT
 
 public:
-	ESAddBillItem(QTableWidget* cart, QWidget *parent = 0);
+	ESAddBillItem(ESAddBill* cart, QWidget *parent = 0);
 	~ESAddBillItem();
 
 	Ui::AddBillItemWidget& getUI() { return ui; };
@@ -24,7 +25,7 @@ private:
 	void addToBill(QString itemCode);
 
 	Ui::AddBillItemWidget ui;
-	QTableWidget* m_cart;
+	ESAddBill* m_cart;
 
 };
 
