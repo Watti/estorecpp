@@ -50,6 +50,9 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	mmgr->addAction("Manage Stock Items", ui.actionManageStockItems);
 	ui.actionManageStockItems->setIcon(QIcon("icons/manage_store.png"));
 	
+	ui.mainToolBar->setIconSize(QSize(40, 40));
+	//ui.mainToolBar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+
 	QLabel* logoLabel = new QLabel(ui.mainToolBar);
 	logoLabel->setMinimumWidth(90);
 	logoLabel->setPixmap(QPixmap("icons/logo2.png"));
@@ -58,7 +61,7 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	ui.mainToolBar->addAction(ui.actionManageStockItems);
 	mmgr->addSeparator(ui.mainToolBar->addSeparator());
 
-	ui.mainToolBar->setMinimumSize(80, 80);
+	ui.mainToolBar->setMinimumSize(48, 48);
 
 	mmgr->addAction("Manage Items", ui.actionManageItems);
 	ui.actionManageItems->setIcon(QIcon("icons/manage_items.png"));
