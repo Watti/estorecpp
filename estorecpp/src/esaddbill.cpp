@@ -137,9 +137,22 @@ void ESAddBill::slotReturnPressed(QString saleId)
 		else
 		{
 			le->setReadOnly(true);
+			float quantity = le->text().toFloat();
 			QString q = "Update sale SET quantity = "+le->text() + " WHERE sale_id = " + saleId;
 			QSqlQuery query(q);
+			QSqlQuery saleQuery("SELECT st.item_id FROM stock st, sale s WHERE s.stock_id = st.stock_id AND s.sale_id = " + saleId);
+			if (saleQuery.first())
+			{
+				QString itemId = saleQuery.value("item_id").toString();
+				QString qStr("SELECT * from stock_order WHERE item_id = "+itemId);
+				QSqlQuery sOrderQuery(qStr);
+				if (sOrderQuery.first())
+				{
+					float uPrice = sOrderQuery.value("selling_price").toFloat();
+					float dicount = sOrderQuery.value("discount_type").toFloat();
 
+				}
+			}
 		}
 	}
 	le->setFocus();
