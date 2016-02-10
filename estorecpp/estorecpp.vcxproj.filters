@@ -200,6 +200,15 @@
     <ClCompile Include="src\entities\bill.cpp">
       <Filter>Source Files\entities</Filter>
     </ClCompile>
+    <ClCompile Include="src\entities\SaleLineEdit.cpp">
+      <Filter>Source Files\entities</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_SaleLineEdit.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_SaleLineEdit.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="esmainwindow.ui">
@@ -288,6 +297,9 @@
     </CustomBuild>
     <CustomBuild Include="addbillitem.ui">
       <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="includes\entities\SaleLineEdit.h">
+      <Filter>Header Files\enities</Filter>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
