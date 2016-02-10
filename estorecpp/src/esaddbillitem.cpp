@@ -5,6 +5,7 @@
 #include <QSqlQuery>
 #include "utility\session.h"
 #include "entities\SaleLineEdit.h"
+#include "QWidget"
 
 ESAddBillItem::ESAddBillItem(ESAddBill* cart, QWidget *parent)
 {
@@ -30,6 +31,9 @@ ESAddBillItem::ESAddBillItem(ESAddBill* cart, QWidget *parent)
 	QObject::connect(ui.itemText, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
 
 	slotSearch();
+	m_removeButtonSignalMapper = new QSignalMapper(this);
+
+	QObject::connect(m_removeButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotRemove(QString)));
 }
 
 ESAddBillItem::~ESAddBillItem()
@@ -170,13 +174,38 @@ void ESAddBillItem::addToBill(QString itemCode)
 
 			m_cart->getUI().tableWidget->setItem(row, 0, new QTableWidgetItem(itemCode));
 			m_cart->getUI().tableWidget->setItem(row, 1, new QTableWidgetItem(itemName));
-			m_cart->getUI().tableWidget->setItem(row, 2, new QTableWidgetItem(itemName));
-			m_cart->getUI().tableWidget->setItem(row, 3, new QTableWidgetItem(queryBillTable.value("quantity").toString()));
 
-			//if (!lastInsertedID.isEmpty())
+			QSqlQuery saleQuery("SELECT st.item_id FROM stock st, sale s WHERE s.stock_id = st.stock_id AND s.sale_id = " + saleId);
+			if (saleQuery.first())
 			{
-				m_cart->getUI().tableWidget->setItem(row, 7, new QTableWidgetItem(saleId));	
+				QString itemId = saleQuery.value("item_id").toString();
+				QString qStr("SELECT * from stock_order WHERE item_id = " + itemId);
+				QSqlQuery sOrderQuery(qStr);
+				if (sOrderQuery.first())
+				{
+					//float uPrice = sOrderQuery.value("selling_price").toFloat();
+					m_cart->getUI().tableWidget->setItem(row, 2, new QTableWidgetItem(sOrderQuery.value("selling_price").toString()));
+					m_cart->getUI().tableWidget->setItem(row, 4, new QTableWidgetItem(sOrderQuery.value("discount_type").toString()));
+					//float dicount = sOrderQuery.value("discount_type").toFloat();
+
+				}
 			}
+			QWidget* base = new QWidget(ui.tableWidget);
+			QPushButton* removeBtn = new QPushButton("Remove", base);
+			removeBtn->setMaximumWidth(100);
+			
+			QObject::connect(removeBtn, SIGNAL(clicked()), m_removeButtonSignalMapper, SLOT(map()));
+			m_removeButtonSignalMapper->setMapping(removeBtn, saleId);
+
+			QHBoxLayout *layout = new QHBoxLayout;
+			layout->setContentsMargins(0, 0, 0, 0);
+			layout->addWidget(removeBtn);
+			layout->insertStretch(2);
+			base->setLayout(layout);
+			m_cart->getUI().tableWidget->setCellWidget(row, 6, base);
+			base->show();
+			m_cart->getUI().tableWidget->setItem(row, 3, new QTableWidgetItem(queryBillTable.value("quantity").toString()));
+			m_cart->getUI().tableWidget->setItem(row, 7, new QTableWidgetItem(saleId));	
 		}
 	}
 	if (row >= 0)
@@ -189,4 +218,9 @@ void ESAddBillItem::addToBill(QString itemCode)
 	}
 
 	close();
+}
+
+void ESAddBillItem::slotRemove(QString)
+{
+
 }
