@@ -151,6 +151,9 @@ void ESAddBill::slotReturnPressed(QString saleId)
 					float uPrice = sOrderQuery.value("selling_price").toFloat();
 					float dicount = sOrderQuery.value("discount_type").toFloat();
 
+					float subTotal = uPrice*quantity* ((100 - dicount) / 100);
+					//To do
+
 				}
 			}
 		}
