@@ -166,6 +166,8 @@ void ESAddBillItem::addToBill(QString itemCode)
 
 		QString saleId = queryBillTable.value("sale_id").toString();
 		QString stockId = queryBillTable.value("stock_id").toString();
+
+		m_cart->getUI().tableWidget->setItem(row, 5, new QTableWidgetItem(QString::number(queryBillTable.value("total").toFloat(), 'f',2)));
 		QSqlQuery queryItem("SELECT i.* FROM item i , stock s WHERE i.item_id = s.item_id AND s.stock_id = " + stockId);
 		if (queryItem.first())
 		{
@@ -210,11 +212,11 @@ void ESAddBillItem::addToBill(QString itemCode)
 	}
 	if (row >= 0)
 	{
-		ES::SaleLineEdit* le = new ES::SaleLineEdit(lastInsertedID);
+		ES::SaleLineEdit* le = new ES::SaleLineEdit(lastInsertedID, row);
 		m_cart->getUI().tableWidget->setCellWidget(row, 3, le);
 		le->setFocus();
 		connect(le, SIGNAL(returnPressed()), le, SLOT(slotQuantityUpdate()));
-		connect(le, SIGNAL(notifyQuantityUpdate(QString)), m_cart, SLOT(slotReturnPressed(QString)));
+		connect(le, SIGNAL(notifyQuantityUpdate(QString, int)), m_cart, SLOT(slotReturnPressed(QString, int)));
 	}
 
 	close();

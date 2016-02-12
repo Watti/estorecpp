@@ -125,7 +125,7 @@ void ESAddBill::slotSearch()
 
 }
 
-void ESAddBill::slotReturnPressed(QString saleId)
+void ESAddBill::slotReturnPressed(QString saleId, int row)
 {
 	QLineEdit* le = qobject_cast<QLineEdit*>(sender());
 	if (le)
@@ -138,8 +138,7 @@ void ESAddBill::slotReturnPressed(QString saleId)
 		{
 			le->setReadOnly(true);
 			float quantity = le->text().toFloat();
-			QString q = "Update sale SET quantity = "+le->text() + " WHERE sale_id = " + saleId;
-			QSqlQuery query(q);
+
 			QSqlQuery saleQuery("SELECT st.item_id FROM stock st, sale s WHERE s.stock_id = st.stock_id AND s.sale_id = " + saleId);
 			if (saleQuery.first())
 			{
@@ -151,12 +150,29 @@ void ESAddBill::slotReturnPressed(QString saleId)
 					float uPrice = sOrderQuery.value("selling_price").toFloat();
 					float dicount = sOrderQuery.value("discount_type").toFloat();
 
-					float subTotal = uPrice*quantity* ((100 - dicount) / 100);
-					//To do
+					float subTotal = uPrice*quantity * ((100 - dicount) / 100.f);
+					QString st = QString::number(subTotal, 'f', 2);
+					ui.tableWidget->item(row, 5)->setText(st);
 
+					QString q = "UPDATE sale SET quantity = " + le->text() + ", total = " + st + " WHERE sale_id = " + saleId;
+					QSqlQuery query(q);					
 				}
 			}
+
 		}
+		calculateAndDisplayTotal();
 	}
 	le->setFocus();
+}
+
+void ESAddBill::calculateAndDisplayTotal()
+{
+	QString q = "SELECT * FROM sale where bill_id= " + ES::Session::getInstance()->getBillId();
+	QSqlQuery queryAllSales(q);
+	float total = 0;
+	while (queryAllSales.next())
+	{
+		total += queryAllSales.value("total").toFloat();
+	}
+	ui.netAmountLabel->setText(QString::number(total, 'f', 2));
 }

@@ -17,7 +17,9 @@ public:
 	void slotStartNewBill();
 	void showTime();
 	void slotSearch();
-	void slotReturnPressed(QString saleId);
+	void slotReturnPressed(QString saleId, int row);
+
+	void calculateAndDisplayTotal();
 
 private:
 	Ui::AddBillWidget ui;

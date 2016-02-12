@@ -9,18 +9,19 @@ namespace ES
 	{
 		Q_OBJECT
 	public:
-		SaleLineEdit(QString saleId);
+		SaleLineEdit(QString saleId, int row);
 
 		~SaleLineEdit();
 
 	signals:
-		void notifyQuantityUpdate(QString);
+		void notifyQuantityUpdate(QString, int);
 
 	public slots:
 		void slotQuantityUpdate();
 
 	private:
 		QString m_saleId;
+		int m_row;
 	};
 }
 

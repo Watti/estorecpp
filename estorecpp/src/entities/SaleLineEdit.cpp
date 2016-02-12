@@ -4,9 +4,10 @@ namespace ES
 {
 
 
-	SaleLineEdit::SaleLineEdit(QString saleId) : QLineEdit()
+	SaleLineEdit::SaleLineEdit(QString saleId, int row) : QLineEdit()
 	{
 		m_saleId = saleId;
+		m_row = row;
 	}
 
 	SaleLineEdit::~SaleLineEdit()
@@ -16,7 +17,7 @@ namespace ES
 
 	void SaleLineEdit::slotQuantityUpdate()
 	{
-		emit notifyQuantityUpdate(m_saleId);
+		emit notifyQuantityUpdate(m_saleId, m_row);
 	}
 
 }
