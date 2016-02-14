@@ -181,7 +181,7 @@ void ESAddBillItem::addToBill(QString itemCode)
 					//float uPrice = sOrderQuery.value("selling_price").toFloat();
 					m_cart->getUI().tableWidget->setItem(row, 2, new QTableWidgetItem(sOrderQuery.value("selling_price").toString()));
 					m_cart->getUI().tableWidget->setItem(row, 4, new QTableWidgetItem(sOrderQuery.value("discount_type").toString()));
-					//float dicount = sOrderQuery.value("discount_type").toFloat();
+					//float discount = sOrderQuery.value("discount_type").toFloat();
 
 				}
 			}
@@ -265,7 +265,7 @@ void ESAddBillItem::slotRemove(QString saleId)
 
 					}
 				}
-				QWidget* base = new QWidget(ui.tableWidget);
+				QWidget* base = new QWidget(m_cart->getUI().tableWidget);
 				QPushButton* removeBtn = new QPushButton("Remove", base);
 				removeBtn->setMaximumWidth(100);
 
