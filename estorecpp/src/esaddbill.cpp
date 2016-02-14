@@ -61,6 +61,9 @@ ESAddBill::ESAddBill(QWidget *parent)
 	new QShortcut(QKeySequence(Qt::Key_F3), this, SLOT(slotStartNewBill()));
 	connect(timer, SIGNAL(timeout()), this, SLOT(showTime()));
 	connect(ui.tableWidget, SIGNAL(cellClicked(int, int)), this, SLOT(slotEdit(int, int)));
+	QObject::connect(ui.commitButton, SIGNAL(clicked()), this, SLOT(slotCommit()));
+	QObject::connect(ui.suspendButton, SIGNAL(clicked()), this, SLOT(slotSuspend()));
+	QObject::connect(ui.cancelButton, SIGNAL(clicked()), this, SLOT(slotCancel()));
 }
 
 ESAddBill::~ESAddBill()
@@ -91,23 +94,26 @@ void ESAddBill::slotShowAddItem()
 
 void ESAddBill::slotStartNewBill()
 {
-	ES::Session::getInstance()->startBill();
 
-	QString insertBillQuery("INSERT INTO Bill (user_id) VALUES(");
-	QString userID;
-	userID.setNum(ES::Session::getInstance()->getUser()->getId());
-	insertBillQuery.append(userID);
-	insertBillQuery.append(")");
+	if (!ES::Session::getInstance()->isBillStarted())
+	{
+		ES::Session::getInstance()->startBill();
+		QString insertBillQuery("INSERT INTO Bill (user_id) VALUES(");
+		QString userID;
+		userID.setNum(ES::Session::getInstance()->getUser()->getId());
+		insertBillQuery.append(userID);
+		insertBillQuery.append(")");
 
-	QSqlQuery insertNewBill(insertBillQuery);
-	int id = (insertNewBill.lastInsertId()).value<int>();
+		QSqlQuery insertNewBill(insertBillQuery);
+		int id = (insertNewBill.lastInsertId()).value<int>();
 
-	QString billID;
-	billID.setNum(id);
-	ES::Session::getInstance()->setBillId(billID);
-	ui.billIdLabel->setText(billID);
-	ui.billedByLabel->setText(ES::Session::getInstance()->getUser()->getName());
-	ui.branchLabel->setText("NUGEGODA");
+		QString billID;
+		billID.setNum(id);
+		ES::Session::getInstance()->setBillId(billID);
+		ui.billIdLabel->setText(billID);
+		ui.billedByLabel->setText(ES::Session::getInstance()->getUser()->getName());
+		ui.branchLabel->setText("NUGEGODA");
+	}
 }
 
 void ESAddBill::showTime()
@@ -169,10 +175,65 @@ void ESAddBill::calculateAndDisplayTotal()
 {
 	QString q = "SELECT * FROM sale where bill_id= " + ES::Session::getInstance()->getBillId();
 	QSqlQuery queryAllSales(q);
-	float total = 0;
+	float netAmount = 0;
+	int noOfItems = 0;
 	while (queryAllSales.next())
 	{
-		total += queryAllSales.value("total").toFloat();
+		netAmount += queryAllSales.value("total").toFloat();
+		noOfItems++;
 	}
-	ui.netAmountLabel->setText(QString::number(total, 'f', 2));
+	ui.netAmountLabel->setText(QString::number(netAmount, 'f', 2));
+	ui.noOfItemLabel->setText(QString::number(noOfItems));
+}
+
+void ESAddBill::slotCommit()
+{
+	if (ES::Session::getInstance()->isBillStarted())
+	{
+		QString billId = ES::Session::getInstance()->getBillId();
+		QString netAmount = ui.netAmountLabel->text();
+		QString paymentType = ui.paymentMethodComboBox->currentData().toString();
+		QString queryUpdateStr("UPDATE bill set amount = " + netAmount + ", payment_method = "+paymentType+" , status = 1 WHERE bill_id = " + billId);
+		QSqlQuery query(queryUpdateStr);
+		resetBill();
+	}
+
+}
+
+void ESAddBill::slotSuspend()
+{
+	if (ES::Session::getInstance()->isBillStarted())
+	{
+		QString billId = ES::Session::getInstance()->getBillId();
+		QString netAmount = ui.netAmountLabel->text();
+		QString paymentType = ui.paymentMethodComboBox->currentData().toString();
+		QString queryUpdateStr("UPDATE bill set amount = " + netAmount + ", payment_method = " + paymentType + ", status = 3 WHERE bill_id = " + billId);
+		QSqlQuery query(queryUpdateStr);
+		resetBill();
+	}
+}
+
+void ESAddBill::slotCancel()
+{
+	if (ES::Session::getInstance()->isBillStarted())
+	{
+		QString billId = ES::Session::getInstance()->getBillId();
+		QString netAmount = ui.netAmountLabel->text();
+		QString queryUpdateStr("UPDATE bill set amount = " + netAmount + ", deleted = 1 WHERE bill_id = " + billId); QSqlQuery query(queryUpdateStr);
+		resetBill();
+	}
+}
+
+void ESAddBill::resetBill()
+{
+	ES::Session::getInstance()->setBillId("");
+	ES::Session::getInstance()->endBill();
+	while (ui.tableWidget->rowCount() > 0)
+	{
+		ui.tableWidget->removeRow(0);
+	}
+	ui.noOfItemLabel->setText("0");
+	ui.netAmountLabel->setText("0.00");
+	ui.billIdLabel->setText("xxx");
+	ui.paymentMethodComboBox->setCurrentIndex(0);
 }

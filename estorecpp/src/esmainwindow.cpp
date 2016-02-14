@@ -177,6 +177,7 @@ void ESMainWindow::closeEvent(QCloseEvent *event)
 			event->ignore();
 			return;
 		}
+		QSqlQuery q("DELETE FROM bill WHERE bill_id = " + ES::Session::getInstance()->getBillId());
 	}
 
 	event->accept();

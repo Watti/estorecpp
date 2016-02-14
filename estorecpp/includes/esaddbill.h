@@ -18,11 +18,16 @@ public:
 	void showTime();
 	void slotSearch();
 	void slotReturnPressed(QString saleId, int row);
+	void slotCommit();
+	void slotSuspend();
+	void slotCancel();
 
-	void calculateAndDisplayTotal();
+	void resetBill();
+
 
 private:
 	Ui::AddBillWidget ui;
+	void calculateAndDisplayTotal();
 };
 
 #endif

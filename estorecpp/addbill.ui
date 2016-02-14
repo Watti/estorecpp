@@ -1572,7 +1572,7 @@
          </font>
         </property>
         <property name="text">
-         <string>Gross Amount : </string>
+         <string>No Of Items : </string>
         </property>
         <property name="alignment">
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1580,7 +1580,7 @@
        </widget>
       </item>
       <item row="0" column="3">
-       <widget class="QLabel" name="grossAmountLabel">
+       <widget class="QLabel" name="noOfItemLabel">
         <property name="minimumSize">
          <size>
           <width>100</width>
@@ -1633,7 +1633,7 @@
          </font>
         </property>
         <property name="text">
-         <string>0.0</string>
+         <string>0</string>
         </property>
        </widget>
       </item>
