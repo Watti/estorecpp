@@ -1,6 +1,7 @@
 #ifndef ADDBILL_H
 #define ADDBILL_H
 #include "ui_addbill.h"
+#include "QSignalMapper"
 
 class ESAddBill : public QWidget
 {
@@ -21,13 +22,16 @@ public:
 	void slotCommit();
 	void slotSuspend();
 	void slotCancel();
+	void slotRemoveItem(QString);
 
 	void resetBill();
 
+	QSignalMapper* getRemoveButtonSignalMapper() const { return m_removeButtonSignalMapper; }
 
 private:
 	Ui::AddBillWidget ui;
 	void calculateAndDisplayTotal();
+	QSignalMapper* m_removeButtonSignalMapper;
 };
 
 #endif

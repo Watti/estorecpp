@@ -9,6 +9,7 @@
 #include "QTimer"
 #include "utility/esdbconnection.h"
 #include "QMessageBox"
+#include "utility/utility.h"
 
 ESAddBill::ESAddBill(QWidget *parent)
 :QWidget(parent)
@@ -33,6 +34,18 @@ ESAddBill::ESAddBill(QWidget *parent)
 	ui.tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
 	ui.tableWidget->hideColumn(7);
 
+	QTimer *timer = new QTimer(this);
+	timer->start(1000);
+
+	new QShortcut(QKeySequence(Qt::Key_F4), this, SLOT(slotShowAddItem()));
+	new QShortcut(QKeySequence(Qt::Key_F3), this, SLOT(slotStartNewBill()));
+	connect(timer, SIGNAL(timeout()), this, SLOT(showTime()));
+	connect(ui.tableWidget, SIGNAL(cellClicked(int, int)), this, SLOT(slotEdit(int, int)));
+	QObject::connect(ui.commitButton, SIGNAL(clicked()), this, SLOT(slotCommit()));
+	QObject::connect(ui.suspendButton, SIGNAL(clicked()), this, SLOT(slotSuspend()));
+	QObject::connect(ui.cancelButton, SIGNAL(clicked()), this, SLOT(slotCancel()));
+
+
 	if (!ES::DbConnection::instance()->open())
 	{
 		QMessageBox mbox;
@@ -54,16 +67,11 @@ ESAddBill::ESAddBill(QWidget *parent)
 	ui.branchLabel->setText("NUGEGODA");
 	ui.billIdLabel->setText("###");
 
-	QTimer *timer = new QTimer(this);
-	timer->start(1000);
+	m_removeButtonSignalMapper = new QSignalMapper(this);
 
-	new QShortcut(QKeySequence(Qt::Key_F4), this, SLOT(slotShowAddItem()));
-	new QShortcut(QKeySequence(Qt::Key_F3), this, SLOT(slotStartNewBill()));
-	connect(timer, SIGNAL(timeout()), this, SLOT(showTime()));
-	connect(ui.tableWidget, SIGNAL(cellClicked(int, int)), this, SLOT(slotEdit(int, int)));
-	QObject::connect(ui.commitButton, SIGNAL(clicked()), this, SLOT(slotCommit()));
-	QObject::connect(ui.suspendButton, SIGNAL(clicked()), this, SLOT(slotSuspend()));
-	QObject::connect(ui.cancelButton, SIGNAL(clicked()), this, SLOT(slotCancel()));
+	QObject::connect(m_removeButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotRemoveItem(QString)));
+
+
 }
 
 ESAddBill::~ESAddBill()
@@ -173,7 +181,7 @@ void ESAddBill::slotReturnPressed(QString saleId, int row)
 
 void ESAddBill::calculateAndDisplayTotal()
 {
-	QString q = "SELECT * FROM sale where bill_id= " + ES::Session::getInstance()->getBillId();
+	QString q = "SELECT * FROM sale where bill_id= " + ES::Session::getInstance()->getBillId()+" AND deleted = 0";
 	QSqlQuery queryAllSales(q);
 	float netAmount = 0;
 	int noOfItems = 0;
@@ -236,4 +244,76 @@ void ESAddBill::resetBill()
 	ui.netAmountLabel->setText("0.00");
 	ui.billIdLabel->setText("xxx");
 	ui.paymentMethodComboBox->setCurrentIndex(0);
+}
+
+void ESAddBill::slotRemoveItem(QString saleId)
+{
+	if (ES::Utility::verifyUsingMessageBox(this, "EStore", "Do you really want to remove this?"))
+	{
+		QString billId = ES::Session::getInstance()->getBillId();
+		QString queary("UPDATE sale set deleted = 1 WHERE sale_id = " + saleId + " AND bill_id = " + billId);
+		QSqlQuery q(queary);
+
+		// Clear table
+		while (ui.tableWidget->rowCount() > 0)
+		{
+			ui.tableWidget->removeRow(0);
+		}
+		QString qStr = "SELECT * FROM sale WHERE bill_id = " + billId + " AND deleted = 0";
+		QSqlQuery queryBillTable(qStr);
+
+		int row = ui.tableWidget->rowCount();
+		while (queryBillTable.next())
+		{
+			row = ui.tableWidget->rowCount();
+			ui.tableWidget->insertRow(row);
+
+			QString saleId = queryBillTable.value("sale_id").toString();
+			QString stockId = queryBillTable.value("stock_id").toString();
+
+			ui.tableWidget->setItem(row, 5, new QTableWidgetItem(QString::number(queryBillTable.value("total").toFloat(), 'f', 2)));
+			QSqlQuery queryItem("SELECT i.* FROM item i , stock s WHERE i.item_id = s.item_id AND s.stock_id = " + stockId);
+			if (queryItem.first())
+			{
+				QString itemCode = queryItem.value("item_code").toString();
+				QString itemName = queryItem.value("item_name").toString();
+
+				ui.tableWidget->setItem(row, 0, new QTableWidgetItem(itemCode));
+				ui.tableWidget->setItem(row, 1, new QTableWidgetItem(itemName));
+
+				QSqlQuery saleQuery("SELECT st.item_id FROM stock st, sale s WHERE s.stock_id = st.stock_id AND s.sale_id = " + saleId);
+				if (saleQuery.first())
+				{
+					QString itemId = saleQuery.value("item_id").toString();
+					QString qStr("SELECT * from stock_order WHERE item_id = " + itemId);
+					QSqlQuery sOrderQuery(qStr);
+					if (sOrderQuery.first())
+					{
+						//float uPrice = sOrderQuery.value("selling_price").toFloat();
+						ui.tableWidget->setItem(row, 2, new QTableWidgetItem(sOrderQuery.value("selling_price").toString()));
+						ui.tableWidget->setItem(row, 4, new QTableWidgetItem(sOrderQuery.value("discount_type").toString()));
+						//float discount = sOrderQuery.value("discount_type").toFloat();
+
+					}
+				}
+				QWidget* base = new QWidget(ui.tableWidget);
+				QPushButton* removeBtn = new QPushButton("Remove", base);
+				removeBtn->setMaximumWidth(100);
+
+				QObject::connect(removeBtn, SIGNAL(clicked()), m_removeButtonSignalMapper, SLOT(map()));
+				m_removeButtonSignalMapper->setMapping(removeBtn, saleId);
+
+				QHBoxLayout *layout = new QHBoxLayout;
+				layout->setContentsMargins(0, 0, 0, 0);
+				layout->addWidget(removeBtn);
+				layout->insertStretch(2);
+				base->setLayout(layout);
+				ui.tableWidget->setCellWidget(row, 6, base);
+				base->show();
+				ui.tableWidget->setItem(row, 3, new QTableWidgetItem(queryBillTable.value("quantity").toString()));
+				ui.tableWidget->setItem(row, 7, new QTableWidgetItem(saleId));
+			}
+		}
+		calculateAndDisplayTotal();
+	}
 }

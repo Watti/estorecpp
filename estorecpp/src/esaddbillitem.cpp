@@ -32,9 +32,6 @@ ESAddBillItem::ESAddBillItem(ESAddBill* cart, QWidget *parent)
 	QObject::connect(ui.itemText, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
 
 	slotSearch();
-	m_removeButtonSignalMapper = new QSignalMapper(this);
-
-	QObject::connect(m_removeButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotRemove(QString)));
 }
 
 ESAddBillItem::~ESAddBillItem()
@@ -189,8 +186,8 @@ void ESAddBillItem::addToBill(QString itemCode)
 			QPushButton* removeBtn = new QPushButton("Remove", base);
 			removeBtn->setMaximumWidth(100);
 			
-			QObject::connect(removeBtn, SIGNAL(clicked()), m_removeButtonSignalMapper, SLOT(map()));
-			m_removeButtonSignalMapper->setMapping(removeBtn, saleId);
+			QObject::connect(removeBtn, SIGNAL(clicked()), m_cart->getRemoveButtonSignalMapper(), SLOT(map()));
+			(m_cart->getRemoveButtonSignalMapper())->setMapping(removeBtn, saleId);
 
 			QHBoxLayout *layout = new QHBoxLayout;
 			layout->setContentsMargins(0, 0, 0, 0);
@@ -215,73 +212,4 @@ void ESAddBillItem::addToBill(QString itemCode)
 	close();
 }
 
-void ESAddBillItem::slotRemove(QString saleId)
-{
-	if (ES::Utility::verifyUsingMessageBox(this, "EStore", "Do you really want to remove this?"))
-	{
-		QString billId = ES::Session::getInstance()->getBillId();
-		QString queary("UPDATE sale set deleted = 1 WHERE sale_id = " + saleId + " AND bill_id = " + billId);
-		QSqlQuery q(queary);
 
-		// Clear table
-		while (m_cart->getUI().tableWidget->rowCount() > 0)
-		{
-			m_cart->getUI().tableWidget->removeRow(0);
-		}
-		QString qStr = "SELECT * FROM sale WHERE bill_id = " + billId + " AND deleted = 0";
-		QSqlQuery queryBillTable(qStr);
-
-		int row = m_cart->getUI().tableWidget->rowCount();
-		while (queryBillTable.next())
-		{
-			row = m_cart->getUI().tableWidget->rowCount();
-			m_cart->getUI().tableWidget->insertRow(row);
-
-			QString saleId = queryBillTable.value("sale_id").toString();
-			QString stockId = queryBillTable.value("stock_id").toString();
-
-			m_cart->getUI().tableWidget->setItem(row, 5, new QTableWidgetItem(QString::number(queryBillTable.value("total").toFloat(), 'f', 2)));
-			QSqlQuery queryItem("SELECT i.* FROM item i , stock s WHERE i.item_id = s.item_id AND s.stock_id = " + stockId);
-			if (queryItem.first())
-			{
-				QString itemCode = queryItem.value("item_code").toString();
-				QString itemName = queryItem.value("item_name").toString();
-
-				m_cart->getUI().tableWidget->setItem(row, 0, new QTableWidgetItem(itemCode));
-				m_cart->getUI().tableWidget->setItem(row, 1, new QTableWidgetItem(itemName));
-
-				QSqlQuery saleQuery("SELECT st.item_id FROM stock st, sale s WHERE s.stock_id = st.stock_id AND s.sale_id = " + saleId);
-				if (saleQuery.first())
-				{
-					QString itemId = saleQuery.value("item_id").toString();
-					QString qStr("SELECT * from stock_order WHERE item_id = " + itemId);
-					QSqlQuery sOrderQuery(qStr);
-					if (sOrderQuery.first())
-					{
-						//float uPrice = sOrderQuery.value("selling_price").toFloat();
-						m_cart->getUI().tableWidget->setItem(row, 2, new QTableWidgetItem(sOrderQuery.value("selling_price").toString()));
-						m_cart->getUI().tableWidget->setItem(row, 4, new QTableWidgetItem(sOrderQuery.value("discount_type").toString()));
-						//float dicount = sOrderQuery.value("discount_type").toFloat();
-
-					}
-				}
-				QWidget* base = new QWidget(m_cart->getUI().tableWidget);
-				QPushButton* removeBtn = new QPushButton("Remove", base);
-				removeBtn->setMaximumWidth(100);
-
-				QObject::connect(removeBtn, SIGNAL(clicked()), m_removeButtonSignalMapper, SLOT(map()));
-				m_removeButtonSignalMapper->setMapping(removeBtn, saleId);
-
-				QHBoxLayout *layout = new QHBoxLayout;
-				layout->setContentsMargins(0, 0, 0, 0);
-				layout->addWidget(removeBtn);
-				layout->insertStretch(2);
-				base->setLayout(layout);
-				m_cart->getUI().tableWidget->setCellWidget(row, 6, base);
-				base->show();
-				m_cart->getUI().tableWidget->setItem(row, 3, new QTableWidgetItem(queryBillTable.value("quantity").toString()));
-				m_cart->getUI().tableWidget->setItem(row, 7, new QTableWidgetItem(saleId));
-			}
-		}
-	}
-}

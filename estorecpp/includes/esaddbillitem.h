@@ -4,7 +4,6 @@
 #include <QKeyEvent>
 #include <QtGui>
 #include "esaddbill.h"
-#include "QSignalMapper"
 
 class ESAddBillItem : public QWidget
 {
@@ -18,7 +17,6 @@ public:
 
 	public slots:
 	void slotSearch();
-	void slotRemove(QString);
 
 protected:
 	void keyPressEvent(QKeyEvent * event);
@@ -28,7 +26,6 @@ private:
 
 	Ui::AddBillItemWidget ui;
 	ESAddBill* m_cart;
-	QSignalMapper* m_removeButtonSignalMapper;
 
 };
 
