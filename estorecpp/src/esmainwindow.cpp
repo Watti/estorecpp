@@ -6,6 +6,7 @@
 #include "esitemprices.h"
 #include "esmanageorderitems.h"
 #include "esaddbill.h"
+#include "escurrentbills.h"
 #include "utility/esmenumanager.h"
 #include "utility/session.h"
 #include <QMessageBox>
@@ -50,7 +51,7 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	mmgr->addAction("Manage Stock Items", ui.actionManageStockItems);
 	ui.actionManageStockItems->setIcon(QIcon("icons/manage_store.png"));
 	
-	ui.mainToolBar->setIconSize(QSize(40, 40));
+	ui.mainToolBar->setIconSize(QSize(32, 32));
 	//ui.mainToolBar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 
 	QLabel* logoLabel = new QLabel(ui.mainToolBar);
@@ -150,7 +151,9 @@ void ESMainWindow::slotAddBill()
 
 void ESMainWindow::slotCurrentBills()
 {
-	
+	ESCurrentBills* currentBills = new ESCurrentBills(this);
+	this->setCentralWidget(currentBills);
+	currentBills->show();
 }
 
 void ESMainWindow::slotLogin()
