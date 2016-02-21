@@ -215,7 +215,7 @@ void ESAddBill::slotSuspend()
 		QString billId = ES::Session::getInstance()->getBillId();
 		QString netAmount = ui.netAmountLabel->text();
 		QString paymentType = ui.paymentMethodComboBox->currentData().toString();
-		QString queryUpdateStr("UPDATE bill set amount = " + netAmount + ", payment_method = " + paymentType + ", status = 3 WHERE bill_id = " + billId);
+		QString queryUpdateStr("UPDATE bill set amount = " + netAmount + ", payment_method = " + paymentType + ", status = 2 WHERE bill_id = " + billId);
 		QSqlQuery query(queryUpdateStr);
 		resetBill();
 	}
@@ -227,7 +227,8 @@ void ESAddBill::slotCancel()
 	{
 		QString billId = ES::Session::getInstance()->getBillId();
 		QString netAmount = ui.netAmountLabel->text();
-		QString queryUpdateStr("UPDATE bill set amount = " + netAmount + ", deleted = 1 WHERE bill_id = " + billId); QSqlQuery query(queryUpdateStr);
+		QString queryUpdateStr("UPDATE bill set amount = " + netAmount + ", status = 3 WHERE bill_id = " + billId); 
+		QSqlQuery query(queryUpdateStr);
 		resetBill();
 	}
 }

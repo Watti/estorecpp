@@ -12,6 +12,9 @@ public:
 	ESCurrentBills(QWidget *parent = 0);
 	~ESCurrentBills();
 	
+	public slots:
+	void slotSearch();
+
 private:
 	Ui::CurrentBills ui;
 

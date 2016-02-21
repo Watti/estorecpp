@@ -22,6 +22,8 @@ public slots:
 	void slotManageOrderItems();
 	void slotAddBill();
 	void slotCurrentBills();
+	void slotConfigure();
+	void slotShowStatus();
 	void slotLogin();
 
 protected:

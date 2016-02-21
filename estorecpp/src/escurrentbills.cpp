@@ -33,17 +33,127 @@ ESCurrentBills::ESCurrentBills(QWidget *parent)
 	}
 	else
 	{
-		QSqlQuery queryPM("SELECT * FROM payment");
-		while (queryPM.next())
+		QSqlQuery queryUser("SELECT * FROM user");
+		ui.userComboBox->addItem("ALL", 0);
+		while (queryUser.next())
 		{
-			ui.pmComboBox->addItem("COMMITTED", 1);
-			ui.pmComboBox->addItem("PENDING", 2);
-			ui.pmComboBox->addItem("CANCELED", 3);
+			ui.userComboBox->addItem(queryUser.value(1).toString(), queryUser.value(0).toInt());
 		}
+
+		ui.statusComboBox->addItem("ALL", 0);
+		ui.statusComboBox->addItem("COMMITTED", 1);
+		ui.statusComboBox->addItem("PENDING", 2);
+		ui.statusComboBox->addItem("CANCELED", 3);
+
+		ui.startDate->setDate(QDate::currentDate().addMonths(-1));
+		ui.endDate->setDate(QDate::currentDate());
 	}
+
+	slotSearch();
 }
 
 ESCurrentBills::~ESCurrentBills()
 {
+
+}
+
+void ESCurrentBills::slotSearch()
+{
+	while (ui.tableWidget->rowCount() > 0)
+	{
+		ui.tableWidget->removeRow(0);
+	}
+
+	int row = 0;
+	QSqlQuery allBillQuery("SELECT * FROM bill WHERE deleted = 0");
+	while (allBillQuery.next())
+	{
+		QTableWidgetItem* tableItem = NULL;
+		row = ui.tableWidget->rowCount();
+		ui.tableWidget->insertRow(row);
+		int statusId = allBillQuery.value(5).toInt();
+		QColor rowColor;
+
+		switch (statusId)
+		{
+		case 1:
+		{
+			rowColor.setRgb(51, 254, 84);
+			tableItem = new QTableWidgetItem("COMMITTED");
+			tableItem->setBackgroundColor(rowColor);
+			ui.tableWidget->setItem(row, 5, tableItem);
+		}
+			break;
+		case 2:
+		{
+			rowColor.setRgb(255, 153, 52);
+			tableItem = new QTableWidgetItem("PENDING");
+			tableItem->setBackgroundColor(rowColor);
+			ui.tableWidget->setItem(row, 5, tableItem);
+		}
+			break;
+		case 3:
+		{
+			rowColor.setRgb(246, 65, 65);
+			tableItem = new QTableWidgetItem("CANCELED");
+			tableItem->setBackgroundColor(rowColor);
+			ui.tableWidget->setItem(row, 5, tableItem);
+		}
+			break;
+		default:
+		{
+			rowColor.setRgb(255, 255, 255);
+			tableItem = new QTableWidgetItem("UNSPECIFIED");
+			tableItem->setBackgroundColor(rowColor);
+			ui.tableWidget->setItem(row, 5, tableItem);
+		}
+			
+			break;
+		}
+
+		int selectedUser = ui.userComboBox->currentData().toInt();
+		if (selectedUser == -1)
+		{
+			continue;
+		}
+		if (selectedUser != 0)
+		{
+			if (selectedUser != allBillQuery.value(2).toInt())
+			{
+				continue;
+			}
+		}
+
+		tableItem = new QTableWidgetItem(allBillQuery.value(0).toString());
+		tableItem->setBackgroundColor(rowColor);
+		ui.tableWidget->setItem(row, 0, tableItem);
+		QDateTime datetime = QDateTime::fromString(allBillQuery.value(1).toString(), Qt::ISODate);
+		tableItem = new QTableWidgetItem(datetime.toString(Qt::SystemLocaleShortDate));
+		tableItem->setBackgroundColor(rowColor);
+		ui.tableWidget->setItem(row, 1, tableItem);
+
+		QString pmQueryStr("SELECT * FROM payment WHERE type_id=");
+		pmQueryStr.append(allBillQuery.value(4).toString());
+		QSqlQuery pmQuery(pmQueryStr);
+		if (pmQuery.first())
+		{
+			tableItem = new QTableWidgetItem(pmQuery.value(1).toString());
+			tableItem->setBackgroundColor(rowColor);
+			ui.tableWidget->setItem(row, 2, tableItem);
+		}
+		tableItem = new QTableWidgetItem(QString::number(allBillQuery.value(3).toFloat(), 'f', 2));
+		tableItem->setBackgroundColor(rowColor);
+		ui.tableWidget->setItem(row, 3, tableItem);
+
+		QString userQueryStr("SELECT * FROM user WHERE user_id=");
+		userQueryStr.append(allBillQuery.value(2).toString());
+		QSqlQuery userQuery(userQueryStr);
+		if (userQuery.first())
+		{
+			tableItem = new QTableWidgetItem(userQuery.value(1).toString());
+			tableItem->setBackgroundColor(rowColor);
+			ui.tableWidget->setItem(row, 4, tableItem);
+		}
+	}
 
 }
