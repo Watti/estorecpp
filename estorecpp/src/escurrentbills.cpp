@@ -2,6 +2,8 @@
 #include "utility/esmainwindowholder.h"
 #include "utility/esdbconnection.h"
 #include <QMessageBox>
+#include "QPushButton"
+#include "QBoxLayout"
 
 ESCurrentBills::ESCurrentBills(QWidget *parent)
 : QWidget(parent)
@@ -28,28 +30,22 @@ ESCurrentBills::ESCurrentBills(QWidget *parent)
 	{
 		QMessageBox mbox;
 		mbox.setIcon(QMessageBox::Critical);
-		mbox.setText(QString("Cannot connect to the database : ESManageStockItems::displayStockItems "));
+		mbox.setText(QString("Cannot connect to the database : ESCurrentBills::ESCurrentBills "));
 		mbox.exec();
 	}
 	else
 	{
-		QSqlQuery queryUser("SELECT * FROM user");
-		ui.userComboBox->addItem("ALL", 0);
-		while (queryUser.next())
-		{
-			ui.userComboBox->addItem(queryUser.value(1).toString(), queryUser.value(0).toInt());
-		}
-
-		ui.statusComboBox->addItem("ALL", 0);
-		ui.statusComboBox->addItem("COMMITTED", 1);
-		ui.statusComboBox->addItem("PENDING", 2);
-		ui.statusComboBox->addItem("CANCELED", 3);
-
-		ui.startDate->setDate(QDate::currentDate().addMonths(-1));
-		ui.endDate->setDate(QDate::currentDate());
+		
+		ui.pmComboBox->addItem("Select", BillStatus::UNDEFINED_BILL);
+		ui.pmComboBox->addItem("PENDING", BillStatus::PENDING_BILL);
+		ui.pmComboBox->addItem("SUSPENDED", BillStatus::SUSPENDED_BILL);
+		ui.pmComboBox->addItem("FINISHED", BillStatus::FINISHED_BILL);
+		
 	}
 
-	slotSearch();
+	m_proceedButtonSignalMapper = new QSignalMapper(this);
+	QObject::connect(m_proceedButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotProceed(QString)));
+	QObject::connect(ui.pmComboBox, SIGNAL(activated(QString)), this, SLOT(slotTypeSelected()));
 }
 
 ESCurrentBills::~ESCurrentBills()
@@ -57,103 +53,101 @@ ESCurrentBills::~ESCurrentBills()
 
 }
 
-void ESCurrentBills::slotSearch()
+void ESCurrentBills::slotTypeSelected()
 {
 	while (ui.tableWidget->rowCount() > 0)
 	{
 		ui.tableWidget->removeRow(0);
 	}
-
+	int i = 0;
 	int row = 0;
-	QSqlQuery allBillQuery("SELECT * FROM bill WHERE deleted = 0");
-	while (allBillQuery.next())
+
+// 	headerLabels.append("Bill ID");
+// 	headerLabels.append("Date");
+// 	headerLabels.append("Payment Method");
+// 	headerLabels.append("Amount");
+// 	headerLabels.append("User");
+// 	headerLabels.append("Status");
+// 	headerLabels.append("Actions");
+
+	int status = ui.pmComboBox->currentData().toInt();
+	if (status != BillStatus::UNDEFINED_BILL)
 	{
-		QTableWidgetItem* tableItem = NULL;
-		row = ui.tableWidget->rowCount();
-		ui.tableWidget->insertRow(row);
-		int statusId = allBillQuery.value(5).toInt();
-		QColor rowColor;
-
-		switch (statusId)
+		QString s = QString::number(status);
+		QString quearyStr("SELECT * FROM bill WHERE deleted = 0 AND status = " + s);
+		QSqlQuery query(quearyStr);
+		while (query.next())
 		{
-		case 1:
-		{
-			rowColor.setRgb(51, 254, 84);
-			tableItem = new QTableWidgetItem("COMMITTED");
-			tableItem->setBackgroundColor(rowColor);
-			ui.tableWidget->setItem(row, 5, tableItem);
-		}
-			break;
-		case 2:
-		{
-			rowColor.setRgb(255, 153, 52);
-			tableItem = new QTableWidgetItem("PENDING");
-			tableItem->setBackgroundColor(rowColor);
-			ui.tableWidget->setItem(row, 5, tableItem);
-		}
-			break;
-		case 3:
-		{
-			rowColor.setRgb(246, 65, 65);
-			tableItem = new QTableWidgetItem("CANCELED");
-			tableItem->setBackgroundColor(rowColor);
-			ui.tableWidget->setItem(row, 5, tableItem);
-		}
-			break;
-		default:
-		{
-			rowColor.setRgb(255, 255, 255);
-			tableItem = new QTableWidgetItem("UNSPECIFIED");
-			tableItem->setBackgroundColor(rowColor);
-			ui.tableWidget->setItem(row, 5, tableItem);
-		}
-			
-			break;
-		}
-
-		int selectedUser = ui.userComboBox->currentData().toInt();
-		if (selectedUser == -1)
-		{
-			continue;
-		}
-		if (selectedUser != 0)
-		{
-			if (selectedUser != allBillQuery.value(2).toInt())
+			QSqlQuery paymentQuery("SELECT type FROM payment WHERE type_id = " + query.value("payment_method").toString());
+			QString paymentType(""), user("");
+			while (paymentQuery.next())
 			{
-				continue;
+				paymentType = paymentQuery.value("type").toString();
+			}
+			QSqlQuery userQuery("SELECT * FROM user WHERE user_id = " + query.value("user_id").toString());
+			while (userQuery.next())
+			{
+				user = userQuery.value("display_name").toString();
+			}
+			int statusInt = query.value("status").toInt();
+			QString statusStr = getStatusInString(static_cast<BillStatus>(statusInt));
+			row = ui.tableWidget->rowCount();
+			ui.tableWidget->insertRow(row);
+			ui.tableWidget->setItem(row, 0, new QTableWidgetItem(query.value("bill_id").toString()));
+			ui.tableWidget->setItem(row, 1, new QTableWidgetItem(query.value("date").toString()));
+			ui.tableWidget->setItem(row, 2, new QTableWidgetItem(paymentType));
+			ui.tableWidget->setItem(row, 3, new QTableWidgetItem(query.value("amount").toString()));
+			ui.tableWidget->setItem(row, 4, new QTableWidgetItem(user));
+			ui.tableWidget->setItem(row, 5, new QTableWidgetItem(statusStr));
+
+			if (statusInt == BillStatus::PENDING_BILL || statusInt == BillStatus::SUSPENDED_BILL)
+			{
+				QWidget* base = new QWidget(ui.tableWidget);
+				QPushButton* proceedBtn = new QPushButton("Proceed", base);
+				proceedBtn->setMaximumWidth(100);
+
+				QObject::connect(proceedBtn, SIGNAL(clicked()), m_proceedButtonSignalMapper, SLOT(map()));
+				m_proceedButtonSignalMapper->setMapping(proceedBtn, query.value("bill_id").toString());
+
+				QHBoxLayout *layout = new QHBoxLayout;
+				layout->setContentsMargins(0, 0, 0, 0);
+				layout->addWidget(proceedBtn);
+				layout->insertStretch(2);
+				base->setLayout(layout);
+				ui.tableWidget->setCellWidget(row, 6, base);
+				base->show();
+			}
+			else
+			{
+				ui.tableWidget->setItem(row, 6, new QTableWidgetItem(""));
 			}
 		}
-
-		tableItem = new QTableWidgetItem(allBillQuery.value(0).toString());
-		tableItem->setBackgroundColor(rowColor);
-		ui.tableWidget->setItem(row, 0, tableItem);
-		QDateTime datetime = QDateTime::fromString(allBillQuery.value(1).toString(), Qt::ISODate);
-		tableItem = new QTableWidgetItem(datetime.toString(Qt::SystemLocaleShortDate));
-		tableItem->setBackgroundColor(rowColor);
-		ui.tableWidget->setItem(row, 1, tableItem);
-
-		QString pmQueryStr("SELECT * FROM payment WHERE type_id=");
-		pmQueryStr.append(allBillQuery.value(4).toString());
-		QSqlQuery pmQuery(pmQueryStr);
-		if (pmQuery.first())
-		{
-			tableItem = new QTableWidgetItem(pmQuery.value(1).toString());
-			tableItem->setBackgroundColor(rowColor);
-			ui.tableWidget->setItem(row, 2, tableItem);
-		}
-		tableItem = new QTableWidgetItem(QString::number(allBillQuery.value(3).toFloat(), 'f', 2));
-		tableItem->setBackgroundColor(rowColor);
-		ui.tableWidget->setItem(row, 3, tableItem);
-
-		QString userQueryStr("SELECT * FROM user WHERE user_id=");
-		userQueryStr.append(allBillQuery.value(2).toString());
-		QSqlQuery userQuery(userQueryStr);
-		if (userQuery.first())
-		{
-			tableItem = new QTableWidgetItem(userQuery.value(1).toString());
-			tableItem->setBackgroundColor(rowColor);
-			ui.tableWidget->setItem(row, 4, tableItem);
-		}
 	}
+
+
+	//for (auto col : rowContent)
+	{
+	//	ui.tableWidget->setItem(row, i++, new QTableWidgetItem(col));
+	}
+}
+
+QString ESCurrentBills::getStatusInString(BillStatus status) const
+{
+	switch (status)
+	{
+	case FINISHED_BILL : 
+		return "FINISHED";
+	case PENDING_BILL :
+		return "PENDING";
+	case SUSPENDED_BILL :
+		return "SUSPENDED";
+	default:
+		return "UNDEFINED";
+	}
+	return "UNDEFINED";
+}
+
+void ESCurrentBills::slotProceed(QString billId)
+{
 
 }

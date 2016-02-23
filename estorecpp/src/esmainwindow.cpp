@@ -7,8 +7,6 @@
 #include "esmanageorderitems.h"
 #include "esaddbill.h"
 #include "escurrentbills.h"
-#include "escashbalanceconfigure.h"
-#include "escashbalancestatus.h"
 #include "utility/esmenumanager.h"
 #include "utility/session.h"
 #include <QMessageBox>
@@ -39,8 +37,6 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	QObject::connect(ui.actionManageOrderItems, SIGNAL(triggered()), this, SLOT(slotManageOrderItems()));
 	QObject::connect(ui.actionAddBill, SIGNAL(triggered()), this, SLOT(slotAddBill()));
 	QObject::connect(ui.actionCurrentBills, SIGNAL(triggered()), this, SLOT(slotCurrentBills()));
-	QObject::connect(ui.actionConfigure, SIGNAL(triggered()), this, SLOT(slotConfigure()));
-	QObject::connect(ui.actionShowStatus, SIGNAL(triggered()), this, SLOT(slotShowStatus()));
 	QObject::connect(m_actionLogin, SIGNAL(triggered()), this, SLOT(slotLogin()));
 
 	// initialize menu manager
@@ -50,13 +46,12 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	mmgr->addMenu("Orders", ui.menuOrders);
 	mmgr->addMenu("Billing", ui.menuBilling);
 	mmgr->addMenu("Reports", ui.menuReports);
-	mmgr->addMenu("Cash Balance", ui.menuCashBalance);
 	mmgr->addMenu("Help", ui.menuHelp);
 
 	mmgr->addAction("Manage Stock Items", ui.actionManageStockItems);
 	ui.actionManageStockItems->setIcon(QIcon("icons/manage_store.png"));
 	
-	ui.mainToolBar->setIconSize(QSize(48, 48));
+	ui.mainToolBar->setIconSize(QSize(32, 32));
 	//ui.mainToolBar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 
 	QLabel* logoLabel = new QLabel(ui.mainToolBar);
@@ -67,7 +62,7 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	ui.mainToolBar->addAction(ui.actionManageStockItems);
 	mmgr->addSeparator(ui.mainToolBar->addSeparator());
 
-	ui.mainToolBar->setMinimumSize(60, 60);
+	ui.mainToolBar->setMinimumSize(48, 48);
 
 	mmgr->addAction("Manage Items", ui.actionManageItems);
 	ui.actionManageItems->setIcon(QIcon("icons/manage_items.png"));
@@ -93,14 +88,6 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	ui.mainToolBar->addAction(ui.actionCurrentBills);
 	mmgr->addSeparator(ui.mainToolBar->addSeparator());
 
-	mmgr->addAction("Configure", ui.actionConfigure);
-	ui.actionConfigure->setIcon(QIcon("icons/money.png"));
-	ui.mainToolBar->addAction(ui.actionConfigure);
-	mmgr->addAction("Show Status", ui.actionShowStatus);
-	ui.actionShowStatus->setIcon(QIcon("icons/money_status.png"));
-	ui.mainToolBar->addAction(ui.actionShowStatus);
-	mmgr->addSeparator(ui.mainToolBar->addSeparator());
-
 	mmgr->addMenuActionMapping("Stock", "Manage Stock Items");
 	mmgr->addMenuActionMapping("Items", "Manage Items");
 	mmgr->addMenuActionMapping("Items", "Manage Item Categories");
@@ -108,8 +95,6 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	mmgr->addMenuActionMapping("Orders", "Manage Order Items");
 	mmgr->addMenuActionMapping("Billing", "Add Bill");
 	mmgr->addMenuActionMapping("Billing", "Current Bills");
-	mmgr->addMenuActionMapping("Cash Balance", "Configure");
-	mmgr->addMenuActionMapping("Cash Balance", "Show Status");
 
 	mmgr->disableAll();
 
@@ -169,20 +154,6 @@ void ESMainWindow::slotCurrentBills()
 	ESCurrentBills* currentBills = new ESCurrentBills(this);
 	this->setCentralWidget(currentBills);
 	currentBills->show();
-}
-
-void ESMainWindow::slotConfigure()
-{
-	ESCashBalanceConfigure* cashConfigure = new ESCashBalanceConfigure(this);
-	this->setCentralWidget(cashConfigure);
-	cashConfigure->show();
-}
-
-void ESMainWindow::slotShowStatus()
-{
-	ESCashBalanceStatus* cashStatus = new ESCashBalanceStatus(this);
-	this->setCentralWidget(cashStatus);
-	cashStatus->show();
 }
 
 void ESMainWindow::slotLogin()
