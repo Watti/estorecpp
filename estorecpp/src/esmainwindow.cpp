@@ -9,6 +9,7 @@
 #include "escurrentbills.h"
 #include "escashbalanceconfigure.h"
 #include "escashbalancestatus.h"
+#include "esmanageusers.h"
 #include "utility/esmenumanager.h"
 #include "utility/session.h"
 #include <QMessageBox>
@@ -215,7 +216,9 @@ void ESMainWindow::slotLogout()
 
 void ESMainWindow::slotManageUsers()
 {
-
+	ESManageUsers* manageUsers = new ESManageUsers(this);
+	this->setCentralWidget(manageUsers);
+	manageUsers->show();
 }
 
 void ESMainWindow::reloadMenus()
