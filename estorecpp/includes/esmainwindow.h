@@ -25,6 +25,9 @@ public slots:
 	void slotConfigure();
 	void slotShowStatus();
 	void slotLogin();
+	void slotProfile();
+	void slotLogout();
+	void slotManageUsers();
 
 protected:
 	void closeEvent(QCloseEvent *event);
@@ -34,6 +37,7 @@ private:
 	QAction* m_actionLogin;
 	QAction* m_actionLogout;
 	QAction* m_actionProfile;
+	QAction* m_actionManageUsers;
 };
 
 #endif // ESMAINWINDOW_H

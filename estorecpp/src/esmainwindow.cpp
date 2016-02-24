@@ -24,9 +24,11 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	m_actionLogin = new QAction("Login", menuLogin);
 	menuLogin->addAction(m_actionLogin);
 	m_actionProfile = new QAction("Profile", menuLogin);
-	//menuLogin->addAction(m_actionProfile);
+	menuLogin->addAction(m_actionProfile);
 	m_actionLogout = new QAction("Logout", menuLogin);
-	//menuLogin->addAction(m_actionLogout);
+	menuLogin->addAction(m_actionLogout);
+	m_actionManageUsers = new QAction("Manage Users", menuLogin);
+	menuLogin->addAction(m_actionManageUsers);
 
 	rightMenubar->addMenu(menuLogin);
 	ui.menuBar->setCornerWidget(rightMenubar);
@@ -42,9 +44,13 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	QObject::connect(ui.actionConfigure, SIGNAL(triggered()), this, SLOT(slotConfigure()));
 	QObject::connect(ui.actionShowStatus, SIGNAL(triggered()), this, SLOT(slotShowStatus()));
 	QObject::connect(m_actionLogin, SIGNAL(triggered()), this, SLOT(slotLogin()));
+	QObject::connect(m_actionProfile, SIGNAL(triggered()), this, SLOT(slotProfile()));
+	QObject::connect(m_actionLogout, SIGNAL(triggered()), this, SLOT(slotLogout()));
+	QObject::connect(m_actionManageUsers, SIGNAL(triggered()), this, SLOT(slotManageUsers()));
 
 	// initialize menu manager
 	ES::MenuManager* mmgr = ES::MenuManager::instance();
+	mmgr->addMenu("User", menuLogin);
 	mmgr->addMenu("Stock", ui.menuStock);
 	mmgr->addMenu("Items", ui.menuItems);
 	mmgr->addMenu("Orders", ui.menuOrders);
@@ -52,6 +58,11 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	mmgr->addMenu("Reports", ui.menuReports);
 	mmgr->addMenu("Cash Balance", ui.menuCashBalance);
 	mmgr->addMenu("Help", ui.menuHelp);
+
+	mmgr->addAction("Login", m_actionLogin);
+	mmgr->addAction("Profile", m_actionProfile);
+	mmgr->addAction("Logout", m_actionLogout);
+	mmgr->addAction("Manage Users", m_actionManageUsers);
 
 	mmgr->addAction("Manage Stock Items", ui.actionManageStockItems);
 	ui.actionManageStockItems->setIcon(QIcon("icons/manage_store.png"));
@@ -190,6 +201,21 @@ void ESMainWindow::slotLogin()
 	ESLoginWidget* loginWidget = new ESLoginWidget(this);
 	this->setCentralWidget(loginWidget);
 	loginWidget->show();
+}
+
+void ESMainWindow::slotProfile()
+{
+
+}
+
+void ESMainWindow::slotLogout()
+{
+
+}
+
+void ESMainWindow::slotManageUsers()
+{
+
 }
 
 void ESMainWindow::reloadMenus()
