@@ -24,6 +24,9 @@ ESCurrentBills::ESCurrentBills(QWidget *parent)
 	ui.tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
 	ui.tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
 
+	QObject::connect(ui.userComboBox, SIGNAL(activated(QString)), this, SLOT(slotSearch()));
+	QObject::connect(ui.statusComboBox, SIGNAL(activated(QString)), this, SLOT(slotSearch()));
+
 	if (!ES::DbConnection::instance()->open())
 	{
 		QMessageBox mbox;
@@ -64,14 +67,33 @@ void ESCurrentBills::slotSearch()
 		ui.tableWidget->removeRow(0);
 	}
 
+	int selectedUser = ui.userComboBox->currentData().toInt();
+	int selectedStatus = ui.statusComboBox->currentData().toInt();
+
 	int row = 0;
 	QSqlQuery allBillQuery("SELECT * FROM bill WHERE deleted = 0");
 	while (allBillQuery.next())
-	{
+	{		
+		if (selectedUser > 0)
+		{
+			if (selectedUser != allBillQuery.value(2).toInt())
+			{
+				continue;
+			}
+		}
+
+		int statusId = allBillQuery.value(5).toInt();
+		if (selectedStatus > 0)
+		{
+			if (selectedStatus != statusId)
+			{
+				continue;
+			}
+		}
+
 		QTableWidgetItem* tableItem = NULL;
 		row = ui.tableWidget->rowCount();
-		ui.tableWidget->insertRow(row);
-		int statusId = allBillQuery.value(5).toInt();
+		ui.tableWidget->insertRow(row);		
 		QColor rowColor;
 
 		switch (statusId)
@@ -109,19 +131,6 @@ void ESCurrentBills::slotSearch()
 		}
 			
 			break;
-		}
-
-		int selectedUser = ui.userComboBox->currentData().toInt();
-		if (selectedUser == -1)
-		{
-			continue;
-		}
-		if (selectedUser != 0)
-		{
-			if (selectedUser != allBillQuery.value(2).toInt())
-			{
-				continue;
-			}
 		}
 
 		tableItem = new QTableWidgetItem(allBillQuery.value(0).toString());
