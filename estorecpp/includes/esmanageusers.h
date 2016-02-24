@@ -2,6 +2,7 @@
 #define ESMANAGE_USERS_H
 
 #include "ui_manageusers.h"
+#include <QListWidgetItem>
 
 class ESManageUsers : public QWidget
 {
@@ -18,6 +19,7 @@ public slots:
 	void slotUpdate();
 	void slotAdd();
 	void slotRoleSearch();
+	void slotUserSelected(QListWidgetItem* item);
 
 private:
 	Ui::ManageUsers ui;
