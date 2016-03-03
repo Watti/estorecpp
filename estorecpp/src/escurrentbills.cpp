@@ -26,6 +26,8 @@ ESCurrentBills::ESCurrentBills(QWidget *parent)
 
 	QObject::connect(ui.userComboBox, SIGNAL(activated(QString)), this, SLOT(slotSearch()));
 	QObject::connect(ui.statusComboBox, SIGNAL(activated(QString)), this, SLOT(slotSearch()));
+	QObject::connect(ui.startDate, SIGNAL(dateChanged(const QDate&)), this, SLOT(slotSearch()));
+	QObject::connect(ui.endDate, SIGNAL(dateChanged(const QDate&)), this, SLOT(slotSearch()));
 
 	if (!ES::DbConnection::instance()->open())
 	{
@@ -70,6 +72,9 @@ void ESCurrentBills::slotSearch()
 	int selectedUser = ui.userComboBox->currentData().toInt();
 	int selectedStatus = ui.statusComboBox->currentData().toInt();
 
+	QDateTime startDate = QDateTime::fromString(ui.startDate->text(), Qt::ISODate);
+	QDateTime endDate = QDateTime::fromString(ui.endDate->text(), Qt::ISODate);
+
 	int row = 0;
 	QSqlQuery allBillQuery("SELECT * FROM bill WHERE deleted = 0");
 	while (allBillQuery.next())
@@ -81,7 +86,11 @@ void ESCurrentBills::slotSearch()
 				continue;
 			}
 		}
-
+		QDateTime billedDate = QDateTime::fromString(allBillQuery.value(1).toString(), Qt::ISODate);
+		if (billedDate < startDate || billedDate > endDate)
+		{
+			continue;
+		}
 		int statusId = allBillQuery.value(5).toInt();
 		if (selectedStatus > 0)
 		{
