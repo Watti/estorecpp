@@ -3,6 +3,7 @@
 #include "ui_currentbills.h"
 #include <QStandardItemModel>
 #include <QtGui>
+#include "QSignalMapper"
 
 class ESCurrentBills : public QWidget
 {
@@ -14,9 +15,11 @@ public:
 	
 	public slots:
 	void slotSearch();
+	void slotProceed(QString);
 
 private:
 	Ui::CurrentBills ui;
+	QSignalMapper* m_proceedButtonSignalMapper;
 
 };
 

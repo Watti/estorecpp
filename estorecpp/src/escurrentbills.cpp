@@ -2,11 +2,15 @@
 #include "utility/esmainwindowholder.h"
 #include "utility/esdbconnection.h"
 #include <QMessageBox>
+#include "QPushButton"
+#include "esaddbill.h"
 
 ESCurrentBills::ESCurrentBills(QWidget *parent)
 : QWidget(parent)
 {
 	ui.setupUi(this);
+	m_proceedButtonSignalMapper = new QSignalMapper(this);
+	QObject::connect(m_proceedButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotProceed(QString)));
 
 	QStringList headerLabels;
 	headerLabels.append("Bill ID");
@@ -104,7 +108,7 @@ void ESCurrentBills::slotSearch()
 		row = ui.tableWidget->rowCount();
 		ui.tableWidget->insertRow(row);		
 		QColor rowColor;
-
+		QString billId = allBillQuery.value(0).toString();
 		switch (statusId)
 		{
 		case 1:
@@ -121,6 +125,21 @@ void ESCurrentBills::slotSearch()
 			tableItem = new QTableWidgetItem("PENDING");
 			tableItem->setBackgroundColor(rowColor);
 			ui.tableWidget->setItem(row, 5, tableItem);
+
+			QWidget* base = new QWidget(ui.tableWidget);
+			QPushButton* proceedBtn = new QPushButton("Proceed", base);
+			proceedBtn->setMaximumWidth(100);
+
+			m_proceedButtonSignalMapper->setMapping(proceedBtn, billId);
+			QObject::connect(proceedBtn, SIGNAL(clicked()), m_proceedButtonSignalMapper, SLOT(map()));
+			
+			QHBoxLayout *layout = new QHBoxLayout;
+			layout->setContentsMargins(0, 0, 0, 0);
+			layout->addWidget(proceedBtn);
+			layout->insertStretch(2);
+			base->setLayout(layout);
+			ui.tableWidget->setCellWidget(row, 6, base);
+			base->show();
 		}
 			break;
 		case 3:
@@ -142,7 +161,7 @@ void ESCurrentBills::slotSearch()
 			break;
 		}
 
-		tableItem = new QTableWidgetItem(allBillQuery.value(0).toString());
+		tableItem = new QTableWidgetItem(billId);
 		tableItem->setBackgroundColor(rowColor);
 		ui.tableWidget->setItem(row, 0, tableItem);
 		QDateTime datetime = QDateTime::fromString(allBillQuery.value(1).toString(), Qt::ISODate);
@@ -174,4 +193,12 @@ void ESCurrentBills::slotSearch()
 		}
 	}
 
+}
+
+void ESCurrentBills::slotProceed(QString billId)
+{
+	ESAddBill* addBill = new ESAddBill(this);
+	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(addBill);
+	addBill->proceedPendingBill(billId);
+	addBill->show();
 }

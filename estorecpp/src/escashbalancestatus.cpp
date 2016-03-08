@@ -2,7 +2,7 @@
 
 ESCashBalanceStatus::ESCashBalanceStatus(QWidget *parent) : QWidget(parent)
 {
-	ui.setupUi(this);
+	ui.setupUi(this); 
 }
 
 ESCashBalanceStatus::~ESCashBalanceStatus()

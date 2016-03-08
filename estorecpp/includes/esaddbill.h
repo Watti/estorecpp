@@ -27,7 +27,7 @@ public:
 	void resetBill();
 
 	QSignalMapper* getRemoveButtonSignalMapper() const { return m_removeButtonSignalMapper; }
-
+	void proceedPendingBill(QString billId);
 private:
 	Ui::AddBillWidget ui;
 	void calculateAndDisplayTotal();
