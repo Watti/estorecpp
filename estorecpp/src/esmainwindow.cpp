@@ -212,7 +212,8 @@ void ESMainWindow::slotProfile()
 
 void ESMainWindow::slotLogout()
 {
-
+	//check for pending bills
+	checkForPendingBills();
 }
 
 void ESMainWindow::slotManageUsers()
@@ -229,29 +230,30 @@ void ESMainWindow::reloadMenus()
 
 void ESMainWindow::closeEvent(QCloseEvent *event)
 {
+	//check for pending bills
+	checkForPendingBills();
+
+	event->accept();
+}
+
+void ESMainWindow::checkForPendingBills()
+{
 	if (ES::Session::getInstance()->isBillStarted())
 	{
 		int choice = QMessageBox::question(0, "Warning", "Current Bill is not finished. Do you want to discard it and quit?",
 			QMessageBox::Yes, QMessageBox::No);
-
-		if (choice == QMessageBox::No)
+		if (ES::Utility::verifyUsingMessageBox(this, "Warning", "Current Bill is not finished.Do you want to discard it and quit ? "))
 		{
-			event->ignore();
-			return;
+			QSqlQuery q("DELETE FROM bill WHERE bill_id = " + ES::Session::getInstance()->getBillId());
 		}
-		QSqlQuery q("DELETE FROM bill WHERE bill_id = " + ES::Session::getInstance()->getBillId());
 	}
-
-	//check for pending bills
 	QSqlQuery allBillQuery("SELECT * FROM bill WHERE deleted = 0 AND status = 2");
 	while (allBillQuery.next())
 	{
-		if (ES::Utility::verifyUsingMessageBox(this, "EStore", "Bill id = "+ allBillQuery.value("bill_id").toString() + " is not completed. Do you want to delete it? "))
+		if (ES::Utility::verifyUsingMessageBox(this, "EStore", "Bill id = " + allBillQuery.value("bill_id").toString() + " is not completed. Do you want to delete it? "))
 		{
 
 		}
 	}
-
-	event->accept();
 }
 

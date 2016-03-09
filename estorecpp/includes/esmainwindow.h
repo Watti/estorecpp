@@ -27,6 +27,9 @@ public slots:
 	void slotLogin();
 	void slotProfile();
 	void slotLogout();
+
+	void checkForPendingBills();
+
 	void slotManageUsers();
 
 protected:
