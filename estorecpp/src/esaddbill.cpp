@@ -335,7 +335,7 @@ void ESAddBill::proceedPendingBill(QString billId)
 		QSqlQuery paymentQuery(paymentMethodQueryStr);
 		while (paymentQuery.next())
 		{
-			ui.paymentMethodComboBox->setCurrentIndex(paymentQuery.value("type_id").toInt());
+			ui.paymentMethodComboBox->setCurrentText(paymentQuery.value("type").toString());
 		}
 		int row = ui.tableWidget->rowCount();
 

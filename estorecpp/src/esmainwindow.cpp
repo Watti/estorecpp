@@ -13,9 +13,10 @@
 #include "utility/esmenumanager.h"
 #include "utility/session.h"
 #include <QMessageBox>
+#include "utility/utility.h"
 
 ESMainWindow::ESMainWindow(QWidget *parent)
-	: QMainWindow(parent)
+: QMainWindow(parent)
 {
 	ui.setupUi(this);
 
@@ -67,7 +68,7 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 
 	mmgr->addAction("Manage Stock Items", ui.actionManageStockItems);
 	ui.actionManageStockItems->setIcon(QIcon("icons/manage_store.png"));
-	
+
 	ui.mainToolBar->setIconSize(QSize(48, 48));
 	//ui.mainToolBar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 
@@ -230,7 +231,7 @@ void ESMainWindow::closeEvent(QCloseEvent *event)
 {
 	if (ES::Session::getInstance()->isBillStarted())
 	{
-		int choice = QMessageBox::question(0, "Warning", "Current Bill is not finished. Do you want to discard it and quit?", 
+		int choice = QMessageBox::question(0, "Warning", "Current Bill is not finished. Do you want to discard it and quit?",
 			QMessageBox::Yes, QMessageBox::No);
 
 		if (choice == QMessageBox::No)
@@ -239,6 +240,16 @@ void ESMainWindow::closeEvent(QCloseEvent *event)
 			return;
 		}
 		QSqlQuery q("DELETE FROM bill WHERE bill_id = " + ES::Session::getInstance()->getBillId());
+	}
+
+	//check for pending bills
+	QSqlQuery allBillQuery("SELECT * FROM bill WHERE deleted = 0 AND status = 2");
+	while (allBillQuery.next())
+	{
+		if (ES::Utility::verifyUsingMessageBox(this, "EStore", "Bill id = "+ allBillQuery.value("bill_id").toString() + " is not completed. Do you want to delete it? "))
+		{
+
+		}
 	}
 
 	event->accept();
