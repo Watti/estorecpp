@@ -24,6 +24,9 @@ public slots:
 	void slotCurrentBills();
 	void slotConfigure();
 	void slotShowStatus();
+	void slotGeneralReports();
+	void slotSalesReports();
+	void slotStocksReports();
 	void slotLogin();
 	void slotProfile();
 	void slotLogout();

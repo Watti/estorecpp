@@ -45,6 +45,9 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	QObject::connect(ui.actionCurrentBills, SIGNAL(triggered()), this, SLOT(slotCurrentBills()));
 	QObject::connect(ui.actionConfigure, SIGNAL(triggered()), this, SLOT(slotConfigure()));
 	QObject::connect(ui.actionShowStatus, SIGNAL(triggered()), this, SLOT(slotShowStatus()));
+	QObject::connect(ui.actionGeneral, SIGNAL(triggered()), this, SLOT(slotGeneralReports()));
+	QObject::connect(ui.actionSales, SIGNAL(triggered()), this, SLOT(slotSalesReports()));
+	QObject::connect(ui.actionStocks, SIGNAL(triggered()), this, SLOT(slotStocksReports()));
 	QObject::connect(m_actionLogin, SIGNAL(triggered()), this, SLOT(slotLogin()));
 	QObject::connect(m_actionProfile, SIGNAL(triggered()), this, SLOT(slotProfile()));
 	QObject::connect(m_actionLogout, SIGNAL(triggered()), this, SLOT(slotLogout()));
@@ -88,9 +91,9 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	mmgr->addAction("Manage Item Categories", ui.actionManageItemCategories);
 	ui.actionManageItemCategories->setIcon(QIcon("icons/manage_item_categories.png"));
 	ui.mainToolBar->addAction(ui.actionManageItemCategories);
-	//mmgr->addAction("Manage Item Prices", ui.actionManageItemPrices);
-	//ui.actionManageItemPrices->setIcon(QIcon("icons/manage_item_prices.png"));
-	//ui.mainToolBar->addAction(ui.actionManageItemPrices);
+	mmgr->addAction("Manage Item Prices", ui.actionManageItemPrices);
+	ui.actionManageItemPrices->setIcon(QIcon("icons/manage_item_prices.png"));
+	ui.mainToolBar->addAction(ui.actionManageItemPrices);
 	mmgr->addSeparator(ui.mainToolBar->addSeparator());
 
 	mmgr->addAction("Manage Order Items", ui.actionManageOrderItems);
@@ -113,6 +116,15 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	ui.actionShowStatus->setIcon(QIcon("icons/money_status.png"));
 	ui.mainToolBar->addAction(ui.actionShowStatus);
 	mmgr->addSeparator(ui.mainToolBar->addSeparator());
+	mmgr->addAction("General", ui.actionGeneral);
+	ui.actionGeneral->setIcon(QIcon("icons/reports.png"));
+	ui.mainToolBar->addAction(ui.actionGeneral);
+	mmgr->addAction("Sales", ui.actionSales);
+	ui.actionSales->setIcon(QIcon("icons/sales_report.png"));
+	ui.mainToolBar->addAction(ui.actionSales);
+	mmgr->addAction("Stocks", ui.actionStocks);
+	ui.actionStocks->setIcon(QIcon("icons/stock_report.png"));
+	ui.mainToolBar->addAction(ui.actionStocks);
 
 	mmgr->addMenuActionMapping("Stock", "Manage Stock Items");
 	mmgr->addMenuActionMapping("Items", "Manage Items");
@@ -123,6 +135,9 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	mmgr->addMenuActionMapping("Billing", "Current Bills");
 	mmgr->addMenuActionMapping("Cash Balance", "Configure");
 	mmgr->addMenuActionMapping("Cash Balance", "Show Status");
+	mmgr->addMenuActionMapping("Reports", "General");
+	mmgr->addMenuActionMapping("Reports", "Sales");
+	mmgr->addMenuActionMapping("Reports", "Stocks");
 
 	mmgr->disableAll();
 
@@ -196,6 +211,19 @@ void ESMainWindow::slotShowStatus()
 	ESCashBalanceStatus* cashStatus = new ESCashBalanceStatus(this);
 	this->setCentralWidget(cashStatus);
 	cashStatus->show();
+}
+
+void ESMainWindow::slotGeneralReports()
+{
+
+}
+void ESMainWindow::slotSalesReports()
+{
+
+}
+void ESMainWindow::slotStocksReports()
+{
+
 }
 
 void ESMainWindow::slotLogin()

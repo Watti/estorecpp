@@ -121,6 +121,9 @@
     <property name="title">
      <string>Reports</string>
     </property>
+    <addaction name="actionGeneral"/>
+    <addaction name="actionSales"/>
+    <addaction name="actionStocks"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -200,6 +203,21 @@
   <action name="actionShowStatus">
    <property name="text">
     <string>Show Status</string>
+   </property>
+  </action>
+  <action name="actionGeneral">
+   <property name="text">
+    <string>General</string>
+   </property>
+  </action>
+  <action name="actionSales">
+   <property name="text">
+    <string>Sales</string>
+   </property>
+  </action>
+  <action name="actionStocks">
+   <property name="text">
+    <string>Stocks</string>
    </property>
   </action>
  </widget>
