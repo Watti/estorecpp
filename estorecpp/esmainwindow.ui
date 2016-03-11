@@ -121,6 +121,9 @@
     <property name="title">
      <string>Reports</string>
     </property>
+    <addaction name="actionGeneral"/>
+    <addaction name="actionSales"/>
+    <addaction name="actionStocks"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -133,11 +136,19 @@
     </property>
     <addaction name="actionManageOrderItems"/>
    </widget>
+   <widget class="QMenu" name="menuCashBalance">
+    <property name="title">
+     <string>Cash Balance</string>
+    </property>
+    <addaction name="actionConfigure"/>
+    <addaction name="actionShowStatus"/>
+   </widget>
    <addaction name="menuStock"/>
    <addaction name="menuItems"/>
    <addaction name="menuOrders"/>
    <addaction name="menuBilling"/>
    <addaction name="menuReports"/>
+   <addaction name="menuCashBalance"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
@@ -182,6 +193,31 @@
   <action name="actionManageOrderItems">
    <property name="text">
     <string>Manage Order Items</string>
+   </property>
+  </action>
+  <action name="actionConfigure">
+   <property name="text">
+    <string>Configure</string>
+   </property>
+  </action>
+  <action name="actionShowStatus">
+   <property name="text">
+    <string>Show Status</string>
+   </property>
+  </action>
+  <action name="actionGeneral">
+   <property name="text">
+    <string>General</string>
+   </property>
+  </action>
+  <action name="actionSales">
+   <property name="text">
+    <string>Sales</string>
+   </property>
+  </action>
+  <action name="actionStocks">
+   <property name="text">
+    <string>Stocks</string>
    </property>
   </action>
  </widget>

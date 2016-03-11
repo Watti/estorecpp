@@ -22,7 +22,18 @@ public slots:
 	void slotManageOrderItems();
 	void slotAddBill();
 	void slotCurrentBills();
+	void slotConfigure();
+	void slotShowStatus();
+	void slotGeneralReports();
+	void slotSalesReports();
+	void slotStocksReports();
 	void slotLogin();
+	void slotProfile();
+	void slotLogout();
+
+	void checkForPendingBills();
+
+	void slotManageUsers();
 
 protected:
 	void closeEvent(QCloseEvent *event);
@@ -32,6 +43,7 @@ private:
 	QAction* m_actionLogin;
 	QAction* m_actionLogout;
 	QAction* m_actionProfile;
+	QAction* m_actionManageUsers;
 };
 
 #endif // ESMAINWINDOW_H

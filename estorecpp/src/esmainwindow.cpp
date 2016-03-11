@@ -7,12 +7,16 @@
 #include "esmanageorderitems.h"
 #include "esaddbill.h"
 #include "escurrentbills.h"
+#include "escashbalanceconfigure.h"
+#include "escashbalancestatus.h"
+#include "esmanageusers.h"
 #include "utility/esmenumanager.h"
 #include "utility/session.h"
 #include <QMessageBox>
+#include "utility/utility.h"
 
 ESMainWindow::ESMainWindow(QWidget *parent)
-	: QMainWindow(parent)
+: QMainWindow(parent)
 {
 	ui.setupUi(this);
 
@@ -22,9 +26,11 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	m_actionLogin = new QAction("Login", menuLogin);
 	menuLogin->addAction(m_actionLogin);
 	m_actionProfile = new QAction("Profile", menuLogin);
-	//menuLogin->addAction(m_actionProfile);
+	menuLogin->addAction(m_actionProfile);
 	m_actionLogout = new QAction("Logout", menuLogin);
-	//menuLogin->addAction(m_actionLogout);
+	menuLogin->addAction(m_actionLogout);
+	m_actionManageUsers = new QAction("Manage Users", menuLogin);
+	menuLogin->addAction(m_actionManageUsers);
 
 	rightMenubar->addMenu(menuLogin);
 	ui.menuBar->setCornerWidget(rightMenubar);
@@ -37,21 +43,36 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	QObject::connect(ui.actionManageOrderItems, SIGNAL(triggered()), this, SLOT(slotManageOrderItems()));
 	QObject::connect(ui.actionAddBill, SIGNAL(triggered()), this, SLOT(slotAddBill()));
 	QObject::connect(ui.actionCurrentBills, SIGNAL(triggered()), this, SLOT(slotCurrentBills()));
+	QObject::connect(ui.actionConfigure, SIGNAL(triggered()), this, SLOT(slotConfigure()));
+	QObject::connect(ui.actionShowStatus, SIGNAL(triggered()), this, SLOT(slotShowStatus()));
+	QObject::connect(ui.actionGeneral, SIGNAL(triggered()), this, SLOT(slotGeneralReports()));
+	QObject::connect(ui.actionSales, SIGNAL(triggered()), this, SLOT(slotSalesReports()));
+	QObject::connect(ui.actionStocks, SIGNAL(triggered()), this, SLOT(slotStocksReports()));
 	QObject::connect(m_actionLogin, SIGNAL(triggered()), this, SLOT(slotLogin()));
+	QObject::connect(m_actionProfile, SIGNAL(triggered()), this, SLOT(slotProfile()));
+	QObject::connect(m_actionLogout, SIGNAL(triggered()), this, SLOT(slotLogout()));
+	QObject::connect(m_actionManageUsers, SIGNAL(triggered()), this, SLOT(slotManageUsers()));
 
 	// initialize menu manager
 	ES::MenuManager* mmgr = ES::MenuManager::instance();
+	mmgr->addMenu("User", menuLogin);
 	mmgr->addMenu("Stock", ui.menuStock);
 	mmgr->addMenu("Items", ui.menuItems);
 	mmgr->addMenu("Orders", ui.menuOrders);
 	mmgr->addMenu("Billing", ui.menuBilling);
 	mmgr->addMenu("Reports", ui.menuReports);
+	mmgr->addMenu("Cash Balance", ui.menuCashBalance);
 	mmgr->addMenu("Help", ui.menuHelp);
+
+	mmgr->addAction("Login", m_actionLogin);
+	mmgr->addAction("Profile", m_actionProfile);
+	mmgr->addAction("Logout", m_actionLogout);
+	mmgr->addAction("Manage Users", m_actionManageUsers);
 
 	mmgr->addAction("Manage Stock Items", ui.actionManageStockItems);
 	ui.actionManageStockItems->setIcon(QIcon("icons/manage_store.png"));
-	
-	ui.mainToolBar->setIconSize(QSize(32, 32));
+
+	ui.mainToolBar->setIconSize(QSize(48, 48));
 	//ui.mainToolBar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 
 	QLabel* logoLabel = new QLabel(ui.mainToolBar);
@@ -62,7 +83,7 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	ui.mainToolBar->addAction(ui.actionManageStockItems);
 	mmgr->addSeparator(ui.mainToolBar->addSeparator());
 
-	ui.mainToolBar->setMinimumSize(48, 48);
+	ui.mainToolBar->setMinimumSize(60, 60);
 
 	mmgr->addAction("Manage Items", ui.actionManageItems);
 	ui.actionManageItems->setIcon(QIcon("icons/manage_items.png"));
@@ -70,9 +91,9 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	mmgr->addAction("Manage Item Categories", ui.actionManageItemCategories);
 	ui.actionManageItemCategories->setIcon(QIcon("icons/manage_item_categories.png"));
 	ui.mainToolBar->addAction(ui.actionManageItemCategories);
-	//mmgr->addAction("Manage Item Prices", ui.actionManageItemPrices);
-	//ui.actionManageItemPrices->setIcon(QIcon("icons/manage_item_prices.png"));
-	//ui.mainToolBar->addAction(ui.actionManageItemPrices);
+	mmgr->addAction("Manage Item Prices", ui.actionManageItemPrices);
+	ui.actionManageItemPrices->setIcon(QIcon("icons/manage_item_prices.png"));
+	ui.mainToolBar->addAction(ui.actionManageItemPrices);
 	mmgr->addSeparator(ui.mainToolBar->addSeparator());
 
 	mmgr->addAction("Manage Order Items", ui.actionManageOrderItems);
@@ -88,6 +109,23 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	ui.mainToolBar->addAction(ui.actionCurrentBills);
 	mmgr->addSeparator(ui.mainToolBar->addSeparator());
 
+	mmgr->addAction("Configure", ui.actionConfigure);
+	ui.actionConfigure->setIcon(QIcon("icons/money.png"));
+	ui.mainToolBar->addAction(ui.actionConfigure);
+	mmgr->addAction("Show Status", ui.actionShowStatus);
+	ui.actionShowStatus->setIcon(QIcon("icons/money_status.png"));
+	ui.mainToolBar->addAction(ui.actionShowStatus);
+	mmgr->addSeparator(ui.mainToolBar->addSeparator());
+	mmgr->addAction("General", ui.actionGeneral);
+	ui.actionGeneral->setIcon(QIcon("icons/reports.png"));
+	ui.mainToolBar->addAction(ui.actionGeneral);
+	mmgr->addAction("Sales", ui.actionSales);
+	ui.actionSales->setIcon(QIcon("icons/sales_report.png"));
+	ui.mainToolBar->addAction(ui.actionSales);
+	mmgr->addAction("Stocks", ui.actionStocks);
+	ui.actionStocks->setIcon(QIcon("icons/stock_report.png"));
+	ui.mainToolBar->addAction(ui.actionStocks);
+
 	mmgr->addMenuActionMapping("Stock", "Manage Stock Items");
 	mmgr->addMenuActionMapping("Items", "Manage Items");
 	mmgr->addMenuActionMapping("Items", "Manage Item Categories");
@@ -95,6 +133,11 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	mmgr->addMenuActionMapping("Orders", "Manage Order Items");
 	mmgr->addMenuActionMapping("Billing", "Add Bill");
 	mmgr->addMenuActionMapping("Billing", "Current Bills");
+	mmgr->addMenuActionMapping("Cash Balance", "Configure");
+	mmgr->addMenuActionMapping("Cash Balance", "Show Status");
+	mmgr->addMenuActionMapping("Reports", "General");
+	mmgr->addMenuActionMapping("Reports", "Sales");
+	mmgr->addMenuActionMapping("Reports", "Stocks");
 
 	mmgr->disableAll();
 
@@ -156,11 +199,56 @@ void ESMainWindow::slotCurrentBills()
 	currentBills->show();
 }
 
+void ESMainWindow::slotConfigure()
+{
+	ESCashBalanceConfigure* cashConfigure = new ESCashBalanceConfigure(this);
+	this->setCentralWidget(cashConfigure);
+	cashConfigure->show();
+}
+
+void ESMainWindow::slotShowStatus()
+{
+	ESCashBalanceStatus* cashStatus = new ESCashBalanceStatus(this);
+	this->setCentralWidget(cashStatus);
+	cashStatus->show();
+}
+
+void ESMainWindow::slotGeneralReports()
+{
+
+}
+void ESMainWindow::slotSalesReports()
+{
+
+}
+void ESMainWindow::slotStocksReports()
+{
+
+}
+
 void ESMainWindow::slotLogin()
 {
 	ESLoginWidget* loginWidget = new ESLoginWidget(this);
 	this->setCentralWidget(loginWidget);
 	loginWidget->show();
+}
+
+void ESMainWindow::slotProfile()
+{
+
+}
+
+void ESMainWindow::slotLogout()
+{
+	//check for pending bills
+	checkForPendingBills();
+}
+
+void ESMainWindow::slotManageUsers()
+{
+	ESManageUsers* manageUsers = new ESManageUsers(this);
+	this->setCentralWidget(manageUsers);
+	manageUsers->show();
 }
 
 void ESMainWindow::reloadMenus()
@@ -170,19 +258,30 @@ void ESMainWindow::reloadMenus()
 
 void ESMainWindow::closeEvent(QCloseEvent *event)
 {
-	if (ES::Session::getInstance()->isBillStarted())
-	{
-		int choice = QMessageBox::question(0, "Warning", "Current Bill is not finished. Do you want to discard it and quit?", 
-			QMessageBox::Yes, QMessageBox::No);
-
-		if (choice == QMessageBox::No)
-		{
-			event->ignore();
-			return;
-		}
-		QSqlQuery q("DELETE FROM bill WHERE bill_id = " + ES::Session::getInstance()->getBillId());
-	}
+	//check for pending bills
+	checkForPendingBills();
 
 	event->accept();
+}
+
+void ESMainWindow::checkForPendingBills()
+{
+	if (ES::Session::getInstance()->isBillStarted())
+	{
+		int choice = QMessageBox::question(0, "Warning", "Current Bill is not finished. Do you want to discard it and quit?",
+			QMessageBox::Yes, QMessageBox::No);
+		if (ES::Utility::verifyUsingMessageBox(this, "Warning", "Current Bill is not finished.Do you want to discard it and quit ? "))
+		{
+			QSqlQuery q("DELETE FROM bill WHERE bill_id = " + ES::Session::getInstance()->getBillId());
+		}
+	}
+	QSqlQuery allBillQuery("SELECT * FROM bill WHERE deleted = 0 AND status = 2");
+	while (allBillQuery.next())
+	{
+		if (ES::Utility::verifyUsingMessageBox(this, "EStore", "Bill id = " + allBillQuery.value("bill_id").toString() + " is not completed. Do you want to delete it? "))
+		{
+
+		}
+	}
 }
 
