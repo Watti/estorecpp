@@ -10,6 +10,7 @@
 #include "escashbalanceconfigure.h"
 #include "escashbalancestatus.h"
 #include "esmanageusers.h"
+#include "essalesreport.h"
 #include "utility/esmenumanager.h"
 #include "utility/session.h"
 #include <QMessageBox>
@@ -219,7 +220,9 @@ void ESMainWindow::slotGeneralReports()
 }
 void ESMainWindow::slotSalesReports()
 {
-
+	ESSalesReport* salesReport = new ESSalesReport(this);
+	this->setCentralWidget(salesReport);
+	salesReport->show();
 }
 void ESMainWindow::slotStocksReports()
 {
