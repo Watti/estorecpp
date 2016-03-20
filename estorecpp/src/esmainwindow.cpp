@@ -283,7 +283,27 @@ void ESMainWindow::checkForPendingBills()
 	{
 		if (ES::Utility::verifyUsingMessageBox(this, "EStore", "Bill id = " + allBillQuery.value("bill_id").toString() + " is not completed. Do you want to delete it? "))
 		{
+			QString billId = allBillQuery.value("bill_id").toString();
+			QString salesQString("SELECT * FROM sale WHERE bill_id = " + billId);
 
+
+			QSqlQuery saleQuery(salesQString);
+			while (saleQuery.next())
+			{
+				double quantity = saleQuery.value("quantity").toDouble();
+				QString stockId = saleQuery.value("stock_id").toString();
+
+				QSqlQuery currentStockQuery("SELECT qty FROM stock WHERE stock_id = " + stockId);
+				while (currentStockQuery.next())
+				{
+					double currentQty = currentStockQuery.value("qty").toDouble();
+					double newQtyInDouble = currentQty + quantity;
+					QString newQty = QString::number(newQtyInDouble);
+					QSqlQuery stockUpdate("UPDATE stock SET qty = " + newQty + " WHERE stock_id = " + stockId);
+				}
+
+			}
+			QSqlQuery billUpdate("DELETE FROM bill WHERE bill_id = " + billId);
 		}
 	}
 }
