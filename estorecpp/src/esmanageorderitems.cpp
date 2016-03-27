@@ -165,7 +165,7 @@ void ESManageOrderItems::slotUpdate(QString orderId)
 		QString price = queryOrder.value("unit_price").toString();
 		QString itemId = queryOrder.value("item_id").toString();
 		addOrder->getUI().unitPrice->setText(price);
-		addOrder->getUI().description->setText(queryOrder.value("description").toString());
+		addOrder->getUI().itemDescription->setText(queryOrder.value("description").toString());
 		addOrder->getUI().qty->setText(queryOrder.value("quantity").toString());
 
 		QSqlQuery queryItem("SELECT * FROM item WHERE item_id = " + itemId);

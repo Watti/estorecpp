@@ -98,7 +98,7 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	mmgr->addSeparator(ui.mainToolBar->addSeparator());
 
 	mmgr->addAction("Manage Order Items", ui.actionManageOrderItems);
-	ui.actionManageOrderItems->setIcon(QIcon("icons/order_item.png"));
+	ui.actionManageOrderItems->setIcon(QIcon("icons/truck.png"));
 	ui.mainToolBar->addAction(ui.actionManageOrderItems);
 	mmgr->addSeparator(ui.mainToolBar->addSeparator());
 

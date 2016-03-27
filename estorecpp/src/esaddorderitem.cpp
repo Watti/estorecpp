@@ -5,13 +5,69 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include "utility/session.h"
+#include "utility/utility.h"
 
 AddOrderItem::AddOrderItem(QWidget *parent/* = 0*/)
 {
 	m_update = false;
 	ui.setupUi(this);
 
+	QStringList headerLabels;
+	headerLabels.append("Item ID");
+	headerLabels.append("Item Code");
+	headerLabels.append("Category");
+	headerLabels.append("Min. Qty");
+	headerLabels.append("Unit");
+
+	ui.itemTableWidget->setHorizontalHeaderLabels(headerLabels);
+	ui.itemTableWidget->horizontalHeader()->setStretchLastSection(true);
+	ui.itemTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+	ui.itemTableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	ui.itemTableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
+	ui.itemTableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+	ui.itemTableWidget->hideColumn(0);
+
+	QStringList headerLabels2;
+	headerLabels2.append("Supplier ID");
+	headerLabels2.append("Supplier Code");
+	headerLabels2.append("Supplier Name");
+
+	ui.supplierTableWidget->setHorizontalHeaderLabels(headerLabels2);
+	ui.supplierTableWidget->horizontalHeader()->setStretchLastSection(true);
+	ui.supplierTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+	ui.supplierTableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	ui.supplierTableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
+	ui.supplierTableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+	ui.supplierTableWidget->hideColumn(0);
+
 	QObject::connect(ui.addOrderItemButton, SIGNAL(clicked()), this, SLOT(slotAddOrderItem()));
+	QObject::connect(ui.searchTextBox, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
+	QObject::connect(ui.categoryComboBox, SIGNAL(activated(QString)), this, SLOT(slotSearch()));
+
+	if (!ES::DbConnection::instance()->open())
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Critical);
+		mbox.setText(QString("Cannot connect to the database : AddItem"));
+		mbox.exec();
+	}
+	else
+	{
+		QSqlQuery queryCategory("SELECT * FROM item_category");
+		QString catCode = DEFAULT_DB_COMBO_VALUE;
+		int catId = -1;
+
+		ui.categoryComboBox->addItem(catCode, catId);
+
+		while (queryCategory.next())
+		{
+			catId = queryCategory.value(0).toInt();
+			ui.categoryComboBox->addItem(queryCategory.value(1).toString() + " / " + queryCategory.value("itemcategory_name").toString(), catId);
+		}
+
+		slotSearch();
+	}
+	
 }
 
 AddOrderItem::~AddOrderItem()
@@ -47,7 +103,7 @@ void AddOrderItem::slotAddOrderItem()
 	userIdStr.setNum(userId);
 	QString price = ui.unitPrice->text();
 	QString qty = ui.qty->text();
-	QString description = ui.description->toPlainText();
+	QString description = ui.itemDescription->toPlainText();
 
 	QString q;
 	if (m_update)
@@ -86,4 +142,80 @@ QString AddOrderItem::getOrderId() const
 void AddOrderItem::setOrderId(QString val)
 {
 	m_orderId = val;
+}
+
+void AddOrderItem::slotSearch()
+{
+	QString searchText = ui.searchTextBox->text();
+	int categoryId = ui.categoryComboBox->currentData().toInt();
+
+	while (ui.itemTableWidget->rowCount() > 0)
+	{
+		ui.itemTableWidget->removeRow(0);
+	}
+
+	QString searchQuery = "SELECT * FROM item ";
+	bool categorySelected = false;
+	if (categoryId != -1)
+	{
+		searchQuery.append(" WHERE deleted =0 AND itemcategory_id = ");
+		QString catId;
+		catId.setNum(categoryId);
+		searchQuery.append(catId);
+		categorySelected = true;
+	}
+
+	if (!searchText.isEmpty())
+	{
+		if (categorySelected)
+		{
+			searchQuery.append(" AND ");
+		}
+		else
+		{
+			searchQuery.append(" WHERE deleted = 0 AND ");
+		}
+		searchQuery.append(" (item_code LIKE '%" + searchText + "%' OR item_name LIKE '%" + searchText + "%')");
+	}
+	else
+	{
+		if (!categorySelected)
+		{
+			searchQuery.append(" WHERE deleted = 0");
+		}
+	}
+	ui.itemTableWidget->setSortingEnabled(false);
+	QSqlQuery queryItems(searchQuery);
+	displayItems(queryItems);
+	ui.itemTableWidget->setSortingEnabled(true);
+}
+
+void AddOrderItem::displayItems(QSqlQuery& queryItems)
+{
+	int row = 0;
+	while (queryItems.next())
+	{
+		row = ui.itemTableWidget->rowCount();
+		ui.itemTableWidget->insertRow(row);
+
+		QSqlQuery queryCategories("SELECT * FROM item_category WHERE itemcategory_id = " + queryItems.value(1).toString());
+		if (queryCategories.next())
+		{
+			ui.itemTableWidget->setItem(row, 2, new QTableWidgetItem(queryCategories.value(2).toString()));
+		}
+
+		ui.itemTableWidget->setItem(row, 0, new QTableWidgetItem(queryItems.value(0).toString()));
+		ui.itemTableWidget->setItem(row, 1, new QTableWidgetItem(queryItems.value(2).toString()));
+
+		QSqlQuery queryMinQty("SELECT min_qty FROM stock WHERE item_id = " + queryItems.value(0).toString());
+		if (queryMinQty.next())
+		{
+			ui.itemTableWidget->setItem(row, 3, new QTableWidgetItem(queryMinQty.value(0).toString()));
+		}
+		else
+		{
+			ui.itemTableWidget->setItem(row, 3, new QTableWidgetItem("N/A"));
+		}
+		ui.itemTableWidget->setItem(row, 4, new QTableWidgetItem(queryItems.value(5).toString()));
+	}
 }

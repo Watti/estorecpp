@@ -2,6 +2,7 @@
 #define ES_ADD_ORDER_ITEM_H
 #include "ui_addorderitemwidget.h"
 #include <QStandardItemModel>
+#include <QtSql/QSqlQuery>
 #include <QtGui>
 
 class AddOrderItem : public QWidget
@@ -19,8 +20,11 @@ public:
 	
 	public slots:
 	void slotAddOrderItem();
+	void slotSearch();
 
 private:
+	void displayItems(QSqlQuery& queryItems);
+	
 	Ui::AddOrderItemWidget ui;
 	bool m_update;
 	QString m_orderId;

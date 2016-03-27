@@ -13,6 +13,8 @@ ESSalesReport::ESSalesReport(QWidget *parent /* = 0 */)
 	model->setItem(1, 0, new QStandardItem(QString(" Bananas ")));
 	model->setItem(0, 1, new QStandardItem(QString(" 100 ")));
 	model->setItem(1, 1, new QStandardItem(QString(" 60 ")));
+	model->setItem(0, 2, new QStandardItem(QString(" 140 ")));
+	model->setItem(1, 2, new QStandardItem(QString(" 60 ")));
 	m_gobChartsView->setModel(model);
 
 	QItemSelectionModel *selectionModel = new QItemSelectionModel(model);
