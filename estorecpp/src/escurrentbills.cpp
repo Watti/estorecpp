@@ -12,6 +12,9 @@ ESCurrentBills::ESCurrentBills(QWidget *parent)
 	m_proceedButtonSignalMapper = new QSignalMapper(this);
 	QObject::connect(m_proceedButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotProceed(QString)));
 
+	ui.startDate->setDisplayFormat("yyyy-MM-dd");
+	ui.endDate->setDisplayFormat("yyyy-MM-dd");
+
 	QStringList headerLabels;
 	headerLabels.append("Bill ID");
 	headerLabels.append("Date");
@@ -56,6 +59,7 @@ ESCurrentBills::ESCurrentBills(QWidget *parent)
 
 		ui.startDate->setDate(QDate::currentDate().addMonths(-1));
 		ui.endDate->setDate(QDate::currentDate());
+
 	}
 
 	slotSearch();
@@ -78,6 +82,7 @@ void ESCurrentBills::slotSearch()
 
 	QDateTime startDate = QDateTime::fromString(ui.startDate->text(), Qt::ISODate);
 	QDateTime endDate = QDateTime::fromString(ui.endDate->text(), Qt::ISODate);
+	endDate.setTime(QTime(23,59, 59));
 
 	int row = 0;
 	QSqlQuery allBillQuery("SELECT * FROM bill WHERE deleted = 0");

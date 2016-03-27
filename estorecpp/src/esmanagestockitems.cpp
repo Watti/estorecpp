@@ -362,7 +362,17 @@ void ESManageStockItems::displayStockTableRow(StockTableRow rowContent, QString 
 	ui.tableWidget->insertRow(row);
 	for (auto col : rowContent)
 	{
-		ui.tableWidget->setItem(row, i++, new QTableWidgetItem(col));
+		QTableWidgetItem* tableItem = NULL;
+		if (!inStock)
+		{
+			tableItem = new QTableWidgetItem(col);
+			tableItem->setBackgroundColor(QColor(245, 208, 169));
+		}
+		else
+		{
+			tableItem = new QTableWidgetItem(col);
+		}
+		ui.tableWidget->setItem(row, i++, tableItem);
 	}
 	if (!inStock)
 	{
