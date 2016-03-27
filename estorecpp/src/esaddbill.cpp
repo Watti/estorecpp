@@ -146,10 +146,16 @@ void ESAddBill::slotReturnPressed(QString saleId, int row)
 	{
 		if (le->isReadOnly())
 		{
-			le->setReadOnly(false);
+			QPalette palette;
+			palette.setColor(QPalette::Base, QColor(88, 88, 250));
+			palette.setColor(QPalette::Text, Qt::white);
+			le->setPalette(palette);
+
+			le->setReadOnly(false);	
 		}
 		else
 		{
+			le->setPalette(parentWidget()->palette());
 			le->setReadOnly(true);
 			float quantity = le->text().toFloat();
 
