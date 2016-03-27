@@ -5,6 +5,7 @@
 #include "esmanageitems.h"
 #include "esitemprices.h"
 #include "esmanageorderitems.h"
+#include "esmanagesuppliers.h"
 #include "esaddbill.h"
 #include "escurrentbills.h"
 #include "escashbalanceconfigure.h"
@@ -42,6 +43,7 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	QObject::connect(ui.actionManageItemCategories, SIGNAL(triggered()), this, SLOT(slotManageItemCategories()));
 	QObject::connect(ui.actionManageItemPrices, SIGNAL(triggered()), this, SLOT(slotManageItemPrices()));
 	QObject::connect(ui.actionManageOrderItems, SIGNAL(triggered()), this, SLOT(slotManageOrderItems()));
+	QObject::connect(ui.actionManageSuppliers, SIGNAL(triggered()), this, SLOT(slotManageSuppliers()));
 	QObject::connect(ui.actionAddBill, SIGNAL(triggered()), this, SLOT(slotAddBill()));
 	QObject::connect(ui.actionCurrentBills, SIGNAL(triggered()), this, SLOT(slotCurrentBills()));
 	QObject::connect(ui.actionConfigure, SIGNAL(triggered()), this, SLOT(slotConfigure()));
@@ -100,6 +102,9 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	mmgr->addAction("Manage Order Items", ui.actionManageOrderItems);
 	ui.actionManageOrderItems->setIcon(QIcon("icons/truck.png"));
 	ui.mainToolBar->addAction(ui.actionManageOrderItems);
+	mmgr->addAction("Manage Suppliers", ui.actionManageSuppliers);
+	ui.actionManageSuppliers->setIcon(QIcon("icons/supplier.png"));
+	ui.mainToolBar->addAction(ui.actionManageSuppliers);
 	mmgr->addSeparator(ui.mainToolBar->addSeparator());
 
 	mmgr->addAction("Add Bill", ui.actionAddBill);
@@ -132,6 +137,7 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	mmgr->addMenuActionMapping("Items", "Manage Item Categories");
 	//mmgr->addMenuActionMapping("Items", "Manage Item Prices");
 	mmgr->addMenuActionMapping("Orders", "Manage Order Items");
+	mmgr->addMenuActionMapping("Orders", "Manage Suppliers");
 	mmgr->addMenuActionMapping("Billing", "Add Bill");
 	mmgr->addMenuActionMapping("Billing", "Current Bills");
 	mmgr->addMenuActionMapping("Cash Balance", "Configure");
@@ -184,6 +190,13 @@ void ESMainWindow::slotManageOrderItems()
 	ESManageOrderItems* orderItems = new ESManageOrderItems(this);
 	this->setCentralWidget(orderItems);
 	orderItems->show();
+}
+
+void ESMainWindow::slotManageSuppliers()
+{
+	ESManageSuppliers* manageSuppliers = new ESManageSuppliers(this);
+	this->setCentralWidget(manageSuppliers);
+	manageSuppliers->show();
 }
 
 void ESMainWindow::slotAddBill()

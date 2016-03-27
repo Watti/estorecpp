@@ -135,6 +135,7 @@
      <string>Orders</string>
     </property>
     <addaction name="actionManageOrderItems"/>
+    <addaction name="actionManageSuppliers"/>
    </widget>
    <widget class="QMenu" name="menuCashBalance">
     <property name="title">
@@ -218,6 +219,11 @@
   <action name="actionStocks">
    <property name="text">
     <string>Stocks</string>
+   </property>
+  </action>
+  <action name="actionManageSuppliers">
+   <property name="text">
+    <string>Manage Suppliers</string>
    </property>
   </action>
  </widget>
