@@ -15,6 +15,7 @@ AddOrderItem::AddOrderItem(QWidget *parent/* = 0*/)
 	QStringList headerLabels;
 	headerLabels.append("Item ID");
 	headerLabels.append("Item Code");
+	headerLabels.append("Item Name");
 	headerLabels.append("Category");
 	headerLabels.append("Min. Qty");
 	headerLabels.append("Unit");
@@ -43,6 +44,9 @@ AddOrderItem::AddOrderItem(QWidget *parent/* = 0*/)
 	QObject::connect(ui.addOrderItemButton, SIGNAL(clicked()), this, SLOT(slotAddOrderItem()));
 	QObject::connect(ui.searchTextBox, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
 	QObject::connect(ui.categoryComboBox, SIGNAL(activated(QString)), this, SLOT(slotSearch()));
+
+	QObject::connect(ui.itemTableWidget, SIGNAL(cellClicked(int, int)), this, SLOT(slotItemSelected(int, int)));
+	QObject::connect(ui.supplierTableWidget, SIGNAL(cellClicked(int, int)), this, SLOT(slotSupplierSelected(int, int)));
 
 	if (!ES::DbConnection::instance()->open())
 	{
@@ -146,6 +150,9 @@ void AddOrderItem::setOrderId(QString val)
 
 void AddOrderItem::slotSearch()
 {
+	ui.itemCode->clear();
+	ui.itemDescription->clear();
+
 	QString searchText = ui.searchTextBox->text();
 	int categoryId = ui.categoryComboBox->currentData().toInt();
 
@@ -219,21 +226,51 @@ void AddOrderItem::displayItems(QSqlQuery& queryItems)
 		QSqlQuery queryCategories("SELECT * FROM item_category WHERE itemcategory_id = " + queryItems.value(1).toString());
 		if (queryCategories.next())
 		{
-			ui.itemTableWidget->setItem(row, 2, new QTableWidgetItem(queryCategories.value(2).toString()));
+			ui.itemTableWidget->setItem(row, 3, new QTableWidgetItem(queryCategories.value(2).toString()));
 		}
 
 		ui.itemTableWidget->setItem(row, 0, new QTableWidgetItem(queryItems.value(0).toString()));
 		ui.itemTableWidget->setItem(row, 1, new QTableWidgetItem(queryItems.value(2).toString()));
+		ui.itemTableWidget->setItem(row, 2, new QTableWidgetItem(queryItems.value(3).toString()));
 
 		QSqlQuery queryMinQty("SELECT min_qty FROM stock WHERE item_id = " + queryItems.value(0).toString());
 		if (queryMinQty.next())
 		{
-			ui.itemTableWidget->setItem(row, 3, new QTableWidgetItem(queryMinQty.value(0).toString()));
+			ui.itemTableWidget->setItem(row, 4, new QTableWidgetItem(queryMinQty.value(0).toString()));
 		}
 		else
 		{
-			ui.itemTableWidget->setItem(row, 3, new QTableWidgetItem("N/A"));
+			ui.itemTableWidget->setItem(row, 4, new QTableWidgetItem("N/A"));
 		}
-		ui.itemTableWidget->setItem(row, 4, new QTableWidgetItem(queryItems.value(5).toString()));
+		ui.itemTableWidget->setItem(row, 5, new QTableWidgetItem(queryItems.value(5).toString()));
+	}
+}
+
+void AddOrderItem::slotItemSelected(int row, int col)
+{
+	QTableWidgetItem* idCell = ui.itemTableWidget->takeItem(row, 0);
+
+	QString query("SELECT * FROM item WHERE deleted = 0 AND item_id = ");
+	query.append(idCell->text());
+	QSqlQuery itemQry(query);
+	if (itemQry.next())
+	{
+		ui.itemCode->setText(itemQry.value("item_code").toString());
+		ui.itemDescription->setText(itemQry.value("description").toString());
+	}
+}
+
+void AddOrderItem::slotSupplierSelected(int row, int col)
+{
+	QTableWidgetItem* idCell = ui.supplierTableWidget->takeItem(row, 0);
+
+	QString query("SELECT * FROM supplier WHERE deleted = 0 AND supplier_id = ");
+	query.append(idCell->text());
+	QSqlQuery supplierQry(query);
+	if (supplierQry.next())
+	{
+		ui.supplierCode->setText(supplierQry.value("supplier_code").toString());
+		ui.supplierName->setText(supplierQry.value("supplier_name").toString());
+		ui.unitPrice->setText("N/A");
 	}
 }

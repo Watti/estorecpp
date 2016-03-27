@@ -21,6 +21,8 @@ public:
 	public slots:
 	void slotAddOrderItem();
 	void slotSearch();
+	void slotItemSelected(int row, int col);
+	void slotSupplierSelected(int row, int col);
 
 private:
 	void displayItems(QSqlQuery& queryItems);
