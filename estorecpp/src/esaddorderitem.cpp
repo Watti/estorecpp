@@ -188,6 +188,24 @@ void AddOrderItem::slotSearch()
 	QSqlQuery queryItems(searchQuery);
 	displayItems(queryItems);
 	ui.itemTableWidget->setSortingEnabled(true);
+
+	while (ui.supplierTableWidget->rowCount() > 0)
+	{
+		ui.supplierTableWidget->removeRow(0);
+	}
+
+	QSqlQuery querySuppliers("SELECT * FROM supplier WHERE deleted = 0");
+	int row = 0;
+	while (querySuppliers.next())
+	{
+		row = ui.supplierTableWidget->rowCount();
+		ui.supplierTableWidget->insertRow(row);
+
+		ui.supplierTableWidget->setItem(row, 0, new QTableWidgetItem(querySuppliers.value(0).toString()));
+		ui.supplierTableWidget->setItem(row, 1, new QTableWidgetItem(querySuppliers.value(1).toString()));
+		ui.supplierTableWidget->setItem(row, 2, new QTableWidgetItem(querySuppliers.value(2).toString()));
+	}
+
 }
 
 void AddOrderItem::displayItems(QSqlQuery& queryItems)
