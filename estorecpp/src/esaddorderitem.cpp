@@ -264,7 +264,7 @@ void AddOrderItem::displayItems(QSqlQuery& queryItems)
 
 void AddOrderItem::slotItemSelected(int row, int col)
 {
-	QTableWidgetItem* idCell = ui.itemTableWidget->takeItem(row, 0);
+	QTableWidgetItem* idCell = ui.itemTableWidget->item(row, 0);
 	if (!idCell)
 		return;
 
@@ -280,7 +280,7 @@ void AddOrderItem::slotItemSelected(int row, int col)
 
 void AddOrderItem::slotSupplierSelected(int row, int col)
 {
-	QTableWidgetItem* idCell = ui.supplierTableWidget->takeItem(row, 0);
+	QTableWidgetItem* idCell = ui.supplierTableWidget->item(row, 0);
 	if (!idCell)
 		return;
 
