@@ -671,7 +671,7 @@
         </font>
        </property>
        <property name="text">
-        <string> Add Order Item </string>
+        <string> New Purchase Order </string>
        </property>
       </widget>
      </item>
