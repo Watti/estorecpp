@@ -41,7 +41,7 @@ AddOrderItem::AddOrderItem(QWidget *parent/* = 0*/)
 	ui.supplierTableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
 	ui.supplierTableWidget->hideColumn(0);
 
-	QObject::connect(ui.addOrderItemButton, SIGNAL(clicked()), this, SLOT(slotAddOrderItem()));
+	QObject::connect(ui.addOrderItemButton, SIGNAL(clicked()), this, SLOT(slotPlaceNewOrder()));
 	QObject::connect(ui.searchTextBox, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
 	QObject::connect(ui.categoryComboBox, SIGNAL(activated(QString)), this, SLOT(slotSearch()));
 
@@ -84,7 +84,7 @@ void AddOrderItem::setUpdate(bool update)
 	m_update = update;
 }
 
-void AddOrderItem::slotAddOrderItem()
+void AddOrderItem::slotPlaceNewOrder()
 {
 	QString itemCode = ui.itemCode->text();
 	QString itemId = "-1";
@@ -106,7 +106,23 @@ void AddOrderItem::slotAddOrderItem()
 	QString userIdStr;
 	userIdStr.setNum(userId);
 	QString price = ui.unitPrice->text();
+	if (price.isNull() || price.isEmpty())
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Critical);
+		mbox.setText(QString("Price is empty"));
+		mbox.exec();
+		return;
+	}
 	QString qty = ui.qty->text();
+	if (qty.isNull() || qty.isEmpty())
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Critical);
+		mbox.setText(QString("Quantity is empty"));
+		mbox.exec();
+		return;
+	}
 	QString description = ui.itemDescription->toPlainText();
 
 	QString q;
@@ -275,6 +291,7 @@ void AddOrderItem::slotSupplierSelected(int row, int col)
 	{
 		ui.supplierCode->setText(supplierQry.value("supplier_code").toString());
 		ui.supplierName->setText(supplierQry.value("supplier_name").toString());
-		ui.unitPrice->setText("N/A");
+		//ui.unitPrice->clear();
+		ui.unitPrice->setText("350");
 	}
 }

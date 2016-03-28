@@ -19,7 +19,7 @@ public:
 	void setOrderId(QString val);
 	
 	public slots:
-	void slotAddOrderItem();
+	void slotPlaceNewOrder();
 	void slotSearch();
 	void slotItemSelected(int row, int col);
 	void slotSupplierSelected(int row, int col);
