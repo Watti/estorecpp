@@ -249,6 +249,8 @@ void AddOrderItem::displayItems(QSqlQuery& queryItems)
 void AddOrderItem::slotItemSelected(int row, int col)
 {
 	QTableWidgetItem* idCell = ui.itemTableWidget->takeItem(row, 0);
+	if (!idCell)
+		return;
 
 	QString query("SELECT * FROM item WHERE deleted = 0 AND item_id = ");
 	query.append(idCell->text());
@@ -263,6 +265,8 @@ void AddOrderItem::slotItemSelected(int row, int col)
 void AddOrderItem::slotSupplierSelected(int row, int col)
 {
 	QTableWidgetItem* idCell = ui.supplierTableWidget->takeItem(row, 0);
+	if (!idCell)
+		return;
 
 	QString query("SELECT * FROM supplier WHERE deleted = 0 AND supplier_id = ");
 	query.append(idCell->text());
