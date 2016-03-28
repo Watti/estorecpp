@@ -6,6 +6,7 @@
 #include <QPushButton>
 #include "utility/session.h"
 #include "utility/utility.h"
+#include "entities/SaleLineEdit.h"
 
 AddOrderItem::AddOrderItem(QWidget *parent/* = 0*/)
 {
@@ -28,6 +29,22 @@ AddOrderItem::AddOrderItem(QWidget *parent/* = 0*/)
 	ui.itemTableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
 	ui.itemTableWidget->hideColumn(0);
 
+	QStringList headerLabels1;
+	headerLabels1.append("Item ID");
+	headerLabels1.append("Item Code");
+	headerLabels1.append("Item Name");
+	headerLabels1.append("Category");
+	headerLabels1.append("Purchasing Price");
+	headerLabels1.append("Qty");
+
+	ui.selectedItemTableWidget->setHorizontalHeaderLabels(headerLabels1);
+	ui.selectedItemTableWidget->horizontalHeader()->setStretchLastSection(true);
+	ui.selectedItemTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+	ui.selectedItemTableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	ui.selectedItemTableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
+	ui.selectedItemTableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+	ui.selectedItemTableWidget->hideColumn(0);
+
 	QStringList headerLabels2;
 	headerLabels2.append("Supplier ID");
 	headerLabels2.append("Supplier Code");
@@ -41,12 +58,15 @@ AddOrderItem::AddOrderItem(QWidget *parent/* = 0*/)
 	ui.supplierTableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
 	ui.supplierTableWidget->hideColumn(0);
 
+	ui.dateEdit->setDisplayFormat("yyyy-MM-dd");
+	ui.dateEdit->setDate(QDate::currentDate());
+
 	QObject::connect(ui.addOrderItemButton, SIGNAL(clicked()), this, SLOT(slotPlaceNewOrder()));
 	QObject::connect(ui.searchTextBox, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
 	QObject::connect(ui.categoryComboBox, SIGNAL(activated(QString)), this, SLOT(slotSearch()));
 
-	QObject::connect(ui.itemTableWidget, SIGNAL(cellClicked(int, int)), this, SLOT(slotItemSelected(int, int)));
 	QObject::connect(ui.supplierTableWidget, SIGNAL(cellClicked(int, int)), this, SLOT(slotSupplierSelected(int, int)));
+	QObject::connect(ui.itemTableWidget, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(slotItemDoubleClicked(int, int)));
 
 	if (!ES::DbConnection::instance()->open())
 	{
@@ -86,55 +106,21 @@ void AddOrderItem::setUpdate(bool update)
 
 void AddOrderItem::slotPlaceNewOrder()
 {
-	QString itemCode = ui.itemCode->text();
-	QString itemId = "-1";
-	QSqlQuery query1("SELECT * FROM item WHERE item_code = '" + itemCode + "'");
-	if (query1.next())
-	{
-		itemId = query1.value(0).toString();
-	}
-	else
-	{
-		QMessageBox mbox;
-		mbox.setIcon(QMessageBox::Warning);
-		mbox.setText(QString("Invalid Item Code : This item does not exist"));
-		mbox.exec();
-		return;
-	}
-
 	int userId = ES::Session::getInstance()->getUser()->getId();
 	QString userIdStr;
 	userIdStr.setNum(userId);
-	QString price = ui.unitPrice->text();
-	if (price.isNull() || price.isEmpty())
-	{
-		QMessageBox mbox;
-		mbox.setIcon(QMessageBox::Critical);
-		mbox.setText(QString("Price is empty"));
-		mbox.exec();
-		return;
-	}
-	QString qty = ui.qty->text();
-	if (qty.isNull() || qty.isEmpty())
-	{
-		QMessageBox mbox;
-		mbox.setIcon(QMessageBox::Critical);
-		mbox.setText(QString("Quantity is empty"));
-		mbox.exec();
-		return;
-	}
-	QString description = ui.itemDescription->toPlainText();
 
-	QString q;
-	if (m_update)
-	{
-		q = "Update stock_order SET item_id = '" + itemId + "', user_id = '" + userIdStr + "', description = '" + description + "' ,unit_price = '"+price+"', selling_price = '"+price+"' , quantity = '"+qty+"' WHERE order_id = " + m_orderId;
-	}
-	else
-	{
-		q = "INSERT INTO stock_order (item_id, user_id, unit_price, selling_price, quantity, description) VALUES (" +
-			itemId + "," + userIdStr + "," + price + "," +price+"," +qty + ",'" + description + "')";
-	}
+	int row = ui.supplierTableWidget->currentRow();
+	QTableWidgetItem* idCell = ui.supplierTableWidget->item(row, 0);
+	if (!idCell)
+		return;
+
+	QDateTime d = QDateTime::fromString(ui.dateEdit->text(), Qt::ISODate);
+	QString s = d.toString("yyyy-MM-dd");
+	
+	QString q = "INSERT INTO `order` (user_id, supplier_id, order_date, comments) VALUES (" +
+		userIdStr + "," + idCell->text() + ",'" + d.toString("yyyy-MM-dd") + "','" + ui.comments->toPlainText() + "')";
+
 	QSqlQuery query;
 	if (query.exec(q))
 	{
@@ -148,10 +134,9 @@ void AddOrderItem::slotPlaceNewOrder()
 	{
 		QMessageBox mbox;
 		mbox.setIcon(QMessageBox::Critical);
-		mbox.setText(QString("Something goes wrong:: Item cannot be saved"));
+		mbox.setText(/*QString("Something goes wrong:: Item cannot be saved")*/q);
 		mbox.exec();
 	}
-
 }
 
 QString AddOrderItem::getOrderId() const
@@ -166,9 +151,6 @@ void AddOrderItem::setOrderId(QString val)
 
 void AddOrderItem::slotSearch()
 {
-	ui.itemCode->clear();
-	ui.itemDescription->clear();
-
 	QString searchText = ui.searchTextBox->text();
 	int categoryId = ui.categoryComboBox->currentData().toInt();
 
@@ -262,22 +244,6 @@ void AddOrderItem::displayItems(QSqlQuery& queryItems)
 	}
 }
 
-void AddOrderItem::slotItemSelected(int row, int col)
-{
-	QTableWidgetItem* idCell = ui.itemTableWidget->item(row, 0);
-	if (!idCell)
-		return;
-
-	QString query("SELECT * FROM item WHERE deleted = 0 AND item_id = ");
-	query.append(idCell->text());
-	QSqlQuery itemQry(query);
-	if (itemQry.next())
-	{
-		ui.itemCode->setText(itemQry.value("item_code").toString());
-		ui.itemDescription->setText(itemQry.value("description").toString());
-	}
-}
-
 void AddOrderItem::slotSupplierSelected(int row, int col)
 {
 	QTableWidgetItem* idCell = ui.supplierTableWidget->item(row, 0);
@@ -291,7 +257,52 @@ void AddOrderItem::slotSupplierSelected(int row, int col)
 	{
 		ui.supplierCode->setText(supplierQry.value("supplier_code").toString());
 		ui.supplierName->setText(supplierQry.value("supplier_name").toString());
-		//ui.unitPrice->clear();
-		ui.unitPrice->setText("350");
+	}
+
+	int rowCount = ui.selectedItemTableWidget->rowCount();
+	for (int i = 0; i < rowCount; i++)
+	{
+		ES::SaleLineEdit* le = static_cast<ES::SaleLineEdit*>(ui.selectedItemTableWidget->cellWidget(i, 4));
+		if (le)
+		{
+			le->setText("325.50");
+			le->setReadOnly(true);
+		}
+	}
+}
+
+void AddOrderItem::slotItemDoubleClicked(int row, int col)
+{
+	QTableWidgetItem* idCell = ui.itemTableWidget->item(row, 0);
+	if (!idCell)
+		return;
+
+	QSqlQuery queryItems("SELECT * FROM item WHERE item_id = " + idCell->text());
+	if (queryItems.next())
+	{
+		int row = ui.selectedItemTableWidget->rowCount();
+		ui.selectedItemTableWidget->insertRow(row);
+
+		ui.selectedItemTableWidget->setItem(row, 0, new QTableWidgetItem(queryItems.value("item_id").toString()));
+		ui.selectedItemTableWidget->setItem(row, 1, new QTableWidgetItem(queryItems.value("item_code").toString()));
+		ui.selectedItemTableWidget->setItem(row, 2, new QTableWidgetItem(queryItems.value("item_name").toString()));
+
+		QSqlQuery queryCategories("SELECT * FROM item_category WHERE itemcategory_id = " + queryItems.value("itemcategory_id").toString());
+		if (queryCategories.next())
+		{
+			ui.selectedItemTableWidget->setItem(row, 3, new QTableWidgetItem(queryCategories.value("itemcategory_name").toString()));
+		}
+
+		{
+			ES::SaleLineEdit* le = new ES::SaleLineEdit(idCell->text(), row);
+			ui.selectedItemTableWidget->setCellWidget(row, 4, le);
+			le->setFocus();
+		}
+
+		{
+			ES::SaleLineEdit* le = new ES::SaleLineEdit(idCell->text(), row);
+			ui.selectedItemTableWidget->setCellWidget(row, 5, le);
+			le->setFocus();
+		}
 	}
 }

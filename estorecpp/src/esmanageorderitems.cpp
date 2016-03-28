@@ -131,7 +131,7 @@ void ESManageOrderItems::displayItems(QSqlQuery& queryOrder)
 		}
 
 		QWidget* base = new QWidget(ui.tableWidget);
-		QPushButton* updateBtn = new QPushButton("Update", base);
+		QPushButton* updateBtn = new QPushButton("Process", base);
 		updateBtn->setMaximumWidth(100);
 		QPushButton* removeBtn = new QPushButton("Remove", base);
 		removeBtn->setMaximumWidth(100);
@@ -156,7 +156,7 @@ void ESManageOrderItems::displayItems(QSqlQuery& queryOrder)
 void ESManageOrderItems::slotUpdate(QString orderId)
 {
 
-	AddOrderItem* addOrder = new AddOrderItem(this);
+	/*AddOrderItem* addOrder = new AddOrderItem(this);
 	addOrder->getUI().groupBox->setTitle("Update Order Item");
 	addOrder->getUI().addOrderItemButton->setText("Update");
 	QSqlQuery queryOrder("SELECT * FROM stock_order WHERE order_id = " + orderId);
@@ -177,7 +177,7 @@ void ESManageOrderItems::slotUpdate(QString orderId)
 	addOrder->setUpdate(true);
 	addOrder->setOrderId(orderId);
 	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(addOrder);
-	addOrder->show();
+	addOrder->show();*/
 }
 
 void ESManageOrderItems::slotRemove(QString order_id)
