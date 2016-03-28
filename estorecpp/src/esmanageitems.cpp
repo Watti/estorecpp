@@ -49,7 +49,7 @@ ESManageItems::ESManageItems(QWidget *parent /*= 0*/)
 	}
 	else
 	{
-		QSqlQuery queryCategory("SELECT * FROM item_category");
+		QSqlQuery queryCategory("SELECT * FROM item_category WHERE deleted = 0");
 		QString catCode = "select";
 		int catId = -1;
 
@@ -57,8 +57,8 @@ ESManageItems::ESManageItems(QWidget *parent /*= 0*/)
 
 		while (queryCategory.next())
 		{
-			catId = queryCategory.value(0).toInt();
-			ui.categoryComboBox->addItem(queryCategory.value(1).toString(), catId);
+			catId = queryCategory.value("itemcategory_id").toInt();
+			ui.categoryComboBox->addItem(queryCategory.value("itemcategory_name").toString(), catId);
 		}
 
 		slotSearch();

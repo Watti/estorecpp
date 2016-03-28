@@ -21,7 +21,7 @@ AddItem::AddItem(QWidget *parent /*= 0*/)
 		mbox.exec();
 	}
 
-	QSqlQuery queryCategory("SELECT * FROM item_category");
+	QSqlQuery queryCategory("SELECT * FROM item_category WHERE deleted = 0");
 	QString catCode = DEFAULT_DB_COMBO_VALUE;
 	int catId = -1;
 
@@ -49,11 +49,11 @@ void AddItem::slotAddItem()
 	QString unit = ui.unitText->text();
 
 	if (iName == nullptr || iName.isEmpty() || iCode == nullptr || iCode.isEmpty() ||
-	unit == nullptr || unit.isEmpty())
+		unit == nullptr || unit.isEmpty() || catId == "-1")
 	{
 		QMessageBox mbox;
 		mbox.setIcon(QMessageBox::Warning);
-		mbox.setText(QString("Following fields should not be empty : Item Code, Item Name, Unit"));
+		mbox.setText(QString("Following fields should not be empty : Item Code, Item Name, Unit, Category"));
 		mbox.exec();
 	}
 	else

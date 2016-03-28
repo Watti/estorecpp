@@ -73,6 +73,7 @@ void ESItemCategories::slotUpdate(QString itemCategoryId)
 		addItemCategory->setCategoryId(itemCategoryId);
 	}
 	addItemCategory->getUI().addItemCategoryButton->setText("Update");
+	addItemCategory->setUpdate(true);
 	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(addItemCategory);
 	addItemCategory->show();
 }
