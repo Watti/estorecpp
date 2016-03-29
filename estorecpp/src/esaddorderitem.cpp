@@ -276,10 +276,22 @@ void AddOrderItem::slotItemDoubleClicked(int row, int col)
 	QTableWidgetItem* idCell = ui.itemTableWidget->item(row, 0);
 	if (!idCell)
 		return;
-
+	
 	QSqlQuery queryItems("SELECT * FROM item WHERE item_id = " + idCell->text());
 	if (queryItems.next())
 	{
+		for (int i = 0; i < ui.selectedItemTableWidget->rowCount(); i++)
+		{
+			QTableWidgetItem* cell = ui.selectedItemTableWidget->item(i, 0);
+			if (cell->text() == queryItems.value("item_id").toString())
+			{
+				ui.selectedItemTableWidget->setCurrentCell(i, 5);
+				ES::SaleLineEdit* le = static_cast<ES::SaleLineEdit*>(ui.selectedItemTableWidget->cellWidget(i, 5));
+				if (le) le->setFocus();
+				return;
+			}
+		}
+
 		int row = ui.selectedItemTableWidget->rowCount();
 		ui.selectedItemTableWidget->insertRow(row);
 
@@ -293,16 +305,13 @@ void AddOrderItem::slotItemDoubleClicked(int row, int col)
 			ui.selectedItemTableWidget->setItem(row, 3, new QTableWidgetItem(queryCategories.value("itemcategory_name").toString()));
 		}
 
-		{
-			ES::SaleLineEdit* le = new ES::SaleLineEdit(idCell->text(), row);
-			ui.selectedItemTableWidget->setCellWidget(row, 4, le);
-			le->setFocus();
-		}
+		ES::SaleLineEdit* lePrice = new ES::SaleLineEdit(idCell->text(), row);
+		ui.selectedItemTableWidget->setCellWidget(row, 4, lePrice);
+		lePrice->setFocus();
 
-		{
-			ES::SaleLineEdit* le = new ES::SaleLineEdit(idCell->text(), row);
-			ui.selectedItemTableWidget->setCellWidget(row, 5, le);
-			le->setFocus();
-		}
+		ES::SaleLineEdit* leQty = new ES::SaleLineEdit(idCell->text(), row);
+		ui.selectedItemTableWidget->setCellWidget(row, 5, leQty);
+		leQty->setFocus();
+
 	}
 }
