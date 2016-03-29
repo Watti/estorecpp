@@ -28,7 +28,7 @@ Ui::CashBalanceStatus& ESCashBalanceStatus::getUI()
 void ESCashBalanceStatus::displayStatus()
 {
 	int row = 0;
-	QSqlQuery billQueary("SELECT SUM(amount), payment_method, user_id FROM bill WHERE status = 1 AND deleted = 0 GROUP BY payment_method, user_id");
+	QSqlQuery billQueary("SELECT SUM(amount), payment_method, user_id FROM bill WHERE status = 1 AND DATE(`date`) = CURDATE() AND deleted = 0 GROUP BY payment_method, user_id");
 	while (billQueary.next())
 	{
 		row = ui.tableWidget->rowCount();
