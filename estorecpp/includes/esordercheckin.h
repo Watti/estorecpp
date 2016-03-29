@@ -12,6 +12,7 @@ public:
 	~ESOrderCheckIn();
 	
 	public slots:
+	void slotItemSelected(int row, int col);
 	void slotAddToStock();
 	void slotRemoveFromStock();
 	void slotHoldOrder();
