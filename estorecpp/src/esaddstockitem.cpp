@@ -28,7 +28,7 @@ AddStockItem::~AddStockItem()
 
 void AddStockItem::slotAddStockItem()
 {
-	if (m_existingQuantityInMainStock > 0)
+	if (m_existingQuantityInMainStock >= 0)
 	{
 		QString qtyStr = ui.qty->text();
 		QString minQtyStr = ui.minQty->text();
@@ -45,7 +45,7 @@ void AddStockItem::slotAddStockItem()
 				mbox.setText(QString("Invalid input - Quantity"));
 				mbox.exec();
 			}
-			if (quantity >= 0 && quantity <= m_existingQuantityInMainStock)
+			if (quantity >= 0 && quantity >= m_existingQuantityInMainStock)
 			{
 				double minQty = qtyStr.toDouble(&isValid);
 				if (!isValid)
@@ -109,7 +109,7 @@ void AddStockItem::slotAddStockItem()
 			{
 				QMessageBox mbox;
 				mbox.setIcon(QMessageBox::Warning);
-				mbox.setText(QString("Inserted quantity value exceeds the existing quantity or invalid quantity"));
+				mbox.setText(QString("Inserted quantity is lesser the existing quantity or invalid quantity"));
 				mbox.exec();
 			}
 		}

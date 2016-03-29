@@ -12,7 +12,7 @@ public:
 	~ESCashBalanceStatus();
 
 	Ui::CashBalanceStatus& getUI();
-
+	void displayStatus();
 private:
 	Ui::CashBalanceStatus ui;
 

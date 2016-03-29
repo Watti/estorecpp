@@ -51,12 +51,12 @@ ESManageStockItems::ESManageStockItems(QWidget *parent /*= 0*/)
 	}
 	else
 	{
-		QSqlQuery queryCategory("SELECT * FROM item_category");
+		QSqlQuery queryCategory("SELECT * FROM item_category WHERE deleted = 0");
 		QStringList catogory;
 		catogory.append(DEFAULT_DB_COMBO_VALUE);
 		while (queryCategory.next())
 		{
-			catogory.append(queryCategory.value(2).toString());
+			catogory.append(queryCategory.value("itemcategory_name").toString());
 		}
 		ui.categoryComboBox->addItems(catogory);
 
