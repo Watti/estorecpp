@@ -115,28 +115,62 @@ void AddOrderItem::slotPlaceNewOrder()
 	if (!idCell)
 		return;
 
+	QString supplierId = idCell->text();
 	QDateTime d = QDateTime::fromString(ui.dateEdit->text(), Qt::ISODate);
-	QString s = d.toString("yyyy-MM-dd");
 	
-	QString q = "INSERT INTO `order` (user_id, supplier_id, order_date, comments) VALUES (" +
-		userIdStr + "," + idCell->text() + ",'" + d.toString("yyyy-MM-dd") + "','" + ui.comments->toPlainText() + "')";
+	// Add data to 'purchase_order' table
+	QString q = "INSERT INTO purchase_order (user_id, supplier_id, order_date, comments) VALUES (" +
+		userIdStr + "," + supplierId + ",'" + d.toString("yyyy-MM-dd") + "','" + ui.comments->toPlainText() + "')";
 
 	QSqlQuery query;
-	if (query.exec(q))
-	{
-		this->close();
-		ESManageOrderItems* manageItems = new ESManageOrderItems();
-		ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(manageItems);
-		this->close();
-		manageItems->show();
-	}
-	else
+	if (!query.exec(q))
 	{
 		QMessageBox mbox;
 		mbox.setIcon(QMessageBox::Critical);
-		mbox.setText(/*QString("Something goes wrong:: Item cannot be saved")*/q);
+		mbox.setText(QString("Something goes wrong: order cannot be saved"));
 		mbox.exec();
 	}
+
+	QString purchaseOrderId = query.lastInsertId().value<QString>();
+
+	// Add data to 'purchase_order_item' table
+	int rowCount = ui.selectedItemTableWidget->rowCount();
+	for (int i = 0; i < rowCount; ++i)
+	{
+		QTableWidgetItem* idCell = ui.selectedItemTableWidget->item(i, 0);
+		if (!idCell) continue;
+
+		QString itemId = idCell->text();
+
+		ES::SaleLineEdit* le = NULL;
+		le = static_cast<ES::SaleLineEdit*>(ui.selectedItemTableWidget->cellWidget(i, 4));
+		if (!le) continue;
+
+		QString price = le->text();
+
+		le = static_cast<ES::SaleLineEdit*>(ui.selectedItemTableWidget->cellWidget(i, 5));
+		if (!le) continue;
+
+		QString quantity = le->text();
+
+		QString qry = "INSERT INTO purchase_order_item (purchaseorder_id, item_id, qty, purchasing_price) VALUES (" + 
+			purchaseOrderId + "," + itemId + "," + quantity + "," + price + ")";
+
+		QSqlQuery insertQuery;
+		if (!insertQuery.exec(qry))
+		{
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Critical);
+			mbox.setText(QString("Something goes wrong: order items cannot be saved"));
+			mbox.exec();
+		}
+	}
+
+	ESManageOrderItems* manageItems = new ESManageOrderItems(ES::MainWindowHolder::instance()->getMainWindow());
+	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(manageItems);
+	this->close();
+	manageItems->show();
+
 }
 
 QString AddOrderItem::getOrderId() const
