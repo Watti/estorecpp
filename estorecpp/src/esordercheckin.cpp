@@ -2,11 +2,13 @@
 #include "utility\esdbconnection.h"
 #include <QMessageBox>
 #include "QDateTime"
+#include "utility\session.h"
 
 ESOrderCheckIn::ESOrderCheckIn(QString orderId, QWidget *parent /*= 0*/)
 :QWidget(parent), m_orderId(orderId)
 {
 	ui.setupUi(this);
+	ui.itemIdText->setVisible(false);
 
 	QStringList headerLabels;
 	headerLabels.append("Item ID");
@@ -26,6 +28,7 @@ ESOrderCheckIn::ESOrderCheckIn(QString orderId, QWidget *parent /*= 0*/)
 	ui.itemTableWidget->hideColumn(0);
 
 	QObject::connect(ui.itemTableWidget, SIGNAL(cellClicked(int, int)), this, SLOT(slotItemSelected(int, int)));
+	QObject::connect(ui.addToStockBtn, SIGNAL(clicked()), this, SLOT(slotAddToStock()));
 
 	if (!ES::DbConnection::instance()->open())
 	{
@@ -101,6 +104,57 @@ ESOrderCheckIn::~ESOrderCheckIn()
 
 void ESOrderCheckIn::slotAddToStock()
 {
+	if (ui.itemIdText->text().isEmpty())
+	{
+		return;
+	}
+	QString itemId = ui.itemIdText->text();
+	QString sellingPrice = ui.sellingPrice->text();
+	QString stockId;
+	double currentQty = ui.quantity->text().toDouble();
+	int userId = ES::Session::getInstance()->getUser()->getId();
+	QString userIdStr;
+	userIdStr.setNum(userId);
+
+	QSqlQuery itemStock("SELECT * FROM stock WHERE deleted = 0 AND item_id = " + itemId);
+	if (itemStock.next())
+	{
+		stockId = itemStock.value("stock_id").toString();
+		sellingPrice = itemStock.value("selling_price").toString();
+		currentQty += itemStock.value("qty").toDouble();
+	}
+	else
+	{
+		QString qtyStr;
+		qtyStr.setNum(currentQty);
+		QString q("INSERT INTO stock (item_id, qty, selling_price, user_id) VALUES (" + 
+			itemId + "," + qtyStr + "," + sellingPrice + "," + userIdStr + ")");
+		QSqlQuery query;
+		if (query.exec(q))
+		{
+			stockId = query.lastInsertId().value<QString>();
+		}
+	}
+
+	QString qtyStr;
+	qtyStr.setNum(currentQty);
+	QString q("INSERT INTO stock_purchase_order_item (purchaseorder_id, item_id, stock_id, qty) VALUES (" +
+		m_orderId + "," + itemId + "," + stockId + "," + qtyStr + ")");
+	QSqlQuery query;
+	if (!query.exec(q))
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Critical);
+		mbox.setText(QString("Something goes wrong: order check-in failed"));
+		mbox.exec();
+	}
+	else
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Information);
+		mbox.setText(QString("Success"));
+		mbox.exec();
+	}
 
 }
 
@@ -135,5 +189,18 @@ void ESOrderCheckIn::slotItemSelected(int row, int col)
 	if (queryItem.next())
 	{
 		ui.itemCode->setText(queryItem.value("item_code").toString());
+		ui.itemIdText->setText(itemId);
 	}
+
+	idCell = ui.itemTableWidget->item(row, 4);
+	if (!idCell)
+		return;
+
+	ui.sellingPrice->setText(idCell->text());
+
+	idCell = ui.itemTableWidget->item(row, 5);
+	if (!idCell)
+		return;
+
+	ui.quantity->setText(idCell->text());
 }
