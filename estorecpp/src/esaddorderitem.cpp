@@ -77,7 +77,7 @@ AddOrderItem::AddOrderItem(QWidget *parent/* = 0*/)
 	}
 	else
 	{
-		QSqlQuery queryCategory("SELECT * FROM item_category");
+		QSqlQuery queryCategory("SELECT * FROM item_category WHERE deleted = 0");
 		QString catCode = DEFAULT_DB_COMBO_VALUE;
 		int catId = -1;
 

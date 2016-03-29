@@ -23,10 +23,10 @@ ESManageItems::ESManageItems(QWidget *parent /*= 0*/)
 	headerLabels.append("Item Code");
 	headerLabels.append("Item Name");
 	headerLabels.append("Category");
-	headerLabels.append("Qty");
-	headerLabels.append("Min. Qty");
+	//headerLabels.append("Qty");
+	//headerLabels.append("Min. Qty");
 	headerLabels.append("Unit");
-	headerLabels.append("Unit Price");
+	//headerLabels.append("Unit Price");
 	headerLabels.append("Description");
 	headerLabels.append("Actions");
 
@@ -129,42 +129,36 @@ void ESManageItems::displayItems(QSqlQuery& queryItems)
 		ui.tableWidget->insertRow(row);
 		QString itemId = queryItems.value(0).toString();
 
-		ui.tableWidget->setItem(row, 0, new QTableWidgetItem(queryItems.value(2).toString()));
-		ui.tableWidget->setItem(row, 1, new QTableWidgetItem(queryItems.value(3).toString()));
-		ui.tableWidget->setItem(row, 5, new QTableWidgetItem(queryItems.value(5).toString()));
-		ui.tableWidget->setItem(row, 7, new QTableWidgetItem(queryItems.value(6).toString()));
+		ui.tableWidget->setItem(row, 0, new QTableWidgetItem(queryItems.value("item_code").toString()));
+		ui.tableWidget->setItem(row, 1, new QTableWidgetItem(queryItems.value("item_name").toString()));
+		ui.tableWidget->setItem(row, 3, new QTableWidgetItem(queryItems.value("unit").toString()));
+		ui.tableWidget->setItem(row, 4, new QTableWidgetItem(queryItems.value("description").toString()));
 		
-		QSqlQuery queryCategories("SELECT * FROM item_category WHERE itemcategory_id = " + queryItems.value(1).toString());
+		QSqlQuery queryCategories("SELECT * FROM item_category WHERE itemcategory_id = " + queryItems.value("itemcategory_id").toString());
 		if (queryCategories.next())
 		{
-			ui.tableWidget->setItem(row, 2, new QTableWidgetItem(queryCategories.value(2).toString()));
+			ui.tableWidget->setItem(row, 2, new QTableWidgetItem(queryCategories.value("itemcategory_name").toString()));
 		}
 
-		QSqlQuery queryStocks("SELECT * FROM stock WHERE item_id = " + itemId);
-		if (queryStocks.next())
-		{
-			ui.tableWidget->setItem(row, 3, new QTableWidgetItem(queryStocks.value(3).toString()));
-			ui.tableWidget->setItem(row, 4, new QTableWidgetItem(queryStocks.value(4).toString()));
+// 		QSqlQuery queryStocks("SELECT * FROM stock WHERE item_id = " + itemId);
+// 		if (queryStocks.next())
+// 		{
+// 			ui.tableWidget->setItem(row, 3, new QTableWidgetItem(queryStocks.value(3).toString()));
+// 			ui.tableWidget->setItem(row, 4, new QTableWidgetItem(queryStocks.value(4).toString()));
+// 
+// 		}
+// 		QSqlQuery queryPrices("SELECT * FROM stock_order WHERE item_id = " + itemId);
+// 		if (queryPrices.next())
+// 		{
+// 			ui.tableWidget->setItem(row, 6, new QTableWidgetItem(queryPrices.value("selling_price").toString()));
+// 		}
+// 		else
+// 		{
+// 			ui.tableWidget->setItem(row, 3, new QTableWidgetItem(DEFAULT_DB_NUMERICAL_TO_DISPLAY));
+// 			ui.tableWidget->setItem(row, 4, new QTableWidgetItem(DEFAULT_DB_NUMERICAL_TO_DISPLAY));
+// 			ui.tableWidget->setItem(row, 6, new QTableWidgetItem(DEFAULT_DB_NUMERICAL_TO_DISPLAY));
+// 		}
 
-// 			QSqlQuery queryPrices("SELECT * FROM item_price WHERE itemprice_id = " + queryStocks.value(2).toString());
-// 			if (queryPrices.next())
-// 			{
-// 				ui.tableWidget->setItem(row, 6, new QTableWidgetItem(queryPrices.value(2).toString()));
-// 			}
-		}
-		QSqlQuery queryPrices("SELECT * FROM stock_order WHERE item_id = " + itemId);
-		if (queryPrices.next())
-		{
-			ui.tableWidget->setItem(row, 6, new QTableWidgetItem(queryPrices.value("selling_price").toString()));
-		}
-		else
-		{
-			ui.tableWidget->setItem(row, 3, new QTableWidgetItem(DEFAULT_DB_NUMERICAL_TO_DISPLAY));
-			ui.tableWidget->setItem(row, 4, new QTableWidgetItem(DEFAULT_DB_NUMERICAL_TO_DISPLAY));
-			ui.tableWidget->setItem(row, 6, new QTableWidgetItem(DEFAULT_DB_NUMERICAL_TO_DISPLAY));
-		}
-
-		
 		QWidget* base = new QWidget(ui.tableWidget);
 		QPushButton* updateBtn = new QPushButton("Update", base);
 		updateBtn->setMaximumWidth(100);
@@ -183,7 +177,7 @@ void ESManageItems::displayItems(QSqlQuery& queryItems)
 		layout->addWidget(removeBtn);
 		layout->insertStretch(2);
 		base->setLayout(layout);
-		ui.tableWidget->setCellWidget(row, 8, base);
+		ui.tableWidget->setCellWidget(row, 5, base);
 		base->show();
 	}
 
