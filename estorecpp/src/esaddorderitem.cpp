@@ -309,6 +309,14 @@ void AddOrderItem::slotItemDoubleClicked(int row, int col)
 		ui.selectedItemTableWidget->setCellWidget(row, 4, lePrice);
 		lePrice->setFocus();
 
+		QList<QTableWidgetItem*> selected = ui.supplierTableWidget->selectedItems();
+		if (!selected.empty() && selected.first())
+		{
+			int r = ui.supplierTableWidget->row(selected.first());
+			int s = selected.size();
+			lePrice->setText("1000");
+		}
+
 		ES::SaleLineEdit* leQty = new ES::SaleLineEdit(idCell->text(), row);
 		ui.selectedItemTableWidget->setCellWidget(row, 5, leQty);
 		leQty->setFocus();
