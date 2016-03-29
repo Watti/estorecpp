@@ -509,12 +509,12 @@
          </palette>
         </property>
         <property name="text">
-         <string>Item Code</string>
+         <string>Supplier Name</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QLineEdit" name="itemCodeSearch"/>
+       <widget class="QLineEdit" name="supplierSearch"/>
       </item>
       <item>
        <spacer name="horizontalSpacer_2">
@@ -572,12 +572,12 @@
          </palette>
         </property>
         <property name="text">
-         <string>Username</string>
+         <string>User</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QLineEdit" name="usernameSearch"/>
+       <widget class="QLineEdit" name="userSearch"/>
       </item>
       <item>
        <spacer name="horizontalSpacer_3">
@@ -603,8 +603,9 @@
       </font>
      </property>
      <property name="columnCount">
-      <number>7</number>
+      <number>8</number>
      </property>
+     <column/>
      <column/>
      <column/>
      <column/>

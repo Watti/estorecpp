@@ -16,17 +16,18 @@ ESManageOrderItems::ESManageOrderItems(QWidget *parent/* = 0*/)
 
 	QObject::connect(m_updateButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotUpdate(QString)));
 	QObject::connect(m_removeButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotRemove(QString)));
-	QObject::connect(ui.usernameSearch, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
-	QObject::connect(ui.itemCodeSearch, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
+	QObject::connect(ui.userSearch, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
+	QObject::connect(ui.supplierSearch, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
 	QObject::connect(ui.addOrderItemBtn, SIGNAL(clicked()), this, SLOT(slotAddNewOrderItem()));
 
 	QStringList headerLabels;
-	headerLabels.append("Item Code");
+	headerLabels.append("Order ID");	
+	headerLabels.append("Supplier");
+	headerLabels.append("# Items");
+	headerLabels.append("# Categories");
+	headerLabels.append("Total Qty");
+	headerLabels.append("Comments");
 	headerLabels.append("User");
-	headerLabels.append("Date");
-	headerLabels.append("Price");
-	headerLabels.append("Qty");
-	headerLabels.append("Comment");
 	headerLabels.append("Actions");
 
 	ui.tableWidget->setHorizontalHeaderLabels(headerLabels);
@@ -66,37 +67,38 @@ void ESManageOrderItems::slotAddNewOrderItem()
 void ESManageOrderItems::slotSearch()
 {
 
-	QString searchName = ui.usernameSearch->text();
-	QString searchItemCode = ui.itemCodeSearch->text();
+	QString searchUser = ui.userSearch->text();
+	QString searchSupplier = ui.supplierSearch->text();
 
 	while (ui.tableWidget->rowCount() > 0)
 	{
 		ui.tableWidget->removeRow(0);
 	}
 
-	QString searchQuery = "SELECT * FROM stock_order WHERE deleted = 0";
 	QString uId = nullptr;
-	bool uNameGiven = false, itemCodeGiven = false;
-	if (searchName != nullptr && !searchName.isEmpty())
+	bool userGiven = false, supplierGiven = false;
+	if (searchUser != nullptr && !searchSupplier.isEmpty())
 	{
-		uNameGiven = true;
+		userGiven = true;
 	}
-	if (searchItemCode != nullptr && !searchItemCode.isEmpty())
+	if (searchSupplier != nullptr && !searchSupplier.isEmpty())
 	{
-		itemCodeGiven = true;
+		supplierGiven = true;
 	}
 
-	if (!itemCodeGiven && uNameGiven)
+	QString searchQuery = "SELECT * FROM purchase_order WHERE deleted = 0";
+
+	if (!supplierGiven && userGiven)
 	{
-		searchQuery = "SELECT * from stock_order so, user u WHERE so.user_id = u.user_id AND u.username LIKE '%" + searchName + "%' AND so.deleted = 0";
+		searchQuery = "SELECT * FROM purchase_order so, user u WHERE so.user_id = u.user_id AND u.username LIKE '%" + searchUser + "%' AND so.deleted = 0";
 	}
-	else if (itemCodeGiven && !uNameGiven)
+	else if (supplierGiven && !userGiven)
 	{
-		searchQuery = "SELECT * from stock_order so, item i WHERE so.item_id = i.item_id AND i.item_code LIKE '%" + searchItemCode + "%' AND so.deleted = 0";
+		searchQuery = "SELECT * FROM purchase_order so, item i WHERE so.item_id = i.item_id AND i.item_code LIKE '%" + searchSupplier + "%' AND so.deleted = 0";
 	}
-	else if (itemCodeGiven && uNameGiven)
+	else if (supplierGiven && userGiven)
 	{
-		searchQuery = "SELECT * from stock_order so, user u , item i WHERE (so.user_id = u.user_id AND so.item_id = i.item_id) AND u.username LIKE '%" + searchName + "%' AND i.item_code LIKE '%" + searchItemCode + "%' AND so.deleted = 0";
+		searchQuery = "SELECT * FROM purchase_order so, user u , item i WHERE (so.user_id = u.user_id AND so.item_id = i.item_id) AND u.username LIKE '%" + searchUser + "%' AND i.item_code LIKE '%" + searchSupplier + "%' AND so.deleted = 0";
 	}
 	ui.tableWidget->setSortingEnabled(false);
 	QSqlQuery queryItems(searchQuery);
@@ -111,45 +113,44 @@ void ESManageOrderItems::displayItems(QSqlQuery& queryOrder)
 	{
 		row = ui.tableWidget->rowCount();
 		ui.tableWidget->insertRow(row);
-		QString itemId = queryOrder.value("item_id").toString();
-		QString orderId = queryOrder.value("order_id").toString();
+		QString poId = queryOrder.value("purchaseorder_id").toString();
+		
+		ui.tableWidget->setItem(row, 0, new QTableWidgetItem(poId));
 
-		ui.tableWidget->setItem(row, 2, new QTableWidgetItem(queryOrder.value("date_added").toString()));
-		ui.tableWidget->setItem(row, 4, new QTableWidgetItem(queryOrder.value("quantity").toString()));
-		ui.tableWidget->setItem(row, 3, new QTableWidgetItem(queryOrder.value("unit_price").toString()));
-		ui.tableWidget->setItem(row, 5, new QTableWidgetItem(queryOrder.value("description").toString()));
-
-		QSqlQuery queryItems("SELECT * FROM item WHERE item_id = " + itemId);
-		if (queryItems.next())
+		QSqlQuery q("SELECT * FROM supplier WHERE deleted = 0 AND supplier_id = " + queryOrder.value("supplier_id").toString());
+		if (q.next())
 		{
-			ui.tableWidget->setItem(row, 0, new QTableWidgetItem(queryItems.value("item_code").toString()));
+			ui.tableWidget->setItem(row, 1, new QTableWidgetItem(q.value("supplier_code").toString()));
 		}
-
+		ui.tableWidget->setItem(row, 2, new QTableWidgetItem("1"));
+		ui.tableWidget->setItem(row, 3, new QTableWidgetItem("1"));
+		ui.tableWidget->setItem(row, 4, new QTableWidgetItem("1"));
+		ui.tableWidget->setItem(row, 5, new QTableWidgetItem(queryOrder.value("comments").toString()));
 		QSqlQuery queryUser("SELECT * FROM user WHERE user_id = " + queryOrder.value("user_id").toString());
 		if (queryUser.next())
 		{
-			ui.tableWidget->setItem(row, 1, new QTableWidgetItem(queryUser.value("display_name").toString()));
+			ui.tableWidget->setItem(row, 6, new QTableWidgetItem(queryUser.value("display_name").toString()));
 		}
 
 		QWidget* base = new QWidget(ui.tableWidget);
-		QPushButton* updateBtn = new QPushButton("Check In", base);
-		updateBtn->setMaximumWidth(100);
+		QPushButton* checkInBtn = new QPushButton("Check In", base);
+		checkInBtn->setMaximumWidth(100);
 		QPushButton* removeBtn = new QPushButton("Remove", base);
 		removeBtn->setMaximumWidth(100);
 
-		m_updateButtonSignalMapper->setMapping(updateBtn, orderId);
-		QObject::connect(updateBtn, SIGNAL(clicked()), m_updateButtonSignalMapper, SLOT(map()));
+		m_updateButtonSignalMapper->setMapping(checkInBtn, poId);
+		QObject::connect(checkInBtn, SIGNAL(clicked()), m_updateButtonSignalMapper, SLOT(map()));
 
+		m_removeButtonSignalMapper->setMapping(removeBtn, poId);
 		QObject::connect(removeBtn, SIGNAL(clicked()), m_removeButtonSignalMapper, SLOT(map()));
-		m_removeButtonSignalMapper->setMapping(removeBtn, orderId);
 
 		QHBoxLayout *layout = new QHBoxLayout;
 		layout->setContentsMargins(0, 0, 0, 0);
-		layout->addWidget(updateBtn);
+		layout->addWidget(checkInBtn);
 		layout->addWidget(removeBtn);
 		layout->insertStretch(2);
 		base->setLayout(layout);
-		ui.tableWidget->setCellWidget(row, 6, base);
+		ui.tableWidget->setCellWidget(row, 7, base);
 		base->show();
 	}
 }
@@ -159,29 +160,6 @@ void ESManageOrderItems::slotUpdate(QString orderId)
 	ESOrderCheckIn* orderCheckin = new ESOrderCheckIn(orderId, this);
 	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(orderCheckin);
 	orderCheckin->show();
-
-	/*AddOrderItem* addOrder = new AddOrderItem(this);
-	addOrder->getUI().groupBox->setTitle("Update Order Item");
-	addOrder->getUI().addOrderItemButton->setText("Update");
-	QSqlQuery queryOrder("SELECT * FROM stock_order WHERE order_id = " + orderId);
-	if (queryOrder.next())
-	{
-		QString price = queryOrder.value("unit_price").toString();
-		QString itemId = queryOrder.value("item_id").toString();
-		addOrder->getUI().unitPrice->setText(price);
-		addOrder->getUI().itemDescription->setText(queryOrder.value("description").toString());
-		addOrder->getUI().qty->setText(queryOrder.value("quantity").toString());
-
-		QSqlQuery queryItem("SELECT * FROM item WHERE item_id = " + itemId);
-		if (queryItem.next())
-		{
-			addOrder->getUI().itemCode->setText(queryItem.value("item_code").toString());
-		}
-	}
-	addOrder->setUpdate(true);
-	addOrder->setOrderId(orderId);
-	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(addOrder);
-	addOrder->show();*/
 }
 
 void ESManageOrderItems::slotRemove(QString order_id)
