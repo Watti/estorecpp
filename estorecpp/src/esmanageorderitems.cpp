@@ -5,6 +5,7 @@
 #include <QPushButton>
 #include "utility/utility.h"
 #include "esaddorderitem.h"
+#include "esordercheckin.h"
 
 ESManageOrderItems::ESManageOrderItems(QWidget *parent/* = 0*/)
 {
@@ -131,7 +132,7 @@ void ESManageOrderItems::displayItems(QSqlQuery& queryOrder)
 		}
 
 		QWidget* base = new QWidget(ui.tableWidget);
-		QPushButton* updateBtn = new QPushButton("Process", base);
+		QPushButton* updateBtn = new QPushButton("Check In", base);
 		updateBtn->setMaximumWidth(100);
 		QPushButton* removeBtn = new QPushButton("Remove", base);
 		removeBtn->setMaximumWidth(100);
@@ -155,6 +156,9 @@ void ESManageOrderItems::displayItems(QSqlQuery& queryOrder)
 
 void ESManageOrderItems::slotUpdate(QString orderId)
 {
+	ESOrderCheckIn* orderCheckin = new ESOrderCheckIn(orderId, this);
+	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(orderCheckin);
+	orderCheckin->show();
 
 	/*AddOrderItem* addOrder = new AddOrderItem(this);
 	addOrder->getUI().groupBox->setTitle("Update Order Item");

@@ -61,6 +61,8 @@ AddOrderItem::AddOrderItem(QWidget *parent/* = 0*/)
 	ui.dateEdit->setDisplayFormat("yyyy-MM-dd");
 	ui.dateEdit->setDate(QDate::currentDate());
 
+	ui.showAllSuppliers->setChecked(true);
+
 	QObject::connect(ui.addOrderItemButton, SIGNAL(clicked()), this, SLOT(slotPlaceNewOrder()));
 	QObject::connect(ui.searchTextBox, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
 	QObject::connect(ui.categoryComboBox, SIGNAL(activated(QString)), this, SLOT(slotSearch()));
