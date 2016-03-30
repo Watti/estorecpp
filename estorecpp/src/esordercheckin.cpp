@@ -122,6 +122,10 @@ void ESOrderCheckIn::slotAddToStock()
 		stockId = itemStock.value("stock_id").toString();
 		sellingPrice = itemStock.value("selling_price").toString();
 		currentQty += itemStock.value("qty").toDouble();
+
+		QString qtyStr;
+		qtyStr.setNum(currentQty);
+		QSqlQuery q("UPDATE stock SET qty = " + qtyStr + " WHERE stock_id = " + stockId);
 	}
 	else
 	{
@@ -136,10 +140,8 @@ void ESOrderCheckIn::slotAddToStock()
 		}
 	}
 
-	QString qtyStr;
-	qtyStr.setNum(currentQty);
 	QString q("INSERT INTO stock_purchase_order_item (purchaseorder_id, item_id, stock_id, qty) VALUES (" +
-		m_orderId + "," + itemId + "," + stockId + "," + qtyStr + ")");
+		m_orderId + "," + itemId + "," + stockId + "," + ui.quantity->text() + ")");
 	QSqlQuery query;
 	if (!query.exec(q))
 	{
