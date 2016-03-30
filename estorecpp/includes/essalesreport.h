@@ -12,12 +12,15 @@ class ESSalesReport : public QWidget
 
 public:
 	ESSalesReport(QWidget *parent = 0);
+
+	void monthlySalesReport();
+
 	~ESSalesReport();
 
 private:
-	GobChartsView* m_gobChartsView;
-	QAbstractItemModel* m_model;
-	QItemSelectionModel* m_selectionModel;
+	//GobChartsView* m_gobChartsView;
+	//QAbstractItemModel* m_model;
+	//QItemSelectionModel* m_selectionModel;
 
 };
 
