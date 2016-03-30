@@ -5,6 +5,7 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include "utility/utility.h"
+#include "esaddmanualstockitemswidget.h"
 
 
 ESManageStockItems::ESManageStockItems(QWidget *parent /*= 0*/)
@@ -237,6 +238,8 @@ void ESManageStockItems::addItemToStock(QString itemId)
 
 void ESManageStockItems::slotAddToStock()
 {
-
+	ESAddManualStockItems* addManualStockItems = new ESAddManualStockItems(this);
+	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(addManualStockItems);
+	addManualStockItems->show();
 }
 

@@ -272,6 +272,15 @@
     <ClCompile Include="GeneratedFiles\Release\moc_esordercheckin.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
+    <ClCompile Include="src\esaddmanualstockitemswidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_esaddmanualstockitemswidget.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_esaddmanualstockitemswidget.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="esmainwindow.ui">
@@ -403,6 +412,12 @@
     <CustomBuild Include="ordercheckinwidget.ui">
       <Filter>Form Files</Filter>
     </CustomBuild>
+    <CustomBuild Include="addmanualstockitems.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="includes\esaddmanualstockitemswidget.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="includes\utility\esdbconnection.h">
@@ -475,6 +490,9 @@
       <Filter>Generated Files</Filter>
     </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_ordercheckinwidget.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GeneratedFiles\ui_addmanualstockitems.h">
       <Filter>Generated Files</Filter>
     </ClInclude>
   </ItemGroup>
