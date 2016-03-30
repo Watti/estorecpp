@@ -15,21 +15,19 @@ public:
 	~ESManageStockItems();
 
 	public slots:
-	void slotAddToStock(QString itemId);
+	void slotAddToStock();
 	void slotUpdate(QString itemId);
 	void slotRemove(QString itemId);
 	void slotSearch();
-	void slotCombo(QString text);
-	void slotInStock(int inStock);
 
 private:
+	void addItemToStock(QString itemId);
+
 	Ui::ManageStockItems ui;
 	QSignalMapper* m_updateButtonSignalMapper;
 	QSignalMapper* m_removeButtonSignalMapper;
 	QSignalMapper* m_addToStockButtonSignalMapper;
 
-	void displayStockItems();
-	void displayStockTableRow(StockTableRow row, QString itemId, bool inStock = true);
 };
 
 #endif

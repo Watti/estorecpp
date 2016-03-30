@@ -17,7 +17,7 @@ ESManageStockItems::ESManageStockItems(QWidget *parent /*= 0*/)
 
 	QObject::connect(m_updateButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotUpdate(QString)));
 	QObject::connect(m_removeButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotRemove(QString)));
-	QObject::connect(m_addToStockButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotAddToStock(QString)));
+	QObject::connect(ui.addItemToStockBtn, SIGNAL(clicked()), this, SLOT(slotAddToStock()));
 
 	QStringList headerLabels;
 	headerLabels.append("Stock ID");
@@ -198,239 +198,12 @@ void ESManageStockItems::slotRemove(QString itemId)
 		QSqlQuery q;
 		if (q.exec(str))
 		{
-			while (ui.tableWidget->rowCount() > 0)
-			{
-				ui.tableWidget->removeRow(0);
-			}
-			displayStockItems();
-		}
-	}
-
-}
-
-void ESManageStockItems::displayStockItems()
-{
-	QSqlQuery itemQuery("SELECT * FROM item WHERE deleted = 0");
-
-	while (itemQuery.next())
-	{
-		QStringList rowItems;
-		QString itemId = itemQuery.value(0).toString();
-		QString itemCategoryId = itemQuery.value(1).toString();
-
-		rowItems.append(itemQuery.value(2).toString());
-		rowItems.append(itemQuery.value(3).toString());
-
-
-		QString unitPrice = DEFAULT_DB_NUMERICAL_TO_DISPLAY;
-		QSqlQuery stockOrderQuery("SELECT * from stock_order WHERE item_id=" + itemId);
-		if (stockOrderQuery.first())
-		{
-			unitPrice = stockOrderQuery.value("selling_price").toString();
-
-			QSqlQuery categoryQuery("SELECT * FROM item_category WHERE itemcategory_id=" + itemCategoryId);
-			if (categoryQuery.first())
-			{
-				rowItems.append(categoryQuery.value(2).toString());
-			}
-
-			QString qty = DEFAULT_DB_NUMERICAL_TO_DISPLAY;
-			QString minQty = DEFAULT_DB_NUMERICAL_TO_DISPLAY;
-
-			QSqlQuery stockQuery("SELECT * FROM stock WHERE item_id=" + itemId + " AND deleted = 0");
-
-			bool inStock = false;
-			if (stockQuery.first())
-			{
-				qty = stockQuery.value("qty").toString();
-				minQty = stockQuery.value("min_qty").toString();
-
-				if (qty.toDouble() >= 0)
-				{
-					inStock = true;
-				}
-			}
-			rowItems.append(qty);
-			rowItems.append(minQty);
-			rowItems.append(itemQuery.value(5).toString());
-			rowItems.append(unitPrice);
-			rowItems.append(itemQuery.value(6).toString());
-
-			displayStockTableRow(rowItems, itemId, inStock);
-
+			slotSearch();
 		}
 	}
 }
 
-void ESManageStockItems::displayStockTableRow(StockTableRow rowContent, QString itemId, bool inStock)
-{
-	int i = 0;
-	int row = 0;
-	row = ui.tableWidget->rowCount();
-	ui.tableWidget->insertRow(row);
-	for (auto col : rowContent)
-	{
-		QTableWidgetItem* tableItem = NULL;
-		if (!inStock)
-		{
-			tableItem = new QTableWidgetItem(col);
-			tableItem->setBackgroundColor(QColor(245, 208, 169));
-		}
-		else
-		{
-			tableItem = new QTableWidgetItem(col);
-		}
-		ui.tableWidget->setItem(row, i++, tableItem);
-	}
-	if (!inStock)
-	{
-		QWidget* base = new QWidget(ui.tableWidget);
-		QPushButton* addToStockBtn = new QPushButton("Add To Stock", base);
-
-		m_addToStockButtonSignalMapper->setMapping(addToStockBtn, itemId);
-		QObject::connect(addToStockBtn, SIGNAL(clicked()), m_addToStockButtonSignalMapper, SLOT(map()));
-
-		addToStockBtn->setMaximumWidth(120);
-		addToStockBtn->setMinimumWidth(120);
-		QHBoxLayout *layout = new QHBoxLayout;
-		layout->setContentsMargins(0, 0, 0, 0);
-		layout->addWidget(addToStockBtn);
-		layout->insertStretch(1);
-		base->setLayout(layout);
-		ui.tableWidget->setCellWidget(row, i, base);
-		base->show();
-	}
-	else
-	{
-		QWidget* base = new QWidget(ui.tableWidget);
-		QPushButton* updateBtn = new QPushButton("Update", base);
-		updateBtn->setMaximumWidth(100);
-		QPushButton* removeBtn = new QPushButton("Remove", base);
-		removeBtn->setMaximumWidth(100);
-
-		m_updateButtonSignalMapper->setMapping(updateBtn, itemId);
-		QObject::connect(updateBtn, SIGNAL(clicked()), m_updateButtonSignalMapper, SLOT(map()));
-
-		QObject::connect(removeBtn, SIGNAL(clicked()), m_removeButtonSignalMapper, SLOT(map()));
-		m_removeButtonSignalMapper->setMapping(removeBtn, itemId);
-
-		QHBoxLayout *layout = new QHBoxLayout;
-		layout->setContentsMargins(0, 0, 0, 0);
-		layout->addWidget(updateBtn);
-		layout->addWidget(removeBtn);
-		layout->insertStretch(2);
-		base->setLayout(layout);
-		ui.tableWidget->setCellWidget(row, i, base);
-		base->show();
-	}
-}
-
-void ESManageStockItems::slotCombo(QString text)
-{
-	while (ui.tableWidget->rowCount() > 0)
-	{
-		ui.tableWidget->removeRow(0);
-	}
-	QString q("SELECT * FROM item, item_category WHERE item.itemcategory_id = item_category.itemcategory_id AND (item.deleted = 0) AND item_category.itemcategory_name = '" + text + "'");
-
-	QSqlQuery query(q);
-	while (query.next())
-	{
-		QStringList rowItems;
-		QString itemId = query.value("item_id").toString();
-		QString code = query.value("item_code").toString();
-		QString name = query.value("item_name").toString();
-		QString categoryName = query.value("itemcategory_name").toString();
-		QString description = query.value("description").toString();
-		QString unit = query.value("unit").toString();
-		QString qty = DEFAULT_DB_NUMERICAL_TO_DISPLAY, minQty = DEFAULT_DB_NUMERICAL_TO_DISPLAY, unitPrice = DEFAULT_DB_NUMERICAL_TO_DISPLAY;
-		QSqlQuery query1("SELECT * from stock_order WHERE item_id=" + itemId);
-
-		bool inStock = false;
-		if (query1.first())
-		{
-			unitPrice = query1.value("selling_price").toString();
-			QSqlQuery query2("SELECT * FROM stock WHERE item_id = " + itemId + " AND deleted = 0");
-			if (query2.first())
-			{
-				qty = query2.value("qty").toString();
-				minQty = query2.value("min_qty").toString();
-
-				if (qty != DEFAULT_DB_NUMERICAL_TO_DISPLAY && qty.toInt() >= 0)
-				{
-					inStock = true;
-				}
-			}
-		}
-
-		rowItems.append(code);
-		rowItems.append(name);
-		rowItems.append(categoryName);
-		rowItems.append(qty);
-		rowItems.append(minQty);
-		rowItems.append(unit);
-		rowItems.append(unitPrice);
-		rowItems.append(description);
-		displayStockTableRow(rowItems, itemId, inStock);
-	}
-}
-
-void ESManageStockItems::slotInStock(int checked)
-{
-	while (ui.tableWidget->rowCount() > 0)
-	{
-		ui.tableWidget->removeRow(0);
-	}
-
-	if (checked > 0)
-	{
-		QString text;
-		QString q("SELECT * FROM item WHERE deleted = 0");
-
-		QSqlQuery query(q);
-		while (query.next())
-		{
-			QString itemId = query.value("item_id").toString();
-			QString code = query.value("item_code").toString();
-			QString name = query.value("item_name").toString();
-			QString categoryName = query.value("itemcategory_name").toString();
-			QString description = query.value("description").toString();
-			QString unit = query.value("unit").toString();
-			QString qty = DEFAULT_DB_NUMERICAL_TO_DISPLAY, minQty = DEFAULT_DB_NUMERICAL_TO_DISPLAY, unitPrice = DEFAULT_DB_NUMERICAL_TO_DISPLAY;
-			QSqlQuery query1("SELECT * from stock WHERE item_id = " + itemId + " AND deleted = 0");
-			QStringList rowItems;
-			if (query1.first())
-			{
-				qty = query1.value("qty").toString();
-				minQty = query1.value("min_qty").toString();
-				if ((qty != DEFAULT_DB_NUMERICAL_TO_DISPLAY && qty.toInt() > 0) && (minQty != DEFAULT_DB_NUMERICAL_TO_DISPLAY && minQty.toInt() > 0))
-				{
-					QSqlQuery query2("SELECT * FROM stock_order WHERE item_id=" + itemId);
-					if (query2.first())
-					{
-						unitPrice = query1.value("selling_price").toString();
-
-						rowItems.append(code);
-						rowItems.append(name);
-						rowItems.append(categoryName);
-						rowItems.append(qty);
-						rowItems.append(minQty);
-						rowItems.append(unit);
-						rowItems.append(unitPrice);
-						rowItems.append(description);
-						displayStockTableRow(rowItems, itemId, true);
-					}
-				}
-			}
-		}
-	}
-	else
-	{
-		displayStockItems();
-	}
-}
-
-void ESManageStockItems::slotAddToStock(QString itemId)
+void ESManageStockItems::addItemToStock(QString itemId)
 {
 	AddStockItem* addStockItem = new AddStockItem(this);
 	addStockItem->getUI().groupBox->setTitle("Add Stock Item");
@@ -460,5 +233,10 @@ void ESManageStockItems::slotAddToStock(QString itemId)
 	}
 	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(addStockItem);
 	addStockItem->show();
+}
+
+void ESManageStockItems::slotAddToStock()
+{
+
 }
 
