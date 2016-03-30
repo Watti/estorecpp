@@ -20,6 +20,7 @@ ESManageStockItems::ESManageStockItems(QWidget *parent /*= 0*/)
 	QObject::connect(m_addToStockButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotAddToStock(QString)));
 
 	QStringList headerLabels;
+	headerLabels.append("Stock ID");
 	headerLabels.append("Item Code");
 	headerLabels.append("Item Name");
 	headerLabels.append("Category");
@@ -36,6 +37,7 @@ ESManageStockItems::ESManageStockItems(QWidget *parent /*= 0*/)
 	ui.tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	ui.tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
 	ui.tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+	ui.tableWidget->hideColumn(0);
 	ui.prevBtn->setDisabled(true);
 	ui.nextBtn->setDisabled(true);
 
@@ -60,66 +62,13 @@ ESManageStockItems::ESManageStockItems(QWidget *parent /*= 0*/)
 		}
 		ui.categoryComboBox->addItems(catogory);
 
-		// populate with data
-		displayStockItems();
+		slotSearch();
 	}
 
 }
 
 ESManageStockItems::~ESManageStockItems()
 {
-
-}
-
-void ESManageStockItems::slotUpdate(QString itemId)
-{
-	AddStockItem* addStockItem = new AddStockItem(this);
-	addStockItem->getUI().groupBox->setTitle("Update Stock Item");
-	addStockItem->getUI().itemIDLabel->setText(itemId);
-	addStockItem->setItemId(itemId);
-	QSqlQuery query("SELECT selling_price, quantity FROM stock_order WHERE item_id = " + itemId);
-	while (query.next())
-	{
-		QString price = query.value("selling_price").toString();
-		addStockItem->getUI().itemPrice->setText(price);
-		QString quantity = query.value("quantity").toString();
-		addStockItem->getUI().qty->setText(quantity);
-		bool isValid = false;
-		double qtyDouble = quantity.toDouble(&isValid);
-		if (isValid)
-		{
-			addStockItem->setExistingQuantityInMainStock(qtyDouble);
-		}
-	}
-
-	QSqlQuery queryStock("SELECT * FROM stock where item_id = " + itemId);
-	while (queryStock.next())
-	{
-		QString minqty = queryStock.value("min_qty").toString(), qty = queryStock.value("qty").toString();
-		addStockItem->getUI().minQty->setText(minqty);
-		addStockItem->getUI().qty->setText(qty);
-		addStockItem->setExistingQuantityInStock(qty.toDouble());
-	}
-	addStockItem->setUpdate(true);
-	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(addStockItem);
-	addStockItem->show();
-}
-
-void ESManageStockItems::slotRemove(QString itemId)
-{
-	if (ES::Utility::verifyUsingMessageBox(this, "EStore", "Do you really want to remove this?"))
-	{
-		QString str("UPDATE stock SET deleted = 1 WHERE item_id = " + itemId);
-		QSqlQuery q;
-		if (q.exec(str))
-		{
-			while (ui.tableWidget->rowCount() > 0)
-			{
-				ui.tableWidget->removeRow(0);
-			}
-			displayStockItems();
-		}
-	}
 
 }
 
@@ -131,9 +80,139 @@ void ESManageStockItems::slotSearch()
 	}
 
 	QString text = ui.searchTextBox->text();
-	bool inStockChecked = false, comboSelected = false;
-	QString selectedCategory = "";
-	if (text.isEmpty())
+	QString selectedCategory = ui.categoryComboBox->currentText();
+
+	QString q;
+	q.append("SELECT * FROM stock JOIN item ON stock.item_id = item.item_id ");
+	q.append("JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id ");
+	q.append("WHERE item.deleted = 0 ");
+
+	if (!text.isEmpty())
+	{
+		q.append("AND (item.item_code LIKE '%");
+		q.append(text);
+		q.append("%' OR item.item_name LIKE '%");
+		q.append(text);
+		q.append("%' OR item.description LIKE '%");
+		q.append(text);
+		q.append("%') ");
+	}
+	if (!selectedCategory.isEmpty() && selectedCategory != DEFAULT_DB_COMBO_VALUE)
+	{
+		q.append("AND item_category.itemcategory_name = '");
+		q.append(selectedCategory);
+		q.append("' ");
+	}
+	
+	QSqlQuery query;
+	if (!query.exec(q))
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Critical);
+		mbox.setText(QString("Something went wrong: Cannot acquire stock data"));
+		mbox.exec();
+	}
+	else
+	{
+		while (query.next())
+		{
+			int row = ui.tableWidget->rowCount();
+			ui.tableWidget->insertRow(row);
+
+			QString stockId = query.value("stock_id").toString();
+
+			ui.tableWidget->setItem(row, 0, new QTableWidgetItem(stockId));
+			ui.tableWidget->setItem(row, 1, new QTableWidgetItem(query.value("item_code").toString()));
+			ui.tableWidget->setItem(row, 2, new QTableWidgetItem(query.value("item_name").toString()));
+			ui.tableWidget->setItem(row, 3, new QTableWidgetItem(query.value("itemcategory_name").toString()));
+			ui.tableWidget->setItem(row, 4, new QTableWidgetItem(query.value("qty").toString()));
+			ui.tableWidget->setItem(row, 5, new QTableWidgetItem(query.value("min_qty").toString()));
+			ui.tableWidget->setItem(row, 6, new QTableWidgetItem(query.value("unit").toString()));
+			ui.tableWidget->setItem(row, 7, new QTableWidgetItem(query.value("selling_price").toString()));
+			ui.tableWidget->setItem(row, 8, new QTableWidgetItem(query.value("description").toString()));
+
+			QWidget* base = new QWidget(ui.tableWidget);
+			QPushButton* updateBtn = new QPushButton("Update", base);
+			updateBtn->setMaximumWidth(100);
+			QPushButton* removeBtn = new QPushButton("Remove", base);
+			removeBtn->setMaximumWidth(100);
+
+			m_updateButtonSignalMapper->setMapping(updateBtn, stockId);
+			QObject::connect(updateBtn, SIGNAL(clicked()), m_updateButtonSignalMapper, SLOT(map()));
+
+			m_removeButtonSignalMapper->setMapping(removeBtn, stockId);
+			QObject::connect(removeBtn, SIGNAL(clicked()), m_removeButtonSignalMapper, SLOT(map()));
+
+			QHBoxLayout *layout = new QHBoxLayout;
+			layout->setContentsMargins(0, 0, 0, 0);
+			layout->addWidget(updateBtn);
+			layout->addWidget(removeBtn);
+			layout->insertStretch(2);
+			base->setLayout(layout);
+			ui.tableWidget->setCellWidget(row, 9, base);
+			base->show();
+		}
+	}
+
+	/*
+	
+	for (auto col : rowContent)
+	{
+		QTableWidgetItem* tableItem = NULL;
+		if (!inStock)
+		{
+			tableItem = new QTableWidgetItem(col);
+			tableItem->setBackgroundColor(QColor(245, 208, 169));
+		}
+		else
+		{
+			tableItem = new QTableWidgetItem(col);
+		}
+		ui.tableWidget->setItem(row, i++, tableItem);
+	}
+	if (!inStock)
+	{
+		QWidget* base = new QWidget(ui.tableWidget);
+		QPushButton* addToStockBtn = new QPushButton("Add To Stock", base);
+
+		m_addToStockButtonSignalMapper->setMapping(addToStockBtn, itemId);
+		QObject::connect(addToStockBtn, SIGNAL(clicked()), m_addToStockButtonSignalMapper, SLOT(map()));
+
+		addToStockBtn->setMaximumWidth(120);
+		addToStockBtn->setMinimumWidth(120);
+		QHBoxLayout *layout = new QHBoxLayout;
+		layout->setContentsMargins(0, 0, 0, 0);
+		layout->addWidget(addToStockBtn);
+		layout->insertStretch(1);
+		base->setLayout(layout);
+		ui.tableWidget->setCellWidget(row, i, base);
+		base->show();
+	}
+	else
+	{
+		QWidget* base = new QWidget(ui.tableWidget);
+		QPushButton* updateBtn = new QPushButton("Update", base);
+		updateBtn->setMaximumWidth(100);
+		QPushButton* removeBtn = new QPushButton("Remove", base);
+		removeBtn->setMaximumWidth(100);
+
+		m_updateButtonSignalMapper->setMapping(updateBtn, itemId);
+		QObject::connect(updateBtn, SIGNAL(clicked()), m_updateButtonSignalMapper, SLOT(map()));
+
+		QObject::connect(removeBtn, SIGNAL(clicked()), m_removeButtonSignalMapper, SLOT(map()));
+		m_removeButtonSignalMapper->setMapping(removeBtn, itemId);
+
+		QHBoxLayout *layout = new QHBoxLayout;
+		layout->setContentsMargins(0, 0, 0, 0);
+		layout->addWidget(updateBtn);
+		layout->addWidget(removeBtn);
+		layout->insertStretch(2);
+		base->setLayout(layout);
+		ui.tableWidget->setCellWidget(row, i, base);
+		base->show();
+	}*/
+
+	/*if (text.isEmpty())
 	{
 		if (ui.inStockCheckBox->isChecked())
 		{
@@ -141,7 +220,7 @@ void ESManageStockItems::slotSearch()
 		}
 		if (!ui.categoryComboBox->currentText().isEmpty())
 		{
-			selectedCategory = ui.categoryComboBox->currentText();
+			selectedCategory = 
 			if (selectedCategory != DEFAULT_DB_COMBO_VALUE)
 			{
 				comboSelected = true;
@@ -157,7 +236,7 @@ void ESManageStockItems::slotSearch()
 				QStringList rowItems;
 				QString itemId = query.value("item_id").toString(), description = query.value("description").toString(),
 					code = query.value("item_code").toString(), itemName = query.value("item_name").toString(),
-					unit = query.value("unit").toString(), categoryName = "", /*itemPriceId = query.value("itemprice_id").toString(),*/
+					unit = query.value("unit").toString(), categoryName = "", 
 					itemCategoryId = query.value("itemcategory_id").toString(), qty = query.value("qty").toString(),
 					minQty = query.value("min_qty").toString();
 
@@ -294,6 +373,58 @@ void ESManageStockItems::slotSearch()
 		}
 		else
 		{
+			displayStockItems();
+		}
+	}*/
+
+}
+
+void ESManageStockItems::slotUpdate(QString itemId)
+{
+	AddStockItem* addStockItem = new AddStockItem(this);
+	addStockItem->getUI().groupBox->setTitle("Update Stock Item");
+	addStockItem->getUI().itemIDLabel->setText(itemId);
+	addStockItem->setItemId(itemId);
+	QSqlQuery query("SELECT selling_price, quantity FROM stock_order WHERE item_id = " + itemId);
+	while (query.next())
+	{
+		QString price = query.value("selling_price").toString();
+		addStockItem->getUI().itemPrice->setText(price);
+		QString quantity = query.value("quantity").toString();
+		addStockItem->getUI().qty->setText(quantity);
+		bool isValid = false;
+		double qtyDouble = quantity.toDouble(&isValid);
+		if (isValid)
+		{
+			addStockItem->setExistingQuantityInMainStock(qtyDouble);
+		}
+	}
+
+	QSqlQuery queryStock("SELECT * FROM stock where item_id = " + itemId);
+	while (queryStock.next())
+	{
+		QString minqty = queryStock.value("min_qty").toString(), qty = queryStock.value("qty").toString();
+		addStockItem->getUI().minQty->setText(minqty);
+		addStockItem->getUI().qty->setText(qty);
+		addStockItem->setExistingQuantityInStock(qty.toDouble());
+	}
+	addStockItem->setUpdate(true);
+	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(addStockItem);
+	addStockItem->show();
+}
+
+void ESManageStockItems::slotRemove(QString itemId)
+{
+	if (ES::Utility::verifyUsingMessageBox(this, "EStore", "Do you really want to remove this?"))
+	{
+		QString str("UPDATE stock SET deleted = 1 WHERE item_id = " + itemId);
+		QSqlQuery q;
+		if (q.exec(str))
+		{
+			while (ui.tableWidget->rowCount() > 0)
+			{
+				ui.tableWidget->removeRow(0);
+			}
 			displayStockItems();
 		}
 	}
