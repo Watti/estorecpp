@@ -19,6 +19,7 @@ ESManageOrderItems::ESManageOrderItems(QWidget *parent/* = 0*/)
 	QObject::connect(ui.userSearch, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
 	QObject::connect(ui.supplierSearch, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
 	QObject::connect(ui.addOrderItemBtn, SIGNAL(clicked()), this, SLOT(slotAddNewOrderItem()));
+	QObject::connect(ui.showAllOrders, SIGNAL(stateChanged(int)), this, SLOT(slotSearch()));
 
 	QStringList headerLabels;
 	headerLabels.append("Order ID");	
@@ -86,19 +87,35 @@ void ESManageOrderItems::slotSearch()
 		supplierGiven = true;
 	}
 
-	QString searchQuery = "SELECT * FROM purchase_order WHERE deleted = 0";
+	QString searchQuery = "SELECT * FROM purchase_order WHERE deleted = 0 ";
+	if (!ui.showAllOrders->isChecked())
+	{
+		searchQuery.append("AND checked_in = 0");
+	}
 
 	if (!supplierGiven && userGiven)
 	{
-		searchQuery = "SELECT * FROM purchase_order so, user u WHERE so.user_id = u.user_id AND u.username LIKE '%" + searchUser + "%' AND so.deleted = 0";
+		searchQuery = "SELECT * FROM purchase_order so, user u WHERE so.user_id = u.user_id AND u.username LIKE '%" + searchUser + "%' AND so.deleted = 0 ";
+		if (!ui.showAllOrders->isChecked())
+		{
+			searchQuery.append("AND checked_in = 0");
+		}
 	}
 	else if (supplierGiven && !userGiven)
 	{
-		searchQuery = "SELECT * FROM purchase_order so, item i WHERE so.item_id = i.item_id AND i.item_code LIKE '%" + searchSupplier + "%' AND so.deleted = 0";
+		searchQuery = "SELECT * FROM purchase_order so, item i WHERE so.item_id = i.item_id AND i.item_code LIKE '%" + searchSupplier + "%' AND so.deleted = 0 ";
+		if (!ui.showAllOrders->isChecked())
+		{
+			searchQuery.append("AND checked_in = 0");
+		}
 	}
 	else if (supplierGiven && userGiven)
 	{
-		searchQuery = "SELECT * FROM purchase_order so, user u , item i WHERE (so.user_id = u.user_id AND so.item_id = i.item_id) AND u.username LIKE '%" + searchUser + "%' AND i.item_code LIKE '%" + searchSupplier + "%' AND so.deleted = 0";
+		searchQuery = "SELECT * FROM purchase_order so, user u , item i WHERE (so.user_id = u.user_id AND so.item_id = i.item_id) AND u.username LIKE '%" + searchUser + "%' AND i.item_code LIKE '%" + searchSupplier + "%' AND so.deleted = 0 ";
+		if (!ui.showAllOrders->isChecked())
+		{
+			searchQuery.append("AND checked_in = 0");
+		}
 	}
 	ui.tableWidget->setSortingEnabled(false);
 	QSqlQuery queryItems(searchQuery);
@@ -114,39 +131,68 @@ void ESManageOrderItems::displayItems(QSqlQuery& queryOrder)
 		row = ui.tableWidget->rowCount();
 		ui.tableWidget->insertRow(row);
 		QString poId = queryOrder.value("purchaseorder_id").toString();
+		bool checkedIn = (1 == queryOrder.value("checked_in").toInt());
+		QColor red(245, 169, 169);
+		QColor green(169, 245, 208);
+		QTableWidgetItem* tbItem = NULL;
+		tbItem = new QTableWidgetItem(poId);
+		tbItem->setBackgroundColor(checkedIn ? red : green);
 		
-		ui.tableWidget->setItem(row, 0, new QTableWidgetItem(poId));
+		ui.tableWidget->setItem(row, 0, tbItem);
 
 		QSqlQuery q("SELECT * FROM supplier WHERE deleted = 0 AND supplier_id = " + queryOrder.value("supplier_id").toString());
 		if (q.next())
 		{
-			ui.tableWidget->setItem(row, 1, new QTableWidgetItem(q.value("supplier_code").toString()));
+			tbItem = new QTableWidgetItem(q.value("supplier_code").toString());
+			tbItem->setBackgroundColor(checkedIn ? red : green);
+			ui.tableWidget->setItem(row, 1, tbItem);
 		}
-		ui.tableWidget->setItem(row, 2, new QTableWidgetItem("1"));
-		ui.tableWidget->setItem(row, 3, new QTableWidgetItem("1"));
-		ui.tableWidget->setItem(row, 4, new QTableWidgetItem("1"));
-		ui.tableWidget->setItem(row, 5, new QTableWidgetItem(queryOrder.value("comments").toString()));
+		tbItem = new QTableWidgetItem("1");
+		tbItem->setBackgroundColor(checkedIn ? red : green);
+		ui.tableWidget->setItem(row, 2, tbItem);
+		tbItem = new QTableWidgetItem("1");
+		tbItem->setBackgroundColor(checkedIn ? red : green);
+		ui.tableWidget->setItem(row, 3, tbItem);
+		tbItem = new QTableWidgetItem("1");
+		tbItem->setBackgroundColor(checkedIn ? red : green);
+		ui.tableWidget->setItem(row, 4, tbItem);
+		tbItem = new QTableWidgetItem(queryOrder.value("comments").toString());
+		tbItem->setBackgroundColor(checkedIn ? red : green);
+		ui.tableWidget->setItem(row, 5, tbItem);
 		QSqlQuery queryUser("SELECT * FROM user WHERE user_id = " + queryOrder.value("user_id").toString());
 		if (queryUser.next())
 		{
-			ui.tableWidget->setItem(row, 6, new QTableWidgetItem(queryUser.value("display_name").toString()));
+			tbItem = new QTableWidgetItem(queryUser.value("display_name").toString());
+			tbItem->setBackgroundColor(checkedIn ? red : green);
+			ui.tableWidget->setItem(row, 6, tbItem);
 		}
 
 		QWidget* base = new QWidget(ui.tableWidget);
-		QPushButton* checkInBtn = new QPushButton("Check In", base);
-		checkInBtn->setMaximumWidth(100);
+		QPushButton* checkInBtn = NULL;
+
+		if (!checkedIn)
+		{
+			checkInBtn = new QPushButton("Check In", base);
+			checkInBtn->setMaximumWidth(100);
+		}
 		QPushButton* removeBtn = new QPushButton("Remove", base);
 		removeBtn->setMaximumWidth(100);
 
-		m_updateButtonSignalMapper->setMapping(checkInBtn, poId);
-		QObject::connect(checkInBtn, SIGNAL(clicked()), m_updateButtonSignalMapper, SLOT(map()));
+		if (!checkedIn)
+		{
+			m_updateButtonSignalMapper->setMapping(checkInBtn, poId);
+			QObject::connect(checkInBtn, SIGNAL(clicked()), m_updateButtonSignalMapper, SLOT(map()));
+		}
 
 		m_removeButtonSignalMapper->setMapping(removeBtn, poId);
 		QObject::connect(removeBtn, SIGNAL(clicked()), m_removeButtonSignalMapper, SLOT(map()));
 
 		QHBoxLayout *layout = new QHBoxLayout;
 		layout->setContentsMargins(0, 0, 0, 0);
-		layout->addWidget(checkInBtn);
+		if (!checkedIn)
+		{
+			layout->addWidget(checkInBtn);
+		}
 		layout->addWidget(removeBtn);
 		layout->insertStretch(2);
 		base->setLayout(layout);

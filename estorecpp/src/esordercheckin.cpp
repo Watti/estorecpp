@@ -140,8 +140,8 @@ void ESOrderCheckIn::slotAddToStock()
 		}
 	}
 
-	QString q("INSERT INTO stock_purchase_order_item (purchaseorder_id, item_id, stock_id, qty) VALUES (" +
-		m_orderId + "," + itemId + "," + stockId + "," + ui.quantity->text() + ")");
+	QString q("INSERT INTO stock_purchase_order_item (purchaseorder_id, item_id, stock_id, qty, current_qty) VALUES (" +
+		m_orderId + "," + itemId + "," + stockId + "," + ui.quantity->text() + "," + ui.quantity->text() + ")");
 	QSqlQuery query;
 	if (!query.exec(q))
 	{
@@ -152,6 +152,8 @@ void ESOrderCheckIn::slotAddToStock()
 	}
 	else
 	{
+		QSqlQuery query("UPDATE purchase_order SET checked_in = 1 WHERE purchaseorder_id = " + m_orderId);
+
 		QMessageBox mbox;
 		mbox.setIcon(QMessageBox::Information);
 		mbox.setText(QString("Success"));
