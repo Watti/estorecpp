@@ -4,6 +4,12 @@
 #include <QSqlQuery>
 #include <QColor>
 #include <QGridLayout>
+#include "QPdfWriter"
+#include "QPainter"
+#include "QPagedPaintDevice"
+#include "QTextDocument"
+#include "QPageLayout"
+#include "QAbstractTextDocumentLayout"
 
 ESGenericSalesStatistics::ESGenericSalesStatistics(QWidget *parent /* = 0 */)
 :QWidget(parent)
@@ -14,7 +20,7 @@ ESGenericSalesStatistics::ESGenericSalesStatistics(QWidget *parent /* = 0 */)
 	ui.gridLayout->addWidget(generateAnnualSalesChart(), 0, 1);
 	//ui.gridLayout->addWidget(monthlySalesReport(), 1, 0);
 	//ui.gridLayout->addWidget(monthlySalesReport(), 1, 1);
-
+	//generateReport();
 }
 
 ESGenericSalesStatistics::~ESGenericSalesStatistics()
@@ -68,7 +74,7 @@ GobChartsView* ESGenericSalesStatistics::generatemonthlySalesChart()
 }
 
 GobChartsView* ESGenericSalesStatistics::generateAnnualSalesChart()
-{
+{	
 	GobChartsView* gobSalesChartsView = GobChartsFactory::getInstance()->createChart(PIE, this);
 	QAbstractItemModel* salesChartModel;
 	QItemSelectionModel* salesSelectionModel;
@@ -89,7 +95,9 @@ GobChartsView* ESGenericSalesStatistics::generateAnnualSalesChart()
 	{
 		QString year = billQuery.value("y").toString();
 		QStandardItem* monthItem = new QStandardItem(year);
-		model->setItem(row, col++, monthItem);
+		model->setItem(row, col, monthItem);
+		col++;
+		
 		QString total = billQuery.value("total").toString();
 		QStandardItem* totalItem = new QStandardItem(total);
 		totalItem->setToolTip(total + " - " + year);
@@ -104,5 +112,20 @@ GobChartsView* ESGenericSalesStatistics::generateAnnualSalesChart()
 	gobSalesChartsView->drawChart();
 	gobSalesChartsView->setShowTotalRange();
 	gobSalesChartsView->show();
+
 	return gobSalesChartsView;
+}
+
+void ESGenericSalesStatistics::generateReport()
+{
+	QTextDocument doc;
+	QPdfWriter writer("AnualReport.pdf");
+	QPainter painter(&writer);
+
+	writer.setPageSize(QPagedPaintDevice::A4);
+	painter.drawText(0, 0, "Here we go");
+	//painter.drawPixmap(QRect(0, 0, writer.logicalDpiX()*8.3, writer.logicalDpiY()*11.7), QPixmap("penguin.jpg"));
+
+	painter.end();
+	doc.drawContents(&painter);
 }

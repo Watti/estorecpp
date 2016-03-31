@@ -21,6 +21,8 @@ public:
 	GobChartsView* generatemonthlySalesChart();
 	GobChartsView* generateAnnualSalesChart();
 
+	void generateReport();
+
 private:
 
 	Ui::GenericSalesReport ui;
