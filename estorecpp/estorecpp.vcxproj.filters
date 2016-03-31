@@ -415,11 +415,11 @@
     <CustomBuild Include="includes\esaddmanualstockitemswidget.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="genericsalesreportwidget.ui">
-      <Filter>Form Files</Filter>
-    </CustomBuild>
     <CustomBuild Include="includes\esgenericsalesstatistics.h">
       <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="genericsalesreportwidget.ui">
+      <Filter>Form Files</Filter>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>

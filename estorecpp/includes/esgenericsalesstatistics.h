@@ -18,7 +18,8 @@ public:
 
 	Ui::GenericSalesReport& getUI() { return ui; };
 
-	GobChartsView* monthlySalesReport();
+	GobChartsView* generatemonthlySalesChart();
+	GobChartsView* generateAnnualSalesChart();
 
 private:
 

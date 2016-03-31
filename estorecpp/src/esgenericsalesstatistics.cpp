@@ -10,10 +10,10 @@ ESGenericSalesStatistics::ESGenericSalesStatistics(QWidget *parent /* = 0 */)
 {
 	ui.setupUi(this);
 
-	ui.gridLayout->addWidget(monthlySalesReport(), 0, 0);
-	ui.gridLayout->addWidget(monthlySalesReport(), 0, 1);
-	ui.gridLayout->addWidget(monthlySalesReport(), 1, 0);
-	ui.gridLayout->addWidget(monthlySalesReport(), 1, 1);
+	ui.gridLayout->addWidget(generatemonthlySalesChart(), 0, 0);
+	ui.gridLayout->addWidget(generateAnnualSalesChart(), 0, 1);
+	//ui.gridLayout->addWidget(monthlySalesReport(), 1, 0);
+	//ui.gridLayout->addWidget(monthlySalesReport(), 1, 1);
 
 }
 
@@ -22,7 +22,7 @@ ESGenericSalesStatistics::~ESGenericSalesStatistics()
 
 }
 
-GobChartsView* ESGenericSalesStatistics::monthlySalesReport()
+GobChartsView* ESGenericSalesStatistics::generatemonthlySalesChart()
 {
 	GobChartsView* gobSalesChartsView = GobChartsFactory::getInstance()->createChart(BAR, this);
 	QAbstractItemModel* salesChartModel;
@@ -57,7 +57,6 @@ GobChartsView* ESGenericSalesStatistics::monthlySalesReport()
 	gobSalesChartsView->setVerticalGridLines(true, row);
 	gobSalesChartsView->setHorizontalGridLines(true, row);
 	gobSalesChartsView->setModel(model);
-
 	QItemSelectionModel *selectionModel = new QItemSelectionModel(model);
 	gobSalesChartsView->setSelectionModel(selectionModel);
 
@@ -65,5 +64,45 @@ GobChartsView* ESGenericSalesStatistics::monthlySalesReport()
 	gobSalesChartsView->setShowTotalRange();
 	gobSalesChartsView->show();
 
+	return gobSalesChartsView;
+}
+
+GobChartsView* ESGenericSalesStatistics::generateAnnualSalesChart()
+{
+	GobChartsView* gobSalesChartsView = GobChartsFactory::getInstance()->createChart(PIE, this);
+	QAbstractItemModel* salesChartModel;
+	QItemSelectionModel* salesSelectionModel;
+	gobSalesChartsView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+	QFont font;
+	gobSalesChartsView->setFont(font);
+	//gobSalesChartsView->setLabelDetails(XLABEL, "Year/Month", font, QColor::fromRgb(0, 0, 0), Qt::AlignCenter);
+	//gobSalesChartsView->setLabelDetails(YLABEL, "Total", font, QColor::fromRgb(0, 0, 0), Qt::AlignCenter);
+	gobSalesChartsView->setLabelDetails(HEADER, "Annual Sales Summary", font, QColor::fromRgb(0, 0, 0), Qt::AlignCenter);
+	gobSalesChartsView->setGridLineStyle(Qt::DashLine);
+	gobSalesChartsView->setGridColour(QColor::fromRgb(10, 40, 50));
+
+	//All the bill amount vs date
+	QStandardItemModel *model = new QStandardItemModel(this);
+	QSqlQuery billQuery("SELECT SUM(amount) as total, year(date) as y FROM bill WHERE deleted = 0 AND status = 1 GROUP BY YEAR(date)");
+	int row = 0, col = 0;
+	while (billQuery.next())
+	{
+		QString year = billQuery.value("y").toString();
+		QStandardItem* monthItem = new QStandardItem(year);
+		model->setItem(row, col++, monthItem);
+		QString total = billQuery.value("total").toString();
+		QStandardItem* totalItem = new QStandardItem(total);
+		totalItem->setToolTip(total + " - " + year);
+		model->setItem(row, col, totalItem);
+		row++;
+		col = 0;
+	}
+	gobSalesChartsView->setModel(model);
+	QItemSelectionModel *selectionModel = new QItemSelectionModel(model);
+	gobSalesChartsView->setSelectionModel(selectionModel);
+
+	gobSalesChartsView->drawChart();
+	gobSalesChartsView->setShowTotalRange();
+	gobSalesChartsView->show();
 	return gobSalesChartsView;
 }
