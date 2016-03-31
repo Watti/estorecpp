@@ -1,7 +1,7 @@
 #ifndef ES_ADDMANUAL_STOCKITEMS_H
 #define ES_ADDMANUAL_STOCKITEMS_H
 #include "ui_addmanualstockitems.h"
-#include <QStandardItemModel>
+#include <QtSql/QSqlQuery>
 #include <QtGui>
 
 class ESAddManualStockItems : public QWidget
@@ -14,6 +14,8 @@ public:
 
 	public slots:
 	void slotSearch();
+	void slotItemSelected(int row, int col);
+	void slotAddToStock();
 
 private:
 	Ui::AddManualStockItems ui;
