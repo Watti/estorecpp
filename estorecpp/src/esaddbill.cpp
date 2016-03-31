@@ -339,22 +339,16 @@ void ESAddBill::proceedPendingBill(QString billId)
 			QString stockId = queryAllSales.value("stock_id").toString();
 			QString qty = queryAllSales.value("quantity").toString();
 			QString discount = queryAllSales.value("discount").toString();
-			QString amount = queryAllSales.value("total").toString();
+			QString amount = QString::number(queryAllSales.value("total").toDouble(), 'f', 2);
 			QString saleId = queryAllSales.value("sale_id").toString();
 			QString price = "0", itemCode = "", itemName = "";
 			q = "SELECT * FROM item i, stock s WHERE i.item_id = s.item_id AND s.stock_id = " + stockId;
 			QSqlQuery quaryStockItem(q);
-			while (quaryStockItem.next())
+			if (quaryStockItem.next())
 			{
 				itemCode = quaryStockItem.value("item_code").toString();
 				itemName = quaryStockItem.value("item_name").toString();
-
-				q = "SELECT * FROM stock_order WHERE item_id = " + quaryStockItem.value("item_id").toString();
-				QSqlQuery stockOrderQuery(q);
-				while (stockOrderQuery.next())
-				{
-					price = stockOrderQuery.value("selling_price").toString();
-				}
+				price = QString::number(quaryStockItem.value("selling_price").toDouble(), 'f', 2);
 			}
 			row = ui.tableWidget->rowCount();
 			ui.tableWidget->insertRow(row);
