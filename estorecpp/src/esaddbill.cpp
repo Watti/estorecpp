@@ -37,14 +37,16 @@ ESAddBill::ESAddBill(QWidget *parent)
 	QTimer *timer = new QTimer(this);
 	timer->start(1000);
 
+	m_removeButtonSignalMapper = new QSignalMapper(this);
+
 	new QShortcut(QKeySequence(Qt::Key_F4), this, SLOT(slotShowAddItem()));
 	new QShortcut(QKeySequence(Qt::Key_F3), this, SLOT(slotStartNewBill()));
-	connect(timer, SIGNAL(timeout()), this, SLOT(showTime()));
-	connect(ui.tableWidget, SIGNAL(cellClicked(int, int)), this, SLOT(slotEdit(int, int)));
+	QObject::connect(timer, SIGNAL(timeout()), this, SLOT(showTime()));
+	QObject::connect(ui.tableWidget, SIGNAL(cellClicked(int, int)), this, SLOT(slotEdit(int, int)));
 	QObject::connect(ui.commitButton, SIGNAL(clicked()), this, SLOT(slotCommit()));
 	QObject::connect(ui.suspendButton, SIGNAL(clicked()), this, SLOT(slotSuspend()));
 	QObject::connect(ui.cancelButton, SIGNAL(clicked()), this, SLOT(slotCancel()));
-
+	QObject::connect(m_removeButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotRemoveItem(QString)));
 
 	if (!ES::DbConnection::instance()->open())
 	{
@@ -66,11 +68,6 @@ ESAddBill::ESAddBill(QWidget *parent)
 	ui.billedByLabel->setText(ES::Session::getInstance()->getUser()->getName());
 	ui.branchLabel->setText("NUGEGODA");
 	ui.billIdLabel->setText("###");
-
-	m_removeButtonSignalMapper = new QSignalMapper(this);
-
-	QObject::connect(m_removeButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotRemoveItem(QString)));
-
 
 }
 
@@ -102,11 +99,10 @@ void ESAddBill::slotShowAddItem()
 
 void ESAddBill::slotStartNewBill()
 {
-
 	if (!ES::Session::getInstance()->isBillStarted())
 	{
 		ES::Session::getInstance()->startBill();
-		QString insertBillQuery("INSERT INTO Bill (user_id) VALUES(");
+		QString insertBillQuery("INSERT INTO bill (user_id) VALUES(");
 		QString userID;
 		userID.setNum(ES::Session::getInstance()->getUser()->getId());
 		insertBillQuery.append(userID);
@@ -120,7 +116,6 @@ void ESAddBill::slotStartNewBill()
 		ES::Session::getInstance()->setBillId(billID);
 		ui.billIdLabel->setText(billID);
 		ui.billedByLabel->setText(ES::Session::getInstance()->getUser()->getName());
-		//ui.branchLabel->setText("NUGEGODA");
 	}
 }
 
@@ -150,33 +145,25 @@ void ESAddBill::slotReturnPressed(QString saleId, int row)
 			palette.setColor(QPalette::Base, QColor(88, 88, 250));
 			palette.setColor(QPalette::Text, Qt::white);
 			le->setPalette(palette);
-
 			le->setReadOnly(false);
 		}
 		else
 		{
 			le->setPalette(parentWidget()->palette());
 			le->setReadOnly(true);
-			float quantity = le->text().toFloat();
+			double quantity = le->text().toDouble();
 
-			QSqlQuery saleQuery("SELECT st.item_id FROM stock st, sale s WHERE s.stock_id = st.stock_id AND s.sale_id = " + saleId);
-			if (saleQuery.first())
+			QSqlQuery query("SELECT stock.selling_price FROM stock JOIN sale ON stock.stock_id = sale.stock_id WHERE sale.deleted = 0");
+			if (query.first())
 			{
-				QString itemId = saleQuery.value("item_id").toString();
-				QString qStr("SELECT * from stock_order WHERE item_id = " + itemId);
-				QSqlQuery sOrderQuery(qStr);
-				if (sOrderQuery.first())
-				{
-					float uPrice = sOrderQuery.value("selling_price").toFloat();
-					float dicount = sOrderQuery.value("discount_type").toFloat();
+				double sellingPrice = query.value("selling_price").toDouble();
+				double discount = 0.0;
+				double subTotal = sellingPrice * quantity * ((100 - discount) / 100.f);
 
-					float subTotal = uPrice*quantity * ((100 - dicount) / 100.f);
-					QString st = QString::number(subTotal, 'f', 2);
-					ui.tableWidget->item(row, 5)->setText(st);
+				QString st = QString::number(subTotal, 'f', 2);
+				ui.tableWidget->item(row, 5)->setText(st);
 
-					QString q = "UPDATE sale SET quantity = " + le->text() + ", total = " + st + " WHERE sale_id = " + saleId;
-					QSqlQuery query(q);
-				}
+				QSqlQuery q("UPDATE sale SET quantity = " + le->text() + ", total = " + st + " WHERE sale_id = " + saleId);
 			}
 
 		}

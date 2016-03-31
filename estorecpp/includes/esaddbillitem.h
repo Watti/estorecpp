@@ -22,7 +22,7 @@ protected:
 	void keyPressEvent(QKeyEvent * event);
 
 private:
-	void addToBill(QString itemCode);
+	void addToBill(QString stockId);
 
 	Ui::AddBillItemWidget ui;
 	ESAddBill* m_cart;

@@ -13,6 +13,7 @@ ESAddBillItem::ESAddBillItem(ESAddBill* cart, QWidget *parent)
 	m_cart = cart;
 	ui.setupUi(this);
 	QStringList headerLabels;
+	headerLabels.append("Stock ID");
 	headerLabels.append("Item Code");
 	headerLabels.append("Item Name");
 	headerLabels.append("Price");
@@ -24,6 +25,7 @@ ESAddBillItem::ESAddBillItem(ESAddBill* cart, QWidget *parent)
 	ui.tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	ui.tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
 	ui.tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+	ui.tableWidget->hideColumn(0);
 
 	new QShortcut(QKeySequence(Qt::Key_Escape), this, SLOT(close()));
 	ui.itemText->setFocus();
@@ -48,31 +50,30 @@ void ESAddBillItem::slotSearch()
 		ui.tableWidget->removeRow(0);
 	}
 
-	QSqlQuery queryStocks("SELECT item_id FROM stock");
+	QString q;
+	q.append("SELECT stock.stock_id, item.item_code, item.item_name, stock.selling_price FROM item JOIN stock ON item.item_id = stock.item_id WHERE stock.deleted = 0 ");
+
+	if (!searchText.isEmpty())
+	{
+		q.append(" AND (item.item_code LIKE '%" + searchText + "%' OR item.item_name LIKE '%" + searchText + "%')");
+	}
+
+	ui.tableWidget->setSortingEnabled(false);
+	QSqlQuery queryStocks(q);
 	while (queryStocks.next())
 	{
-		QString queryString("SELECT * FROM item WHERE item_id = " + queryStocks.value(0).toString());
+		int row = ui.tableWidget->rowCount();
+		ui.tableWidget->insertRow(row);
 
-		if (!searchText.isEmpty())
-		{
-			queryString.append(" AND (item_code LIKE '%" + searchText + "%' OR item_name LIKE '%" + searchText + "%')");
-		}
-		
-		QSqlQuery queryItems(queryString);
-		int itemId = queryStocks.value(0).toInt();
-
-		while (queryItems.next())
-		{
-			int row = ui.tableWidget->rowCount();
-			ui.tableWidget->insertRow(row);
-
-			ui.tableWidget->setItem(row, 0, new QTableWidgetItem(queryItems.value(2).toString()));
-			ui.tableWidget->setItem(row, 1, new QTableWidgetItem(queryItems.value(3).toString()));
-			ui.tableWidget->setItem(row, 2, new QTableWidgetItem(""));
-			ui.tableWidget->setItem(row, 3, new QTableWidgetItem(""));
-		}
+		ui.tableWidget->setItem(row, 0, new QTableWidgetItem(queryStocks.value("stock_id").toString()));
+		ui.tableWidget->setItem(row, 1, new QTableWidgetItem(queryStocks.value("item_code").toString()));
+		ui.tableWidget->setItem(row, 2, new QTableWidgetItem(queryStocks.value("item_name").toString()));
+		ui.tableWidget->setItem(row, 3, new QTableWidgetItem(queryStocks.value("selling_price").toString()));
+		ui.tableWidget->setItem(row, 4, new QTableWidgetItem("0"));
 	}
+	ui.tableWidget->setSortingEnabled(true);
 	ui.tableWidget->selectRow(0);
+	ui.tableWidget->setFocus();
 }
 
 void ESAddBillItem::keyPressEvent(QKeyEvent * event)
@@ -81,13 +82,12 @@ void ESAddBillItem::keyPressEvent(QKeyEvent * event)
 	{
 	case Qt::Key_Return:
 	{
-		QList<QTableWidgetItem *> items = ui.tableWidget->selectedItems();
-		
-		if (!items.empty())
-		{
-			QTableWidgetItem* item = items.first();
-			addToBill(item->text());
-		}
+		int row = ui.tableWidget->currentRow();
+		QTableWidgetItem* idCell = ui.tableWidget->item(row, 0);
+		if (!idCell)
+			return;
+
+		addToBill(idCell->text());
 	}
 		break;
 	case Qt::Key_Up:
@@ -105,37 +105,16 @@ void ESAddBillItem::keyPressEvent(QKeyEvent * event)
 	}
 }
 
-void ESAddBillItem::addToBill(QString itemCode)
+void ESAddBillItem::addToBill(QString stockId)
 {
-	QString qryStrItems("SELECT item_id, item_name FROM Item WHERE item_code = '" + itemCode+"'");
-	QSqlQuery qryItems(qryStrItems);
 	QString billId = ES::Session::getInstance()->getBillId();
-	QString lastInsertedID = "";
-
-	if (qryItems.first())
+	QString lastInsertedID;
+				
+	QString q = "INSERT INTO sale (stock_id, bill_id, discount) VALUES(" + stockId + ", " + billId + ", 0)";
+	QSqlQuery query;
+	if (query.exec(q))
 	{
-		QString itemId = qryItems.value("item_id").toString();
-		QString itemName = qryItems.value("item_name").toString();
-
-		QString qryStrStockOrder("SELECT * FROM stock_order WHERE item_id = " + itemId);
-		QSqlQuery qryStockOrder(qryStrStockOrder);
-		if (qryStockOrder.first())
-		{
-			QString sellingPrice = qryStockOrder.value("selling_price").toString();
-			QString discount = qryStockOrder.value("discount_type").toString();
-			QString qryStrStock("SELECT * FROM stock WHERE item_id = " + itemId);
-			QSqlQuery qryStock(qryStrStock);
-			if (qryStock.first())
-			{
-				QString stockId = qryStock.value("stock_id").toString();				
-				QString q = "INSERT INTO sale  (stock_id,  bill_id, discount, deleted) VALUES(" + stockId + ", " + billId + "," + discount + ", 0) ";
-				QSqlQuery query;
-				if (query.exec(q))
-				{
-					lastInsertedID = query.lastInsertId().value<QString>();
-				}
-			}
-		}
+		lastInsertedID = query.lastInsertId().value<QString>();
 	}
 
 	// Clear table
@@ -145,7 +124,7 @@ void ESAddBillItem::addToBill(QString itemCode)
 	}
 	
 	// Populate table
-	QString qStr = "SELECT * FROM sale WHERE bill_id = " + billId+" AND deleted = 0";
+	QString qStr = "SELECT * FROM sale WHERE bill_id = " + billId + " AND deleted = 0";
 	QSqlQuery queryBillTable(qStr);	
 
 	int row = m_cart->getUI().tableWidget->rowCount();
@@ -157,31 +136,16 @@ void ESAddBillItem::addToBill(QString itemCode)
 		QString saleId = queryBillTable.value("sale_id").toString();
 		QString stockId = queryBillTable.value("stock_id").toString();
 
-		m_cart->getUI().tableWidget->setItem(row, 5, new QTableWidgetItem(QString::number(queryBillTable.value("total").toFloat(), 'f',2)));
-		QSqlQuery queryItem("SELECT i.* FROM item i , stock s WHERE i.item_id = s.item_id AND s.stock_id = " + stockId);
+		QSqlQuery queryItem("SELECT item.*, stock.selling_price FROM item JOIN stock ON item.item_id = stock.item_id WHERE stock.stock_id = " + stockId);
 		if (queryItem.first())
 		{
-			QString itemCode = queryItem.value("item_code").toString();
-			QString itemName = queryItem.value("item_name").toString();
+			m_cart->getUI().tableWidget->setItem(row, 0, new QTableWidgetItem(queryItem.value("item_code").toString()));
+			m_cart->getUI().tableWidget->setItem(row, 1, new QTableWidgetItem(queryItem.value("item_name").toString()));
+			m_cart->getUI().tableWidget->setItem(row, 2, new QTableWidgetItem(queryItem.value("selling_price").toString()));
+			m_cart->getUI().tableWidget->setItem(row, 3, new QTableWidgetItem(queryBillTable.value("quantity").toString()));
+			m_cart->getUI().tableWidget->setItem(row, 4, new QTableWidgetItem("0"));
+			m_cart->getUI().tableWidget->setItem(row, 5, new QTableWidgetItem(QString::number(queryBillTable.value("total").toFloat(), 'f', 2)));
 
-			m_cart->getUI().tableWidget->setItem(row, 0, new QTableWidgetItem(itemCode));
-			m_cart->getUI().tableWidget->setItem(row, 1, new QTableWidgetItem(itemName));
-
-			QSqlQuery saleQuery("SELECT st.item_id FROM stock st, sale s WHERE s.stock_id = st.stock_id AND s.sale_id = " + saleId);
-			if (saleQuery.first())
-			{
-				QString itemId = saleQuery.value("item_id").toString();
-				QString qStr("SELECT * from stock_order WHERE item_id = " + itemId);
-				QSqlQuery sOrderQuery(qStr);
-				if (sOrderQuery.first())
-				{
-					//float uPrice = sOrderQuery.value("selling_price").toFloat();
-					m_cart->getUI().tableWidget->setItem(row, 2, new QTableWidgetItem(sOrderQuery.value("selling_price").toString()));
-					m_cart->getUI().tableWidget->setItem(row, 4, new QTableWidgetItem(sOrderQuery.value("discount_type").toString()));
-					//float discount = sOrderQuery.value("discount_type").toFloat();
-
-				}
-			}
 			QWidget* base = new QWidget(m_cart->getUI().tableWidget);
 			QPushButton* removeBtn = new QPushButton("Remove", base);
 			removeBtn->setMaximumWidth(100);
@@ -196,7 +160,6 @@ void ESAddBillItem::addToBill(QString itemCode)
 			base->setLayout(layout);
 			m_cart->getUI().tableWidget->setCellWidget(row, 6, base);
 			base->show();
-			m_cart->getUI().tableWidget->setItem(row, 3, new QTableWidgetItem(queryBillTable.value("quantity").toString()));
 			m_cart->getUI().tableWidget->setItem(row, 7, new QTableWidgetItem(saleId));	
 		}
 	}
