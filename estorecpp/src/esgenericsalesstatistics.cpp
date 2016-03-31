@@ -1,39 +1,42 @@
-#include "essalesreport.h"
+#include "esgenericsalesstatistics.h"
 #include "view/gobchartsfactory.h"
 #include <QStandardItemModel>
-#include "QSqlQuery"
-#include "QColor"
+#include <QSqlQuery>
+#include <QColor>
+#include <QGridLayout>
 
-ESSalesReport::ESSalesReport(QWidget *parent /* = 0 */)
+ESGenericSalesStatistics::ESGenericSalesStatistics(QWidget *parent /* = 0 */)
 :QWidget(parent)
 {
-	monthlySalesReport();
+	ui.setupUi(this);
 
+	ui.gridLayout->addWidget(monthlySalesReport(), 0, 0);
+	ui.gridLayout->addWidget(monthlySalesReport(), 0, 1);
+	ui.gridLayout->addWidget(monthlySalesReport(), 1, 0);
+	ui.gridLayout->addWidget(monthlySalesReport(), 1, 1);
 
 }
 
-ESSalesReport::~ESSalesReport()
+ESGenericSalesStatistics::~ESGenericSalesStatistics()
 {
 
 }
 
-void ESSalesReport::monthlySalesReport()
+GobChartsView* ESGenericSalesStatistics::monthlySalesReport()
 {
 	GobChartsView* gobSalesChartsView = GobChartsFactory::getInstance()->createChart(BAR, this);
 	QAbstractItemModel* salesChartModel;
 	QItemSelectionModel* salesSelectionModel;
 	gobSalesChartsView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	QFont font;
-	font.setBold(true);
-	font.setPointSize(2);
+	//font.setBold(true);
+	//font.setPointSize(2);
 	gobSalesChartsView->setFont(font);
-	QColor c;
-	c.setNamedColor("blue");
-	gobSalesChartsView->setLabelDetails(XLABEL, "Year/Month", font, c, Qt::AlignCenter);
-	gobSalesChartsView->setLabelDetails(YLABEL, "Total", font, c, Qt::AlignCenter);
-	gobSalesChartsView->setLabelDetails(HEADER, "Monthly Sales", font, c, Qt::AlignCenter);
+	gobSalesChartsView->setLabelDetails(XLABEL, "Year/Month", font, QColor::fromRgb(0,0,0), Qt::AlignCenter);
+	gobSalesChartsView->setLabelDetails(YLABEL, "Total", font, QColor::fromRgb(0, 0, 0), Qt::AlignCenter);
+	gobSalesChartsView->setLabelDetails(HEADER, "Monthly Sales", font, QColor::fromRgb(0, 0, 0), Qt::AlignCenter);
 	gobSalesChartsView->setGridLineStyle(Qt::DashLine);
-	gobSalesChartsView->setGridColour(c);
+	gobSalesChartsView->setGridColour(QColor::fromRgb(10, 40, 50));
 
 	//All the bill amount vs date
 	QStandardItemModel *model = new QStandardItemModel(this);
@@ -52,6 +55,7 @@ void ESSalesReport::monthlySalesReport()
 		col = 0;
 	}
 	gobSalesChartsView->setVerticalGridLines(true, row);
+	gobSalesChartsView->setHorizontalGridLines(true, row);
 	gobSalesChartsView->setModel(model);
 
 	QItemSelectionModel *selectionModel = new QItemSelectionModel(model);
@@ -60,4 +64,6 @@ void ESSalesReport::monthlySalesReport()
 	gobSalesChartsView->drawChart();
 	gobSalesChartsView->setShowTotalRange();
 	gobSalesChartsView->show();
+
+	return gobSalesChartsView;
 }
