@@ -2,6 +2,7 @@
 #include "utility/esmainwindowholder.h"
 #include "utility/esdbconnection.h"
 #include "utility/utility.h"
+#include "utility/session.h"
 #include <QMessageBox>
 
 ESAddManualStockItems::ESAddManualStockItems(QWidget *parent /*= 0*/)
@@ -136,6 +137,7 @@ void ESAddManualStockItems::slotItemSelected(int row, int col)
 	{
 		ui.minQty->setText(queryStock.value("min_qty").toString());
 	}
+	ui.itemIdText->setText(itemId);
 }
 
 void ESAddManualStockItems::slotAddToStock()
@@ -144,4 +146,45 @@ void ESAddManualStockItems::slotAddToStock()
 	{
 		return;
 	}
+	QString itemId = ui.itemIdText->text();
+	QString sellingPrice = ui.sellingPrice->text();
+	double currentQty = ui.qty->text().toDouble();
+	int userId = ES::Session::getInstance()->getUser()->getId();
+	QString userIdStr;
+	userIdStr.setNum(userId);
+
+	QSqlQuery itemStock("SELECT * FROM stock WHERE deleted = 0 AND item_id = " + itemId);
+	if (itemStock.next())
+	{
+		QString stockId = itemStock.value("stock_id").toString();
+		sellingPrice = itemStock.value("selling_price").toString();
+		currentQty += itemStock.value("qty").toDouble();
+
+		QString qtyStr;
+		qtyStr.setNum(currentQty);
+		QSqlQuery q("UPDATE stock SET qty = " + qtyStr + " WHERE stock_id = " + stockId);
+	}
+	else
+	{
+		QString qtyStr;
+		qtyStr.setNum(currentQty);
+		QString q("INSERT INTO stock (item_id, qty, selling_price, user_id) VALUES (" +
+			itemId + "," + qtyStr + "," + sellingPrice + "," + userIdStr + ")");
+		QSqlQuery query;
+		if (query.exec(q))
+		{
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Information);
+			mbox.setText(QString("Success"));
+			mbox.exec();
+		}
+		else
+		{
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Critical);
+			mbox.setText(QString("Something goes wrong: stock update failed"));
+			mbox.exec();
+		}
+	}
+
 }
