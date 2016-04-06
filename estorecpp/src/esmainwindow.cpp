@@ -11,6 +11,7 @@
 #include "escashbalanceconfigure.h"
 #include "escashbalancestatus.h"
 #include "esmanageusers.h"
+#include "generatestatisticswidget.h"
 #include "esgenericsalesstatistics.h"
 #include "utility/esmenumanager.h"
 #include "utility/session.h"
@@ -229,14 +230,18 @@ void ESMainWindow::slotShowStatus()
 
 void ESMainWindow::slotGeneralReports()
 {
-
+	ESGenerateStatistics* stats = new ESGenerateStatistics(this);
+	this->setCentralWidget(stats);
+	stats->show();
 }
+
 void ESMainWindow::slotSalesReports()
 {
 	ESGenericSalesStatistics* salesReport = new ESGenericSalesStatistics(this);
 	this->setCentralWidget(salesReport);
 	salesReport->show();
 }
+
 void ESMainWindow::slotStocksReports()
 {
 

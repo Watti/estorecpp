@@ -10,6 +10,8 @@
 #include "QTextDocument"
 #include "QPageLayout"
 #include "QAbstractTextDocumentLayout"
+#include "QPrinter"
+#include <widget/gobchartswidget.h>
 
 ESGenericSalesStatistics::ESGenericSalesStatistics(QWidget *parent /* = 0 */)
 :QWidget(parent)
@@ -17,7 +19,7 @@ ESGenericSalesStatistics::ESGenericSalesStatistics(QWidget *parent /* = 0 */)
 	ui.setupUi(this);
 
 	ui.gridLayout->addWidget(generatemonthlySalesChart(), 0, 0);
-	ui.gridLayout->addWidget(generateAnnualSalesChart(), 0, 1);
+	//ui.gridLayout->addWidget(generateAnnualSalesChart(), 0, 1);
 	//ui.gridLayout->addWidget(monthlySalesReport(), 1, 0);
 	//ui.gridLayout->addWidget(monthlySalesReport(), 1, 1);
 	//generateReport();
@@ -28,9 +30,10 @@ ESGenericSalesStatistics::~ESGenericSalesStatistics()
 
 }
 
-GobChartsView* ESGenericSalesStatistics::generatemonthlySalesChart()
+GobChartsWidget* ESGenericSalesStatistics::generatemonthlySalesChart()
 {
-	GobChartsView* gobSalesChartsView = GobChartsFactory::getInstance()->createChart(BAR, this);
+	//GobChartsWidget* widget = new GobChartsWidget;
+	GobChartsWidget* gobSalesChartsView = new GobChartsWidget;//GobChartsFactory::getInstance()->createChart(BAR, this);
 	QAbstractItemModel* salesChartModel;
 	QItemSelectionModel* salesSelectionModel;
 	gobSalesChartsView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -38,11 +41,11 @@ GobChartsView* ESGenericSalesStatistics::generatemonthlySalesChart()
 	//font.setBold(true);
 	//font.setPointSize(2);
 	gobSalesChartsView->setFont(font);
-	gobSalesChartsView->setLabelDetails(XLABEL, "Year/Month", font, QColor::fromRgb(0,0,0), Qt::AlignCenter);
-	gobSalesChartsView->setLabelDetails(YLABEL, "Total", font, QColor::fromRgb(0, 0, 0), Qt::AlignCenter);
-	gobSalesChartsView->setLabelDetails(HEADER, "Monthly Sales", font, QColor::fromRgb(0, 0, 0), Qt::AlignCenter);
-	gobSalesChartsView->setGridLineStyle(Qt::DashLine);
-	gobSalesChartsView->setGridColour(QColor::fromRgb(10, 40, 50));
+	//gobSalesChartsView->setLabelDetails(XLABEL, "Year/Month", font, QColor::fromRgb(0,0,0), Qt::AlignCenter);
+	//gobSalesChartsView->setLabelDetails(YLABEL, "Total", font, QColor::fromRgb(0, 0, 0), Qt::AlignCenter);
+	//gobSalesChartsView->setLabelDetails(HEADER, "Monthly Sales", font, QColor::fromRgb(0, 0, 0), Qt::AlignCenter);
+	//gobSalesChartsView->setGridLineStyle(Qt::DashLine);
+	//gobSalesChartsView->setGridColour(QColor::fromRgb(10, 40, 50));
 
 	//All the bill amount vs date
 	QStandardItemModel *model = new QStandardItemModel(this);
@@ -60,16 +63,20 @@ GobChartsView* ESGenericSalesStatistics::generatemonthlySalesChart()
 		row++;
 		col = 0;
 	}
-	gobSalesChartsView->setVerticalGridLines(true, row);
-	gobSalesChartsView->setHorizontalGridLines(true, row);
+	//gobSalesChartsView->setVerticalGridLines(true, row);
+	//gobSalesChartsView->setHorizontalGridLines(true, row);
 	gobSalesChartsView->setModel(model);
 	QItemSelectionModel *selectionModel = new QItemSelectionModel(model);
 	gobSalesChartsView->setSelectionModel(selectionModel);
 
-	gobSalesChartsView->drawChart();
-	gobSalesChartsView->setShowTotalRange();
+	gobSalesChartsView->createChart(BAR);
+	//gobSalesChartsView->drawChart();
+	//gobSalesChartsView->setShowTotalRange();
 	gobSalesChartsView->show();
 
+	gobSalesChartsView->setMinimumSize(QSize(500,500));
+
+	
 	return gobSalesChartsView;
 }
 
@@ -121,6 +128,7 @@ void ESGenericSalesStatistics::generateReport()
 	QTextDocument doc;
 	QPdfWriter writer("AnualReport.pdf");
 	QPainter painter(&writer);
+	
 
 	writer.setPageSize(QPagedPaintDevice::A4);
 	painter.drawText(0, 0, "Here we go");
