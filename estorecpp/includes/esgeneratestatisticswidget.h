@@ -1,5 +1,5 @@
-#ifndef generatestatisticswidget_h__
-#define generatestatisticswidget_h__
+#ifndef	GENERATE_STATISTICS_H
+#define GENERATE_STATISTICS_H
 
 #include "ui_generatestatistics.h"
 #include <QtSql/QSqlQuery>
@@ -21,4 +21,4 @@ private:
 
 };
 
-#endif // generatestatisticswidget_h__
+#endif 

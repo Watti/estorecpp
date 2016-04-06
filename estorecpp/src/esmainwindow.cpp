@@ -11,7 +11,7 @@
 #include "escashbalanceconfigure.h"
 #include "escashbalancestatus.h"
 #include "esmanageusers.h"
-#include "generatestatisticswidget.h"
+#include "esgeneratestatisticswidget.h"
 #include "esgenericsalesstatistics.h"
 #include "utility/esmenumanager.h"
 #include "utility/session.h"

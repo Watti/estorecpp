@@ -1,4 +1,4 @@
-#include "generatestatisticswidget.h"
+#include "esgeneratestatisticswidget.h"
 
 ESGenerateStatistics::ESGenerateStatistics(QWidget *parent /*= 0*/)
 : QWidget(parent)

@@ -281,14 +281,14 @@
     <ClCompile Include="src\esgenericsalesstatistics.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_generatestatisticswidget.cpp">
+    <ClCompile Include="GeneratedFiles\Debug\moc_esgeneratestatisticswidget.cpp">
       <Filter>Generated Files\Debug</Filter>
     </ClCompile>
-    <ClCompile Include="src\generatestatisticswidget.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_generatestatisticswidget.cpp">
+    <ClCompile Include="GeneratedFiles\Release\moc_esgeneratestatisticswidget.cpp">
       <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="src\esgeneratestatisticswidget.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -433,7 +433,7 @@
     <CustomBuild Include="generatestatistics.ui">
       <Filter>Form Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="includes\generatestatisticswidget.h">
+    <CustomBuild Include="includes\esgeneratestatisticswidget.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
   </ItemGroup>
