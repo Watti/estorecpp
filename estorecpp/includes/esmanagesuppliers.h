@@ -11,8 +11,11 @@ public:
 	ESManageSuppliers(QWidget *parent = 0);
 	~ESManageSuppliers();
 
-	public slots:
+public slots:
+	void slotSearch();
 	void slotAddSupplier();
+	void slotShowAddSupplierView();
+	void slotShowUpdateSupplierView();
 
 private:
 	Ui::ManageSuppliers ui;
