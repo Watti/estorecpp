@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>875</width>
-    <height>339</height>
+    <height>494</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -702,6 +702,24 @@
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
+     <widget class="QWidget" name="gridLayoutWidget">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>9</y>
+        <width>841</width>
+        <height>381</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="chartGridLayout">
+       <property name="topMargin">
+        <number>1</number>
+       </property>
+       <property name="spacing">
+        <number>3</number>
+       </property>
+      </layout>
+     </widget>
     </widget>
    </item>
   </layout>
