@@ -2,6 +2,7 @@
 #define ESMANAGESUPPLIERS_H
 
 #include "ui_managesupplierswidget.h"
+#include <QtGui>
 
 class ESManageSuppliers : public QWidget
 {
@@ -15,10 +16,14 @@ public slots:
 	void slotSearch();
 	void slotAddSupplier();
 	void slotShowAddSupplierView();
-	void slotShowUpdateSupplierView();
+	void slotShowAddSupplierItemView();
+	void slotUpdate(QString id);
+	void slotRemove(QString id);
 
 private:
 	Ui::ManageSuppliers ui;
+	QSignalMapper* m_updateButtonSignalMapper;
+	QSignalMapper* m_removeButtonSignalMapper;
 
 };
 
