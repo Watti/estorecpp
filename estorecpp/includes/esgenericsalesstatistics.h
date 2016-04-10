@@ -20,7 +20,7 @@ public:
 	Ui::GenericSalesReport& getUI() { return ui; };
 
 	GobChartsWidget* generatemonthlySalesChart();
-	GobChartsView* generateAnnualSalesChart();
+	GobChartsWidget* generateAnnualSalesChart();
 
 	void generateReport();
 
