@@ -54,7 +54,7 @@ void ESGenerateStatistics::slotGenerateReport()
 											  row++;
 											  col = 0;
 										  }
-										  ui.chartGridLayout->addWidget(generateChart(&model, BAR), 0, 0);
+										  generateChart(&model, BAR);
 	}
 		break;
 	case ESGenerateStatistics::ANNUAL:
@@ -79,7 +79,7 @@ void ESGenerateStatistics::slotGenerateReport()
 											 row++;
 											 col = 0;
 										 }
-										 ui.chartGridLayout->addWidget(generateChart(&model, PIE), 0, 0);
+										 generateChart(&model, PIE);
 	}
 		break;
 	case ESGenerateStatistics::DEMANDING_ITEMS:
@@ -91,12 +91,17 @@ void ESGenerateStatistics::slotGenerateReport()
 
 QWidget* ESGenerateStatistics::generateChart(QStandardItemModel* model, GobChartsType chartType)
 {
-	GobChartsWidget* chartWidget = new GobChartsWidget;
-	//chartWidget->setWindowTitle("Annual Sales");
+	QWidget* mainWidget = new QWidget(this);
+	QVBoxLayout* mainLayout = new QVBoxLayout(mainWidget);
+	QLabel* title = new QLabel("Test");
+	title->setAlignment(Qt::AlignCenter);
+	GobChartsWidget* chartWidget = new GobChartsWidget(mainWidget);
 	QAbstractItemModel* salesChartModel;
 	QItemSelectionModel* salesSelectionModel;
-	chartWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+	chartWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
 	QFont font;
+	font.setBold(true);
+
 	chartWidget->setFont(font);
 	chartWidget->setModel(model);
 	QItemSelectionModel *selectionModel = new QItemSelectionModel(model);
@@ -104,5 +109,11 @@ QWidget* ESGenerateStatistics::generateChart(QStandardItemModel* model, GobChart
 
 	chartWidget->createChart(chartType);
 	chartWidget->show();
-	return chartWidget;
+
+	title->setFont(font);
+	mainWidget->setLayout(mainLayout);
+	mainLayout->addWidget(title);
+	mainLayout->addWidget(chartWidget);
+	
+	return mainWidget;
 }

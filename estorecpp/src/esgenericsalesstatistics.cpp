@@ -20,8 +20,8 @@ ESGenericSalesStatistics::ESGenericSalesStatistics(QWidget *parent /* = 0 */)
 {
 	ui.setupUi(this);
 
-	ui.gridLayout->addWidget(generateMonthlySalesChart(), 0, 0);
-	ui.gridLayout->addWidget(generateAnnualSalesChart(), 0,1);
+	ui.gridLayout->addWidget(generateMonthlySalesChart());
+	ui.gridLayout->addWidget(generateAnnualSalesChart());
 	//ui.gridLayout->addWidget(monthlySalesReport(), 1, 0);
 	//ui.gridLayout->addWidget(monthlySalesReport(), 1, 1);
 	//generateReport();
@@ -35,6 +35,8 @@ ESGenericSalesStatistics::~ESGenericSalesStatistics()
 GobChartsWidget* ESGenericSalesStatistics::generateMonthlySalesChart()
 {
 	GobChartsWidget* chartWidget = new GobChartsWidget;
+	chartWidget->setMinimumHeight(400);
+	chartWidget->setMinimumWidth(500);
 	//chartWidget->setWindowTitle("Monthly Sales");
 	//chartWidget->setObjectName("MontHly Sales");
 	QItemSelectionModel* salesSelectionModel;
@@ -76,6 +78,8 @@ GobChartsWidget* ESGenericSalesStatistics::generateMonthlySalesChart()
 GobChartsWidget* ESGenericSalesStatistics::generateAnnualSalesChart()
 {	
 	GobChartsWidget* chartWidget = new GobChartsWidget;
+	chartWidget->setMinimumHeight(400);
+	chartWidget->setMinimumWidth(500);
 	chartWidget->setWindowTitle("Annual Sales");
 	QAbstractItemModel* salesChartModel;
 	QItemSelectionModel* salesSelectionModel;
