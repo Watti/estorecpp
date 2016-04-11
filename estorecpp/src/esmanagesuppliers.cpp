@@ -38,6 +38,19 @@ ESManageSuppliers::ESManageSuppliers(QWidget *parent /*= 0*/)
 	ui.tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
 	ui.tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
 
+	QStringList headerLabels1;
+	headerLabels1.append("Item Code");
+	headerLabels1.append("Item Name");
+	headerLabels1.append("Category");
+	headerLabels1.append("Purchasing Price");
+
+	ui.currentItems->setHorizontalHeaderLabels(headerLabels1);
+	ui.currentItems->horizontalHeader()->setStretchLastSection(true);
+	ui.currentItems->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+	ui.currentItems->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	ui.currentItems->setSelectionBehavior(QAbstractItemView::SelectRows);
+	ui.currentItems->setSelectionMode(QAbstractItemView::SingleSelection);
+
 	if (!ES::DbConnection::instance()->open())
 	{
 		QMessageBox mbox;
@@ -141,12 +154,44 @@ void ESManageSuppliers::slotSearch()
 
 void ESManageSuppliers::slotUpdate(QString id)
 {
-	QString supplierId = id;
+	m_supplierId = id;
 
 	ui.tableArea->hide();
 	ui.detailsArea->show();
 	ui.pushButton->setText("  Update  ");
 	ui.addSupplierItemBtn->show();
+
+	// populate current items
+	QSqlQuery q("SELECT * FROM supplier_item WHERE deleted = 0 AND supplier_id = " + m_supplierId);
+
+	while (ui.currentItems->rowCount() > 0)
+	{
+		ui.currentItems->removeRow(0);
+	}
+
+	while (q.next())
+	{
+		int row = ui.currentItems->rowCount();
+		ui.currentItems->insertRow(row);
+
+		QString itemId = q.value("item_id").toString();
+
+		QSqlQuery qItems("SELECT * FROM item WHERE deleted= 0 AND item_id = " + itemId);
+		if (qItems.next())
+		{
+			QSqlQuery qCategory("SELECT * FROM item_category WHERE deleted= 0 AND itemcategory_id = " + qItems.value("itemcategory_id").toString());
+			if (qCategory.next())
+			{
+				ui.currentItems->setItem(row, 0, new QTableWidgetItem(qItems.value("item_code").toString()));
+				ui.currentItems->setItem(row, 1, new QTableWidgetItem(qItems.value("item_name").toString()));
+				ui.currentItems->setItem(row, 2, new QTableWidgetItem(qCategory.value("itemcategory_name").toString()));
+
+				double price = q.value("purchasing_price").toDouble();
+				QString formattedPrice = QString::number(price, 'f', 2);
+				ui.currentItems->setItem(row, 3, new QTableWidgetItem(formattedPrice));
+			}
+		}
+	}
 }
 
 void ESManageSuppliers::slotRemove(QString id)
@@ -166,7 +211,7 @@ void ESManageSuppliers::slotRemove(QString id)
 
 void ESManageSuppliers::slotShowAddSupplierItemView()
 {
-	ESManageSupplierItem* manageSupplierItems = new ESManageSupplierItem(this);
+	ESManageSupplierItem* manageSupplierItems = new ESManageSupplierItem(m_supplierId, this);
 	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(manageSupplierItems);
 	manageSupplierItems->show();
 }

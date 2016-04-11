@@ -10,7 +10,7 @@ class ESManageSupplierItem : public QWidget
 	Q_OBJECT
 
 public:
-	ESManageSupplierItem(QWidget *parent = 0);
+	ESManageSupplierItem(QString supplierId, QWidget *parent = 0);
 	~ESManageSupplierItem();
 
 	Ui::SupplierItemWidget& getUI() { return ui; };
@@ -18,13 +18,16 @@ public:
 public slots:
 	void slotSearch();
 	void slotItemDoubleClicked(int row, int col);
+	void slotRemove(QString id);
+	void slotAddSupplierItems();
 
 private:
 	void displayItems(QSqlQuery& queryItems);
 
 	Ui::SupplierItemWidget ui;
-	bool m_update;
-	QString m_orderId;
+	QSignalMapper* m_removeButtonSignalMapper;
+
+	QString m_supplierId;
 
 };
 

@@ -25,6 +25,8 @@ private:
 	QSignalMapper* m_updateButtonSignalMapper;
 	QSignalMapper* m_removeButtonSignalMapper;
 
+	QString m_supplierId;
+
 };
 
 #endif

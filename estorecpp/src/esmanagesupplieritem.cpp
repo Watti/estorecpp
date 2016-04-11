@@ -3,10 +3,15 @@
 #include "utility/esdbconnection.h"
 #include "utility/utility.h"
 #include <QMessageBox>
+#include "entities/SaleLineEdit.h"
 
-ESManageSupplierItem::ESManageSupplierItem(QWidget *parent /*= 0*/) : QWidget(parent)
+ESManageSupplierItem::ESManageSupplierItem(QString supplierId, QWidget *parent /*= 0*/) : QWidget(parent)
 {
+	m_supplierId = supplierId;
+
 	ui.setupUi(this);
+
+	m_removeButtonSignalMapper = new QSignalMapper(this);
 
 	QStringList headerLabels;
 	headerLabels.append("Item ID");
@@ -30,7 +35,7 @@ ESManageSupplierItem::ESManageSupplierItem(QWidget *parent /*= 0*/) : QWidget(pa
 	headerLabels1.append("Item Name");
 	headerLabels1.append("Category");
 	headerLabels1.append("Purchasing Price");
-	headerLabels1.append("Qty");
+	headerLabels1.append("Actions");
 
 	ui.selectedItemTableWidget->setHorizontalHeaderLabels(headerLabels1);
 	ui.selectedItemTableWidget->horizontalHeader()->setStretchLastSection(true);
@@ -42,6 +47,9 @@ ESManageSupplierItem::ESManageSupplierItem(QWidget *parent /*= 0*/) : QWidget(pa
 
 	QObject::connect(ui.searchTextBox, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
 	QObject::connect(ui.categoryComboBox, SIGNAL(activated(QString)), this, SLOT(slotSearch()));
+	QObject::connect(ui.itemTableWidget, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(slotItemDoubleClicked(int, int)));
+	QObject::connect(ui.addSupplierItemBtn, SIGNAL(clicked()), this, SLOT(slotAddSupplierItems()));
+	QObject::connect(m_removeButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotRemove(QString)));
 
 	if (!ES::DbConnection::instance()->open())
 	{
@@ -121,6 +129,57 @@ void ESManageSupplierItem::slotSearch()
 
 void ESManageSupplierItem::slotItemDoubleClicked(int row, int col)
 {
+	QTableWidgetItem* idCell = ui.itemTableWidget->item(row, 0);
+	if (!idCell)
+		return;
+
+	QSqlQuery queryItems("SELECT * FROM item WHERE deleted = 0 AND item_id = " + idCell->text());
+	if (queryItems.next())
+	{
+		for (int i = 0; i < ui.selectedItemTableWidget->rowCount(); i++)
+		{
+			QTableWidgetItem* cell = ui.selectedItemTableWidget->item(i, 0);
+			if (cell->text() == queryItems.value("item_id").toString())
+			{
+				ui.selectedItemTableWidget->setCurrentCell(i, 4);
+				ES::SaleLineEdit* le = static_cast<ES::SaleLineEdit*>(ui.selectedItemTableWidget->cellWidget(i, 4));
+				if (le) le->setFocus();
+				return;
+			}
+		}
+
+		int row = ui.selectedItemTableWidget->rowCount();
+		ui.selectedItemTableWidget->insertRow(row);
+
+		ui.selectedItemTableWidget->setItem(row, 0, new QTableWidgetItem(queryItems.value("item_id").toString()));
+		ui.selectedItemTableWidget->setItem(row, 1, new QTableWidgetItem(queryItems.value("item_code").toString()));
+		ui.selectedItemTableWidget->setItem(row, 2, new QTableWidgetItem(queryItems.value("item_name").toString()));
+
+		QSqlQuery queryCategories("SELECT * FROM item_category WHERE itemcategory_id = " + queryItems.value("itemcategory_id").toString());
+		if (queryCategories.next())
+		{
+			ui.selectedItemTableWidget->setItem(row, 3, new QTableWidgetItem(queryCategories.value("itemcategory_name").toString()));
+		}
+
+		ES::SaleLineEdit* lePrice = new ES::SaleLineEdit(idCell->text(), row);
+		ui.selectedItemTableWidget->setCellWidget(row, 4, lePrice);
+		lePrice->setFocus();
+
+		QWidget* base = new QWidget(ui.selectedItemTableWidget);
+		QPushButton* removeBtn = new QPushButton("Remove", base);
+		removeBtn->setMaximumWidth(100);
+
+		QObject::connect(removeBtn, SIGNAL(clicked()), m_removeButtonSignalMapper, SLOT(map()));
+		m_removeButtonSignalMapper->setMapping(removeBtn, queryItems.value("item_id").toString());
+
+		QHBoxLayout *layout = new QHBoxLayout;
+		layout->setContentsMargins(0, 0, 0, 0);
+		layout->addWidget(removeBtn);
+		layout->insertStretch(2);
+		base->setLayout(layout);
+		ui.selectedItemTableWidget->setCellWidget(row, 5, base);
+		base->show();
+	}
 
 }
 
@@ -152,5 +211,51 @@ void ESManageSupplierItem::displayItems(QSqlQuery& queryItems)
 			ui.itemTableWidget->setItem(row, 4, new QTableWidgetItem("N/A"));
 		}
 		ui.itemTableWidget->setItem(row, 5, new QTableWidgetItem(queryItems.value(5).toString()));
+	}
+}
+
+void ESManageSupplierItem::slotRemove(QString id)
+{
+	for (int i = 0; i < ui.selectedItemTableWidget->rowCount(); i++)
+	{
+		QTableWidgetItem* cell = ui.selectedItemTableWidget->item(i, 0);
+		if (cell->text() == id)
+		{
+			ui.selectedItemTableWidget->removeRow(i);
+			slotSearch();
+			return;
+		}
+	}
+}
+
+void ESManageSupplierItem::slotAddSupplierItems()
+{
+	for (int i = 0; i < ui.selectedItemTableWidget->rowCount(); i++)
+	{
+		QTableWidgetItem* idCell = ui.selectedItemTableWidget->item(i, 0);
+		QWidget* priceCell = ui.selectedItemTableWidget->cellWidget(i, 4);
+		ES::SaleLineEdit* le = static_cast<ES::SaleLineEdit*>(priceCell);
+
+		QString q("INSERT INTO supplier_item (supplier_id, item_id, purchasing_price) VALUES (");
+		q.append(m_supplierId);
+		q.append(", ");
+		q.append(idCell->text());
+		q.append(", ");
+		q.append(le->text());
+		q.append(")");
+
+		QSqlQuery query;
+		if (query.exec(q))
+		{
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Information);
+			mbox.setText(QString("Success"));
+			mbox.exec();
+
+			while (ui.selectedItemTableWidget->rowCount() > 0)
+			{
+				ui.selectedItemTableWidget->removeRow(0);
+			}
+		}
 	}
 }
