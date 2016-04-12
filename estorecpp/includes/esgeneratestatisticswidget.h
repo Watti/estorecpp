@@ -26,10 +26,16 @@ public:
 	public slots:
 	void slotGenerateReport();
 
+	void generateDemandingItemSummary();
+
+	void generateAnnualSummary();
+
+	void generateMonthlySummary();
+
 
 private:
 	Ui::GenerateStatistics ui;
-	QWidget* generateChart(QStandardItemModel* model, GobChartsType chartType = BAR);
+	QWidget* generateChart(QStandardItemModel* model, const QString& titleText, GobChartsType chartType = BAR);
 
 };
 

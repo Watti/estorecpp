@@ -35,74 +35,41 @@ void ESGenerateStatistics::slotGenerateReport()
 		break;
 	case ESGenerateStatistics::MONTHLY:
 	{
-										  QStandardItemModel model(this);
-										  int row = 0, col = 0;
-										  //int  fromMonth = ui.fromDate->date().month();
-										  //int  toMonth = ui.toDate->date().month();
+										  generateMonthlySummary();
 
-										  QString quaryStr = "SELECT SUM(amount) as total, YEAR(date) as y, MONTHNAME(date) as m FROM bill WHERE deleted = 0 AND  date BETWEEN '" + fromDate + "' AND '" + toDate + "' AND status = 1 GROUP BY MONTH(date)";
-										  QSqlQuery query(quaryStr);
-										  while (query.next())
-										  {
-											  QString yearMonth = query.value("y").toString() + "(" + query.value("m").toString() + ")";
-											  QStandardItem* monthItem = new QStandardItem(yearMonth);
-											  model.setItem(row, col++, monthItem);
-											  QString total = query.value("total").toString();
-											  QStandardItem* totalItem = new QStandardItem(total);
-											  totalItem->setToolTip(total + " - " + yearMonth);
-											  model.setItem(row, col, totalItem);
-											  row++;
-											  col = 0;
-										  }
-										  generateChart(&model, BAR);
 	}
 		break;
 	case ESGenerateStatistics::ANNUAL:
 	{
-										 int  fromYear = ui.fromDate->date().year();
-										 int  toYear = ui.toDate->date().year();
-										 QStandardItemModel model(this);
-										 int row = 0, col = 0;
-										 QString quaryStr = "SELECT SUM(amount) as total, YEAR(date) as y FROM bill WHERE deleted = 0 AND  YEAR(date) BETWEEN '" + QString::number(fromYear) + "' AND '" + QString::number(toYear) + "' AND status = 1 GROUP BY YEAR(date)";
-										 QSqlQuery query(quaryStr);
-										 while (query.next())
-										 {
-											 QString year = query.value("y").toString();
-											 QStandardItem* yearItem = new QStandardItem(year);
-											 model.setItem(row, col, yearItem);
-											 col++;
+										 generateAnnualSummary();
 
-											 QString total = query.value("total").toString();
-											 QStandardItem* totalItem = new QStandardItem(total);
-											 totalItem->setToolTip(total + " - " + year);
-											 model.setItem(row, col, totalItem);
-											 row++;
-											 col = 0;
-										 }
-										 generateChart(&model, PIE);
 	}
 		break;
 	case ESGenerateStatistics::DEMANDING_ITEMS:
+	{
+												  generateDemandingItemSummary();
+
+	}
 		break;
 	default:
 		break;
 	}
 }
 
-QWidget* ESGenerateStatistics::generateChart(QStandardItemModel* model, GobChartsType chartType)
+QWidget* ESGenerateStatistics::generateChart(QStandardItemModel* model, const QString& titleText, GobChartsType chartType)
 {
 	QWidget* mainWidget = new QWidget(this);
 	QVBoxLayout* mainLayout = new QVBoxLayout(mainWidget);
-	QLabel* title = new QLabel("Test");
+	QLabel* title = new QLabel(titleText);
 	title->setAlignment(Qt::AlignCenter);
 	GobChartsWidget* chartWidget = new GobChartsWidget(mainWidget);
 	QAbstractItemModel* salesChartModel;
 	QItemSelectionModel* salesSelectionModel;
 	chartWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
 	QFont font;
+	font.setPixelSize(14);
 	font.setBold(true);
 
-	chartWidget->setFont(font);
 	chartWidget->setModel(model);
 	QItemSelectionModel *selectionModel = new QItemSelectionModel(model);
 	chartWidget->setSelectionModel(selectionModel);
@@ -114,6 +81,98 @@ QWidget* ESGenerateStatistics::generateChart(QStandardItemModel* model, GobChart
 	mainWidget->setLayout(mainLayout);
 	mainLayout->addWidget(title);
 	mainLayout->addWidget(chartWidget);
-	
+
 	return mainWidget;
+}
+
+void ESGenerateStatistics::generateMonthlySummary()
+{
+	QStandardItemModel* model = new QStandardItemModel(this);
+	int row = 0, col = 0;
+	QString d = ui.fromDate->date().toString("yyyy-MM-dd");
+	QString quaryStr = "SELECT SUM(amount) as total, YEAR(date) as y, MONTHNAME(date) as m FROM bill WHERE deleted = 0 AND  date BETWEEN '" +
+		ui.fromDate->date().toString("yyyy-MM-dd") + "' AND '" + ui.toDate->date().toString("yyyy-MM-dd") + "' AND status = 1 GROUP BY MONTH(date)";
+	QSqlQuery query(quaryStr);
+	while (query.next())
+	{
+		QString yearMonth = query.value("y").toString() + "(" + query.value("m").toString() + ")";
+		QStandardItem* monthItem = new QStandardItem(yearMonth);
+		model->setItem(row, col++, monthItem);
+		QString total = query.value("total").toString();
+		QStandardItem* totalItem = new QStandardItem(total);
+		totalItem->setToolTip(total + " - " + yearMonth);
+		model->setItem(row, col, totalItem);
+		row++;
+		col = 0;
+	}
+
+	QLayoutItem *child;
+	while ((child = ui.chartGridLayout->takeAt(0)) != 0) {
+		delete child->widget();
+		delete child;
+	}
+	QString title("Monthly Sales Summary");
+	ui.chartGridLayout->addWidget(generateChart(model, title, BAR));
+}
+
+void ESGenerateStatistics::generateAnnualSummary()
+{
+	int  fromYear = ui.fromDate->date().year();
+	int  toYear = ui.toDate->date().year();
+	QStandardItemModel* model = new QStandardItemModel(this);
+	int row = 0, col = 0;
+	QString quaryStr = "SELECT SUM(amount) as total, YEAR(date) as y FROM bill WHERE deleted = 0 AND  YEAR(date) BETWEEN '" +
+		QString::number(fromYear) + "' AND '" + QString::number(toYear) + "' AND status = 1 GROUP BY YEAR(date)";
+	QSqlQuery query(quaryStr);
+	while (query.next())
+	{
+		QString year = query.value("y").toString();
+		QStandardItem* yearItem = new QStandardItem(year);
+		model->setItem(row, col, yearItem);
+		col++;
+
+		QString total = query.value("total").toString();
+		QStandardItem* totalItem = new QStandardItem(total);
+		totalItem->setToolTip(total + " - " + year);
+		model->setItem(row, col, totalItem);
+		row++;
+		col = 0;
+	}
+	QLayoutItem *child;
+	while ((child = ui.chartGridLayout->takeAt(0)) != 0) {
+		delete child->widget();
+		delete child;
+	}
+	QString title("Annual Sales Summary");
+	ui.chartGridLayout->addWidget(generateChart(model, title, PIE));
+}
+
+void ESGenerateStatistics::generateDemandingItemSummary()
+{
+	QStandardItemModel* model = new QStandardItemModel(this);
+	int row = 0, col = 0;
+	QString quaryStr = "SELECT SUM(sa.quantity) as qty , it.item_name as name  FROM sale as sa , stock as st , item as it WHERE (sa.stock_id = st.stock_id AND st.item_id = it.item_id) AND sa.date BETWEEN '" +
+		ui.fromDate->date().toString("yyyy-MM-dd") + "' AND '" + ui.toDate->date().toString("yyyy-MM-dd") + "' AND sa.deleted = 0 GROUP BY  sa.stock_id ORDER BY SUM(sa.quantity) ASC LIMIT 5";
+	QSqlQuery query(quaryStr);
+	while (query.next())
+	{
+		QString name = query.value("name").toString();
+		QStandardItem* yearItem = new QStandardItem(name);
+		model->setItem(row, col, yearItem);
+		col++;
+
+		QString total = query.value("qty").toString();
+		QStandardItem* totalItem = new QStandardItem(total);
+		totalItem->setToolTip(total + " - " + name);
+		model->setItem(row, col, totalItem);
+		row++;
+		col = 0;
+	}
+	QLayoutItem *child;
+	while ((child = ui.chartGridLayout->takeAt(0)) != 0) {
+		delete child->widget();
+		delete child;
+	}
+	QString title("Demanding Items");
+	ui.chartGridLayout->addWidget(generateChart(model, title, BAR));
 }

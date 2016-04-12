@@ -7,6 +7,7 @@
 #include <QAbstractItemModel>
 #include <QItemSelectionModel>
 #include "widget/gobchartswidget.h"
+#include "QStandardItemModel"
 
 class ESGenericSalesStatistics : public QWidget
 {
@@ -19,14 +20,15 @@ public:
 
 	Ui::GenericSalesReport& getUI() { return ui; };
 
-	GobChartsWidget* generateMonthlySalesChart();
-	GobChartsWidget* generateAnnualSalesChart();
 
-	void generateReport();
+	
 
 private:
 
 	Ui::GenericSalesReport ui;
+	QWidget* generateChart(QStandardItemModel* model, GobChartsType chartType, const QString& title);
+	QWidget* generateMonthlySalesChart();
+	QWidget* generateAnnualSalesChart();
 	
 };
 

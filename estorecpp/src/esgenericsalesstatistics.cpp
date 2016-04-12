@@ -22,9 +22,6 @@ ESGenericSalesStatistics::ESGenericSalesStatistics(QWidget *parent /* = 0 */)
 
 	ui.gridLayout->addWidget(generateMonthlySalesChart());
 	ui.gridLayout->addWidget(generateAnnualSalesChart());
-	//ui.gridLayout->addWidget(monthlySalesReport(), 1, 0);
-	//ui.gridLayout->addWidget(monthlySalesReport(), 1, 1);
-	//generateReport();
 }
 
 ESGenericSalesStatistics::~ESGenericSalesStatistics()
@@ -32,13 +29,11 @@ ESGenericSalesStatistics::~ESGenericSalesStatistics()
 
 }
 
-GobChartsWidget* ESGenericSalesStatistics::generateMonthlySalesChart()
+QWidget* ESGenericSalesStatistics::generateMonthlySalesChart()
 {
 	GobChartsWidget* chartWidget = new GobChartsWidget;
 	chartWidget->setMinimumHeight(400);
 	chartWidget->setMinimumWidth(500);
-	//chartWidget->setWindowTitle("Monthly Sales");
-	//chartWidget->setObjectName("MontHly Sales");
 	QItemSelectionModel* salesSelectionModel;
 	chartWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	QFont font;
@@ -62,25 +57,15 @@ GobChartsWidget* ESGenericSalesStatistics::generateMonthlySalesChart()
 		row++;
 		col = 0;
 	}
-	chartWidget->setModel(model);
-	QItemSelectionModel *selectionModel = new QItemSelectionModel(model);
-	chartWidget->setSelectionModel(selectionModel);
-	chartWidget->createChart(BAR);
-
-//  	QLabel i_label("Monthly Sales", chartWidget);
-// 	i_label.setText("Monthly Sales Report");
-//  	QVBoxLayout *vbl = new QVBoxLayout(chartWidget);
-// 	vbl->addWidget(&i_label);
-	chartWidget->show();	
-	return chartWidget;
+	QString title("Monthly Sales Summary - Recent Past");
+	return generateChart(model, BAR, title);
 }
 
-GobChartsWidget* ESGenericSalesStatistics::generateAnnualSalesChart()
+QWidget* ESGenericSalesStatistics::generateAnnualSalesChart()
 {	
 	GobChartsWidget* chartWidget = new GobChartsWidget;
 	chartWidget->setMinimumHeight(400);
 	chartWidget->setMinimumWidth(500);
-	chartWidget->setWindowTitle("Annual Sales");
 	QAbstractItemModel* salesChartModel;
 	QItemSelectionModel* salesSelectionModel;
 	chartWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -105,27 +90,35 @@ GobChartsWidget* ESGenericSalesStatistics::generateAnnualSalesChart()
 		row++;
 		col = 0;
 	}
+	QString title("Annual Sales Summary");
+	return generateChart(model, PIE, title);
+}
+
+QWidget* ESGenericSalesStatistics::generateChart(QStandardItemModel* model, GobChartsType chartType, const QString& titleText)
+{
+	QWidget* mainWidget = new QWidget(this);
+	QVBoxLayout* mainLayout = new QVBoxLayout(mainWidget);
+	QLabel* title = new QLabel(titleText);
+	title->setAlignment(Qt::AlignCenter);
+	GobChartsWidget* chartWidget = new GobChartsWidget(mainWidget);
+	QAbstractItemModel* salesChartModel;
+	QItemSelectionModel* salesSelectionModel;
+	chartWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
+	QFont font;
+	font.setPixelSize(14);
+	font.setBold(true);
+
 	chartWidget->setModel(model);
 	QItemSelectionModel *selectionModel = new QItemSelectionModel(model);
 	chartWidget->setSelectionModel(selectionModel);
 
-	chartWidget->createChart(PIE);
+	chartWidget->createChart(chartType);
 	chartWidget->show();
 
-	return chartWidget;
-}
+	title->setFont(font);
+	mainWidget->setLayout(mainLayout);
+	mainLayout->addWidget(title);
+	mainLayout->addWidget(chartWidget);
 
-void ESGenericSalesStatistics::generateReport()
-{
-	QTextDocument doc;
-	QPdfWriter writer("AnualReport.pdf");
-	QPainter painter(&writer);
-	
-
-	writer.setPageSize(QPagedPaintDevice::A4);
-	painter.drawText(0, 0, "Here we go");
-	//painter.drawPixmap(QRect(0, 0, writer.logicalDpiX()*8.3, writer.logicalDpiY()*11.7), QPixmap("penguin.jpg"));
-
-	painter.end();
-	doc.drawContents(&painter);
+	return mainWidget;
 }
