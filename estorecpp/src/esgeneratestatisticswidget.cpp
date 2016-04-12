@@ -7,12 +7,17 @@ ESGenerateStatistics::ESGenerateStatistics(QWidget *parent /*= 0*/)
 : QWidget(parent)
 {
 	ui.setupUi(this);
-	ui.fromDate->setDate(QDate(2016, 05, 01));
-	ui.toDate->setDate(QDate(2016, 06, 01));
+	QString fromDateStr("2016-05-01");
+	QString toDateStr("2016-06-01");
+	ui.fromDate->setDate(QDate::fromString(fromDateStr, "yyyy-MM-dd"));
+	ui.toDate->setDate(QDate::fromString(toDateStr, "yyyy-MM-dd"));
+	ui.fromDate->setDisplayFormat("yyyy-MM-dd");
+	ui.toDate->setDisplayFormat("yyyy-MM-dd");
 	ui.statType->addItem("Daily", DAILY);
 	ui.statType->addItem("Monthly", MONTHLY);
 	ui.statType->addItem("Annual", ANNUAL);
-	ui.statType->addItem("Items in Demand", DEMANDING_ITEMS);
+	ui.statType->addItem("Top Selling Items", TOP_SELLING_ITEMS);
+	ui.statType->addItem("Least Selling Items", LEAST_SELLING_ITEM);
 	QObject::connect(ui.generateBtn, SIGNAL(clicked()), this, SLOT(slotGenerateReport()));
 }
 
@@ -32,24 +37,18 @@ void ESGenerateStatistics::slotGenerateReport()
 	switch (type)
 	{
 	case ESGenerateStatistics::DAILY:
+		generateDailySummary();
 		break;
 	case ESGenerateStatistics::MONTHLY:
-	{
-										  generateMonthlySummary();
-
-	}
+		generateMonthlySummary();
 		break;
 	case ESGenerateStatistics::ANNUAL:
-	{
-										 generateAnnualSummary();
-
-	}
+		generateAnnualSummary();
+	case ESGenerateStatistics::TOP_SELLING_ITEMS:
+		generateDemandingItemSummary();
 		break;
-	case ESGenerateStatistics::DEMANDING_ITEMS:
-	{
-												  generateDemandingItemSummary();
-
-	}
+	case ESGenerateStatistics::LEAST_SELLING_ITEM:
+		generateLeastSellingItemsSummary();
 		break;
 	default:
 		break;
@@ -89,7 +88,6 @@ void ESGenerateStatistics::generateMonthlySummary()
 {
 	QStandardItemModel* model = new QStandardItemModel(this);
 	int row = 0, col = 0;
-	QString d = ui.fromDate->date().toString("yyyy-MM-dd");
 	QString quaryStr = "SELECT SUM(amount) as total, YEAR(date) as y, MONTHNAME(date) as m FROM bill WHERE deleted = 0 AND  date BETWEEN '" +
 		ui.fromDate->date().toString("yyyy-MM-dd") + "' AND '" + ui.toDate->date().toString("yyyy-MM-dd") + "' AND status = 1 GROUP BY MONTH(date)";
 	QSqlQuery query(quaryStr);
@@ -100,7 +98,7 @@ void ESGenerateStatistics::generateMonthlySummary()
 		model->setItem(row, col++, monthItem);
 		QString total = query.value("total").toString();
 		QStandardItem* totalItem = new QStandardItem(total);
-		totalItem->setToolTip(total + " - " + yearMonth);
+		totalItem->setToolTip(yearMonth + " - " + total);
 		model->setItem(row, col, totalItem);
 		row++;
 		col = 0;
@@ -133,7 +131,7 @@ void ESGenerateStatistics::generateAnnualSummary()
 
 		QString total = query.value("total").toString();
 		QStandardItem* totalItem = new QStandardItem(total);
-		totalItem->setToolTip(total + " - " + year);
+		totalItem->setToolTip(year + " - " + total);
 		model->setItem(row, col, totalItem);
 		row++;
 		col = 0;
@@ -152,18 +150,18 @@ void ESGenerateStatistics::generateDemandingItemSummary()
 	QStandardItemModel* model = new QStandardItemModel(this);
 	int row = 0, col = 0;
 	QString quaryStr = "SELECT SUM(sa.quantity) as qty , it.item_name as name  FROM sale as sa , stock as st , item as it WHERE (sa.stock_id = st.stock_id AND st.item_id = it.item_id) AND sa.date BETWEEN '" +
-		ui.fromDate->date().toString("yyyy-MM-dd") + "' AND '" + ui.toDate->date().toString("yyyy-MM-dd") + "' AND sa.deleted = 0 GROUP BY  sa.stock_id ORDER BY SUM(sa.quantity) ASC LIMIT 5";
+		ui.fromDate->date().toString("yyyy-MM-dd") + "' AND '" + ui.toDate->date().toString("yyyy-MM-dd") + "' AND sa.deleted = 0 GROUP BY  sa.stock_id ORDER BY SUM(sa.quantity) ASC LIMIT 10";
 	QSqlQuery query(quaryStr);
 	while (query.next())
 	{
-		QString name = query.value("name").toString();
-		QStandardItem* yearItem = new QStandardItem(name);
-		model->setItem(row, col, yearItem);
+		QString itemName = query.value("name").toString();
+		QStandardItem* item = new QStandardItem(itemName);
+		model->setItem(row, col, item);
 		col++;
 
 		QString total = query.value("qty").toString();
 		QStandardItem* totalItem = new QStandardItem(total);
-		totalItem->setToolTip(total + " - " + name);
+		totalItem->setToolTip(itemName + " - " + total);
 		model->setItem(row, col, totalItem);
 		row++;
 		col = 0;
@@ -173,6 +171,68 @@ void ESGenerateStatistics::generateDemandingItemSummary()
 		delete child->widget();
 		delete child;
 	}
-	QString title("Demanding Items");
+	QString title("Top Selling Items");
+	ui.chartGridLayout->addWidget(generateChart(model, title, BAR));
+}
+
+void ESGenerateStatistics::generateDailySummary()
+{
+	//ONLY SHOW LATEST 10 DAYS RESULTS
+	QStandardItemModel* model = new QStandardItemModel(this);
+	int row = 0, col = 0;
+	QString quaryStr = "SELECT SUM(amount) as total, DATE(date) as d FROM bill WHERE deleted = 0 AND  date BETWEEN '" +
+		ui.fromDate->date().toString("yyyy-MM-dd") + "' AND '" + ui.toDate->date().toString("yyyy-MM-dd") + "' AND status = 1 GROUP BY  DATE(date) ORDER BY DATE(date) DESC LIMIT 10";
+	QSqlQuery
+		query(quaryStr);
+	while (query.next())
+	{
+		QString date = query.value("d").toString();
+		QStandardItem* dateItem = new QStandardItem(date);
+		model->setItem(row, col++, dateItem);
+		QString total = query.value("total").toString();
+		QStandardItem* totalItem = new QStandardItem(total);
+		totalItem->setToolTip(date + " - " + total);
+		model->setItem(row, col, totalItem);
+		row++;
+		col = 0;
+	}
+
+	QLayoutItem *child;
+	while ((child = ui.chartGridLayout->takeAt(0)) != 0) {
+		delete child->widget();
+		delete child;
+	}
+	QString title("Daily Sales Summary");
+	ui.chartGridLayout->addWidget(generateChart(model, title, BAR));
+}
+
+void ESGenerateStatistics::generateLeastSellingItemsSummary()
+{
+
+	QStandardItemModel* model = new QStandardItemModel(this);
+	int row = 0, col = 0;
+	QString quaryStr = "SELECT SUM(sa.quantity) as qty , it.item_name as name  FROM sale as sa , stock as st , item as it WHERE (sa.stock_id = st.stock_id AND st.item_id = it.item_id) AND sa.date BETWEEN '" +
+		ui.fromDate->date().toString("yyyy-MM-dd") + "' AND '" + ui.toDate->date().toString("yyyy-MM-dd") + "' AND sa.deleted = 0 GROUP BY  sa.stock_id ORDER BY SUM(sa.quantity) DESC LIMIT 10";
+	QSqlQuery query(quaryStr);
+	while (query.next())
+	{
+		QString itemName = query.value("name").toString();
+		QStandardItem* item = new QStandardItem(itemName);
+		model->setItem(row, col, item);
+		col++;
+
+		QString total = query.value("qty").toString();
+		QStandardItem* totalItem = new QStandardItem(total);
+		totalItem->setToolTip(itemName + " - " + total);
+		model->setItem(row, col, totalItem);
+		row++;
+		col = 0;
+	}
+	QLayoutItem *child;
+	while ((child = ui.chartGridLayout->takeAt(0)) != 0) {
+		delete child->widget();
+		delete child;
+	}
+	QString title("Least Selling Items");
 	ui.chartGridLayout->addWidget(generateChart(model, title, BAR));
 }

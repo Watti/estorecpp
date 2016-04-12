@@ -18,25 +18,23 @@ public:
 		DAILY = 1,
 		MONTHLY,
 		ANNUAL,
-		DEMANDING_ITEMS
+		TOP_SELLING_ITEMS,
+		LEAST_SELLING_ITEM
 	};
 	ESGenerateStatistics(QWidget *parent = 0);
 	~ESGenerateStatistics();
 
-	public slots:
+public slots:
 	void slotGenerateReport();
-
-	void generateDemandingItemSummary();
-
-	void generateAnnualSummary();
-
-	void generateMonthlySummary();
-
 
 private:
 	Ui::GenerateStatistics ui;
 	QWidget* generateChart(QStandardItemModel* model, const QString& titleText, GobChartsType chartType = BAR);
-
+	void generateDailySummary();
+	void generateDemandingItemSummary();
+	void generateAnnualSummary();
+	void generateMonthlySummary();
+	void generateLeastSellingItemsSummary();
 };
 
 #endif 
