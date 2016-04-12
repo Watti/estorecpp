@@ -712,7 +712,7 @@
       <widget class="QPushButton" name="addOrderItemBtn">
        <property name="font">
         <font>
-         <pointsize>10</pointsize>
+         <pointsize>11</pointsize>
         </font>
        </property>
        <property name="text">

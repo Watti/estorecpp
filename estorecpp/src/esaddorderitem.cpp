@@ -242,9 +242,9 @@ void AddOrderItem::slotSearch()
 		row = ui.supplierTableWidget->rowCount();
 		ui.supplierTableWidget->insertRow(row);
 
-		ui.supplierTableWidget->setItem(row, 0, new QTableWidgetItem(querySuppliers.value(0).toString()));
-		ui.supplierTableWidget->setItem(row, 1, new QTableWidgetItem(querySuppliers.value(1).toString()));
-		ui.supplierTableWidget->setItem(row, 2, new QTableWidgetItem(querySuppliers.value(2).toString()));
+		ui.supplierTableWidget->setItem(row, 0, new QTableWidgetItem(querySuppliers.value("supplier_id").toString()));
+		ui.supplierTableWidget->setItem(row, 1, new QTableWidgetItem(querySuppliers.value("supplier_code").toString()));
+		ui.supplierTableWidget->setItem(row, 2, new QTableWidgetItem(querySuppliers.value("supplier_name").toString()));
 	}
 
 }
@@ -286,6 +286,47 @@ void AddOrderItem::slotSupplierSelected(int row, int col)
 	if (!idCell)
 		return;
 
+	// check whether this supplier ships selected items
+	int rowCount = 0;
+	rowCount = ui.selectedItemTableWidget->rowCount();
+	for (int i = 0; i < rowCount; i++)
+	{
+		QTableWidgetItem* itemIdCell = ui.selectedItemTableWidget->item(i, 0);
+		if (!itemIdCell)
+			continue;
+
+		QSqlQuery q("SELECT * FROM supplier_item WHERE supplier_id = " + idCell->text() + " AND item_id = " + itemIdCell->text());
+		if (!q.next())
+		{
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Critical);
+			mbox.setText(QString("Selected supplier doesn't deliver selected items"));
+			mbox.exec();
+
+			ui.supplierTableWidget->blockSignals(true);
+			if (!m_selectedSupplierId.isEmpty())
+			{
+				for (int j = 0; j < ui.supplierTableWidget->rowCount(); j++)
+				{
+					QTableWidgetItem* supplierIdCell = ui.supplierTableWidget->item(j, 0);
+					if (supplierIdCell && supplierIdCell->text() == m_selectedSupplierId)
+					{
+						ui.supplierTableWidget->setCurrentCell(j, 1);
+						ui.supplierTableWidget->setFocus();
+						break;
+					}
+				}
+			}
+			else
+			{
+				ui.supplierTableWidget->clearSelection();
+				ui.supplierTableWidget->clearFocus();
+			}
+			ui.supplierTableWidget->blockSignals(false);
+			return;
+		}
+	}
+
 	QString query("SELECT * FROM supplier WHERE deleted = 0 AND supplier_id = ");
 	query.append(idCell->text());
 	QSqlQuery supplierQry(query);
@@ -295,16 +336,29 @@ void AddOrderItem::slotSupplierSelected(int row, int col)
 		ui.supplierName->setText(supplierQry.value("supplier_name").toString());
 	}
 
-	int rowCount = ui.selectedItemTableWidget->rowCount();
+	rowCount = ui.selectedItemTableWidget->rowCount();
 	for (int i = 0; i < rowCount; i++)
 	{
-		ES::SaleLineEdit* le = static_cast<ES::SaleLineEdit*>(ui.selectedItemTableWidget->cellWidget(i, 4));
-		if (le)
+		QTableWidgetItem* itemIdCell = ui.selectedItemTableWidget->item(i, 0);
+		if (!itemIdCell)
+			continue;
+
+		QSqlQuery q("SELECT * FROM supplier_item WHERE supplier_id = " + idCell->text() + " AND item_id = " + itemIdCell->text());
+		if (q.next())
 		{
-			le->setText("325.50");
-			le->setReadOnly(true);
-		}
+			ES::SaleLineEdit* le = static_cast<ES::SaleLineEdit*>(ui.selectedItemTableWidget->cellWidget(i, 4));
+			if (le)
+			{
+				double purchasingPrice = q.value("purchasing_price").toDouble();
+				QString st = QString::number(purchasingPrice, 'f', 2);
+
+				le->setText(st);
+				//le->setReadOnly(true);
+			}
+		}		
 	}
+
+	m_selectedSupplierId = idCell->text();
 }
 
 void AddOrderItem::slotItemDoubleClicked(int row, int col)
@@ -312,10 +366,32 @@ void AddOrderItem::slotItemDoubleClicked(int row, int col)
 	QTableWidgetItem* idCell = ui.itemTableWidget->item(row, 0);
 	if (!idCell)
 		return;
-	
+
+	if (!m_selectedSupplierId.isEmpty())
+	{
+		QSqlQuery q("SELECT * FROM supplier_item WHERE supplier_id = " + m_selectedSupplierId + " AND item_id = " + idCell->text());
+		if (!q.next())
+		{
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Critical);
+			mbox.setText(QString("Selected supplier doesn't deliver selected items"));
+			mbox.exec();
+			return;
+		}
+	}
+	else
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Critical);
+		mbox.setText(QString("Please select supplier first"));
+		mbox.exec();
+		return;
+	}
+		
 	QSqlQuery queryItems("SELECT * FROM item WHERE item_id = " + idCell->text());
 	if (queryItems.next())
 	{
+		// If already a selected item
 		for (int i = 0; i < ui.selectedItemTableWidget->rowCount(); i++)
 		{
 			QTableWidgetItem* cell = ui.selectedItemTableWidget->item(i, 0);
@@ -345,12 +421,12 @@ void AddOrderItem::slotItemDoubleClicked(int row, int col)
 		ui.selectedItemTableWidget->setCellWidget(row, 4, lePrice);
 		lePrice->setFocus();
 
-		QList<QTableWidgetItem*> selected = ui.supplierTableWidget->selectedItems();
-		if (!selected.empty() && selected.first())
+		QSqlQuery q("SELECT * FROM supplier_item WHERE supplier_id = " + m_selectedSupplierId + " AND item_id = " + idCell->text());
+		if (q.next())
 		{
-			int r = ui.supplierTableWidget->row(selected.first());
-			int s = selected.size();
-			lePrice->setText("1000");
+			double purchasingPrice = q.value("purchasing_price").toDouble();
+			QString st = QString::number(purchasingPrice, 'f', 2);
+			lePrice->setText(st);
 		}
 
 		ES::SaleLineEdit* leQty = new ES::SaleLineEdit(idCell->text(), row);

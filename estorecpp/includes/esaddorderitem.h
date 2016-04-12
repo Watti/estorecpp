@@ -30,6 +30,8 @@ private:
 	Ui::AddOrderItemWidget ui;
 	bool m_update;
 	QString m_orderId;
+	QString m_selectedSupplierId;
+
 };
 
 #endif
