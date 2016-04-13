@@ -135,6 +135,13 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	mmgr->addAction("Stocks", ui.actionStocks);
 	ui.actionStocks->setIcon(QIcon("icons/stock_report.png"));
 	ui.mainToolBar->addAction(ui.actionStocks);
+	mmgr->addSeparator(ui.mainToolBar->addSeparator());
+	mmgr->addAction("Settings", ui.actionSettings);
+	ui.actionSettings->setIcon(QIcon("icons/system.png"));
+	ui.mainToolBar->addAction(ui.actionSettings);
+	mmgr->addAction("Backup & Restore", ui.actionBackupRestore);
+	ui.actionBackupRestore->setIcon(QIcon("icons/hdd.png"));
+	ui.mainToolBar->addAction(ui.actionBackupRestore);
 
 	mmgr->addMenuActionMapping("Stock", "Manage Stock Items");
 	mmgr->addMenuActionMapping("Items", "Manage Items");
