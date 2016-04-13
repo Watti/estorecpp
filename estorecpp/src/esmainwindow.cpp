@@ -52,6 +52,8 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	QObject::connect(ui.actionGeneral, SIGNAL(triggered()), this, SLOT(slotGeneralReports()));
 	QObject::connect(ui.actionSales, SIGNAL(triggered()), this, SLOT(slotSalesReports()));
 	QObject::connect(ui.actionStocks, SIGNAL(triggered()), this, SLOT(slotStocksReports()));
+	QObject::connect(ui.actionSettings, SIGNAL(triggered()), this, SLOT(slotSettings()));
+	QObject::connect(ui.actionBackupRestore, SIGNAL(triggered()), this, SLOT(slotBackupRestore()));
 	QObject::connect(m_actionLogin, SIGNAL(triggered()), this, SLOT(slotLogin()));
 	QObject::connect(m_actionProfile, SIGNAL(triggered()), this, SLOT(slotProfile()));
 	QObject::connect(m_actionLogout, SIGNAL(triggered()), this, SLOT(slotLogout()));
@@ -66,6 +68,7 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	mmgr->addMenu("Billing", ui.menuBilling);
 	mmgr->addMenu("Reports", ui.menuReports);
 	mmgr->addMenu("Cash Balance", ui.menuCashBalance);
+	mmgr->addMenu("System", ui.menuSystem);
 	mmgr->addMenu("Help", ui.menuHelp);
 
 	mmgr->addAction("Login", m_actionLogin);
@@ -143,6 +146,8 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	mmgr->addMenuActionMapping("Billing", "Current Bills");
 	mmgr->addMenuActionMapping("Cash Balance", "Configure");
 	mmgr->addMenuActionMapping("Cash Balance", "Show Status");
+	mmgr->addMenuActionMapping("System", "Settings");
+	mmgr->addMenuActionMapping("System", "Backup & Restore");
 	mmgr->addMenuActionMapping("Reports", "General");
 	mmgr->addMenuActionMapping("Reports", "Sales");
 	mmgr->addMenuActionMapping("Reports", "Stocks");
@@ -324,5 +329,15 @@ void ESMainWindow::checkForPendingBills()
 			QSqlQuery billUpdate("DELETE FROM bill WHERE bill_id = " + billId);
 		}
 	}
+}
+
+void ESMainWindow::slotSettings()
+{
+
+}
+
+void ESMainWindow::slotBackupRestore()
+{
+
 }
 

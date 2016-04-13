@@ -28,6 +28,8 @@ public slots:
 	void slotGeneralReports();
 	void slotSalesReports();
 	void slotStocksReports();
+	void slotSettings();
+	void slotBackupRestore();
 	void slotLogin();
 	void slotProfile();
 	void slotLogout();
