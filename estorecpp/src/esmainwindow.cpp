@@ -141,7 +141,7 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	mmgr->addMenuActionMapping("Orders", "Manage Suppliers");
 	mmgr->addMenuActionMapping("Billing", "Add Bill");
 	mmgr->addMenuActionMapping("Billing", "Current Bills");
-	mmgr->addMenuActionMapping("Cash Balance", "Configure");
+	mmgr->addMenuActionMapping("Cash Balance", "Start Day");
 	mmgr->addMenuActionMapping("Cash Balance", "Show Status");
 	mmgr->addMenuActionMapping("Reports", "General");
 	mmgr->addMenuActionMapping("Reports", "Sales");

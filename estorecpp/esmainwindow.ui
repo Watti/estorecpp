@@ -143,6 +143,7 @@
     </property>
     <addaction name="actionConfigure"/>
     <addaction name="actionShowStatus"/>
+    <addaction name="actionStart_Day"/>
    </widget>
    <addaction name="menuStock"/>
    <addaction name="menuItems"/>
@@ -224,6 +225,11 @@
   <action name="actionManageSuppliers">
    <property name="text">
     <string>Manage Suppliers</string>
+   </property>
+  </action>
+  <action name="actionStart_Day">
+   <property name="text">
+    <string>Start Day</string>
    </property>
   </action>
  </widget>
