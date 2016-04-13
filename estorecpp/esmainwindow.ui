@@ -144,12 +144,20 @@
     <addaction name="actionConfigure"/>
     <addaction name="actionShowStatus"/>
    </widget>
+   <widget class="QMenu" name="menuSystem">
+    <property name="title">
+     <string>System</string>
+    </property>
+    <addaction name="actionSettings"/>
+    <addaction name="actionBackupRestore"/>
+   </widget>
    <addaction name="menuStock"/>
    <addaction name="menuItems"/>
    <addaction name="menuOrders"/>
    <addaction name="menuBilling"/>
    <addaction name="menuReports"/>
    <addaction name="menuCashBalance"/>
+   <addaction name="menuSystem"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
@@ -224,6 +232,16 @@
   <action name="actionManageSuppliers">
    <property name="text">
     <string>Manage Suppliers</string>
+   </property>
+  </action>
+  <action name="actionSettings">
+   <property name="text">
+    <string>Settings</string>
+   </property>
+  </action>
+  <action name="actionBackupRestore">
+   <property name="text">
+    <string>Backup &amp; Restore</string>
    </property>
   </action>
  </widget>
