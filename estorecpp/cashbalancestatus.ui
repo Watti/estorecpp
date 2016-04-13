@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
+    <width>524</width>
     <height>300</height>
    </rect>
   </property>
@@ -47,17 +47,27 @@
     <widget class="QTableWidget" name="tableWidget">
      <column>
       <property name="text">
-       <string>Payment Type</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Total</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
        <string>User</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Starting Balance</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Handover Balance</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Total Sales</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Payment Method</string>
       </property>
      </column>
     </widget>

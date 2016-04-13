@@ -6,7 +6,9 @@ ESCashBalanceStatus::ESCashBalanceStatus(QWidget *parent) : QWidget(parent)
 	ui.setupUi(this); 
 	QStringList headerLabels;
 	headerLabels.append("User");
-	headerLabels.append("Total");
+	headerLabels.append("Day Starting Amount");
+	headerLabels.append("Total Sales");
+	headerLabels.append("Handover Amount");
 	headerLabels.append("Payment Method");
 	ui.tableWidget->setHorizontalHeaderLabels(headerLabels);
 	ui.tableWidget->horizontalHeader()->setStretchLastSection(true);
@@ -39,7 +41,7 @@ void ESCashBalanceStatus::displayStatus()
 		QSqlQuery paymentQuery("SELECT type FROM payment WHERE type_id = "+paymentMethod);
 		while (paymentQuery.next())
 		{
-			ui.tableWidget->setItem(row, 2, new QTableWidgetItem(paymentQuery.value(0).toString()));
+			ui.tableWidget->setItem(row, 4, new QTableWidgetItem(paymentQuery.value(0).toString()));
 		}
 
 		QSqlQuery userQuery("SELECT display_name FROM user WHERE user_id = " + userId);
@@ -47,6 +49,6 @@ void ESCashBalanceStatus::displayStatus()
 		{
 			ui.tableWidget->setItem(row, 0, new QTableWidgetItem(userQuery.value(0).toString()));
 		}
-		ui.tableWidget->setItem(row, 1, new QTableWidgetItem(total));
+		ui.tableWidget->setItem(row, 2, new QTableWidgetItem(total));
 	}
 }
