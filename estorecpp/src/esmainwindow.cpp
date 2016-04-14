@@ -13,6 +13,7 @@
 #include "esmanageusers.h"
 #include "esgeneratestatisticswidget.h"
 #include "esgenericsalesstatistics.h"
+#include "essystemsettings.h"
 #include "utility/esmenumanager.h"
 #include "utility/session.h"
 #include <QMessageBox>
@@ -259,6 +260,18 @@ void ESMainWindow::slotStocksReports()
 
 }
 
+void ESMainWindow::slotSettings()
+{
+	ESSystemSettings* settings = new ESSystemSettings(this);
+	this->setCentralWidget(settings);
+	settings->show();
+}
+
+void ESMainWindow::slotBackupRestore()
+{
+
+}
+
 void ESMainWindow::slotLogin()
 {
 	ESLoginWidget* loginWidget = new ESLoginWidget(this);
@@ -338,13 +351,5 @@ void ESMainWindow::checkForPendingBills()
 	}
 }
 
-void ESMainWindow::slotSettings()
-{
 
-}
-
-void ESMainWindow::slotBackupRestore()
-{
-
-}
 
