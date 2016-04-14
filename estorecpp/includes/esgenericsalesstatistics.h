@@ -29,7 +29,8 @@ private:
 	QWidget* generateChart(QStandardItemModel* model, GobChartsType chartType, const QString& title);
 	QWidget* generateMonthlySalesChart();
 	QWidget* generateAnnualSalesChart();
-	
+	QWidget * generatePayementTypeSalesChart();
+
 };
 
 #endif
