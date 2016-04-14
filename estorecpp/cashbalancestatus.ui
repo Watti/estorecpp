@@ -65,11 +65,13 @@
        <string>Total Sales</string>
       </property>
      </column>
-     <column>
-      <property name="text">
-       <string>Payment Method</string>
-      </property>
-     </column>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="btnDayoff">
+     <property name="text">
+      <string>Day Off</string>
+     </property>
     </widget>
    </item>
    <item>

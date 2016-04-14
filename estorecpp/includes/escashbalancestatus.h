@@ -13,6 +13,10 @@ public:
 
 	Ui::CashBalanceStatus& getUI();
 	void displayStatus();
+
+public slots:
+void dayOff();
+
 private:
 	Ui::CashBalanceStatus ui;
 

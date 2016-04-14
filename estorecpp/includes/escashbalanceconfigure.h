@@ -12,6 +12,9 @@ public:
 	~ESCashBalanceConfigure();
 
 	Ui::CashBalanceConfigure& getUI();
+public slots:
+void startDay();
+void exit();
 
 private:
 	Ui::CashBalanceConfigure ui;
