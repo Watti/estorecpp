@@ -22,6 +22,7 @@ ESGenericSalesStatistics::ESGenericSalesStatistics(QWidget *parent /* = 0 */)
 
 	ui.gridLayout->addWidget(generateMonthlySalesChart());
 	ui.gridLayout->addWidget(generateAnnualSalesChart());
+	ui.gridLayout->addWidget(generatePayementTypeSalesChart());
 }
 
 ESGenericSalesStatistics::~ESGenericSalesStatistics()
@@ -121,4 +122,40 @@ QWidget* ESGenericSalesStatistics::generateChart(QStandardItemModel* model, GobC
 	mainLayout->addWidget(chartWidget);
 
 	return mainWidget;
+}
+
+QWidget * ESGenericSalesStatistics::generatePayementTypeSalesChart()
+{
+	GobChartsWidget* chartWidget = new GobChartsWidget;
+	chartWidget->setMinimumHeight(400);
+	chartWidget->setMinimumWidth(500);
+	QAbstractItemModel* salesChartModel;
+	QItemSelectionModel* salesSelectionModel;
+	chartWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+	QFont font;
+	chartWidget->setFont(font);
+
+	//All the bill amount vs date
+	QStandardItemModel *model = new QStandardItemModel(this);
+	QSqlQuery query("SELECT SUM(amount) as total, payment_method FROM bill WHERE deleted = 0 AND status = 1 GROUP BY payment_method");
+	int row = 0, col = 0;
+	while (query.next())
+	{
+		QSqlQuery queryPayement("SELECT type FROM payment WHERE type_id = " + query.value("payment_method").toString());
+		while (queryPayement.next())
+		{
+			QString payMode = queryPayement.value("type").toString();
+			QStandardItem* monthItem = new QStandardItem(payMode);
+			model->setItem(row, col, monthItem);
+			col++;
+			QString total = query.value("total").toString();
+			QStandardItem* totalItem = new QStandardItem(total);
+			totalItem->setToolTip(payMode + " - " + total);
+			model->setItem(row, col, totalItem);
+			row++;
+			col = 0;
+		}
+	}
+	QString title("Payment Type - Sales Breakdown");
+	return generateChart(model, BAR, title);
 }
