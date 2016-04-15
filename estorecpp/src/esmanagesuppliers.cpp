@@ -21,6 +21,8 @@ ESManageSuppliers::ESManageSuppliers(QWidget *parent /*= 0*/)
 	QObject::connect(ui.addNewSupplier, SIGNAL(clicked()), this, SLOT(slotShowAddSupplierView()));
 	QObject::connect(ui.pushButton, SIGNAL(clicked()), this, SLOT(slotAddSupplier()));
 	QObject::connect(ui.addSupplierItemBtn, SIGNAL(clicked()), this, SLOT(slotShowAddSupplierItemView()));
+	QObject::connect(ui.searchTextBox, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
+	QObject::connect(ui.categoryComboBox, SIGNAL(activated(QString)), this, SLOT(slotSearch()));
 
 	QStringList headerLabels;
 	headerLabels.append("Supplier Code");
@@ -60,6 +62,18 @@ ESManageSuppliers::ESManageSuppliers(QWidget *parent /*= 0*/)
 	}
 	else
 	{
+		QSqlQuery queryCategory("SELECT * FROM item_category WHERE deleted = 0");
+		QString catCode = "select";
+		int catId = -1;
+
+		ui.categoryComboBox->addItem(catCode, catId);
+
+		while (queryCategory.next())
+		{
+			catId = queryCategory.value("itemcategory_id").toInt();
+			ui.categoryComboBox->addItem(queryCategory.value("itemcategory_name").toString(), catId);
+		}
+
 		slotSearch();
 	}
 }
@@ -108,47 +122,62 @@ void ESManageSuppliers::slotShowAddSupplierView()
 
 void ESManageSuppliers::slotSearch()
 {
-	QSqlQuery q("SELECT * FROM supplier WHERE deleted = 0");
+	QString searchText = ui.searchTextBox->text();
+	int categoryId = ui.categoryComboBox->currentData().toInt();
 
-	while (ui.tableWidget->rowCount() > 0)
+	if (categoryId == -1)
 	{
-		ui.tableWidget->removeRow(0);
+		QString qry("SELECT * FROM supplier WHERE deleted = 0 ");
+		if (!searchText.isEmpty())
+		{
+			qry.append(" AND (supplier_code LIKE '%" + searchText + "%' OR supplier_name LIKE '%" + searchText + "%')");
+		}
+
+		while (ui.tableWidget->rowCount() > 0)
+		{
+			ui.tableWidget->removeRow(0);
+		}
+
+		QSqlQuery q(qry);
+		while (q.next())
+		{
+			int row = ui.tableWidget->rowCount();
+			ui.tableWidget->insertRow(row);
+
+			ui.tableWidget->setItem(row, 0, new QTableWidgetItem(q.value("supplier_code").toString()));
+			ui.tableWidget->setItem(row, 1, new QTableWidgetItem(q.value("supplier_name").toString()));
+			ui.tableWidget->setItem(row, 2, new QTableWidgetItem(q.value("phone").toString()));
+			ui.tableWidget->setItem(row, 3, new QTableWidgetItem(q.value("fax").toString()));
+			ui.tableWidget->setItem(row, 4, new QTableWidgetItem(q.value("email").toString()));
+			ui.tableWidget->setItem(row, 5, new QTableWidgetItem(q.value("address").toString()));
+
+			QString supplierId = q.value("supplier_id").toString();
+
+			QWidget* base = new QWidget(ui.tableWidget);
+			QPushButton* updateBtn = new QPushButton("Update", base);
+			updateBtn->setMaximumWidth(100);
+			QPushButton* removeBtn = new QPushButton("Remove", base);
+			removeBtn->setMaximumWidth(100);
+
+			m_updateButtonSignalMapper->setMapping(updateBtn, supplierId);
+			QObject::connect(updateBtn, SIGNAL(clicked()), m_updateButtonSignalMapper, SLOT(map()));
+
+			QObject::connect(removeBtn, SIGNAL(clicked()), m_removeButtonSignalMapper, SLOT(map()));
+			m_removeButtonSignalMapper->setMapping(removeBtn, supplierId);
+
+			QHBoxLayout *layout = new QHBoxLayout;
+			layout->setContentsMargins(0, 0, 0, 0);
+			layout->addWidget(updateBtn);
+			layout->addWidget(removeBtn);
+			layout->insertStretch(2);
+			base->setLayout(layout);
+			ui.tableWidget->setCellWidget(row, 6, base);
+			base->show();
+		}
 	}
-
-	while (q.next())
+	else
 	{
-		int row = ui.tableWidget->rowCount();
-		ui.tableWidget->insertRow(row);
-
-		ui.tableWidget->setItem(row, 0, new QTableWidgetItem(q.value("supplier_code").toString()));
-		ui.tableWidget->setItem(row, 1, new QTableWidgetItem(q.value("supplier_name").toString()));
-		ui.tableWidget->setItem(row, 2, new QTableWidgetItem(q.value("phone").toString()));
-		ui.tableWidget->setItem(row, 3, new QTableWidgetItem(q.value("fax").toString()));
-		ui.tableWidget->setItem(row, 4, new QTableWidgetItem(q.value("email").toString()));
-		ui.tableWidget->setItem(row, 5, new QTableWidgetItem(q.value("address").toString()));
-
-		QString supplierId = q.value("supplier_id").toString();
-
-		QWidget* base = new QWidget(ui.tableWidget);
-		QPushButton* updateBtn = new QPushButton("Update", base);
-		updateBtn->setMaximumWidth(100);
-		QPushButton* removeBtn = new QPushButton("Remove", base);
-		removeBtn->setMaximumWidth(100);
-
-		m_updateButtonSignalMapper->setMapping(updateBtn, supplierId);
-		QObject::connect(updateBtn, SIGNAL(clicked()), m_updateButtonSignalMapper, SLOT(map()));
-
-		QObject::connect(removeBtn, SIGNAL(clicked()), m_removeButtonSignalMapper, SLOT(map()));
-		m_removeButtonSignalMapper->setMapping(removeBtn, supplierId);
-
-		QHBoxLayout *layout = new QHBoxLayout;
-		layout->setContentsMargins(0, 0, 0, 0);
-		layout->addWidget(updateBtn);
-		layout->addWidget(removeBtn);
-		layout->insertStretch(2);
-		base->setLayout(layout);
-		ui.tableWidget->setCellWidget(row, 6, base);
-		base->show();
+		// todo: filter based on supplier's item type
 	}
 }
 

@@ -594,7 +594,7 @@
             </palette>
            </property>
            <property name="text">
-            <string>Category</string>
+            <string>Item Category</string>
            </property>
           </widget>
          </item>
