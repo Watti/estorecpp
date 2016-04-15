@@ -14,15 +14,20 @@
 #include "esgeneratestatisticswidget.h"
 #include "esgenericsalesstatistics.h"
 #include "essystemsettings.h"
+#include "escalculator.h"
 #include "utility/esmenumanager.h"
 #include "utility/session.h"
-#include <QMessageBox>
 #include "utility/utility.h"
+#include <QMessageBox>
+#include <QShortcut>
 
 ESMainWindow::ESMainWindow(QWidget *parent)
 : QMainWindow(parent)
 {
 	ui.setupUi(this);
+
+	calc = new ESCalculator(this);
+	calc->setWindowModality(Qt::ApplicationModal);
 
 	QMenuBar* rightMenubar = new QMenuBar(ui.menuBar);
 	QMenu* menuLogin = new QMenu("User", rightMenubar);
@@ -59,6 +64,8 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	QObject::connect(m_actionProfile, SIGNAL(triggered()), this, SLOT(slotProfile()));
 	QObject::connect(m_actionLogout, SIGNAL(triggered()), this, SLOT(slotLogout()));
 	QObject::connect(m_actionManageUsers, SIGNAL(triggered()), this, SLOT(slotManageUsers()));
+
+	new QShortcut(QKeySequence(Qt::Key_F9), this, SLOT(slotShowCalculator()));
 
 	// initialize menu manager
 	ES::MenuManager* mmgr = ES::MenuManager::instance();
@@ -363,6 +370,11 @@ void ESMainWindow::checkForPendingBills()
 			QSqlQuery billUpdate("DELETE FROM bill WHERE bill_id = " + billId);
 		}
 	}
+}
+
+void ESMainWindow::slotShowCalculator()
+{	
+	calc->show();
 }
 
 

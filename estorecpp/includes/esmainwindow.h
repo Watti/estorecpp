@@ -3,6 +3,7 @@
 
 #include <QtWidgets/QMainWindow>
 #include "ui_esmainwindow.h"
+#include "escalculator.h"
 
 class ESMainWindow : public QMainWindow
 {
@@ -33,6 +34,7 @@ public slots:
 	void slotLogin();
 	void slotProfile();
 	void slotLogout();
+	void slotShowCalculator();
 
 	void checkForPendingBills();
 
@@ -47,6 +49,7 @@ private:
 	QAction* m_actionLogout;
 	QAction* m_actionProfile;
 	QAction* m_actionManageUsers;
+	ESCalculator* calc;
 };
 
 #endif // ESMAINWINDOW_H
