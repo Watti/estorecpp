@@ -126,10 +126,16 @@ void ESManageStockItems::slotSearch()
 			ui.tableWidget->setItem(row, 1, new QTableWidgetItem(query.value("item_code").toString()));
 			ui.tableWidget->setItem(row, 2, new QTableWidgetItem(query.value("item_name").toString()));
 			ui.tableWidget->setItem(row, 3, new QTableWidgetItem(query.value("itemcategory_name").toString()));
-			ui.tableWidget->setItem(row, 4, new QTableWidgetItem(query.value("qty").toString()));
-			ui.tableWidget->setItem(row, 5, new QTableWidgetItem(query.value("min_qty").toString()));
+			QTableWidgetItem* qtyItem = new QTableWidgetItem(query.value("qty").toString());
+			qtyItem->setTextAlignment(Qt::AlignRight);
+			ui.tableWidget->setItem(row, 4, qtyItem);
+			QTableWidgetItem* minQtyItem = new QTableWidgetItem(query.value("min_qty").toString());
+			minQtyItem->setTextAlignment(Qt::AlignRight);
+			ui.tableWidget->setItem(row, 5, minQtyItem);			
 			ui.tableWidget->setItem(row, 6, new QTableWidgetItem(query.value("unit").toString()));
-			ui.tableWidget->setItem(row, 7, new QTableWidgetItem(query.value("selling_price").toString()));
+			QTableWidgetItem* priceItem = new QTableWidgetItem(QString::number(query.value("selling_price").toDouble(), 'f', 2));
+			priceItem->setTextAlignment(Qt::AlignRight);
+			ui.tableWidget->setItem(row, 7, priceItem);
 			ui.tableWidget->setItem(row, 8, new QTableWidgetItem(query.value("description").toString()));
 
 			QWidget* base = new QWidget(ui.tableWidget);
