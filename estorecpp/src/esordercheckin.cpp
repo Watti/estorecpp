@@ -76,9 +76,12 @@ ESOrderCheckIn::ESOrderCheckIn(QString orderId, QWidget *parent /*= 0*/)
 
 				QString itemId = queryOrderItems.value("item_id").toString();
 				ui.itemTableWidget->setItem(row, 0, new QTableWidgetItem(itemId));
-
-				ui.itemTableWidget->setItem(row, 4, new QTableWidgetItem(QString::number(queryOrderItems.value("purchasing_price").toDouble(), 'f', 2)));
-				ui.itemTableWidget->setItem(row, 5, new QTableWidgetItem(queryOrderItems.value("qty").toString()));
+				QTableWidgetItem* priceItm = new QTableWidgetItem(QString::number(queryOrderItems.value("purchasing_price").toDouble(), 'f', 2));
+				priceItm->setTextAlignment(Qt::AlignRight);
+				ui.itemTableWidget->setItem(row, 4, priceItm);
+				QTableWidgetItem* qtyItem = new QTableWidgetItem(queryOrderItems.value("qty").toString());
+				qtyItem->setTextAlignment(Qt::AlignRight);
+				ui.itemTableWidget->setItem(row, 5, qtyItem);
 				
 				QSqlQuery queryItem("SELECT * FROM item WHERE deleted = 0 AND item_id = " + itemId);
 				if (queryItem.next())
