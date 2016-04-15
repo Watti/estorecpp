@@ -190,6 +190,17 @@ void ESManageSuppliers::slotUpdate(QString id)
 	ui.pushButton->setText("  Update  ");
 	ui.addSupplierItemBtn->show();
 
+	QSqlQuery qs("SELECT * FROM supplier WHERE deleted = 0 AND supplier_id = " + m_supplierId);
+	if (qs.next())
+	{
+		ui.code->setText(qs.value("supplier_code").toString());
+		ui.name->setText(qs.value("supplier_name").toString());
+		ui.phone->setText(qs.value("phone").toString());
+		ui.fax->setText(qs.value("fax").toString());
+		ui.email->setText(qs.value("email").toString());
+		ui.address->setPlainText(qs.value("address").toString());
+	}
+
 	// populate current items
 	QSqlQuery q("SELECT * FROM supplier_item WHERE deleted = 0 AND supplier_id = " + m_supplierId);
 
