@@ -314,10 +314,24 @@ void ESMainWindow::checkForPendingBills()
 {
 	if (ES::Session::getInstance()->isBillStarted())
 	{
-		int choice = QMessageBox::question(0, "Warning", "Current Bill is not finished. Do you want to discard it and quit?",
-			QMessageBox::Yes, QMessageBox::No);
-		if (ES::Utility::verifyUsingMessageBox(this, "Warning", "Current Bill is not finished.Do you want to discard it and quit ? "))
+		if (ES::Utility::verifyUsingMessageBox(this, "Warning", "Current Bill is not finished. Do you want to discard it and quit ? "))
 		{
+			QSqlQuery saleQuery("SELECT * FROM sale WHERE bill_id = " + ES::Session::getInstance()->getBillId());
+			while (saleQuery.next())
+			{
+				double quantity = saleQuery.value("quantity").toDouble();
+				QString stockId = saleQuery.value("stock_id").toString();
+
+				QSqlQuery currentStockQuery("SELECT qty FROM stock WHERE stock_id = " + stockId);
+				while (currentStockQuery.next())
+				{
+					double currentQty = currentStockQuery.value("qty").toDouble();
+					double newQtyInDouble = currentQty + quantity;
+					QString newQty = QString::number(newQtyInDouble);
+					QSqlQuery stockUpdate("UPDATE stock SET qty = " + newQty + " WHERE stock_id = " + stockId);
+				}
+				QSqlQuery saleDelete("DELETE FROM sale WHERE sale_id = " + saleQuery.value("sale_id").toString());
+			}
 			QSqlQuery q("DELETE FROM bill WHERE bill_id = " + ES::Session::getInstance()->getBillId());
 		}
 	}
@@ -344,7 +358,7 @@ void ESMainWindow::checkForPendingBills()
 					QString newQty = QString::number(newQtyInDouble);
 					QSqlQuery stockUpdate("UPDATE stock SET qty = " + newQty + " WHERE stock_id = " + stockId);
 				}
-
+				QSqlQuery saleDelete("DELETE FROM sale WHERE sale_id = " + saleQuery.value("sale_id").toString());
 			}
 			QSqlQuery billUpdate("DELETE FROM bill WHERE bill_id = " + billId);
 		}
