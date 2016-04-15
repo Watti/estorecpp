@@ -15,6 +15,7 @@ public:
 public slots:
 	void slotSearch();
 	void slotAddSupplier();
+	void slotUpdateSupplier();
 	void slotShowAddSupplierView();
 	void slotShowAddSupplierItemView();
 	void slotUpdate(QString id);

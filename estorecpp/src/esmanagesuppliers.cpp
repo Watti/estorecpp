@@ -19,7 +19,8 @@ ESManageSuppliers::ESManageSuppliers(QWidget *parent /*= 0*/)
 	QObject::connect(m_updateButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotUpdate(QString)));
 	QObject::connect(m_removeButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotRemove(QString)));
 	QObject::connect(ui.addNewSupplier, SIGNAL(clicked()), this, SLOT(slotShowAddSupplierView()));
-	QObject::connect(ui.pushButton, SIGNAL(clicked()), this, SLOT(slotAddSupplier()));
+	QObject::connect(ui.addButton, SIGNAL(clicked()), this, SLOT(slotAddSupplier()));
+	QObject::connect(ui.updateButton, SIGNAL(clicked()), this, SLOT(slotUpdateSupplier()));
 	QObject::connect(ui.addSupplierItemBtn, SIGNAL(clicked()), this, SLOT(slotShowAddSupplierItemView()));
 	QObject::connect(ui.searchTextBox, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
 	QObject::connect(ui.categoryComboBox, SIGNAL(activated(QString)), this, SLOT(slotSearch()));
@@ -105,7 +106,7 @@ void ESManageSuppliers::slotAddSupplier()
 	{
 		QMessageBox mbox;
 		mbox.setIcon(QMessageBox::Critical);
-		mbox.setText(QString("insertion error :: cannot reduce this quantity from the main stock order"));
+		mbox.setText(QString("Error: Insertion failed"));
 		mbox.exec();
 	}
 
@@ -116,8 +117,9 @@ void ESManageSuppliers::slotAddSupplier()
 void ESManageSuppliers::slotShowAddSupplierView()
 {
 	ui.tableArea->hide();
+	ui.updateButton->hide();
 	ui.detailsArea->show();
-	ui.pushButton->setText("  Add  ");
+	ui.addButton->show();
 }
 
 void ESManageSuppliers::slotSearch()
@@ -186,8 +188,9 @@ void ESManageSuppliers::slotUpdate(QString id)
 	m_supplierId = id;
 
 	ui.tableArea->hide();
+	ui.addButton->hide();
 	ui.detailsArea->show();
-	ui.pushButton->setText("  Update  ");
+	ui.updateButton->show();
 	ui.addSupplierItemBtn->show();
 
 	QSqlQuery qs("SELECT * FROM supplier WHERE deleted = 0 AND supplier_id = " + m_supplierId);
@@ -254,4 +257,35 @@ void ESManageSuppliers::slotShowAddSupplierItemView()
 	ESManageSupplierItem* manageSupplierItems = new ESManageSupplierItem(m_supplierId, this);
 	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(manageSupplierItems);
 	manageSupplierItems->show();
+}
+
+void ESManageSuppliers::slotUpdateSupplier()
+{
+	QString query;
+	query.append("UPDATE supplier SET supplier_code = '");
+	query.append(ui.code->text());
+	query.append("', supplier_name = '");
+	query.append(ui.name->text());
+	query.append("', phone = ");
+	query.append(ui.phone->text());
+	query.append(", fax = ");
+	query.append(ui.fax->text());
+	query.append(", email = '");
+	query.append(ui.email->text());
+	query.append("', address = '");
+	query.append(ui.address->toPlainText());
+	query.append("' WHERE supplier_id = ");
+	query.append(m_supplierId);
+
+	QSqlQuery q;
+	if (!q.exec(query))
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Critical);
+		mbox.setText(QString("Error: Update failed"));
+		mbox.exec();
+	}
+
+	ui.tableArea->show();
+	ui.detailsArea->hide();
 }
