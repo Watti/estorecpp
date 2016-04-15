@@ -68,8 +68,19 @@ void ESAddBillItem::slotSearch()
 		ui.tableWidget->setItem(row, 0, new QTableWidgetItem(queryStocks.value("stock_id").toString()));
 		ui.tableWidget->setItem(row, 1, new QTableWidgetItem(queryStocks.value("item_code").toString()));
 		ui.tableWidget->setItem(row, 2, new QTableWidgetItem(queryStocks.value("item_name").toString()));
-		ui.tableWidget->setItem(row, 3, new QTableWidgetItem(queryStocks.value("selling_price").toString()));
-		ui.tableWidget->setItem(row, 4, new QTableWidgetItem("0"));
+
+		QTableWidgetItem* sellingPrice = new QTableWidgetItem();
+		sellingPrice->setTextAlignment(Qt::AlignRight);
+		double price = queryStocks.value("selling_price").toDouble();
+		QString formattedPrice = QString::number(price, 'f', 2);
+		sellingPrice->setText(formattedPrice);
+
+		ui.tableWidget->setItem(row, 3, sellingPrice);
+
+		QTableWidgetItem* discount = new QTableWidgetItem();
+		discount->setTextAlignment(Qt::AlignRight);
+		discount->setText("0.00");
+		ui.tableWidget->setItem(row, 4, discount);
 	}
 	ui.tableWidget->setSortingEnabled(true);
 	ui.tableWidget->selectRow(0);
@@ -141,10 +152,26 @@ void ESAddBillItem::addToBill(QString stockId)
 		{
 			m_cart->getUI().tableWidget->setItem(row, 0, new QTableWidgetItem(queryItem.value("item_code").toString()));
 			m_cart->getUI().tableWidget->setItem(row, 1, new QTableWidgetItem(queryItem.value("item_name").toString()));
-			m_cart->getUI().tableWidget->setItem(row, 2, new QTableWidgetItem(queryItem.value("selling_price").toString()));
-			m_cart->getUI().tableWidget->setItem(row, 3, new QTableWidgetItem(queryBillTable.value("quantity").toString()));
-			m_cart->getUI().tableWidget->setItem(row, 4, new QTableWidgetItem("0"));
-			m_cart->getUI().tableWidget->setItem(row, 5, new QTableWidgetItem(QString::number(queryBillTable.value("total").toFloat(), 'f', 2)));
+
+			QTableWidgetItem* sellingPrice = new QTableWidgetItem();
+			sellingPrice->setTextAlignment(Qt::AlignRight);
+			sellingPrice->setText(QString::number(queryItem.value("selling_price").toDouble(), 'f', 2));
+			m_cart->getUI().tableWidget->setItem(row, 2, sellingPrice);
+
+			QTableWidgetItem* quentity = new QTableWidgetItem();
+			quentity->setTextAlignment(Qt::AlignRight);
+			quentity->setText(queryBillTable.value("quantity").toString());
+			m_cart->getUI().tableWidget->setItem(row, 3, quentity);
+
+			QTableWidgetItem* discount = new QTableWidgetItem();
+			discount->setTextAlignment(Qt::AlignRight);
+			discount->setText("0.00");
+			m_cart->getUI().tableWidget->setItem(row, 4, discount);
+			
+			QTableWidgetItem* total = new QTableWidgetItem();
+			total->setTextAlignment(Qt::AlignRight);
+			total->setText(QString::number(queryBillTable.value("total").toDouble(), 'f', 2));
+			m_cart->getUI().tableWidget->setItem(row, 5, total);
 
 			QWidget* base = new QWidget(m_cart->getUI().tableWidget);
 			QPushButton* removeBtn = new QPushButton("Remove", base);
@@ -166,6 +193,7 @@ void ESAddBillItem::addToBill(QString stockId)
 	if (row >= 0)
 	{
 		ES::SaleLineEdit* le = new ES::SaleLineEdit(lastInsertedID, row);
+		le->setAlignment(Qt::AlignRight);
 		m_cart->getUI().tableWidget->setCellWidget(row, 3, le);
 		le->setFocus();
 		connect(le, SIGNAL(returnPressed()), le, SLOT(slotQuantityUpdate()));
