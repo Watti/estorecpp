@@ -145,6 +145,7 @@ void ESManageSuppliers::slotAddSupplier()
 	{
 		ui.tableArea->show();
 		ui.detailsArea->hide();
+		slotSearch();
 	}
 }
 
@@ -301,9 +302,34 @@ void ESManageSuppliers::slotUpdateSupplier()
 	query.append("', supplier_name = '");
 	query.append(ui.name->text());
 	query.append("', phone = ");
-	query.append(ui.phone->text());
+	QString phone = ui.phone->text();
+	if (phone == nullptr || phone.isEmpty())
+	{
+		phone = "''";
+	}
+	bool phoneOk = false;
+	phone.toInt(&phoneOk, 10);
+
+	query.append(phone);
 	query.append(", fax = ");
-	query.append(ui.fax->text());
+	//query.append(ui.fax->text());
+
+	QString fax = ui.fax->text();
+	bool faxOk = false;
+	fax.toInt(&faxOk, 10);
+	if (!phoneOk || !faxOk)
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Warning);
+		mbox.setText(QString("Phone number or Fax number cannot contain text"));
+		mbox.exec();
+		return;
+	}
+	if (fax == nullptr || fax.isEmpty())
+	{
+		fax = "''";
+	}
+	query.append(fax);
 	query.append(", email = '");
 	query.append(ui.email->text());
 	query.append("', address = '");
@@ -319,7 +345,11 @@ void ESManageSuppliers::slotUpdateSupplier()
 		mbox.setText(QString("Error: Update failed"));
 		mbox.exec();
 	}
+	else
+	{
+		ui.tableArea->show();
+		ui.detailsArea->hide();
+		slotSearch();
+	}
 
-	ui.tableArea->show();
-	ui.detailsArea->hide();
 }
