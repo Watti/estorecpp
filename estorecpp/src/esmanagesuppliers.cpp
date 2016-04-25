@@ -86,15 +86,47 @@ ESManageSuppliers::~ESManageSuppliers()
 
 void ESManageSuppliers::slotAddSupplier()
 {
+	if (ui.name->text() == nullptr || ui.name->text().isEmpty())
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Warning);
+		mbox.setText(QString("Supplier Name Cannot be empty"));
+		mbox.exec();
+		return;
+	}
+
 	QString query;
 	query.append("INSERT INTO supplier (supplier_code, supplier_name, phone, fax, email, address) VALUES ('");
 	query.append(ui.code->text());
 	query.append("', '");
 	query.append(ui.name->text());
 	query.append("', ");
-	query.append(ui.phone->text());
+	QString  phone = ui.phone->text();
+	bool phoneOk = false;
+	phone.toInt(&phoneOk, 10);
+	
+	if (phone == nullptr || phone.isEmpty())
+	{
+		phone = "''";
+	}
+	query.append(phone);
 	query.append(", ");
-	query.append(ui.fax->text());
+	QString fax = ui.fax->text();
+	bool faxOk = false;
+	fax.toInt(&faxOk, 10);
+	if (!phoneOk || !faxOk)
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Warning);
+		mbox.setText(QString("Phone number or Fax number cannot contain text"));
+		mbox.exec();
+		return;
+	}
+	if (fax == nullptr || fax.isEmpty())
+	{
+		fax = "''";
+	}
+	query.append(fax);
 	query.append(", '");
 	query.append(ui.email->text());
 	query.append("', '");
@@ -109,9 +141,11 @@ void ESManageSuppliers::slotAddSupplier()
 		mbox.setText(QString("Error: Insertion failed"));
 		mbox.exec();
 	}
-
-	ui.tableArea->show();
-	ui.detailsArea->hide();
+	else
+	{
+		ui.tableArea->show();
+		ui.detailsArea->hide();
+	}
 }
 
 void ESManageSuppliers::slotShowAddSupplierView()
