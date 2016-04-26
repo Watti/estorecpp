@@ -15,9 +15,11 @@ ESManageSuppliers::ESManageSuppliers(QWidget *parent /*= 0*/)
 
 	m_updateButtonSignalMapper = new QSignalMapper(this);
 	m_removeButtonSignalMapper = new QSignalMapper(this);
+	//m_itemRemoveButtonSignalMapper = new QSignalMapper(this);
 
 	QObject::connect(m_updateButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotUpdate(QString)));
 	QObject::connect(m_removeButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotRemove(QString)));
+	//QObject::connect(m_itemRemoveButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotRemoveItem(QString, QString)));
 	QObject::connect(ui.addNewSupplier, SIGNAL(clicked()), this, SLOT(slotShowAddSupplierView()));
 	QObject::connect(ui.addButton, SIGNAL(clicked()), this, SLOT(slotAddSupplier()));
 	QObject::connect(ui.updateButton, SIGNAL(clicked()), this, SLOT(slotUpdateSupplier()));
@@ -46,6 +48,7 @@ ESManageSuppliers::ESManageSuppliers(QWidget *parent /*= 0*/)
 	headerLabels1.append("Item Name");
 	headerLabels1.append("Category");
 	headerLabels1.append("Purchasing Price");
+	headerLabels1.append("Actions");
 
 	ui.currentItems->setHorizontalHeaderLabels(headerLabels1);
 	ui.currentItems->horizontalHeader()->setStretchLastSection(true);
@@ -267,6 +270,23 @@ void ESManageSuppliers::slotUpdate(QString id)
 				double price = q.value("purchasing_price").toDouble();
 				QString formattedPrice = QString::number(price, 'f', 2);
 				ui.currentItems->setItem(row, 3, new QTableWidgetItem(formattedPrice));
+
+				//
+				QWidget* base = new QWidget(ui.currentItems);
+				QPushButton* removeBtn = new QPushButton("Remove", base);
+				removeBtn->setMaximumWidth(100);
+
+// 				QObject::connect(removeBtn, SIGNAL(clicked()), m_itemRemoveButtonSignalMapper, SLOT(map()));
+// 				m_itemRemoveButtonSignalMapper->setMapping(removeBtn, m_supplierId, itemId);
+
+				QHBoxLayout *layout = new QHBoxLayout;
+				layout->setContentsMargins(0, 0, 0, 0);
+				layout->addWidget(removeBtn);
+				layout->insertStretch(2);
+				base->setLayout(layout);
+				ui.currentItems->setCellWidget(row, 4, base);
+				base->show();
+				//
 			}
 		}
 	}
@@ -353,3 +373,9 @@ void ESManageSuppliers::slotUpdateSupplier()
 	}
 
 }
+
+// void ESManageSuppliers::slotRemoveItem(QString supplierId, QString itemId)
+// {
+// 	QString queryStr = "UPDATE supplier_item SET deleted = 0 WHERE item_id = "+itemId+" AND supplier_id = "+supplierId;
+// 	QSqlQuery q(queryStr);
+// }
