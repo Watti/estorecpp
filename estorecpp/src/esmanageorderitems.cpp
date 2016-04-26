@@ -146,16 +146,39 @@ void ESManageOrderItems::displayItems(QSqlQuery& queryOrder)
 			tbItem = new QTableWidgetItem(q.value("supplier_code").toString());
 			tbItem->setBackgroundColor(checkedIn ? red : green);
 			ui.tableWidget->setItem(row, 1, tbItem);
+			QString supId = q.value("supplier_id").toString();
+			QSqlQuery querySupItem("SELECT item_id FROM supplier_item WHERE supplier_id = "+supId+" AND deleted = 0");
+			while (querySupItem.next())
+			{
+				QString itemId = querySupItem.value("item_id").toString();
+				QSqlQuery queryItem("SELECT * FROM item WHERE deleted = 0 AND item_id = "+itemId);
+				if (queryItem.next())
+				{
+					tbItem = new QTableWidgetItem(queryItem.value("item_name").toString());
+					tbItem->setBackgroundColor(checkedIn ? red : green); 
+					ui.tableWidget->setItem(row, 2, tbItem);
+					QString catId = queryItem.value("itemcategory_id").toString();
+
+					QSqlQuery queryCatergory("SELECT itemcategory_name FROM item_category WHERE deleted = 0 AND itemcategory_id = "+catId);
+					if (queryCatergory.next())
+					{
+						tbItem = new QTableWidgetItem(queryCatergory.value("itemcategory_name").toString());
+						tbItem->setBackgroundColor(checkedIn ? red : green);
+						ui.tableWidget->setItem(row, 3, tbItem);
+					}
+				}
+
+				QSqlQuery purOrderItem("SELECT * FROM purchase_order_item WHERE deleted = 0 AND purchaseorder_id = "+poId +" AND item_id = "+itemId);
+				if (purOrderItem.next())
+				{
+					tbItem = new QTableWidgetItem(purOrderItem.value("qty").toString());
+					tbItem->setBackgroundColor(checkedIn ? red : green);
+					ui.tableWidget->setItem(row, 4, tbItem);
+				}
+			}
 		}
-		tbItem = new QTableWidgetItem("1");
-		tbItem->setBackgroundColor(checkedIn ? red : green);
-		ui.tableWidget->setItem(row, 2, tbItem);
-		tbItem = new QTableWidgetItem("1");
-		tbItem->setBackgroundColor(checkedIn ? red : green);
-		ui.tableWidget->setItem(row, 3, tbItem);
-		tbItem = new QTableWidgetItem("1");
-		tbItem->setBackgroundColor(checkedIn ? red : green);
-		ui.tableWidget->setItem(row, 4, tbItem);
+		
+		
 		tbItem = new QTableWidgetItem(queryOrder.value("comments").toString());
 		tbItem->setBackgroundColor(checkedIn ? red : green);
 		ui.tableWidget->setItem(row, 5, tbItem);

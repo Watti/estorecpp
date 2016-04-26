@@ -153,11 +153,6 @@ void ESOrderCheckIn::slotAddToStock()
 	else
 	{
 		QSqlQuery query("UPDATE purchase_order SET checked_in = 1 WHERE purchaseorder_id = " + m_orderId);
-
-		QMessageBox mbox;
-		mbox.setIcon(QMessageBox::Information);
-		mbox.setText(QString("Success"));
-		mbox.exec();
 	}
 
 }
