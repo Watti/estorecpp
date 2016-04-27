@@ -10,6 +10,7 @@
 #include "utility/esdbconnection.h"
 #include "QMessageBox"
 #include "utility/utility.h"
+#include "espaymentwidget.h"
 
 ESAddBill::ESAddBill(QWidget *parent)
 :QWidget(parent)
@@ -57,12 +58,12 @@ ESAddBill::ESAddBill(QWidget *parent)
 	}
 	else
 	{
-		QSqlQuery queryPayment("SELECT * FROM payment");
-		QStringList catogory;
-		while (queryPayment.next())
-		{
-			ui.paymentMethodComboBox->addItem(queryPayment.value("type").toString(), queryPayment.value("type_id").toInt());
-		}
+// 		QSqlQuery queryPayment("SELECT * FROM payment");
+// 		QStringList catogory;
+// 		while (queryPayment.next())
+// 		{
+// 			ui.paymentMethodComboBox->addItem(queryPayment.value("type").toString(), queryPayment.value("type_id").toInt());
+// 		}
 	}
 
 	ui.billedByLabel->setText(ES::Session::getInstance()->getUser()->getName());
@@ -190,9 +191,12 @@ void ESAddBill::slotCommit()
 {
 	if (ES::Session::getInstance()->isBillStarted())
 	{
+		ESPayment* payment = new ESPayment(0);
+		payment->show();
+
 		QString billId = ES::Session::getInstance()->getBillId();
 		QString netAmount = ui.netAmountLabel->text();
-		QString paymentType = ui.paymentMethodComboBox->currentData().toString();
+		QString paymentType = "1"; // ui.paymentMethodComboBox->currentData().toString();
 		QString queryUpdateStr("UPDATE bill set amount = " + netAmount + ", payment_method = " + paymentType + " , status = 1 WHERE bill_id = " + billId);
 		QSqlQuery query(queryUpdateStr);
 		resetBill();
@@ -206,7 +210,7 @@ void ESAddBill::slotSuspend()
 	{
 		QString billId = ES::Session::getInstance()->getBillId();
 		QString netAmount = ui.netAmountLabel->text();
-		QString paymentType = ui.paymentMethodComboBox->currentData().toString();
+		QString paymentType = "1"; // ui.paymentMethodComboBox->currentData().toString();
 		QString queryUpdateStr("UPDATE bill set amount = " + netAmount + ", payment_method = " + paymentType + ", status = 2 WHERE bill_id = " + billId);
 		QSqlQuery query(queryUpdateStr);
 		resetBill();
@@ -236,7 +240,7 @@ void ESAddBill::resetBill()
 	ui.noOfItemLabel->setText("0");
 	ui.netAmountLabel->setText("0.00");
 	ui.billIdLabel->setText("xxx");
-	ui.paymentMethodComboBox->setCurrentIndex(0);
+	//ui.paymentMethodComboBox->setCurrentIndex(0);
 }
 
 void ESAddBill::slotRemoveItem(QString saleId)
@@ -327,7 +331,7 @@ void ESAddBill::proceedPendingBill(QString billId)
 		QSqlQuery paymentQuery(paymentMethodQueryStr);
 		while (paymentQuery.next())
 		{
-			ui.paymentMethodComboBox->setCurrentText(paymentQuery.value("type").toString());
+			//ui.paymentMethodComboBox->setCurrentText(paymentQuery.value("type").toString());
 		}
 		int row = ui.tableWidget->rowCount();
 
