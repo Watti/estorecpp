@@ -6,7 +6,6 @@
 #include <QPushButton>
 #include "utility/utility.h"
 
-
 ESManageItems::ESManageItems(QWidget *parent /*= 0*/)
 : QWidget(parent)
 {

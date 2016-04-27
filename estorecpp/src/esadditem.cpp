@@ -32,6 +32,8 @@ AddItem::AddItem(QWidget *parent /*= 0*/)
 		catId = queryCategory.value(0).toInt();
 		ui.itemCategoryComboBox->addItem(queryCategory.value(1).toString() + " / " + queryCategory.value("itemcategory_name").toString(), catId);
 	}
+
+	ui.barCode->setFocus();
 }
 
 AddItem::~AddItem()
