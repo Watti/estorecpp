@@ -15,9 +15,11 @@ ESManageSuppliers::ESManageSuppliers(QWidget *parent /*= 0*/)
 
 	m_updateButtonSignalMapper = new QSignalMapper(this);
 	m_removeButtonSignalMapper = new QSignalMapper(this);
+	//m_itemRemoveButtonSignalMapper = new QSignalMapper(this);
 
 	QObject::connect(m_updateButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotUpdate(QString)));
 	QObject::connect(m_removeButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotRemove(QString)));
+	//QObject::connect(m_itemRemoveButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotRemoveItem(QString, QString)));
 	QObject::connect(ui.addNewSupplier, SIGNAL(clicked()), this, SLOT(slotShowAddSupplierView()));
 	QObject::connect(ui.addButton, SIGNAL(clicked()), this, SLOT(slotAddSupplier()));
 	QObject::connect(ui.updateButton, SIGNAL(clicked()), this, SLOT(slotUpdateSupplier()));
@@ -46,6 +48,7 @@ ESManageSuppliers::ESManageSuppliers(QWidget *parent /*= 0*/)
 	headerLabels1.append("Item Name");
 	headerLabels1.append("Category");
 	headerLabels1.append("Purchasing Price");
+	headerLabels1.append("Actions");
 
 	ui.currentItems->setHorizontalHeaderLabels(headerLabels1);
 	ui.currentItems->horizontalHeader()->setStretchLastSection(true);
@@ -86,15 +89,47 @@ ESManageSuppliers::~ESManageSuppliers()
 
 void ESManageSuppliers::slotAddSupplier()
 {
+	if (ui.name->text() == nullptr || ui.name->text().isEmpty())
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Warning);
+		mbox.setText(QString("Supplier Name Cannot be empty"));
+		mbox.exec();
+		return;
+	}
+
 	QString query;
 	query.append("INSERT INTO supplier (supplier_code, supplier_name, phone, fax, email, address) VALUES ('");
 	query.append(ui.code->text());
 	query.append("', '");
 	query.append(ui.name->text());
 	query.append("', ");
-	query.append(ui.phone->text());
+	QString  phone = ui.phone->text();
+	bool phoneOk = false;
+	phone.toInt(&phoneOk, 10);
+	
+	if (phone == nullptr || phone.isEmpty())
+	{
+		phone = "''";
+	}
+	query.append(phone);
 	query.append(", ");
-	query.append(ui.fax->text());
+	QString fax = ui.fax->text();
+	bool faxOk = false;
+	fax.toInt(&faxOk, 10);
+	if (!phoneOk || !faxOk)
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Warning);
+		mbox.setText(QString("Phone number or Fax number cannot contain text"));
+		mbox.exec();
+		return;
+	}
+	if (fax == nullptr || fax.isEmpty())
+	{
+		fax = "''";
+	}
+	query.append(fax);
 	query.append(", '");
 	query.append(ui.email->text());
 	query.append("', '");
@@ -109,9 +144,12 @@ void ESManageSuppliers::slotAddSupplier()
 		mbox.setText(QString("Error: Insertion failed"));
 		mbox.exec();
 	}
-
-	ui.tableArea->show();
-	ui.detailsArea->hide();
+	else
+	{
+		ui.tableArea->show();
+		ui.detailsArea->hide();
+		slotSearch();
+	}
 }
 
 void ESManageSuppliers::slotShowAddSupplierView()
@@ -232,6 +270,23 @@ void ESManageSuppliers::slotUpdate(QString id)
 				double price = q.value("purchasing_price").toDouble();
 				QString formattedPrice = QString::number(price, 'f', 2);
 				ui.currentItems->setItem(row, 3, new QTableWidgetItem(formattedPrice));
+
+				//
+				QWidget* base = new QWidget(ui.currentItems);
+				QPushButton* removeBtn = new QPushButton("Remove", base);
+				removeBtn->setMaximumWidth(100);
+
+// 				QObject::connect(removeBtn, SIGNAL(clicked()), m_itemRemoveButtonSignalMapper, SLOT(map()));
+// 				m_itemRemoveButtonSignalMapper->setMapping(removeBtn, m_supplierId, itemId);
+
+				QHBoxLayout *layout = new QHBoxLayout;
+				layout->setContentsMargins(0, 0, 0, 0);
+				layout->addWidget(removeBtn);
+				layout->insertStretch(2);
+				base->setLayout(layout);
+				ui.currentItems->setCellWidget(row, 4, base);
+				base->show();
+				//
 			}
 		}
 	}
@@ -267,9 +322,34 @@ void ESManageSuppliers::slotUpdateSupplier()
 	query.append("', supplier_name = '");
 	query.append(ui.name->text());
 	query.append("', phone = ");
-	query.append(ui.phone->text());
+	QString phone = ui.phone->text();
+	if (phone == nullptr || phone.isEmpty())
+	{
+		phone = "''";
+	}
+	bool phoneOk = false;
+	phone.toInt(&phoneOk, 10);
+
+	query.append(phone);
 	query.append(", fax = ");
-	query.append(ui.fax->text());
+	//query.append(ui.fax->text());
+
+	QString fax = ui.fax->text();
+	bool faxOk = false;
+	fax.toInt(&faxOk, 10);
+	if (!phoneOk || !faxOk)
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Warning);
+		mbox.setText(QString("Phone number or Fax number cannot contain text"));
+		mbox.exec();
+		return;
+	}
+	if (fax == nullptr || fax.isEmpty())
+	{
+		fax = "''";
+	}
+	query.append(fax);
 	query.append(", email = '");
 	query.append(ui.email->text());
 	query.append("', address = '");
@@ -285,7 +365,17 @@ void ESManageSuppliers::slotUpdateSupplier()
 		mbox.setText(QString("Error: Update failed"));
 		mbox.exec();
 	}
+	else
+	{
+		ui.tableArea->show();
+		ui.detailsArea->hide();
+		slotSearch();
+	}
 
-	ui.tableArea->show();
-	ui.detailsArea->hide();
 }
+
+// void ESManageSuppliers::slotRemoveItem(QString supplierId, QString itemId)
+// {
+// 	QString queryStr = "UPDATE supplier_item SET deleted = 0 WHERE item_id = "+itemId+" AND supplier_id = "+supplierId;
+// 	QSqlQuery q(queryStr);
+// }

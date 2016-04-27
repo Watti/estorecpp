@@ -20,11 +20,13 @@ public slots:
 	void slotShowAddSupplierItemView();
 	void slotUpdate(QString id);
 	void slotRemove(QString id);
+	//void slotRemoveItem(QString supplierId, QString itemId);
 
 private:
 	Ui::ManageSuppliers ui;
 	QSignalMapper* m_updateButtonSignalMapper;
 	QSignalMapper* m_removeButtonSignalMapper;
+	//QSignalMapper* m_itemRemoveButtonSignalMapper;
 
 	QString m_supplierId;
 

@@ -8,7 +8,7 @@
 ESCashBalanceConfigure::ESCashBalanceConfigure(QWidget *parent) : QWidget(parent)
 {
 	ui.setupUi(this);
-	ui.labelWelcome->setText("Hello : " + ES::Session::getInstance()->getUser()->getName());
+	//ui.labelWelcome->setText("Hello : " + ES::Session::getInstance()->getUser()->getName());
 	
 	if (!ES::DbConnection::instance()->open())
 	{

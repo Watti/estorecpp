@@ -211,6 +211,7 @@ void ESManageSupplierItem::displayItems(QSqlQuery& queryItems)
 			ui.itemTableWidget->setItem(row, 4, new QTableWidgetItem("N/A"));
 		}
 		ui.itemTableWidget->setItem(row, 5, new QTableWidgetItem(queryItems.value(5).toString()));
+	
 	}
 }
 
@@ -235,6 +236,18 @@ void ESManageSupplierItem::slotAddSupplierItems()
 		QTableWidgetItem* idCell = ui.selectedItemTableWidget->item(i, 0);
 		QWidget* priceCell = ui.selectedItemTableWidget->cellWidget(i, 4);
 		ES::SaleLineEdit* le = static_cast<ES::SaleLineEdit*>(priceCell);
+		QString priceStr = le->text();
+		
+		bool ok = false;
+		priceStr.toFloat(&ok);
+		if (!ok)
+		{
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Warning);
+			mbox.setText(QString("Price should be a number"));
+			mbox.exec();
+			return;
+		}
 
 		QString q("INSERT INTO supplier_item (supplier_id, item_id, purchasing_price) VALUES (");
 		q.append(m_supplierId);
@@ -247,10 +260,10 @@ void ESManageSupplierItem::slotAddSupplierItems()
 		QSqlQuery query;
 		if (query.exec(q))
 		{
-			QMessageBox mbox;
-			mbox.setIcon(QMessageBox::Information);
-			mbox.setText(QString("Success"));
-			mbox.exec();
+// 			QMessageBox mbox;
+// 			mbox.setIcon(QMessageBox::Information);
+// 			mbox.setText(QString("Success"));
+// 			mbox.exec();
 
 			while (ui.selectedItemTableWidget->rowCount() > 0)
 			{
