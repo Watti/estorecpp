@@ -62,7 +62,7 @@
       </widget>
      </item>
      <item row="0" column="1">
-      <widget class="QLabel" name="noOfItems">
+      <widget class="QLabel" name="noOfItemsLbl">
        <property name="font">
         <font>
          <pointsize>11</pointsize>
@@ -86,7 +86,7 @@
       </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QComboBox" name="paymentMethod">
+      <widget class="QComboBox" name="paymentMethodCmb">
        <property name="font">
         <font>
          <pointsize>11</pointsize>
@@ -107,7 +107,7 @@
       </widget>
      </item>
      <item row="2" column="1">
-      <widget class="QLabel" name="totalBill">
+      <widget class="QLabel" name="totalBillLbl">
        <property name="font">
         <font>
          <pointsize>11</pointsize>
@@ -131,7 +131,7 @@
       </widget>
      </item>
      <item row="3" column="1">
-      <widget class="QLineEdit" name="cash">
+      <widget class="QLineEdit" name="cashText">
        <property name="font">
         <font>
          <pointsize>11</pointsize>
@@ -152,7 +152,7 @@
       </widget>
      </item>
      <item row="4" column="1">
-      <widget class="QLabel" name="balance">
+      <widget class="QLabel" name="balanceLbl">
        <property name="font">
         <font>
          <pointsize>11</pointsize>
@@ -168,7 +168,7 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
-      <widget class="QCheckBox" name="doPrint">
+      <widget class="QCheckBox" name="doPrintCB">
        <property name="text">
         <string/>
        </property>
