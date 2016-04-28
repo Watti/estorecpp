@@ -12,6 +12,7 @@ QWidget(parent)
 
 	new QShortcut(QKeySequence(Qt::Key_Escape), this, SLOT(close()));
 	QObject::connect(ui.cashText, SIGNAL(textChanged(QString)), this, SLOT(slotCalculateBalance()));
+	QObject::connect(ui.paymentMethodCombo, SIGNAL(activated(QString)), this, SLOT(slotEnableCardInfo()));
 
 	QSqlQuery queryPayment("SELECT * FROM payment");
 	QStringList catogory;
@@ -37,4 +38,18 @@ void ESPayment::slotCalculateBalance()
 	double amount = ui.totalBillLbl->text().toDouble();
 
 	ui.balanceLbl->setText(QString::number(cash - amount, 'f', 2));
+}
+
+void ESPayment::slotEnableCardInfo()
+{
+	if (ui.paymentMethodCombo->currentData().toInt() == 4)
+	{
+		ui.cardNoText->show();
+		ui.cardNoLbl->show();
+	}
+	else
+	{
+		ui.cardNoText->hide();
+		ui.cardNoLbl->hide();
+	}
 }

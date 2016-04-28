@@ -17,6 +17,7 @@ public:
 	public slots:
 	void slotSearch();
 	void slotCalculateBalance();
+	void slotEnableCardInfo();
 	
 private:
 

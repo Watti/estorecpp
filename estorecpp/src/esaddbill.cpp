@@ -70,7 +70,7 @@ ESAddBill::ESAddBill(QWidget *parent)
 	}
 
 	ui.billedByLabel->setText(ES::Session::getInstance()->getUser()->getName());
-	ui.branchLabel->setText("NUGEGODA");
+	//ui.branchLabel->setText("NUGEGODA");
 	ui.billIdLabel->setText("###");
 
 }
@@ -161,7 +161,7 @@ void ESAddBill::slotReturnPressed(QString saleId, int row)
 			if (query.first())
 			{
 					double sellingPrice = query.value("selling_price").toDouble();
-					double discount = 0.0;
+					double discount = 4.0;
 					double subTotal = sellingPrice * quantity * ((100 - discount) / 100.f);
 
 					QString st = QString::number(subTotal, 'f', 2);
@@ -179,14 +179,18 @@ void ESAddBill::calculateAndDisplayTotal()
 {
 	QString q = "SELECT * FROM sale where bill_id= " + ES::Session::getInstance()->getBillId() + " AND deleted = 0";
 	QSqlQuery queryAllSales(q);
-	double netAmount = 0;
+	double netAmount = 0, grossAmount = 0;
 	int noOfItems = 0;
 	while (queryAllSales.next())
 	{
-		netAmount += queryAllSales.value("total").toDouble();
+		double subTot = queryAllSales.value("total").toDouble();
+		double discount = queryAllSales.value("discount").toDouble();
+		grossAmount += ((subTot * 100) / (100 - discount));
+		netAmount += subTot;
 		noOfItems++;
 	}
 	ui.netAmountLabel->setText(QString::number(netAmount, 'f', 2));
+	ui.grossAmountLabel->setText(QString::number(grossAmount, 'f', 2));
 	ui.noOfItemLabel->setText(QString::number(noOfItems));
 }
 
