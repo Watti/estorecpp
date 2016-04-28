@@ -23,7 +23,7 @@ ESAddBill::ESAddBill(QWidget *parent)
 	headerLabels.append("Price");
 	headerLabels.append("Qty");
 	headerLabels.append("Discount");
-	headerLabels.append("Amount");
+	headerLabels.append("Sub Total");
 	headerLabels.append("Actions");
 	headerLabels.append("Sale_ID");
 
@@ -179,11 +179,11 @@ void ESAddBill::calculateAndDisplayTotal()
 {
 	QString q = "SELECT * FROM sale where bill_id= " + ES::Session::getInstance()->getBillId() + " AND deleted = 0";
 	QSqlQuery queryAllSales(q);
-	float netAmount = 0;
+	double netAmount = 0;
 	int noOfItems = 0;
 	while (queryAllSales.next())
 	{
-		netAmount += queryAllSales.value("total").toFloat();
+		netAmount += queryAllSales.value("total").toDouble();
 		noOfItems++;
 	}
 	ui.netAmountLabel->setText(QString::number(netAmount, 'f', 2));
@@ -197,12 +197,23 @@ void ESAddBill::slotCommit()
 		ESPayment* payment = new ESPayment(0);
 		payment->show();
 
-		QString billId = ES::Session::getInstance()->getBillId();
-		QString netAmount = ui.netAmountLabel->text();
-		QString paymentType = "1"; // ui.paymentMethodComboBox->currentData().toString();
-		QString queryUpdateStr("UPDATE bill set amount = " + netAmount + ", payment_method = " + paymentType + " , status = 1 WHERE bill_id = " + billId);
-		QSqlQuery query(queryUpdateStr);
-		resetBill();
+		payment->setWindowState(Qt::WindowActive);
+		payment->setWindowModality(Qt::ApplicationModal);
+		payment->setAttribute(Qt::WA_DeleteOnClose);
+		payment->setWindowFlags(Qt::CustomizeWindowHint | Qt::Window);
+		payment->show();
+		
+		payment->getUI().totalBillLbl->setText(QString::number(ui.netAmountLabel->text().toDouble(), 'f', 2));
+		payment->getUI().noOfItemsLbl->setText(ui.noOfItemLabel->text());
+		payment->getUI().balanceLbl->setText("0.00");
+		payment->getUI().cashText->setFocus();
+
+// 		QString billId = ES::Session::getInstance()->getBillId();
+// 		QString netAmount = ui.netAmountLabel->text();
+// 		QString paymentType = "1"; // ui.paymentMethodComboBox->currentData().toString();
+// 		QString queryUpdateStr("UPDATE bill set amount = " + netAmount + ", payment_method = " + paymentType + " , status = 1 WHERE bill_id = " + billId);
+// 		QSqlQuery query(queryUpdateStr);
+// 		resetBill();
 	}
 
 }
