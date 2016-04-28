@@ -49,6 +49,7 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	QObject::connect(ui.actionManageItems, SIGNAL(triggered()), this, SLOT(slotManageItems()));
 	QObject::connect(ui.actionManageItemCategories, SIGNAL(triggered()), this, SLOT(slotManageItemCategories()));
 	QObject::connect(ui.actionManageItemPrices, SIGNAL(triggered()), this, SLOT(slotManageItemPrices()));
+	QObject::connect(ui.actionReturnItems, SIGNAL(triggered()), this, SLOT(slotReturnItems()));
 	QObject::connect(ui.actionManageOrderItems, SIGNAL(triggered()), this, SLOT(slotManageOrderItems()));
 	QObject::connect(ui.actionManageSuppliers, SIGNAL(triggered()), this, SLOT(slotManageSuppliers()));
 	QObject::connect(ui.actionAddBill, SIGNAL(triggered()), this, SLOT(slotAddBill()));
@@ -109,6 +110,10 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	mmgr->addAction("Manage Item Prices", ui.actionManageItemPrices);
 	ui.actionManageItemPrices->setIcon(QIcon("icons/manage_item_prices.png"));
 	ui.mainToolBar->addAction(ui.actionManageItemPrices);
+
+	mmgr->addAction("Return Items", ui.actionReturnItems);
+	ui.actionReturnItems->setIcon(QIcon("icons/return_item.png"));
+	ui.mainToolBar->addAction(ui.actionReturnItems);
 	mmgr->addSeparator(ui.mainToolBar->addSeparator());
 
 	mmgr->addAction("Manage Order Items", ui.actionManageOrderItems);
@@ -155,6 +160,7 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	mmgr->addMenuActionMapping("Items", "Manage Items");
 	mmgr->addMenuActionMapping("Items", "Manage Item Categories");
 	//mmgr->addMenuActionMapping("Items", "Manage Item Prices");
+	mmgr->addMenuActionMapping("Items", "Return Items");
 	mmgr->addMenuActionMapping("Orders", "Manage Order Items");
 	mmgr->addMenuActionMapping("Orders", "Manage Suppliers");
 	mmgr->addMenuActionMapping("Billing", "Add Bill");
@@ -204,6 +210,11 @@ void ESMainWindow::slotManageItemPrices()
 	ESItemPrices* itemPrices = new ESItemPrices(this);
 	this->setCentralWidget(itemPrices);
 	itemPrices->show();
+}
+
+void ESMainWindow::slotReturnItems()
+{
+
 }
 
 void ESMainWindow::slotManageOrderItems()

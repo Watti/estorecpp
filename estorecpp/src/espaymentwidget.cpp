@@ -4,6 +4,9 @@ ESPayment::ESPayment(QWidget *parent /*= 0*/) :
 QWidget(parent)
 {
 	ui.setupUi(this);
+
+	ui.cardNoLbl->hide();
+	ui.cardNoText->hide();
 }
 
 ESPayment::~ESPayment()

@@ -109,6 +109,7 @@
     <addaction name="actionManageItems"/>
     <addaction name="actionManageItemCategories"/>
     <addaction name="actionManageItemPrices"/>
+    <addaction name="actionReturnItems"/>
    </widget>
    <widget class="QMenu" name="menuBilling">
     <property name="title">
@@ -151,6 +152,19 @@
     <addaction name="actionSettings"/>
     <addaction name="actionBackupRestore"/>
    </widget>
+   <widget class="QMenu" name="menuBussiness">
+    <property name="title">
+     <string>Bussiness</string>
+    </property>
+    <widget class="QMenu" name="actionLoyality">
+     <property name="title">
+      <string>Loyality</string>
+     </property>
+     <addaction name="actionOffers"/>
+    </widget>
+    <addaction name="actionLoyality"/>
+    <addaction name="actionGiftVouchers"/>
+   </widget>
    <addaction name="menuStock"/>
    <addaction name="menuItems"/>
    <addaction name="menuOrders"/>
@@ -158,6 +172,7 @@
    <addaction name="menuReports"/>
    <addaction name="menuCashBalance"/>
    <addaction name="menuSystem"/>
+   <addaction name="menuBussiness"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
@@ -242,6 +257,21 @@
   <action name="actionBackupRestore">
    <property name="text">
     <string>Backup &amp; Restore</string>
+   </property>
+  </action>
+  <action name="actionReturnItems">
+   <property name="text">
+    <string>Return Items</string>
+   </property>
+  </action>
+  <action name="actionOffers">
+   <property name="text">
+    <string>Offers</string>
+   </property>
+  </action>
+  <action name="actionGiftVouchers">
+   <property name="text">
+    <string>Gift Vouchers</string>
    </property>
   </action>
  </widget>

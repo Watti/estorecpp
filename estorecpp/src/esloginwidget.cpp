@@ -76,7 +76,7 @@ void ESLoginWidget::slotLogin()
 
 				// for testing 
 				QString perms = "Stock,Items,Billing,Orders,Reports,Cash Balance,System, Help,User, \
-						Manage Stock Items, Manage Items, Manage Item Categories, \
+						Manage Stock Items, Manage Items, Manage Item Categories, Return Items, \
 						Orders, Manage Order Items, Manage Suppliers, Add Bill, Current Bills, \
 						Configure, Show Status, General, Sales, Stocks, Settings, Backup & Restore, \
 						Profile, Logout, Manage Users";

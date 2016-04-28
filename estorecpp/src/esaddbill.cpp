@@ -42,6 +42,9 @@ ESAddBill::ESAddBill(QWidget *parent)
 
 	new QShortcut(QKeySequence(Qt::Key_F4), this, SLOT(slotShowAddItem()));
 	new QShortcut(QKeySequence(Qt::Key_F3), this, SLOT(slotStartNewBill()));
+	new QShortcut(QKeySequence(Qt::Key_F5), this, SLOT(slotCommit()));
+	new QShortcut(QKeySequence(Qt::Key_F6), this, SLOT(slotSuspend()));
+	new QShortcut(QKeySequence(Qt::Key_F7), this, SLOT(slotCancel()));
 	QObject::connect(timer, SIGNAL(timeout()), this, SLOT(showTime()));
 	QObject::connect(ui.tableWidget, SIGNAL(cellClicked(int, int)), this, SLOT(slotEdit(int, int)));
 	QObject::connect(ui.commitButton, SIGNAL(clicked()), this, SLOT(slotCommit()));

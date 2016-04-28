@@ -20,6 +20,7 @@ public slots:
 	void slotManageItems();
 	void slotManageItemCategories();
 	void slotManageItemPrices();
+	void slotReturnItems();
 	void slotManageOrderItems();
 	void slotManageSuppliers();
 	void slotAddBill();
