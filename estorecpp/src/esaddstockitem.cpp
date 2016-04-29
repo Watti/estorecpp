@@ -57,6 +57,7 @@ void AddStockItem::slotAddStockItem()
 				}
 				QString itemId = ui.itemIDLabel->text();
 				QString  price = ui.itemPrice->text();
+				QString discount = ui.discount->text();
 				price.toDouble(&isValid);
 				if (isValid)
 				{
@@ -67,7 +68,7 @@ void AddStockItem::slotAddStockItem()
 					}
 					else
 					{
-						q = "INSERT INTO stock  (item_id,  qty, min_qty, deleted) VALUES(" + itemId + ", " + qtyStr + "," + minQtyStr + ", 0) ";
+						q = "INSERT INTO stock  (item_id,  qty, min_qty, discount, deleted) VALUES(" + itemId + ", " + qtyStr + "," + minQtyStr + "," + discount + ", 0) ";
 					}
 
 					QSqlQuery query;

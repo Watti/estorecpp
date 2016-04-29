@@ -4,6 +4,7 @@
 #include "utility/esmainwindowholder.h"
 #include <QMessageBox>
 #include <QSignalMapper>
+#include "utility/utility.h"
 
 ESManageSuppliers::ESManageSuppliers(QWidget *parent /*= 0*/)
 : QWidget(parent)
@@ -294,16 +295,19 @@ void ESManageSuppliers::slotUpdate(QString id)
 
 void ESManageSuppliers::slotRemove(QString id)
 {
-	QString str("UPDATE supplier SET deleted = 1 WHERE supplier_id = " + id);
-	QSqlQuery q;
-	if (q.exec(str))
+	if (ES::Utility::verifyUsingMessageBox(this, "EStore", "Do you really want to remove this?"))
 	{
-		while (ui.tableWidget->rowCount() > 0)
+		QString str("UPDATE supplier SET deleted = 1 WHERE supplier_id = " + id);
+		QSqlQuery q;
+		if (q.exec(str))
 		{
-			ui.tableWidget->removeRow(0);
+			while (ui.tableWidget->rowCount() > 0)
+			{
+				ui.tableWidget->removeRow(0);
+			}
+
+			slotSearch();
 		}
-		
-		slotSearch();
 	}
 }
 

@@ -198,7 +198,7 @@ void ESAddBill::slotCommit()
 {
 	if (ES::Session::getInstance()->isBillStarted())
 	{
-		ESPayment* payment = new ESPayment(0);
+		ESPayment* payment = new ESPayment(this, 0);
 		payment->show();
 
 		payment->setWindowState(Qt::WindowActive);

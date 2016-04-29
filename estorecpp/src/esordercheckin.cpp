@@ -114,6 +114,7 @@ void ESOrderCheckIn::slotAddToStock()
 	}
 	QString itemId = ui.itemIdText->text();
 	QString sellingPrice = ui.sellingPrice->text();
+	QString discount = ui.discount->text();
 	QString stockId;
 	double currentQty = ui.quantity->text().toDouble();
 	int userId = ES::Session::getInstance()->getUser()->getId();
@@ -135,8 +136,8 @@ void ESOrderCheckIn::slotAddToStock()
 	{
 		QString qtyStr;
 		qtyStr.setNum(currentQty);
-		QString q("INSERT INTO stock (item_id, qty, selling_price, user_id) VALUES (" + 
-			itemId + "," + qtyStr + "," + sellingPrice + "," + userIdStr + ")");
+		QString q("INSERT INTO stock (item_id, qty, selling_price, discount, user_id) VALUES (" + 
+			itemId + "," + qtyStr + "," + sellingPrice + "," + discount + "," + userIdStr + ")");
 		QSqlQuery query;
 		if (query.exec(q))
 		{
@@ -156,7 +157,19 @@ void ESOrderCheckIn::slotAddToStock()
 	}
 	else
 	{
-		QSqlQuery query("UPDATE purchase_order SET checked_in = 1 WHERE purchaseorder_id = " + m_orderId);
+		QSqlQuery qry("SELECT * FROM purchase_order_item WHERE purcahseorder_id = " + m_orderId + " AND deleted = 0");
+		if (qry.next())
+		{
+			double qty = qry.value("qty").toDouble();
+			if (qty == currentQty)
+			{
+				QSqlQuery query("UPDATE purchase_order SET checked_in = 1 WHERE purchaseorder_id = " + m_orderId);
+			}
+			else
+			{
+				// TODO
+			}
+		}
 	}
 
 }

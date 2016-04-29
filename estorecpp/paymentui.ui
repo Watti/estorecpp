@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>499</width>
-    <height>390</height>
+    <width>498</width>
+    <height>407</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -160,7 +160,7 @@
       <number>10</number>
      </property>
      <property name="bottomMargin">
-      <number>10</number>
+      <number>0</number>
      </property>
      <item row="0" column="0">
       <widget class="QLabel" name="label_3">
@@ -230,6 +230,27 @@
      </item>
      <item row="2" column="1">
       <widget class="QLineEdit" name="cardNoText">
+       <property name="font">
+        <font>
+         <pointsize>14</pointsize>
+        </font>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="cardAmountLbl">
+       <property name="font">
+        <font>
+         <pointsize>14</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Card Amount :</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QLineEdit" name="cardAmountText">
        <property name="font">
         <font>
          <pointsize>14</pointsize>
@@ -595,6 +616,19 @@
           </property>
          </widget>
         </item>
+        <item row="3" column="0">
+         <spacer name="horizontalSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
         <item row="3" column="1">
          <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
@@ -656,36 +690,10 @@
           </item>
          </layout>
         </item>
-        <item row="3" column="0">
-         <spacer name="horizontalSpacer">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
        </layout>
       </item>
      </layout>
     </widget>
-   </item>
-   <item>
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>6</height>
-      </size>
-     </property>
-    </spacer>
    </item>
   </layout>
  </widget>

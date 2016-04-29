@@ -148,6 +148,8 @@ void ESAddManualStockItems::slotAddToStock()
 	}
 	QString itemId = ui.itemIdText->text();
 	QString sellingPrice = ui.sellingPrice->text();
+	QString discount = ui.discount->text();
+
 	double currentQty = ui.qty->text().toDouble();
 	int userId = ES::Session::getInstance()->getUser()->getId();
 	QString userIdStr;
@@ -168,8 +170,8 @@ void ESAddManualStockItems::slotAddToStock()
 	{
 		QString qtyStr;
 		qtyStr.setNum(currentQty);
-		QString q("INSERT INTO stock (item_id, qty, selling_price, user_id) VALUES (" +
-			itemId + "," + qtyStr + "," + sellingPrice + "," + userIdStr + ")");
+		QString q("INSERT INTO stock (item_id, qty, selling_price, discount, user_id) VALUES (" +
+			itemId + "," + qtyStr + "," + sellingPrice + "," + discount + "," + userIdStr + ")");
 		QSqlQuery query;
 		if (query.exec(q))
 		{

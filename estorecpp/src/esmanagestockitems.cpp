@@ -30,6 +30,7 @@ ESManageStockItems::ESManageStockItems(QWidget *parent /*= 0*/)
 	headerLabels.append("Unit");
 	headerLabels.append("Unit Price");
 	headerLabels.append("Description");
+	headerLabels.append("Discount");
 	headerLabels.append("Actions");
 
 	ui.tableWidget->setHorizontalHeaderLabels(headerLabels);
@@ -137,6 +138,9 @@ void ESManageStockItems::slotSearch()
 			priceItem->setTextAlignment(Qt::AlignRight);
 			ui.tableWidget->setItem(row, 7, priceItem);
 			ui.tableWidget->setItem(row, 8, new QTableWidgetItem(query.value("description").toString()));
+			QTableWidgetItem* discountItem = new QTableWidgetItem(QString::number(query.value("discount").toDouble(), 'f', 2));
+			discountItem->setTextAlignment(Qt::AlignRight);
+			ui.tableWidget->setItem(row, 9, discountItem);
 
 			QWidget* base = new QWidget(ui.tableWidget);
 			QPushButton* updateBtn = new QPushButton("Update", base);
@@ -156,7 +160,7 @@ void ESManageStockItems::slotSearch()
 			layout->addWidget(removeBtn);
 			layout->insertStretch(2);
 			base->setLayout(layout);
-			ui.tableWidget->setCellWidget(row, 9, base);
+			ui.tableWidget->setCellWidget(row, 10, base);
 			base->show();
 		}
 	}
