@@ -105,9 +105,19 @@ void ESPayment::finalizeBill()
 
 	if (netAmount > 0)
 	{
-		QString cardNo = ui.cardNoText->text();
-		QString queryUpdateStr("UPDATE bill set amount = " + netAmount + ", payment_method = " + paymentType + ", card_no = "+ cardNo + " , status = 1 WHERE bill_id = " + billId );
-		QSqlQuery query;;
+		QString queryUpdateStr("UPDATE bill set amount = " + netAmount + ", payment_method = " + paymentType + " , status = 1 WHERE bill_id = " + billId );
+		QSqlQuery query;
+		if (ui.paymentMethodCombo->currentText() == "LOYALTY CARD" || ui.paymentMethodCombo->currentText() == "CREDIT CARD")
+		{
+			QString cardNo = ui.cardNoText->text();
+			QString cardAmount = ui.cardAmountText->text();
+			QString cardPaymentQryStr("INSERT INTO card_payment (bill_id , amount, card_no, payment_type_id ) VALUES ("+billId+ ", "+cardAmount+","+cardNo+", "+paymentType+")");
+			QSqlQuery queryCardPayment;
+			if (!queryCardPayment.exec(cardPaymentQryStr))
+			{
+				LOG(ERROR) << cardPaymentQryStr.toLatin1().data();
+			}
+		}
 		if (query.exec(queryUpdateStr))
 		{
 			this->close();
