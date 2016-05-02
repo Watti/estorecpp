@@ -157,11 +157,11 @@ void ESAddBill::slotReturnPressed(QString saleId, int row)
 			le->setReadOnly(true);
 			double quantity = le->text().toDouble();
 
-			QSqlQuery query("SELECT stock.selling_price FROM stock JOIN sale ON stock.stock_id = sale.stock_id WHERE sale.deleted = 0 AND sale.sale_id = " + saleId);
+			QSqlQuery query("SELECT stock.selling_price, stock.discount FROM stock JOIN sale ON stock.stock_id = sale.stock_id WHERE sale.deleted = 0 AND sale.sale_id = " + saleId);
 			if (query.first())
 			{
 					double sellingPrice = query.value("selling_price").toDouble();
-					double discount = 4.0;
+					double discount = query.value("discount").toDouble();;
 					double subTotal = sellingPrice * quantity * ((100 - discount) / 100.f);
 
 					QString st = QString::number(subTotal, 'f', 2);
