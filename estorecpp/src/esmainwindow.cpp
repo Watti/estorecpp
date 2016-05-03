@@ -61,6 +61,8 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	QObject::connect(ui.actionStocks, SIGNAL(triggered()), this, SLOT(slotStocksReports()));
 	QObject::connect(ui.actionSettings, SIGNAL(triggered()), this, SLOT(slotSettings()));
 	QObject::connect(ui.actionBackupRestore, SIGNAL(triggered()), this, SLOT(slotBackupRestore()));
+	QObject::connect(ui.actionOffers, SIGNAL(triggered()), this, SLOT(slotOffers()));
+	QObject::connect(ui.actionGiftVouchers, SIGNAL(triggered()), this, SLOT(slotGiftVouchers()));
 	QObject::connect(m_actionLogin, SIGNAL(triggered()), this, SLOT(slotLogin()));
 	QObject::connect(m_actionProfile, SIGNAL(triggered()), this, SLOT(slotProfile()));
 	QObject::connect(m_actionLogout, SIGNAL(triggered()), this, SLOT(slotLogout()));
@@ -78,6 +80,7 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	mmgr->addMenu("Reports", ui.menuReports);
 	mmgr->addMenu("Cash Balance", ui.menuCashBalance);
 	mmgr->addMenu("System", ui.menuSystem);
+	mmgr->addMenu("Business", ui.menuBussiness);
 	mmgr->addMenu("Help", ui.menuHelp);
 
 	mmgr->addAction("Login", m_actionLogin);
@@ -110,7 +113,6 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	mmgr->addAction("Manage Item Prices", ui.actionManageItemPrices);
 	ui.actionManageItemPrices->setIcon(QIcon("icons/manage_item_prices.png"));
 	ui.mainToolBar->addAction(ui.actionManageItemPrices);
-
 	mmgr->addAction("Return Items", ui.actionReturnItems);
 	ui.actionReturnItems->setIcon(QIcon("icons/return_item.png"));
 	ui.mainToolBar->addAction(ui.actionReturnItems);
@@ -139,6 +141,7 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	ui.actionShowStatus->setIcon(QIcon("icons/money_status.png"));
 	ui.mainToolBar->addAction(ui.actionShowStatus);
 	mmgr->addSeparator(ui.mainToolBar->addSeparator());
+	
 	mmgr->addAction("General", ui.actionGeneral);
 	ui.actionGeneral->setIcon(QIcon("icons/reports.png"));
 	ui.mainToolBar->addAction(ui.actionGeneral);
@@ -149,12 +152,21 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	ui.actionStocks->setIcon(QIcon("icons/stock_report.png"));
 	ui.mainToolBar->addAction(ui.actionStocks);
 	mmgr->addSeparator(ui.mainToolBar->addSeparator());
+	
 	mmgr->addAction("Settings", ui.actionSettings);
 	ui.actionSettings->setIcon(QIcon("icons/system.png"));
-	ui.mainToolBar->addAction(ui.actionSettings);
+	ui.mainToolBar->addAction(ui.actionSettings);	
 	mmgr->addAction("Backup & Restore", ui.actionBackupRestore);
 	ui.actionBackupRestore->setIcon(QIcon("icons/hdd.png"));
 	ui.mainToolBar->addAction(ui.actionBackupRestore);
+	mmgr->addSeparator(ui.mainToolBar->addSeparator());
+
+	mmgr->addAction("Offers", ui.actionOffers);
+	ui.actionOffers->setIcon(QIcon("icons/system.png"));
+	ui.mainToolBar->addAction(ui.actionOffers);
+	mmgr->addAction("Gift Vouchers", ui.actionGiftVouchers);
+	ui.actionGiftVouchers->setIcon(QIcon("icons/hdd.png"));
+	ui.mainToolBar->addAction(ui.actionGiftVouchers);
 
 	mmgr->addMenuActionMapping("Stock", "Manage Stock Items");
 	mmgr->addMenuActionMapping("Items", "Manage Items");
@@ -169,6 +181,8 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	mmgr->addMenuActionMapping("Cash Balance", "Show Status");
 	mmgr->addMenuActionMapping("System", "Settings");
 	mmgr->addMenuActionMapping("System", "Backup & Restore");
+	mmgr->addMenuActionMapping("Business", "Offers");
+	mmgr->addMenuActionMapping("Business", "Gift Vouchers");
 	mmgr->addMenuActionMapping("Reports", "General");
 	mmgr->addMenuActionMapping("Reports", "Sales");
 	mmgr->addMenuActionMapping("Reports", "Stocks");
@@ -286,6 +300,16 @@ void ESMainWindow::slotSettings()
 }
 
 void ESMainWindow::slotBackupRestore()
+{
+
+}
+
+void ESMainWindow::slotOffers()
+{
+
+}
+
+void ESMainWindow::slotGiftVouchers()
 {
 
 }

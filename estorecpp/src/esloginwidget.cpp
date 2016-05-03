@@ -75,11 +75,11 @@ void ESLoginWidget::slotLogin()
 				session->setUser(user);
 
 				// for testing 
-				QString perms = "Stock,Items,Billing,Orders,Reports,Cash Balance,System, Help,User, \
-						Manage Stock Items, Manage Items, Manage Item Categories, Return Items, \
+				QString perms = "Stock,Items,Billing,Orders,Reports,Cash Balance,System,Business, \
+						Help, User, Manage Stock Items, Manage Items, Manage Item Categories, Return Items, \
 						Orders, Manage Order Items, Manage Suppliers, Add Bill, Current Bills, \
 						Configure, Show Status, General, Sales, Stocks, Settings, Backup & Restore, \
-						Profile, Logout, Manage Users";
+						Offers, Gift Vouchers, Profile, Logout, Manage Users";
 				ES::MenuManager::instance()->reload(perms);
 
 				this->hide();

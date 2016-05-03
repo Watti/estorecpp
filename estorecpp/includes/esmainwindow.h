@@ -32,6 +32,8 @@ public slots:
 	void slotStocksReports();
 	void slotSettings();
 	void slotBackupRestore();
+	void slotOffers();
+	void slotGiftVouchers();
 	void slotLogin();
 	void slotProfile();
 	void slotLogout();

@@ -154,15 +154,15 @@
    </widget>
    <widget class="QMenu" name="menuBussiness">
     <property name="title">
-     <string>Bussiness</string>
+     <string>Business</string>
     </property>
-    <widget class="QMenu" name="actionLoyality">
+    <widget class="QMenu" name="menuLoyality">
      <property name="title">
-      <string>Loyality</string>
+      <string>Loyalty</string>
      </property>
      <addaction name="actionOffers"/>
     </widget>
-    <addaction name="actionLoyality"/>
+    <addaction name="menuLoyality"/>
     <addaction name="actionGiftVouchers"/>
    </widget>
    <addaction name="menuStock"/>
