@@ -4,6 +4,8 @@
 #include "utility/utility.h"
 #include "utility/session.h"
 #include <QMessageBox>
+#include "QString"
+#include "easylogging++.h"
 
 ESAddManualStockItems::ESAddManualStockItems(QWidget *parent /*= 0*/)
 {
@@ -147,10 +149,78 @@ void ESAddManualStockItems::slotAddToStock()
 		return;
 	}
 	QString itemId = ui.itemIdText->text();
-	QString sellingPrice = ui.sellingPrice->text();
+	QString newSellingPrice = ui.sellingPrice->text();
+	if (newSellingPrice == nullptr || newSellingPrice.isEmpty())
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Warning);
+		mbox.setText(QString("Selling price cannot be empty"));
+		mbox.exec();
+		return;
+	}
+	bool isValid = false;
+	newSellingPrice.toDouble(&isValid);
+	if (!isValid)
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Warning);
+		mbox.setText(QString("Invalid input - Selling Price"));
+		mbox.exec();
+	}
 	QString discount = ui.discount->text();
+	if (discount == nullptr || discount.isEmpty())
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Warning);
+		mbox.setText(QString("Selling price cannot be empty"));
+		mbox.exec();
+		return;
+	}
 
-	double currentQty = ui.qty->text().toDouble();
+	isValid = false;
+	discount.toDouble(&isValid);
+	if (!isValid)
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Warning);
+		mbox.setText(QString("Invalid input - Discount"));
+		mbox.exec();
+	}
+	if (ui.qty->text() == nullptr || ui.qty->text().isEmpty())
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Warning);
+		mbox.setText(QString("Quantity cannot be empty"));
+		mbox.exec();
+		return;
+	}
+	isValid = false;
+	double currentQty = ui.qty->text().toDouble(&isValid);
+	if (!isValid)
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Warning);
+		mbox.setText(QString("Invalid input - Quantity"));
+		mbox.exec();
+	}
+	if (ui.minQty->text() == nullptr || ui.minQty->text().isEmpty())
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Warning);
+		mbox.setText(QString("Min quantity cannot be empty"));
+		mbox.exec();
+		return;
+	}
+	isValid = false;
+	ui.minQty->text().toDouble(&isValid);
+	if (!isValid)
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Warning);
+		mbox.setText(QString("Invalid input - Min Quantity"));
+		mbox.exec();
+	}
+
 	int userId = ES::Session::getInstance()->getUser()->getId();
 	QString userIdStr;
 	userIdStr.setNum(userId);
@@ -159,33 +229,50 @@ void ESAddManualStockItems::slotAddToStock()
 	if (itemStock.next())
 	{
 		QString stockId = itemStock.value("stock_id").toString();
-		sellingPrice = itemStock.value("selling_price").toString();
+		QString currentSellingPrice = itemStock.value("selling_price").toString();
+// 		if (newSellingPrice.toDouble() != currentSellingPrice.toDouble())
+// 		{
+// 			QMessageBox mbox;
+// 			mbox.setIcon(QMessageBox::Warning);
+// 			mbox.setText(QString("Selling Price will be updated to "+newSellingPrice));
+// 			mbox.exec();
+// 		}
 		currentQty += itemStock.value("qty").toDouble();
 
 		QString qtyStr;
 		qtyStr.setNum(currentQty);
-		QSqlQuery q("UPDATE stock SET qty = " + qtyStr + " WHERE stock_id = " + stockId);
+		QString q("UPDATE stock SET qty = " + qtyStr + " , selling_price = "+ newSellingPrice + " , discount = "
+			+ discount + " , min_qty =  " + ui.minQty->text() + " WHERE stock_id = " + stockId);
+		QSqlQuery query;
+		if (!query.exec(q))
+		{
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Critical);
+			mbox.setText(QString("Something goes wrong: stock update failed"));
+			mbox.exec();
+
+			QString logError("[ESAddManualStockItems::slotAddToStock] Stock update has been failed query = ");
+			logError.append(q);
+			LOG(ERROR) << logError.toLatin1().data();
+		}
 	}
 	else
 	{
 		QString qtyStr;
 		qtyStr.setNum(currentQty);
 		QString q("INSERT INTO stock (item_id, qty, selling_price, discount, user_id) VALUES (" +
-			itemId + "," + qtyStr + "," + sellingPrice + "," + discount + "," + userIdStr + ")");
+			itemId + "," + qtyStr + "," + newSellingPrice + "," + discount + "," + userIdStr + ")");
 		QSqlQuery query;
-		if (query.exec(q))
-		{
-			QMessageBox mbox;
-			mbox.setIcon(QMessageBox::Information);
-			mbox.setText(QString("Success"));
-			mbox.exec();
-		}
-		else
+		if (!query.exec(q))
 		{
 			QMessageBox mbox;
 			mbox.setIcon(QMessageBox::Critical);
 			mbox.setText(QString("Something goes wrong: stock update failed"));
 			mbox.exec();
+			QString logError("[ESAddManualStockItems::slotAddToStock] Stock insert has been failed query =");
+			logError.append(q);
+			
+			LOG(ERROR) << logError.toLatin1().data();
 		}
 	}
 
