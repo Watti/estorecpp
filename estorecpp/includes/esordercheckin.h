@@ -9,15 +9,16 @@ class ESOrderCheckIn : public QWidget
 
 public:
 	ESOrderCheckIn(QString orderId, QWidget *parent = 0);
+	
 	~ESOrderCheckIn();
 	
 	public slots:
+	void slotSearch();
 	void slotItemSelected(int row, int col);
 	void slotAddToStock();
 	void slotRemoveFromStock();
 	void slotHoldOrder();
 	void slotFinalizeOrder();
-	void slotSearch();
 
 private:
 	Ui::OrderCheckInWidget ui;

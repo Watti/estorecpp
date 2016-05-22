@@ -17,6 +17,7 @@ ESOrderCheckIn::ESOrderCheckIn(QString orderId, QWidget *parent /*= 0*/)
 	headerLabels.append("Category");
 	headerLabels.append("Purchasing Price");
 	headerLabels.append("Qty");
+	headerLabels.append("Cur. Qty");
 	headerLabels.append("Unit");
 
 	ui.itemTableWidget->setHorizontalHeaderLabels(headerLabels);
@@ -39,65 +40,7 @@ ESOrderCheckIn::ESOrderCheckIn(QString orderId, QWidget *parent /*= 0*/)
 	}
 	else
 	{
-		QSqlQuery queryCategory("SELECT * FROM item_category WHERE deleted = 0");
-		QString catCode = "select";
-		int catId = -1;
-
-		ui.categoryComboBox->addItem(catCode, catId);
-
-		while (queryCategory.next())
-		{
-			catId = queryCategory.value("itemcategory_id").toInt();
-			ui.categoryComboBox->addItem(queryCategory.value("itemcategory_name").toString(), catId);
-		}
-
-		// Fill order data
-		QSqlQuery queryOrder("SELECT * FROM purchase_order WHERE deleted = 0 AND purchaseorder_id = " + m_orderId);
-		if (queryOrder.next())
-		{
-			ui.lblOrderId->setText(m_orderId);
-			ui.lblOrderDate->setText(queryOrder.value("order_date").toString());
-
-			QSqlQuery querySupplier("SELECT * FROM supplier WHERE deleted = 0 AND supplier_id = " + queryOrder.value("supplier_id").toString());
-			if (querySupplier.next())
-			{
-				ui.lblSupplierName->setText(querySupplier.value("supplier_name").toString());
-			}
-
-			ui.lblArrivedDate->setText(QDate::currentDate().toString("yyyy-MM-dd"));
-
-			// Fill order items
-			QSqlQuery queryOrderItems("SELECT * FROM purchase_order_item WHERE deleted = 0 AND purchaseorder_id = " + m_orderId);
-			int row = 0;
-			while (queryOrderItems.next())
-			{
-				row = ui.itemTableWidget->rowCount();
-				ui.itemTableWidget->insertRow(row);
-
-				QString itemId = queryOrderItems.value("item_id").toString();
-				ui.itemTableWidget->setItem(row, 0, new QTableWidgetItem(itemId));
-				QTableWidgetItem* priceItm = new QTableWidgetItem(QString::number(queryOrderItems.value("purchasing_price").toDouble(), 'f', 2));
-				priceItm->setTextAlignment(Qt::AlignRight);
-				ui.itemTableWidget->setItem(row, 4, priceItm);
-				QTableWidgetItem* qtyItem = new QTableWidgetItem(queryOrderItems.value("qty").toString());
-				qtyItem->setTextAlignment(Qt::AlignRight);
-				ui.itemTableWidget->setItem(row, 5, qtyItem);
-				
-				QSqlQuery queryItem("SELECT * FROM item WHERE deleted = 0 AND item_id = " + itemId);
-				if (queryItem.next())
-				{
-					ui.itemTableWidget->setItem(row, 1, new QTableWidgetItem(queryItem.value("item_code").toString()));
-					ui.itemTableWidget->setItem(row, 2, new QTableWidgetItem(queryItem.value("item_name").toString()));
-
-					QSqlQuery queryCat("SELECT * FROM item_category WHERE deleted = 0 AND itemcategory_id = " + queryItem.value("itemcategory_id").toString());
-					if (queryCat.next())
-					{
-						ui.itemTableWidget->setItem(row, 3, new QTableWidgetItem(queryCat.value("itemcategory_name").toString()));
-					}
-					ui.itemTableWidget->setItem(row, 6, new QTableWidgetItem(queryItem.value("unit").toString()));
-				}
-			}
-		}
+		slotSearch();
 	}
 }
 
@@ -112,11 +55,29 @@ void ESOrderCheckIn::slotAddToStock()
 	{
 		return;
 	}
+
 	QString itemId = ui.itemIdText->text();
+	double currentQty = ui.quantity->text().toDouble();
+	double currentQtyInDB = -1;
+	
+	QSqlQuery stockPOQuery("SELECT * FROM stock_purchase_order_item WHERE purchaseorder_id = " + m_orderId + " AND item_id = " + itemId);
+	if (stockPOQuery.next())
+	{
+		currentQtyInDB = stockPOQuery.value("current_qty").toDouble();
+		if (currentQty > currentQtyInDB)
+		{
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Critical);
+			mbox.setText(QString("Current Quantity is lower than you entered."));
+			mbox.exec();
+			return;
+		}
+	}
+	
 	QString sellingPrice = ui.sellingPrice->text();
 	QString discount = ui.discount->text();
 	QString stockId;
-	double currentQty = ui.quantity->text().toDouble();
+	
 	int userId = ES::Session::getInstance()->getUser()->getId();
 	QString userIdStr;
 	userIdStr.setNum(userId);
@@ -145,33 +106,51 @@ void ESOrderCheckIn::slotAddToStock()
 		}
 	}
 
-	QString q("INSERT INTO stock_purchase_order_item (purchaseorder_id, item_id, stock_id, qty, current_qty) VALUES (" +
-		m_orderId + "," + itemId + "," + stockId + "," + ui.quantity->text() + "," + ui.quantity->text() + ")");
-	QSqlQuery query;
-	if (!query.exec(q))
+	double qty = 0;
+	QSqlQuery queryOrderItems("SELECT * FROM purchase_order_item WHERE deleted = 0 AND purchaseorder_id = " + m_orderId + " AND item_id = " + itemId);
+	if (queryOrderItems.next())
 	{
-		QMessageBox mbox;
-		mbox.setIcon(QMessageBox::Critical);
-		mbox.setText(QString("Something goes wrong: order check-in failed"));
-		mbox.exec();
+		qty = queryOrderItems.value("qty").toDouble();
+	}
+
+	if (currentQtyInDB != -1)
+	{
+		double curQty = ui.quantity->text().toDouble();
+		QString qtyStr;
+		qtyStr.setNum(currentQtyInDB - curQty);
+		QString q("UPDATE stock_purchase_order_item SET current_qty = " + qtyStr + " WHERE purchaseorder_id = " + 
+			m_orderId + " AND item_id = " + itemId);
+
+		QSqlQuery query;
+		if (!query.exec(q))
+		{
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Critical);
+			mbox.setText(QString("Something goes wrong: order check-in failed"));
+			mbox.exec();
+		}
 	}
 	else
 	{
-		QSqlQuery qry("SELECT * FROM purchase_order_item WHERE purcahseorder_id = " + m_orderId + " AND deleted = 0");
-		if (qry.next())
+		double availableQty = qty - ui.quantity->text().toDouble();
+		QString qtyStr;
+		qtyStr.setNum(qty);
+		QString avlQtyStr;
+		avlQtyStr.setNum(availableQty);
+		QString q("INSERT INTO stock_purchase_order_item (purchaseorder_id, item_id, stock_id, qty, current_qty) VALUES (" +
+			m_orderId + "," + itemId + "," + stockId + "," + qtyStr + "," + avlQtyStr + ")");
+
+		QSqlQuery query;
+		if (!query.exec(q))
 		{
-			double qty = qry.value("qty").toDouble();
-			if (qty == currentQty)
-			{
-				QSqlQuery query("UPDATE purchase_order SET checked_in = 1 WHERE purchaseorder_id = " + m_orderId);
-			}
-			else
-			{
-				// TODO
-			}
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Critical);
+			mbox.setText(QString("Something goes wrong: order check-in failed"));
+			mbox.exec();
 		}
 	}
 
+	slotSearch();
 }
 
 void ESOrderCheckIn::slotRemoveFromStock()
@@ -191,7 +170,86 @@ void ESOrderCheckIn::slotFinalizeOrder()
 
 void ESOrderCheckIn::slotSearch()
 {
+	while (ui.itemTableWidget->rowCount() > 0)
+	{
+		ui.itemTableWidget->removeRow(0);
+	}
 
+	QSqlQuery queryCategory("SELECT * FROM item_category WHERE deleted = 0");
+	QString catCode = "select";
+	int catId = -1;
+
+	ui.categoryComboBox->addItem(catCode, catId);
+
+	while (queryCategory.next())
+	{
+		catId = queryCategory.value("itemcategory_id").toInt();
+		ui.categoryComboBox->addItem(queryCategory.value("itemcategory_name").toString(), catId);
+	}
+
+	// Fill order data
+	QSqlQuery queryOrder("SELECT * FROM purchase_order WHERE deleted = 0 AND purchaseorder_id = " + m_orderId);
+	if (queryOrder.next())
+	{
+		ui.lblOrderId->setText(m_orderId);
+		ui.lblOrderDate->setText(queryOrder.value("order_date").toString());
+
+		QSqlQuery querySupplier("SELECT * FROM supplier WHERE deleted = 0 AND supplier_id = " + queryOrder.value("supplier_id").toString());
+		if (querySupplier.next())
+		{
+			ui.lblSupplierName->setText(querySupplier.value("supplier_name").toString());
+		}
+
+		ui.lblArrivedDate->setText(QDate::currentDate().toString("yyyy-MM-dd"));
+
+		// Fill order items
+		QSqlQuery queryOrderItems("SELECT * FROM purchase_order_item WHERE deleted = 0 AND purchaseorder_id = " + m_orderId);
+		int row = 0;
+		while (queryOrderItems.next())
+		{
+			row = ui.itemTableWidget->rowCount();
+			ui.itemTableWidget->insertRow(row);
+
+			QString itemId = queryOrderItems.value("item_id").toString();
+			ui.itemTableWidget->setItem(row, 0, new QTableWidgetItem(itemId));
+			QTableWidgetItem* priceItm = new QTableWidgetItem(QString::number(queryOrderItems.value("purchasing_price").toDouble(), 'f', 2));
+			priceItm->setTextAlignment(Qt::AlignRight);
+			ui.itemTableWidget->setItem(row, 4, priceItm);
+
+			QString qty = queryOrderItems.value("qty").toString();
+			QTableWidgetItem* qtyItem = new QTableWidgetItem(qty);
+			qtyItem->setTextAlignment(Qt::AlignRight);
+			ui.itemTableWidget->setItem(row, 5, qtyItem);
+
+			QSqlQuery stockPOQuery("SELECT * FROM stock_purchase_order_item WHERE purchaseorder_id = " + m_orderId + " AND item_id = " + itemId);
+			if (stockPOQuery.next())
+			{
+				QTableWidgetItem* curQtyItem = new QTableWidgetItem(stockPOQuery.value("current_qty").toString());
+				curQtyItem->setTextAlignment(Qt::AlignRight);
+				ui.itemTableWidget->setItem(row, 6, curQtyItem);
+			}
+			else
+			{
+				QTableWidgetItem* qtyItem = new QTableWidgetItem(qty);
+				qtyItem->setTextAlignment(Qt::AlignRight);
+				ui.itemTableWidget->setItem(row, 6, qtyItem);
+			}
+
+			QSqlQuery queryItem("SELECT * FROM item WHERE deleted = 0 AND item_id = " + itemId);
+			if (queryItem.next())
+			{
+				ui.itemTableWidget->setItem(row, 1, new QTableWidgetItem(queryItem.value("item_code").toString()));
+				ui.itemTableWidget->setItem(row, 2, new QTableWidgetItem(queryItem.value("item_name").toString()));
+
+				QSqlQuery queryCat("SELECT * FROM item_category WHERE deleted = 0 AND itemcategory_id = " + queryItem.value("itemcategory_id").toString());
+				if (queryCat.next())
+				{
+					ui.itemTableWidget->setItem(row, 3, new QTableWidgetItem(queryCat.value("itemcategory_name").toString()));
+				}
+				ui.itemTableWidget->setItem(row, 7, new QTableWidgetItem(queryItem.value("unit").toString()));
+			}
+		}
+	}
 }
 
 void ESOrderCheckIn::slotItemSelected(int row, int col)
