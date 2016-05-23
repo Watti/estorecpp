@@ -7,11 +7,13 @@
 #include "utility/session.h"
 #include "utility/utility.h"
 #include "entities/SaleLineEdit.h"
+#include <set>
 
 AddOrderItem::AddOrderItem(QWidget *parent/* = 0*/)
 {
 	m_update = false;
 	ui.setupUi(this);
+	m_removeButtonSignalMapper = new QSignalMapper(this);
 
 	QStringList headerLabels;
 	headerLabels.append("Item ID");
@@ -36,6 +38,7 @@ AddOrderItem::AddOrderItem(QWidget *parent/* = 0*/)
 	headerLabels1.append("Category");
 	headerLabels1.append("Purchasing Price");
 	headerLabels1.append("Qty");
+	headerLabels1.append("Actions");
 
 	ui.selectedItemTableWidget->setHorizontalHeaderLabels(headerLabels1);
 	ui.selectedItemTableWidget->horizontalHeader()->setStretchLastSection(true);
@@ -69,6 +72,7 @@ AddOrderItem::AddOrderItem(QWidget *parent/* = 0*/)
 
 	QObject::connect(ui.supplierTableWidget, SIGNAL(cellClicked(int, int)), this, SLOT(slotSupplierSelected(int, int)));
 	QObject::connect(ui.itemTableWidget, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(slotItemDoubleClicked(int, int)));
+	QObject::connect(m_removeButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotRemove(QString)));
 
 	if (!ES::DbConnection::instance()->open())
 	{
@@ -91,7 +95,23 @@ AddOrderItem::AddOrderItem(QWidget *parent/* = 0*/)
 			ui.categoryComboBox->addItem(queryCategory.value(1).toString() + " / " + queryCategory.value("itemcategory_name").toString(), catId);
 		}
 
-		slotSearch();
+		// Fill suppliers
+		while (ui.supplierTableWidget->rowCount() > 0)
+		{
+			ui.supplierTableWidget->removeRow(0);
+		}
+
+		QSqlQuery querySuppliers("SELECT * FROM supplier WHERE deleted = 0");
+		int row = 0;
+		while (querySuppliers.next())
+		{
+			row = ui.supplierTableWidget->rowCount();
+			ui.supplierTableWidget->insertRow(row);
+
+			ui.supplierTableWidget->setItem(row, 0, new QTableWidgetItem(querySuppliers.value("supplier_id").toString()));
+			ui.supplierTableWidget->setItem(row, 1, new QTableWidgetItem(querySuppliers.value("supplier_code").toString()));
+			ui.supplierTableWidget->setItem(row, 2, new QTableWidgetItem(querySuppliers.value("supplier_name").toString()));
+		}
 	}
 	
 }
@@ -229,31 +249,27 @@ void AddOrderItem::slotSearch()
 	QSqlQuery queryItems(searchQuery);
 	displayItems(queryItems);
 	ui.itemTableWidget->setSortingEnabled(true);
-
-	while (ui.supplierTableWidget->rowCount() > 0)
-	{
-		ui.supplierTableWidget->removeRow(0);
-	}
-
-	QSqlQuery querySuppliers("SELECT * FROM supplier WHERE deleted = 0");
-	int row = 0;
-	while (querySuppliers.next())
-	{
-		row = ui.supplierTableWidget->rowCount();
-		ui.supplierTableWidget->insertRow(row);
-
-		ui.supplierTableWidget->setItem(row, 0, new QTableWidgetItem(querySuppliers.value("supplier_id").toString()));
-		ui.supplierTableWidget->setItem(row, 1, new QTableWidgetItem(querySuppliers.value("supplier_code").toString()));
-		ui.supplierTableWidget->setItem(row, 2, new QTableWidgetItem(querySuppliers.value("supplier_name").toString()));
-	}
-
 }
 
 void AddOrderItem::displayItems(QSqlQuery& queryItems)
 {
+	// Get selected suppliers items
+	std::set<QString> currentSuppliersItems;
+	QSqlQuery supplierQuery("SELECT item_id FROM supplier_item WHERE supplier_id = " + m_selectedSupplierId);
+	while (supplierQuery.next())
+	{
+		currentSuppliersItems.insert(supplierQuery.value("item_id").toString());
+	}
+
 	int row = 0;
 	while (queryItems.next())
 	{
+		QString itemId = queryItems.value("item_id").toString();
+		if (currentSuppliersItems.find(itemId) == currentSuppliersItems.end())
+		{
+			continue;
+		}
+
 		row = ui.itemTableWidget->rowCount();
 		ui.itemTableWidget->insertRow(row);
 
@@ -300,7 +316,7 @@ void AddOrderItem::slotSupplierSelected(int row, int col)
 		{
 			QMessageBox mbox;
 			mbox.setIcon(QMessageBox::Critical);
-			mbox.setText(QString("Selected supplier doesn't deliver selected items"));
+			mbox.setText(QString("This Supplier doesn't deliver selected items"));
 			mbox.exec();
 
 			ui.supplierTableWidget->blockSignals(true);
@@ -359,11 +375,13 @@ void AddOrderItem::slotSupplierSelected(int row, int col)
 	}
 
 	m_selectedSupplierId = idCell->text();
+
+	slotSearch();
 }
 
-void AddOrderItem::slotItemDoubleClicked(int row, int col)
+void AddOrderItem::slotItemDoubleClicked(int rowi, int col)
 {
-	QTableWidgetItem* idCell = ui.itemTableWidget->item(row, 0);
+	QTableWidgetItem* idCell = ui.itemTableWidget->item(rowi, 0);
 	if (!idCell)
 		return;
 
@@ -433,5 +451,27 @@ void AddOrderItem::slotItemDoubleClicked(int row, int col)
 		ui.selectedItemTableWidget->setCellWidget(row, 5, leQty);
 		leQty->setFocus();
 
+		QPushButton* removeBtn = new QPushButton(" X ");
+		removeBtn->setMaximumWidth(30);
+		m_removeButtonSignalMapper->setMapping(removeBtn, queryItems.value("item_id").toString());
+		QObject::connect(removeBtn, SIGNAL(clicked()), m_removeButtonSignalMapper, SLOT(map()));
+
+		ui.selectedItemTableWidget->setCellWidget(row, 6, removeBtn);
 	}
 }
+
+void AddOrderItem::slotRemove(QString itemId)
+{
+	int row = 0;
+	while (ui.selectedItemTableWidget->rowCount() > 0)
+	{
+		QTableWidgetItem* item = ui.selectedItemTableWidget->item(row, 0);
+		if (item->text() == itemId)
+		{
+			ui.selectedItemTableWidget->removeRow(row);
+			return;
+		}
+		row++;
+	}
+}
+

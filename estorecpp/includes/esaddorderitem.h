@@ -23,6 +23,7 @@ public:
 	void slotSearch();
 	void slotSupplierSelected(int row, int col);
 	void slotItemDoubleClicked(int row, int col);
+	void slotRemove(QString);
 
 private:
 	void displayItems(QSqlQuery& queryItems);
@@ -31,6 +32,7 @@ private:
 	bool m_update;
 	QString m_orderId;
 	QString m_selectedSupplierId;
+	QSignalMapper* m_removeButtonSignalMapper;
 
 };
 
