@@ -15,6 +15,7 @@
 #include "esgenericsalesstatistics.h"
 #include "essystemsettings.h"
 #include "escalculator.h"
+#include "esbackuprestore.h"
 #include "utility/esmenumanager.h"
 #include "utility/session.h"
 #include "utility/utility.h"
@@ -301,7 +302,9 @@ void ESMainWindow::slotSettings()
 
 void ESMainWindow::slotBackupRestore()
 {
-
+	ESBackupRestore* backupRestore = new ESBackupRestore(this);
+	this->setCentralWidget(backupRestore);
+	backupRestore->show();
 }
 
 void ESMainWindow::slotOffers()
