@@ -273,7 +273,7 @@ void ESOrderCheckIn::slotItemSelected(int row, int col)
 
 	ui.sellingPrice->setText(idCell->text());
 
-	idCell = ui.itemTableWidget->item(row, 5);
+	idCell = ui.itemTableWidget->item(row, 6);
 	if (!idCell)
 		return;
 

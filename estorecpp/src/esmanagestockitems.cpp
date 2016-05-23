@@ -29,8 +29,8 @@ ESManageStockItems::ESManageStockItems(QWidget *parent /*= 0*/)
 	headerLabels.append("Min.Qty");
 	headerLabels.append("Unit");
 	headerLabels.append("Unit Price");
-	headerLabels.append("Description");
 	headerLabels.append("Discount");
+	headerLabels.append("Description");
 	headerLabels.append("Actions");
 
 	ui.tableWidget->setHorizontalHeaderLabels(headerLabels);
@@ -137,10 +137,10 @@ void ESManageStockItems::slotSearch()
 			QTableWidgetItem* priceItem = new QTableWidgetItem(QString::number(query.value("selling_price").toDouble(), 'f', 2));
 			priceItem->setTextAlignment(Qt::AlignRight);
 			ui.tableWidget->setItem(row, 7, priceItem);
-			ui.tableWidget->setItem(row, 8, new QTableWidgetItem(query.value("description").toString()));
 			QTableWidgetItem* discountItem = new QTableWidgetItem(QString::number(query.value("discount").toDouble(), 'f', 2));
 			discountItem->setTextAlignment(Qt::AlignRight);
-			ui.tableWidget->setItem(row, 9, discountItem);
+			ui.tableWidget->setItem(row, 8, discountItem);
+			ui.tableWidget->setItem(row, 9, new QTableWidgetItem(query.value("description").toString()));
 
 			QWidget* base = new QWidget(ui.tableWidget);
 			QPushButton* updateBtn = new QPushButton("Update", base);

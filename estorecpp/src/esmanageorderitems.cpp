@@ -23,10 +23,9 @@ ESManageOrderItems::ESManageOrderItems(QWidget *parent/* = 0*/)
 
 	QStringList headerLabels;
 	headerLabels.append("Order ID");	
-	headerLabels.append("Supplier");
-	headerLabels.append("# Items");
-	headerLabels.append("# Categories");
-	headerLabels.append("Total Qty");
+	headerLabels.append("Supplier ID");
+	headerLabels.append("Supplier Name");
+	headerLabels.append("Placed Date");
 	headerLabels.append("Comments");
 	headerLabels.append("User");
 	headerLabels.append("Actions");
@@ -146,51 +145,33 @@ void ESManageOrderItems::displayItems(QSqlQuery& queryOrder)
 			tbItem = new QTableWidgetItem(q.value("supplier_code").toString());
 			tbItem->setBackgroundColor(checkedIn ? red : green);
 			ui.tableWidget->setItem(row, 1, tbItem);
-			QString supId = q.value("supplier_id").toString();
-			QSqlQuery querySupItem("SELECT item_id FROM supplier_item WHERE supplier_id = "+supId+" AND deleted = 0");
-			while (querySupItem.next())
-			{
-				QString itemId = querySupItem.value("item_id").toString();
-				QSqlQuery queryItem("SELECT * FROM item WHERE deleted = 0 AND item_id = "+itemId);
-				if (queryItem.next())
-				{
-					tbItem = new QTableWidgetItem(queryItem.value("item_name").toString());
-					tbItem->setBackgroundColor(checkedIn ? red : green); 
-					ui.tableWidget->setItem(row, 2, tbItem);
-					QString catId = queryItem.value("itemcategory_id").toString();
-
-					QSqlQuery queryCatergory("SELECT itemcategory_name FROM item_category WHERE deleted = 0 AND itemcategory_id = "+catId);
-					if (queryCatergory.next())
-					{
-						tbItem = new QTableWidgetItem(queryCatergory.value("itemcategory_name").toString());
-						tbItem->setBackgroundColor(checkedIn ? red : green);
-						ui.tableWidget->setItem(row, 3, tbItem);
-					}
-				}
-
-				QSqlQuery purOrderItem("SELECT * FROM purchase_order_item WHERE deleted = 0 AND purchaseorder_id = "+poId +" AND item_id = "+itemId);
-				if (purOrderItem.next())
-				{
-					tbItem = new QTableWidgetItem(purOrderItem.value("qty").toString());
-					tbItem->setBackgroundColor(checkedIn ? red : green);
-					ui.tableWidget->setItem(row, 4, tbItem);
-				}
-			}
+			
+			tbItem = new QTableWidgetItem(q.value("supplier_name").toString());
+			tbItem->setBackgroundColor(checkedIn ? red : green);
+			ui.tableWidget->setItem(row, 2, tbItem);
 		}
-		
+
+		QDate orderDate = QDate::fromString(queryOrder.value("order_date").toString(), "yyyy-MM-dd");
+		tbItem = new QTableWidgetItem(queryOrder.value("order_date").toString().append(" (").append(orderDate.toString("MMMM dd")).append(")"));
+		tbItem->setBackgroundColor(checkedIn ? red : green);
+		ui.tableWidget->setItem(row, 3, tbItem);
 		
 		tbItem = new QTableWidgetItem(queryOrder.value("comments").toString());
 		tbItem->setBackgroundColor(checkedIn ? red : green);
-		ui.tableWidget->setItem(row, 5, tbItem);
+		ui.tableWidget->setItem(row, 4, tbItem);
 		QSqlQuery queryUser("SELECT * FROM user WHERE user_id = " + queryOrder.value("user_id").toString());
 		if (queryUser.next())
 		{
 			tbItem = new QTableWidgetItem(queryUser.value("display_name").toString());
 			tbItem->setBackgroundColor(checkedIn ? red : green);
-			ui.tableWidget->setItem(row, 6, tbItem);
+			ui.tableWidget->setItem(row, 5, tbItem);
 		}
 
 		QWidget* base = new QWidget(ui.tableWidget);
+		QPalette p(base->palette());
+		p.setColor(QPalette::Background, checkedIn ? red : green);
+		base->setAutoFillBackground(true);
+		base->setPalette(p);
 		QPushButton* checkInBtn = NULL;
 
 		if (!checkedIn)
@@ -219,7 +200,7 @@ void ESManageOrderItems::displayItems(QSqlQuery& queryOrder)
 		layout->addWidget(removeBtn);
 		layout->insertStretch(2);
 		base->setLayout(layout);
-		ui.tableWidget->setCellWidget(row, 7, base);
+		ui.tableWidget->setCellWidget(row, 6, base);
 		base->show();
 	}
 }
