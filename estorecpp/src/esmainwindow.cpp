@@ -162,10 +162,10 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	mmgr->addSeparator(ui.mainToolBar->addSeparator());
 
 	mmgr->addAction("Offers", ui.actionOffers);
-	ui.actionOffers->setIcon(QIcon("icons/system.png"));
+	ui.actionOffers->setIcon(QIcon("icons/offers.png"));
 	ui.mainToolBar->addAction(ui.actionOffers);
 	mmgr->addAction("Gift Vouchers", ui.actionGiftVouchers);
-	ui.actionGiftVouchers->setIcon(QIcon("icons/hdd.png"));
+	ui.actionGiftVouchers->setIcon(QIcon("icons/gift_voucher.png"));
 	ui.mainToolBar->addAction(ui.actionGiftVouchers);
 
 	mmgr->addMenuActionMapping("Stock", "Manage Stock Items");

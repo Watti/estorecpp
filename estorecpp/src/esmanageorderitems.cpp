@@ -39,6 +39,8 @@ ESManageOrderItems::ESManageOrderItems(QWidget *parent/* = 0*/)
 	ui.prevBtn->setDisabled(true);
 	ui.nextBtn->setDisabled(true);
 
+	ui.showAllOrders->setChecked(true);
+
 	if (!ES::DbConnection::instance()->open())
 	{
 		QMessageBox mbox;

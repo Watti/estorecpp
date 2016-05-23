@@ -166,7 +166,40 @@ void ESOrderCheckIn::slotHoldOrder()
 
 void ESOrderCheckIn::slotFinalizeOrder()
 {
-	QSqlQuery query("UPDATE purchase_order SET checked_in = 1 WHERE purchaseorder_id = " + m_orderId);
+	QSqlQuery poItemsQry("SELECT item_id FROM purchase_order_item WHERE deleted = 0 AND purchaseorder_id = " + m_orderId);
+	QSqlQuery stockPoItemQry("SELECT item_id FROM stock_purchase_order_item WHERE purchaseorder_id = " + m_orderId);
+	bool canCheckedIn = true;
+	if (poItemsQry.size() != stockPoItemQry.size())
+	{
+		canCheckedIn = false;
+	}
+	else
+	{
+		while (stockPoItemQry.next())
+		{
+			if (stockPoItemQry.value("current_qty").toDouble() > 0)
+			{
+				canCheckedIn = false;
+				break;
+			}
+		}
+	}
+
+	if (canCheckedIn)
+	{
+		QSqlQuery query("UPDATE purchase_order SET checked_in = 1 WHERE purchaseorder_id = " + m_orderId);
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Information);
+		mbox.setText(QString("Successfully finalized"));
+		mbox.exec();
+	}
+	else
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Critical);
+		mbox.setText(QString("Some items are not added to the Stock yet. Cannot be finalized"));
+		mbox.exec();
+	}
 }
 
 void ESOrderCheckIn::slotSearch()
@@ -210,24 +243,24 @@ void ESOrderCheckIn::slotSearch()
 		{
 			row = ui.itemTableWidget->rowCount();
 			ui.itemTableWidget->insertRow(row);
+			QColor red(245, 169, 169);
+			bool empty = false;
 
 			QString itemId = queryOrderItems.value("item_id").toString();
-			ui.itemTableWidget->setItem(row, 0, new QTableWidgetItem(itemId));
-			QTableWidgetItem* priceItm = new QTableWidgetItem(QString::number(queryOrderItems.value("purchasing_price").toDouble(), 'f', 2));
-			priceItm->setTextAlignment(Qt::AlignRight);
-			ui.itemTableWidget->setItem(row, 4, priceItm);
-
 			QString qty = queryOrderItems.value("qty").toString();
-			QTableWidgetItem* qtyItem = new QTableWidgetItem(qty);
-			qtyItem->setTextAlignment(Qt::AlignRight);
-			ui.itemTableWidget->setItem(row, 5, qtyItem);
 
 			QSqlQuery stockPOQuery("SELECT * FROM stock_purchase_order_item WHERE purchaseorder_id = " + m_orderId + " AND item_id = " + itemId);
 			if (stockPOQuery.next())
 			{
-				QTableWidgetItem* curQtyItem = new QTableWidgetItem(stockPOQuery.value("current_qty").toString());
+				QString currentQty = stockPOQuery.value("current_qty").toString();
+				QTableWidgetItem* curQtyItem = new QTableWidgetItem(currentQty);
 				curQtyItem->setTextAlignment(Qt::AlignRight);
 				ui.itemTableWidget->setItem(row, 6, curQtyItem);
+				if (currentQty.toDouble() == 0.0)
+				{
+					empty = true;
+					curQtyItem->setBackgroundColor(red);
+				}
 			}
 			else
 			{
@@ -235,19 +268,41 @@ void ESOrderCheckIn::slotSearch()
 				qtyItem->setTextAlignment(Qt::AlignRight);
 				ui.itemTableWidget->setItem(row, 6, qtyItem);
 			}
+			
+			ui.itemTableWidget->setItem(row, 0, new QTableWidgetItem(itemId));
+			QTableWidgetItem* priceItm = new QTableWidgetItem(QString::number(queryOrderItems.value("purchasing_price").toDouble(), 'f', 2));
+			priceItm->setTextAlignment(Qt::AlignRight);
+			ui.itemTableWidget->setItem(row, 4, priceItm);
+			if (empty) priceItm->setBackgroundColor(red);
 
+			
+			QTableWidgetItem* qtyItem = new QTableWidgetItem(qty);
+			qtyItem->setTextAlignment(Qt::AlignRight);
+			ui.itemTableWidget->setItem(row, 5, qtyItem);
+			if (empty) qtyItem->setBackgroundColor(red);
+			
 			QSqlQuery queryItem("SELECT * FROM item WHERE deleted = 0 AND item_id = " + itemId);
 			if (queryItem.next())
 			{
-				ui.itemTableWidget->setItem(row, 1, new QTableWidgetItem(queryItem.value("item_code").toString()));
-				ui.itemTableWidget->setItem(row, 2, new QTableWidgetItem(queryItem.value("item_name").toString()));
+				QTableWidgetItem* item1 = new QTableWidgetItem(queryItem.value("item_code").toString());
+				if (empty) item1->setBackgroundColor(red);
+				ui.itemTableWidget->setItem(row, 1, item1);
+
+				QTableWidgetItem* item2 = new QTableWidgetItem(queryItem.value("item_name").toString());
+				if (empty) item2->setBackgroundColor(red);
+				ui.itemTableWidget->setItem(row, 2, item2);
 
 				QSqlQuery queryCat("SELECT * FROM item_category WHERE deleted = 0 AND itemcategory_id = " + queryItem.value("itemcategory_id").toString());
 				if (queryCat.next())
 				{
-					ui.itemTableWidget->setItem(row, 3, new QTableWidgetItem(queryCat.value("itemcategory_name").toString()));
+					QTableWidgetItem* item3 = new QTableWidgetItem(queryCat.value("itemcategory_name").toString());
+					if (empty) item3->setBackgroundColor(red);
+					ui.itemTableWidget->setItem(row, 3, item3);
 				}
-				ui.itemTableWidget->setItem(row, 7, new QTableWidgetItem(queryItem.value("unit").toString()));
+
+				QTableWidgetItem* item4 = new QTableWidgetItem(queryItem.value("unit").toString());
+				if (empty) item4->setBackgroundColor(red);
+				ui.itemTableWidget->setItem(row, 7, item4);
 			}
 		}
 	}

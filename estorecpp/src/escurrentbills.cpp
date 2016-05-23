@@ -118,16 +118,18 @@ void ESCurrentBills::slotSearch()
 		{
 		case 1:
 		{
-			rowColor.setRgb(51, 254, 84);
+			rowColor.setRgb(192, 227, 134);
 			tableItem = new QTableWidgetItem("COMMITTED");
+			tableItem->setTextAlignment(Qt::AlignHCenter);
 			tableItem->setBackgroundColor(rowColor);
 			ui.tableWidget->setItem(row, 5, tableItem);
 		}
 			break;
 		case 2:
 		{
-			rowColor.setRgb(255, 153, 52);
+			rowColor.setRgb(254, 239, 179);
 			tableItem = new QTableWidgetItem("PENDING");
+			tableItem->setTextAlignment(Qt::AlignHCenter);
 			tableItem->setBackgroundColor(rowColor);
 			ui.tableWidget->setItem(row, 5, tableItem);
 
@@ -149,8 +151,9 @@ void ESCurrentBills::slotSearch()
 			break;
 		case 3:
 		{
-			rowColor.setRgb(246, 65, 65);
+			rowColor.setRgb(255, 186, 186);
 			tableItem = new QTableWidgetItem("CANCELED");
+			tableItem->setTextAlignment(Qt::AlignHCenter);
 			tableItem->setBackgroundColor(rowColor);
 			ui.tableWidget->setItem(row, 5, tableItem);
 		}
@@ -159,6 +162,7 @@ void ESCurrentBills::slotSearch()
 		{
 			rowColor.setRgb(255, 255, 255);
 			tableItem = new QTableWidgetItem("UNSPECIFIED");
+			tableItem->setTextAlignment(Qt::AlignHCenter);
 			tableItem->setBackgroundColor(rowColor);
 			ui.tableWidget->setItem(row, 5, tableItem);
 		}
@@ -174,16 +178,18 @@ void ESCurrentBills::slotSearch()
 		tableItem->setBackgroundColor(rowColor);
 		ui.tableWidget->setItem(row, 1, tableItem);
 
-		QString pmQueryStr("SELECT * FROM payment WHERE type_id=");
+		QString pmQueryStr("SELECT * FROM payment_method WHERE type_id=");
 		pmQueryStr.append(allBillQuery.value(4).toString());
 		QSqlQuery pmQuery(pmQueryStr);
 		if (pmQuery.first())
 		{
 			tableItem = new QTableWidgetItem(pmQuery.value(1).toString());
+			tableItem->setTextAlignment(Qt::AlignHCenter);
 			tableItem->setBackgroundColor(rowColor);
 			ui.tableWidget->setItem(row, 2, tableItem);
 		}
 		tableItem = new QTableWidgetItem(QString::number(allBillQuery.value(3).toFloat(), 'f', 2));
+		tableItem->setTextAlignment(Qt::AlignRight);
 		tableItem->setBackgroundColor(rowColor);
 		ui.tableWidget->setItem(row, 3, tableItem);
 
@@ -193,6 +199,7 @@ void ESCurrentBills::slotSearch()
 		if (userQuery.first())
 		{
 			tableItem = new QTableWidgetItem(userQuery.value(1).toString());
+			tableItem->setTextAlignment(Qt::AlignHCenter);
 			tableItem->setBackgroundColor(rowColor);
 			ui.tableWidget->setItem(row, 4, tableItem);
 		}
