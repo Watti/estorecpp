@@ -30,6 +30,7 @@ ESOrderCheckIn::ESOrderCheckIn(QString orderId, QWidget *parent /*= 0*/)
 
 	QObject::connect(ui.itemTableWidget, SIGNAL(cellClicked(int, int)), this, SLOT(slotItemSelected(int, int)));
 	QObject::connect(ui.addToStockBtn, SIGNAL(clicked()), this, SLOT(slotAddToStock()));
+	QObject::connect(ui.finalizeOrder, SIGNAL(clicked()), this, SLOT(slotFinalizeOrder()));
 
 	if (!ES::DbConnection::instance()->open())
 	{
@@ -165,7 +166,7 @@ void ESOrderCheckIn::slotHoldOrder()
 
 void ESOrderCheckIn::slotFinalizeOrder()
 {
-
+	QSqlQuery query("UPDATE purchase_order SET checked_in = 1 WHERE purchaseorder_id = " + m_orderId);
 }
 
 void ESOrderCheckIn::slotSearch()

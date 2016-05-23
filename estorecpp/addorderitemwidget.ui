@@ -858,7 +858,7 @@
                 </spacer>
                </item>
                <item>
-                <widget class="QCheckBox" name="showAllSuppliers">
+                <widget class="QCheckBox" name="showAllItems">
                  <property name="palette">
                   <palette>
                    <active>
@@ -907,7 +907,7 @@
                   <enum>Qt::RightToLeft</enum>
                  </property>
                  <property name="text">
-                  <string>Show All</string>
+                  <string>Show All Items</string>
                  </property>
                 </widget>
                </item>

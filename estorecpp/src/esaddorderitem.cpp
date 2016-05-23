@@ -61,7 +61,7 @@ AddOrderItem::AddOrderItem(QWidget *parent/* = 0*/)
 	ui.dateEdit->setDisplayFormat("yyyy-MM-dd");
 	ui.dateEdit->setDate(QDate::currentDate());
 
-	ui.showAllSuppliers->setChecked(true);
+	ui.showAllItems->setChecked(true);
 
 	QObject::connect(ui.addOrderItemButton, SIGNAL(clicked()), this, SLOT(slotPlaceNewOrder()));
 	QObject::connect(ui.searchTextBox, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
@@ -355,7 +355,7 @@ void AddOrderItem::slotSupplierSelected(int row, int col)
 				le->setText(st);
 				//le->setReadOnly(true);
 			}
-		}		
+		}
 	}
 
 	m_selectedSupplierId = idCell->text();
