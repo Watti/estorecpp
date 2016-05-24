@@ -21,6 +21,7 @@
 #include "utility/utility.h"
 #include <QMessageBox>
 #include <QShortcut>
+#include "esreturnitems.h"
 
 ESMainWindow::ESMainWindow(QWidget *parent)
 : QMainWindow(parent)
@@ -229,7 +230,9 @@ void ESMainWindow::slotManageItemPrices()
 
 void ESMainWindow::slotReturnItems()
 {
-
+	ESReturnItems* retrunItems = new ESReturnItems(this);
+	this->setCentralWidget(retrunItems);
+	retrunItems->show();
 }
 
 void ESMainWindow::slotManageOrderItems()

@@ -9,6 +9,7 @@ ESCashBalanceConfigure::ESCashBalanceConfigure(QWidget *parent) : QWidget(parent
 {
 	ui.setupUi(this);
 	//ui.labelWelcome->setText("Hello : " + ES::Session::getInstance()->getUser()->getName());
+	ui.label_4->setText(QDate::currentDate().toString("yyyy-MM-dd"));
 	
 	if (!ES::DbConnection::instance()->open())
 	{
