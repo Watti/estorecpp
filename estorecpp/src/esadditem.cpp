@@ -48,6 +48,7 @@ void AddItem::slotAddItem()
 	QString iDesc = ui.descriptionText->toPlainText();
 	QString catId = ui.itemCategoryComboBox->itemData(ui.itemCategoryComboBox->currentIndex()).toString();
 	QString barCode = ui.barCode->text();
+	QString imagePath = ui.imagePath->text();
 	QString unit = ui.unitText->text();
 
 	if (iName == nullptr || iName.isEmpty() || iCode == nullptr || iCode.isEmpty() ||
@@ -63,11 +64,13 @@ void AddItem::slotAddItem()
 		QString q;
 		if (isUpdate())
 		{
-			q = "Update item SET item_code = '" + iCode + "', item_name = '" + iName + "', description = '" + iDesc + "', bar_code = '"+barCode+"', unit = '"+unit+"' , itemcategory_id = "+catId+" WHERE item_id = " + m_itemId;
+			q = "Update item SET item_code = '" + iCode + "', item_name = '" + iName + "', description = '" + 
+				iDesc + "', bar_code = '"+barCode+"', item_image = '" + imagePath + "', unit = '"+unit+"' , itemcategory_id = "+catId+" WHERE item_id = " + m_itemId;
 		}
 		else
 		{
-			q = "INSERT INTO item (item_code, item_name, description, bar_code, unit, itemcategory_id, deleted) VALUES ('" + iCode + "','" + iName + "','" + iDesc +"','"+barCode+"','"+unit+"',"+catId+ ", 0)";
+			q = "INSERT INTO item (item_code, item_name, description, bar_code, unit, itemcategory_id, deleted) VALUES ('" + 
+				iCode + "','" + iName + "','" + iDesc +"','"+barCode+"','" + imagePath + "','" +unit+"',"+catId+ ", 0)";
 		}
 		QSqlQuery query;
 		if (query.exec(q))

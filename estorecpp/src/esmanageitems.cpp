@@ -12,17 +12,20 @@ ESManageItems::ESManageItems(QWidget *parent /*= 0*/)
 	ui.setupUi(this);
 	m_updateButtonSignalMapper = new QSignalMapper(this);
 	m_removeButtonSignalMapper = new QSignalMapper(this);
+	m_imagesHidden = false;
 
 	QObject::connect(m_updateButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotUpdate(QString)));
 	QObject::connect(m_removeButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotRemove(QString)));
 	QObject::connect(ui.searchTextBox, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
 	QObject::connect(ui.categoryComboBox, SIGNAL(activated(QString)), this, SLOT(slotSearch()));
+	QObject::connect(ui.fitImages, SIGNAL(stateChanged(int)), this, SLOT(slotFitImages()));
+	QObject::connect(ui.hideImages, SIGNAL(stateChanged(int)), this, SLOT(slotHideImages()));
 
 	QStringList headerLabels;
 	headerLabels.append("Item Code");
 	headerLabels.append("Item Name");
 	headerLabels.append("Category");
-	//headerLabels.append("Qty");
+	headerLabels.append("Image");
 	//headerLabels.append("Min. Qty");
 	headerLabels.append("Unit");
 	//headerLabels.append("Unit Price");
@@ -91,6 +94,7 @@ void ESManageItems::slotUpdate(QString itemId)
 		addItem->getUI().itemCategoryComboBox->setCurrentIndex(index);
 		addItem->getUI().itemCode->setText(queryItem.value("item_code").toString());
 		addItem->getUI().barCode->setText(queryItem.value("bar_code").toString());
+		addItem->getUI().imagePath->setText(queryItem.value("item_image").toString());
 		addItem->getUI().unitText->setText(queryItem.value("unit").toString());
 		addItem->getUI().descriptionText->setText(queryItem.value("description").toString());
 		addItem->getUI().itemName->setText(queryItem.value("item_name").toString());
@@ -130,9 +134,18 @@ void ESManageItems::displayItems(QSqlQuery& queryItems)
 
 		ui.tableWidget->setItem(row, 0, new QTableWidgetItem(queryItems.value("item_code").toString()));
 		ui.tableWidget->setItem(row, 1, new QTableWidgetItem(queryItems.value("item_name").toString()));
-		ui.tableWidget->setItem(row, 3, new QTableWidgetItem(queryItems.value("unit").toString()));
-		ui.tableWidget->setItem(row, 4, new QTableWidgetItem(queryItems.value("description").toString()));
+		ui.tableWidget->setItem(row, 4, new QTableWidgetItem(queryItems.value("unit").toString()));
+		ui.tableWidget->setItem(row, 5, new QTableWidgetItem(queryItems.value("description").toString()));
 		
+		QString imagePath = queryItems.value("item_image").toString();
+		if (imagePath.isNull() || imagePath.isEmpty())
+		{
+			imagePath = "images/default.png";
+		}
+		QTableWidgetItem* imageItem = new QTableWidgetItem();
+		imageItem->setData(Qt::DecorationRole, QPixmap::fromImage(QImage(imagePath)).scaledToHeight(100));
+		ui.tableWidget->setItem(row, 3, imageItem);
+
 		QSqlQuery queryCategories("SELECT * FROM item_category WHERE itemcategory_id = " + queryItems.value("itemcategory_id").toString());
 		if (queryCategories.next())
 		{
@@ -176,7 +189,7 @@ void ESManageItems::displayItems(QSqlQuery& queryItems)
 		layout->addWidget(removeBtn);
 		layout->insertStretch(2);
 		base->setLayout(layout);
-		ui.tableWidget->setCellWidget(row, 5, base);
+		ui.tableWidget->setCellWidget(row, 6, base);
 		base->show();
 	}
 
@@ -226,4 +239,36 @@ void ESManageItems::slotSearch()
 	QSqlQuery queryItems(searchQuery);
 	displayItems(queryItems);
 	ui.tableWidget->setSortingEnabled(true);
+}
+
+void ESManageItems::slotFitImages()
+{
+	if (m_imagesHidden)
+	{
+		ui.tableWidget->verticalHeader()->setDefaultSectionSize(30);
+		return;
+	}
+	if (ui.fitImages->isChecked())
+	{
+		ui.tableWidget->verticalHeader()->setDefaultSectionSize(100);
+	}
+	else
+	{
+		ui.tableWidget->verticalHeader()->setDefaultSectionSize(30);
+	}
+}
+
+void ESManageItems::slotHideImages()
+{
+	if (!ui.hideImages->isChecked())
+	{
+		ui.tableWidget->showColumn(3);
+		m_imagesHidden = false;
+	}
+	else
+	{
+		ui.tableWidget->hideColumn(3);
+		m_imagesHidden = true;
+	}
+	slotFitImages();
 }

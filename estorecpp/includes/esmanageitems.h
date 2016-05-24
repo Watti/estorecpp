@@ -17,13 +17,17 @@ public:
 	void slotUpdate(QString itemId);
 	void slotRemove(QString itemId);
 	void slotSearch();
+	void slotFitImages();
+	void slotHideImages();
 
 private:
+	void displayItems(QSqlQuery& queryItems);
+
 	Ui::ManageItems ui;
 	QSignalMapper* m_updateButtonSignalMapper;
 	QSignalMapper* m_removeButtonSignalMapper;
-
-	void displayItems(QSqlQuery& queryItems);
+	bool m_imagesHidden;
+	
 };
 
 #endif
