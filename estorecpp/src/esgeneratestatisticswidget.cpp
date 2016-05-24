@@ -16,8 +16,8 @@ ESGenerateStatistics::ESGenerateStatistics(QWidget *parent /*= 0*/)
 	ui.statType->addItem("Daily", DAILY);
 	ui.statType->addItem("Monthly", MONTHLY);
 	ui.statType->addItem("Annual", ANNUAL);
-	ui.statType->addItem("Top Selling Items", TOP_SELLING_ITEMS);
-	ui.statType->addItem("Least Selling Items", LEAST_SELLING_ITEM);
+	ui.statType->addItem("Fast Moving Items", TOP_SELLING_ITEMS);
+	ui.statType->addItem("Slow Moving Items", LEAST_SELLING_ITEM);
 	QObject::connect(ui.generateBtn, SIGNAL(clicked()), this, SLOT(slotGenerateReport()));
 }
 

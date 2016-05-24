@@ -11,6 +11,8 @@ public:
 	Ui::ReturnItems& getUI();
 
 	public slots:
+	void slotAddReturnedItem();
+	void slotCancel();
 
 private:
 	Ui::ReturnItems ui;
