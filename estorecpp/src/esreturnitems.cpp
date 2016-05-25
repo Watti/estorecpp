@@ -4,6 +4,7 @@
 #include "QMessageBox"
 #include "utility\esdbconnection.h"
 #include "easylogging++.h"
+#include "..\includes\utility\session.h"
 
 ESReturnItems::ESReturnItems(QWidget *parent /*= 0*/) : QWidget(parent)
 {
@@ -121,8 +122,19 @@ void ESReturnItems::slotAddReturnedItem()
 					mbox.exec();
 					LOG(ERROR) << "Failed update stock when return item handling query = "<<q.toLatin1().data();
 				}
-
+				int uId = ES::Session::getInstance()->getUser()->getId();
+				q = "INSERT INTO return_item (item_id, item_price, user_id) VALUES ("+ itemId + ", " + iPrice + ", " + QString::number(uId) + ")";
+				if (!query.exec(q))
+				{
+					QMessageBox mbox;
+					mbox.setIcon(QMessageBox::Critical);
+					mbox.setText(QString("Error has been occurred while updating the stock quantity"));
+					mbox.exec();
+					LOG(ERROR) << "Failed to insert in to return table. query = " << q.toLatin1().data();
+				}
 				//TODO print the bill
+				
+
 			}
 			
 		}
@@ -130,8 +142,9 @@ void ESReturnItems::slotAddReturnedItem()
 		{
 			QMessageBox mbox;
 			mbox.setIcon(QMessageBox::Critical);
-			mbox.setText(QString("Something goes wrong:: Returned Item cannot be saved"));
+			mbox.setText(QString("Invalid item code."));
 			mbox.exec();
+			return;
 		}
 	}
 	this->close();
