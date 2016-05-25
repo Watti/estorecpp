@@ -50,6 +50,8 @@ ESAddBill::ESAddBill(QWidget *parent)
 	QObject::connect(ui.commitButton, SIGNAL(clicked()), this, SLOT(slotCommit()));
 	QObject::connect(ui.suspendButton, SIGNAL(clicked()), this, SLOT(slotSuspend()));
 	QObject::connect(ui.cancelButton, SIGNAL(clicked()), this, SLOT(slotCancel()));
+	QObject::connect(ui.newBillButton, SIGNAL(clicked()), this, SLOT(slotStartNewBill()));
+	QObject::connect(ui.addItemButton, SIGNAL(clicked()), this, SLOT(slotShowAddItem()));
 	QObject::connect(m_removeButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotRemoveItem(QString)));
 
 	if (!ES::DbConnection::instance()->open())

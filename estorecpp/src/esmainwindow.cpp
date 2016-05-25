@@ -15,6 +15,7 @@
 #include "esgenericsalesstatistics.h"
 #include "essystemsettings.h"
 #include "escalculator.h"
+#include "esstockreport.h"
 #include "esbackuprestore.h"
 #include "utility/esmenumanager.h"
 #include "utility/session.h"
@@ -293,7 +294,9 @@ void ESMainWindow::slotSalesReports()
 
 void ESMainWindow::slotStocksReports()
 {
-
+	ESStockReport* stockReport = new ESStockReport(this);
+	this->setCentralWidget(stockReport);
+	stockReport->show();
 }
 
 void ESMainWindow::slotSettings()

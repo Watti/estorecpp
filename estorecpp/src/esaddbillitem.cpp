@@ -9,6 +9,7 @@
 #include "utility\utility.h"
 
 ESAddBillItem::ESAddBillItem(ESAddBill* cart, QWidget *parent)
+:QWidget(parent)
 {
 	m_cart = cart;
 	ui.setupUi(this);
