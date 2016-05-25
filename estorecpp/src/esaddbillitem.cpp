@@ -27,13 +27,13 @@ ESAddBillItem::ESAddBillItem(ESAddBill* cart, QWidget *parent)
 	ui.tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
 	ui.tableWidget->hideColumn(0);
 
+	slotSearch();
+
 	new QShortcut(QKeySequence(Qt::Key_Escape), this, SLOT(close()));
 	ui.itemText->setFocus();
 	ui.itemText->setFocusPolicy(Qt::StrongFocus);
 
 	QObject::connect(ui.itemText, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
-
-	slotSearch();
 }
 
 ESAddBillItem::~ESAddBillItem()
@@ -84,7 +84,10 @@ void ESAddBillItem::slotSearch()
 	}
 	ui.tableWidget->setSortingEnabled(true);
 	ui.tableWidget->selectRow(0);
-	ui.tableWidget->setFocus();
+	//ui.tableWidget->setFocus();
+
+	ui.itemText->setFocus();
+	ui.itemText->setFocusPolicy(Qt::StrongFocus);
 }
 
 void ESAddBillItem::keyPressEvent(QKeyEvent * event)

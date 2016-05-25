@@ -23,6 +23,7 @@ public:
 	void slotSuspend();
 	void slotCancel();
 	void slotRemoveItem(QString);
+	void slotCellActivated(int row, int col);
 
 	void resetBill();
 

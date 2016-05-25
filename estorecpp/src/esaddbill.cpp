@@ -46,7 +46,7 @@ ESAddBill::ESAddBill(QWidget *parent)
 	new QShortcut(QKeySequence(Qt::Key_F6), this, SLOT(slotSuspend()));
 	new QShortcut(QKeySequence(Qt::Key_F7), this, SLOT(slotCancel()));
 	QObject::connect(timer, SIGNAL(timeout()), this, SLOT(showTime()));
-	QObject::connect(ui.tableWidget, SIGNAL(cellClicked(int, int)), this, SLOT(slotEdit(int, int)));
+	QObject::connect(ui.tableWidget, SIGNAL(cellActivated(int, int)), this, SLOT(slotCellActivated(int, int)));
 	QObject::connect(ui.commitButton, SIGNAL(clicked()), this, SLOT(slotCommit()));
 	QObject::connect(ui.suspendButton, SIGNAL(clicked()), this, SLOT(slotSuspend()));
 	QObject::connect(ui.cancelButton, SIGNAL(clicked()), this, SLOT(slotCancel()));
@@ -397,4 +397,9 @@ void ESAddBill::proceedPendingBill(QString billId)
 		}
 		calculateAndDisplayTotal();
 	}
+}
+
+void ESAddBill::slotCellActivated(int row, int col)
+{
+	int x = 0;
 }
