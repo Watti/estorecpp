@@ -17,6 +17,7 @@ public:
 
 	public slots:
 	void slotSearch();
+	void slotHideImages();
 
 protected:
 	void keyPressEvent(QKeyEvent * event);

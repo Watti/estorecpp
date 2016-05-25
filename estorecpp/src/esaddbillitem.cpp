@@ -16,6 +16,7 @@ ESAddBillItem::ESAddBillItem(ESAddBill* cart, QWidget *parent)
 	headerLabels.append("Stock ID");
 	headerLabels.append("Item Code");
 	headerLabels.append("Item Name");
+	headerLabels.append("Item Image");
 	headerLabels.append("Price");
 	headerLabels.append("Discount");
 
@@ -28,12 +29,14 @@ ESAddBillItem::ESAddBillItem(ESAddBill* cart, QWidget *parent)
 	ui.tableWidget->hideColumn(0);
 
 	slotSearch();
+	slotHideImages();
 
 	new QShortcut(QKeySequence(Qt::Key_Escape), this, SLOT(close()));
 	ui.itemText->setFocus();
 	ui.itemText->setFocusPolicy(Qt::StrongFocus);
 
 	QObject::connect(ui.itemText, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
+	QObject::connect(ui.hideImages, SIGNAL(stateChanged(int)), this, SLOT(slotHideImages()));
 }
 
 ESAddBillItem::~ESAddBillItem()
@@ -51,7 +54,7 @@ void ESAddBillItem::slotSearch()
 	}
 
 	QString q;
-	q.append("SELECT stock.stock_id, item.item_code, item.item_name, stock.selling_price FROM item JOIN stock ON item.item_id = stock.item_id WHERE stock.deleted = 0 ");
+	q.append("SELECT stock.stock_id, item.item_code, item.item_name, item.item_image, stock.selling_price FROM item JOIN stock ON item.item_id = stock.item_id WHERE stock.deleted = 0 ");
 
 	if (!searchText.isEmpty())
 	{
@@ -69,18 +72,27 @@ void ESAddBillItem::slotSearch()
 		ui.tableWidget->setItem(row, 1, new QTableWidgetItem(queryStocks.value("item_code").toString()));
 		ui.tableWidget->setItem(row, 2, new QTableWidgetItem(queryStocks.value("item_name").toString()));
 
+		QString imagePath = queryStocks.value("item_image").toString();
+		if (imagePath.isNull() || imagePath.isEmpty())
+		{
+			imagePath = "images/default.png";
+		}
+		QTableWidgetItem* imageItem = new QTableWidgetItem();
+		imageItem->setData(Qt::DecorationRole, QPixmap::fromImage(QImage(imagePath)).scaledToHeight(100));
+		ui.tableWidget->setItem(row, 3, imageItem);
+
 		QTableWidgetItem* sellingPrice = new QTableWidgetItem();
 		sellingPrice->setTextAlignment(Qt::AlignRight);
 		double price = queryStocks.value("selling_price").toDouble();
 		QString formattedPrice = QString::number(price, 'f', 2);
 		sellingPrice->setText(formattedPrice);
 
-		ui.tableWidget->setItem(row, 3, sellingPrice);
+		ui.tableWidget->setItem(row, 4, sellingPrice);
 
 		QTableWidgetItem* discount = new QTableWidgetItem();
 		discount->setTextAlignment(Qt::AlignRight);
 		discount->setText("0.00");
-		ui.tableWidget->setItem(row, 4, discount);
+		ui.tableWidget->setItem(row, 5, discount);
 	}
 	ui.tableWidget->setSortingEnabled(true);
 	ui.tableWidget->selectRow(0);
@@ -208,6 +220,20 @@ void ESAddBillItem::addToBill(QString stockId)
 	}
 
 	close();
+}
+
+void ESAddBillItem::slotHideImages()
+{
+	if (ui.hideImages->isChecked())
+	{
+		ui.tableWidget->hideColumn(3);
+		ui.tableWidget->verticalHeader()->setDefaultSectionSize(30);
+	}
+	else
+	{
+		ui.tableWidget->showColumn(3);
+		ui.tableWidget->verticalHeader()->setDefaultSectionSize(100);
+	}
 }
 
 
