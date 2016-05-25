@@ -59,4 +59,24 @@ namespace ES
 		m_billId = val;
 	}
 
+	void Session::setDumpPath(const QString& val)
+	{
+		m_dumpPath = val;
+	}
+
+	QString Session::getDumpPath() const
+	{
+		return m_dumpPath;
+	}
+
+	QString Session::getBranchName() const
+	{
+		return m_branchName;
+	}
+
+	void Session::setBranchName(const QString& val)
+	{
+		m_branchName = val;
+	}
+
 }

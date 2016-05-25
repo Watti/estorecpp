@@ -19,13 +19,18 @@ namespace ES
 		void endBill();
 		QString getBillId() const;
 		void setBillId(QString val);
-
+		QString getDumpPath() const;
+		void setDumpPath(const QString& val);
+		QString getBranchName() const;
+		void setBranchName(const QString& val);
 	private:
 		Session();
 		static Session* m_session;
 		User* m_user;
 		bool m_billStarted;
 		QString m_billId;
+		QString m_dumpPath;
+		QString m_branchName;
 	};
 
 }
