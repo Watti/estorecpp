@@ -72,7 +72,7 @@ ESAddBill::ESAddBill(QWidget *parent)
 	}
 
 	ui.billedByLabel->setText(ES::Session::getInstance()->getUser()->getName());
-	//ui.branchLabel->setText("NUGEGODA");
+	ui.branchLabel->setText(ES::Session::getInstance()->getBranchName());
 	ui.billIdLabel->setText("###");
 
 }

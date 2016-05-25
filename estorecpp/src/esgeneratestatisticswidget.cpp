@@ -8,7 +8,7 @@ ESGenerateStatistics::ESGenerateStatistics(QWidget *parent /*= 0*/)
 {
 	ui.setupUi(this);
 	QString fromDateStr("2016-05-01");
-	QString toDateStr("2016-06-01");
+	QString toDateStr("2016-08-01");
 	ui.fromDate->setDate(QDate::fromString(fromDateStr, "yyyy-MM-dd"));
 	ui.toDate->setDate(QDate::fromString(toDateStr, "yyyy-MM-dd"));
 	ui.fromDate->setDisplayFormat("yyyy-MM-dd");

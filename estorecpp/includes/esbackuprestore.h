@@ -13,11 +13,13 @@ public:
 	~ESBackupRestore();
 
 	public slots:
-	void slotTest();
+	void backupDatabase();
+	void slotOpenFileDialog();
 
 private:
 	Ui::BackupRestoreWidget ui;
-
+	QString m_backupPath;
+	QString getBackupPath() const;
 };
 
 #endif
