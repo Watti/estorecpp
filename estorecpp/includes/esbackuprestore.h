@@ -14,6 +14,7 @@ public:
 
 	public slots:
 	void slotTest();
+	void slotOpenFileDialog();
 
 private:
 	Ui::BackupRestoreWidget ui;
