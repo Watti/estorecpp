@@ -132,7 +132,7 @@
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_2">
             <item>
-             <widget class="QPushButton" name="pushButton_2">
+             <widget class="QPushButton" name="manualBackupBtn">
               <property name="font">
                <font>
                 <pointsize>11</pointsize>
@@ -181,7 +181,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QSpinBox" name="spinBox">
+             <widget class="QSpinBox" name="backupSpinBox">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -203,7 +203,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QComboBox" name="comboBox">
+             <widget class="QComboBox" name="backupTypeCombo">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -330,7 +330,7 @@
          <widget class="QLineEdit" name="lineEdit_3"/>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton_4">
+         <widget class="QPushButton" name="openBackupFileDirectoryBtn">
           <property name="font">
            <font>
             <pointsize>10</pointsize>
@@ -359,7 +359,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_6">
         <item>
-         <widget class="QPushButton" name="pushButton_5">
+         <widget class="QPushButton" name="manualRestoreBtn">
           <property name="text">
            <string> Restore</string>
           </property>
