@@ -5,6 +5,7 @@
 #include "utility/utility.h"
 #include "esmanageitems.h"
 #include "utility/esmainwindowholder.h"
+#include <QFileDialog>
 
 
 AddItem::AddItem(QWidget *parent /*= 0*/)
@@ -12,6 +13,7 @@ AddItem::AddItem(QWidget *parent /*= 0*/)
 {
 	ui.setupUi(this);
 	QObject::connect(ui.addButton, SIGNAL(clicked()), this, SLOT(slotAddItem()));
+	QObject::connect(ui.openImage, SIGNAL(clicked()), this, SLOT(slotAddImage()));
 
 	if (!ES::DbConnection::instance()->open())
 	{
@@ -50,7 +52,7 @@ void AddItem::slotAddItem()
 	QString barCode = ui.barCode->text();
 	QString imagePath = ui.imagePath->text();
 	QString unit = ui.unitText->text();
-
+	
 	if (iName == nullptr || iName.isEmpty() || iCode == nullptr || iCode.isEmpty() ||
 		unit == nullptr || unit.isEmpty() || catId == "-1")
 	{
@@ -109,4 +111,10 @@ QString AddItem::getItemId() const
 void AddItem::setItemId(QString val)
 {
 	m_itemId = val;
+}
+
+void AddItem::slotAddImage()
+{ 
+	m_itemImage = QFileDialog::getOpenFileName(this, tr("Open Backup File"));
+	ui.imagePath->setText(m_itemImage);
 }

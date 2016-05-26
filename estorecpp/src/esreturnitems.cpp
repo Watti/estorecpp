@@ -48,7 +48,7 @@ void ESReturnItems::slotAddReturnedItem()
 {
 	QString iName = ui.itemName->text();
 	QString iCode = ui.itemCode->text();
-	//QString iDesc = ui.descriptionText->toPlainText();
+	QString remarks = ui.remarks->toPlainText();
 	//QString catId = ui.itemCategoryComboBox->itemData(ui.itemCategoryComboBox->currentIndex()).toString();
 	QString iPrice = ui.itemPrice->text();
 	QString qty = ui.qtyText->text();
@@ -123,7 +123,7 @@ void ESReturnItems::slotAddReturnedItem()
 					LOG(ERROR) << "Failed update stock when return item handling query = "<<q.toLatin1().data();
 				}
 				int uId = ES::Session::getInstance()->getUser()->getId();
-				q = "INSERT INTO return_item (item_id, item_price, user_id) VALUES ("+ itemId + ", " + iPrice + ", " + QString::number(uId) + ")";
+				q = "INSERT INTO return_item (item_id, item_price, user_id, remarks) VALUES ("+ itemId + ", " + iPrice + ", " + QString::number(uId) + ",'" +remarks+"')";
 				if (!query.exec(q))
 				{
 					QMessageBox mbox;

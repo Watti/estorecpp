@@ -21,11 +21,14 @@ public:
 	void setUpdate(bool val);
 	QString getItemId() const;
 	void setItemId(QString val);
+	void slotAddImage();
 
 private:
 	Ui::AddItemWidget ui;
 	bool m_isUpdate;
 	QString m_itemId;
+	QString m_itemImage;
+
 };
 
 #endif

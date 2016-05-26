@@ -1,6 +1,7 @@
 #ifndef ESRETURNITEMWIDGET_H
 #define ESRETURNITEMWIDGET_H
 #include "ui_ReturnItems.h"
+
 class ESReturnItems : public QWidget
 {
 	Q_OBJECT
@@ -16,5 +17,7 @@ public:
 
 private:
 	Ui::ReturnItems ui;
+
 };
+
 #endif
