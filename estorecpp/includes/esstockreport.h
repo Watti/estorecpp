@@ -3,6 +3,8 @@
 
 #include "ui_stockreport.h"
 #include <QtGui>
+#include <QPrinter>
+#include <KDReportsReport.h>
 
 class ESStockReport : public QWidget
 {
@@ -16,9 +18,11 @@ public:
 
 	public slots:
 	void slotGenerate();
+	void slotPrint(QPrinter* printer);
 	
 private:
 	Ui::StockReportWidget ui;
+	KDReports::Report report;
 
 };
 

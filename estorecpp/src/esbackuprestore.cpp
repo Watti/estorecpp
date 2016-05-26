@@ -23,7 +23,7 @@ ESBackupRestore::ESBackupRestore(QWidget *parent /*= 0*/)
 
 ESBackupRestore::~ESBackupRestore()
 {
-
+	 
 }
 
 void ESBackupRestore::backupDatabase()
@@ -35,22 +35,13 @@ void ESBackupRestore::backupDatabase()
 		mbox.setText(QString("Cannot connect to the database : ESBackupRestore"));
 		mbox.exec();
 	}
-	QString Cmd = QString("C:\wamp\bin\mysql\mysql5.6.17\bin\mysqldump --add-drop-table -u%1 -p%2 goldfish").arg("root", "");
-	QString Path = QString("%1").arg(m_backupPath + "\\goldfishdump.sql");
-	QProcess *poc = new QProcess;
+	QString Cmd = QString("C:\\wamp64\\bin\\mysql\\mysql5.7.9\\bin\\mysqldump.exe --log-error backup.log -u%1 -p%2 goldfish").arg("root", "123");
+	QString Path = QString("%1").arg(m_backupPath+"\\goldfishdump.sql");
+ 	QProcess *poc = new QProcess(this);
+
 	poc->setStandardOutputFile(Path);
 	poc->start(Cmd);
-	poc->waitForFinished();
-	qDebug() << poc->errorString();
-
-	//restore
-	/*
-	 QString Cmd = QString("mysql.exe -u%1 -p%2 test").arg("UsrName","UsrPsd");
-	 QString Path = QString("%1").arg("d://backup.Sql");
-	 QProcess *poc=new QProcess;
-	 poc->setStandardInputFile(Path);
-	 poc->start(Cmd);
-	*/
+	poc->waitForFinished(-1);
 }
 
 void ESBackupRestore::slotOpenFileDialog()

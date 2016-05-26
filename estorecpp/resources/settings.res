@@ -1,2 +1,2 @@
-BRANCH-{NUGEGODA}
-DUMP_FOLDER-{I:\development\estorecpp\dump}
+BRANCH-{නුගේගොඩ}
+DUMP_FOLDER-{D:\dev\estorecpp\dump}

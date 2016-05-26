@@ -1,9 +1,13 @@
-#include "esstockreport.h"
+﻿#include "esstockreport.h"
 #include <QSqlQuery>
+#include <QPrintPreviewDialog>
 #include <KDReportsReport.h>
 #include <KDReportsTextElement.h>
 #include <KDReportsTableElement.h>
 #include <KDReportsCell.h>
+#include "utility\session.h"
+#include "qlogging.h"
+#include <QTextEdit>
 
 ESStockReport::ESStockReport(QWidget *parent /*= 0*/) : QWidget(parent)
 {
@@ -93,104 +97,197 @@ ESStockReport::~ESStockReport()
 
 void ESStockReport::slotGenerate()
 {
-	// Create a report
-	KDReports::Report report;
+	QString reportName = "stock_status_report_";
+	QSqlQuery qq("SELECT * FROM report_text WHERE report_name = 'stock_status_report'");
 
-	// Add a text element for the title
-	KDReports::TextElement titleElement(QObject::tr("STOCK STATUS REPORT"));
-	titleElement.setPointSize(15);
-	report.addElement(titleElement, Qt::AlignHCenter);
-
-	report.addVerticalSpacing(2);
-
-	QString dateStr = "Date : ";
-	dateStr.append(QDateTime::currentDateTime().toString("yyyy-MM-dd"));
-	QString timeStr = "Time : ";
-	timeStr.append(QDateTime::currentDateTime().toString("hh : mm"));
-
-	KDReports::TextElement date(dateStr);
-	report.addElement(date, Qt::AlignLeft);
-	KDReports::TextElement time(timeStr);
-	report.addElement(time, Qt::AlignLeft);
-
-	// add 20 mm of vertical space:
-	report.addVerticalSpacing(10);
-
-	// add some more text
-	//KDReports::TextElement textElement(QObject::tr("This is a report generated with KDReports"));
-	//report.addElement(textElement, Qt::AlignLeft);
-
-	KDReports::TableElement tableElement;
-	tableElement.setHeaderRowCount(5);
-	tableElement.setHeaderColumnCount(5);
-	tableElement.setBorder(1);
-	tableElement.setWidth(100, KDReports::Percent);
-
-	//////////////////////////////////////////////////////////////////////////
-
-	int row = 0;
-	QSqlQuery q("SELECT stock.qty, stock.min_qty, item.item_code FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 ");
-	while (q.next())
+	if (qq.next())
 	{
-		double qty = q.value("qty").toDouble();
-		double minQty = q.value("min_qty").toDouble();
-		double excess = qty - minQty;
+		// Create a report
 
-		QString itemCode = q.value("item_code").toString();
-		QString qtyStr = QString::number(qty, 'f', 2);
-		QString minQtyStr = QString::number(minQty, 'f', 2);
-		QString s, reorder = "No";
+		int reportNo = qq.value("report_number").toInt();
+		reportNo++;
 
-		if (excess > 0)
+		reportName.append(QString::number(reportNo).rightJustified(8, '0'));
+
+		QSqlQuery qUpdate("UPDATE report_text SET report_number = " + QString::number(reportNo) + " WHERE report_name = 'stock_status_report'");
+
+		QString reportNoStr = qq.value("report_number_text").toString() + " : " + qq.value("report_no_prefix").toString() + QString::number(reportNo).rightJustified(8, '0');
+		KDReports::TextElement rpNo(reportNoStr);
+		report.addElement(rpNo, Qt::AlignLeft);
+		report.addVerticalSpacing(1);
+
+		// Add a text element for the title
+		KDReports::TextElement titleElement(qq.value("report_title").toString());
+		titleElement.setPointSize(15);
+		report.addElement(titleElement, Qt::AlignHCenter);
+
+		report.addVerticalSpacing(2);
+
+		QString dateStr = qq.value("report_date").toString().append(" : ");
+		dateStr.append(QDateTime::currentDateTime().toString("yyyy-MM-dd"));
+		QString timeStr = qq.value("report_time").toString().append(" : ");
+		timeStr.append(QDateTime::currentDateTime().toString("hh : mm"));
+
+		KDReports::TextElement date(dateStr);
+		report.addElement(date, Qt::AlignLeft);
+		KDReports::TextElement time(timeStr);
+		report.addElement(time, Qt::AlignLeft);
+
+		// add 20 mm of vertical space:
+		report.addVerticalSpacing(10);
+
+		KDReports::TableElement tableElement;
+		tableElement.setHeaderRowCount(5);
+		tableElement.setHeaderColumnCount(5);
+		tableElement.setBorder(1);
+		tableElement.setWidth(100, KDReports::Percent);
+
+		//////////////////////////////////////////////////////////////////////////
+
+		int row = 0;
+		bool headerPrinted = false;
+		QSqlQuery q("SELECT stock.qty, stock.min_qty, item.item_code, item.item_name FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 ");
+		while (q.next())
 		{
-			s = QString::number(excess, 'f', 2);
-			s.prepend("(+) ");
-		}
-		else if (excess < 0)
-		{
-			s = QString::number(-excess, 'f', 2);
-			s.prepend("(-) ");
-			reorder = "Yes";
-		}
-		else
-		{
-			s = QString::number(excess, 'f', 2);
+			if (!headerPrinted)
+			{
+				QString cols = qq.value("columns").toString();
+				qDebug() << cols;
+				QStringList colList = cols.split(",");
+
+				KDReports::Cell& c1 = tableElement.cell(row, 0);
+				KDReports::TextElement t1(colList.at(0));
+				t1.setPointSize(12);
+				//t1.setTextColor(Qt::gray);
+				c1.addElement(t1);
+
+				KDReports::Cell& c21 = tableElement.cell(row, 1);
+				KDReports::TextElement t21(colList.at(1));
+				t21.setPointSize(12);
+				//t2.setTextColor(Qt::gray);
+				c21.addElement(t21);
+
+				KDReports::Cell& c2 = tableElement.cell(row, 2);
+				KDReports::TextElement t2(colList.at(2));
+				t2.setPointSize(12);
+				//t2.setTextColor(Qt::gray);
+				c2.addElement(t2);
+
+				KDReports::Cell& c3 = tableElement.cell(row, 3);
+				KDReports::TextElement t3(colList.at(3));
+				t3.setPointSize(12);
+				//t3.setTextColor(Qt::gray);
+				c3.addElement(t3);
+
+				KDReports::Cell& c4 = tableElement.cell(row, 4);
+				KDReports::TextElement t4(colList.at(4));
+				t4.setPointSize(12);
+				//t4.setTextColor(Qt::gray);
+				c4.addElement(t4);
+
+				KDReports::Cell& c5 = tableElement.cell(row, 5);
+				KDReports::TextElement t5(colList.at(5));
+				t5.setPointSize(12);
+				//t5.setTextColor(Qt::gray);
+				c5.addElement(t5);
+
+				headerPrinted = true;
+			}
+			else
+			{
+
+				double qty = q.value("qty").toDouble();
+				double minQty = q.value("min_qty").toDouble();
+				double excess = qty - minQty;
+
+				QString itemCode = q.value("item_code").toString();
+				QString itemName = q.value("item_name").toString();
+				QString qtyStr = QString::number(qty, 'f', 2);
+				QString minQtyStr = QString::number(minQty, 'f', 2);
+				QString s, reorder = "No";
+
+				if (excess > 0)
+				{
+					s = QString::number(excess, 'f', 2);
+					s.prepend("(+) ");
+				}
+				else if (excess < 0)
+				{
+					s = QString::number(-excess, 'f', 2);
+					s.prepend("(-) ");
+					reorder = "Yes";
+				}
+				else
+				{
+					s = QString::number(excess, 'f', 2);
+				}
+
+				KDReports::Cell& c1 = tableElement.cell(row, 0);
+				KDReports::TextElement t1(itemCode);
+				t1.setPointSize(12);
+				if (excess < 0) t1.setTextColor(Qt::red);
+				c1.addElement(t1);
+
+				KDReports::Cell& c21 = tableElement.cell(row, 1);
+				KDReports::TextElement t21(itemName);
+				t21.setPointSize(12);
+				if (excess < 0) t21.setTextColor(Qt::red);
+				c21.addElement(t21);
+
+				KDReports::Cell& c2 = tableElement.cell(row, 2);
+				KDReports::TextElement t2(qtyStr);
+				t2.setPointSize(12);
+				if (excess < 0) t2.setTextColor(Qt::red);
+				c2.addElement(t2);
+				KDReports::Cell& c3 = tableElement.cell(row, 3);
+				KDReports::TextElement t3(minQtyStr);
+				t3.setPointSize(12);
+				if (excess < 0) t3.setTextColor(Qt::red);
+				c3.addElement(t3);
+				KDReports::Cell& c4 = tableElement.cell(row, 4);
+				KDReports::TextElement t4(s);
+				t4.setPointSize(12);
+				if (excess < 0) t4.setTextColor(Qt::red);
+				c4.addElement(t4);
+				KDReports::Cell& c5 = tableElement.cell(row, 5);
+				KDReports::TextElement t5(reorder);
+				t5.setPointSize(12);
+				if (excess < 0) t5.setTextColor(Qt::red);
+				c5.addElement(t5);
+			}
+			row++;
 		}
 
-		KDReports::Cell& c1 = tableElement.cell(row, 0);
-		KDReports::TextElement t1(itemCode);
-		t1.setPointSize(12);
-		if (excess < 0) t1.setTextColor(Qt::red);
-		c1.addElement(t1);
-		KDReports::Cell& c2 = tableElement.cell(row, 1);
-		KDReports::TextElement t2(qtyStr);
-		t2.setPointSize(12);
-		if (excess < 0) t2.setTextColor(Qt::red);
-		c2.addElement(t2);
-		KDReports::Cell& c3 = tableElement.cell(row, 2);
-		KDReports::TextElement t3(minQtyStr);
-		t3.setPointSize(12);
-		if (excess < 0) t3.setTextColor(Qt::red);
-		c3.addElement(t3);
-		KDReports::Cell& c4 = tableElement.cell(row, 3);
-		KDReports::TextElement t4(s);
-		t4.setPointSize(12);
-		if (excess < 0) t4.setTextColor(Qt::red);
-		c4.addElement(t4);
-		KDReports::Cell& c5 = tableElement.cell(row, 4);
-		KDReports::TextElement t5(reorder);
-		t5.setPointSize(12);
-		if (excess < 0) t5.setTextColor(Qt::red);
-		c5.addElement(t5);
+		report.addElement(tableElement);
 
-		row++;
+		QPrinter printer;
+		//printer.setOutputFormat(QPrinter::PdfFormat);
+		//printer.setOutputFileName("reports/" + reportName + ".pdf");
+		printer.setPaperSize(QPrinter::A4);
+		printer.setFullPage(true);
+		//printer.setResolution(QPrinter::HighResolution);
+		printer.setOrientation(QPrinter::Portrait);
+
+		QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, 0);
+		QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
+		dialog->setWindowTitle(tr("Print Document"));
+		//if (dialog->exec() != QDialog::Accepted)
+		//	return;
+		//report.printWithDialog(dialog);
+
+		dialog->exec();
+
+		//report.print(&printer, 0);
 	}
+}
 
-	report.addElement(tableElement);
-
-	QPrinter printer;
-	printer.setOutputFormat(QPrinter::PdfFormat);
-	printer.setOutputFileName("../stock_status_report.pdf");
-
-	report.print(&printer, 0);
+void ESStockReport::slotPrint(QPrinter* printer)
+{
+// 	QPainter painter(printer);
+// 	painter.setRenderHints(QPainter::Antialiasing |
+// 		QPainter::TextAntialiasing |
+// 		QPainter::SmoothPixmapTransform, true);
+// 
+// 	report.paintPage(1, painter);
+	report.print(printer);
 }
