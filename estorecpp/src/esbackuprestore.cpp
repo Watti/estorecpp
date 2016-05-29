@@ -8,11 +8,11 @@
 #include "easylogging++.h"
 #include "QDateTime"
 #include <synchapi.h>
-
+#include <QtGlobal>
 ESBackupRestore::ESBackupRestore(QWidget *parent /*= 0*/)
-: QWidget(parent), m_backupCopy(false) , m_backupFileName("DBBackupFile.sql")
+: QWidget(parent), m_backupCopy(false), m_backupFileName("DBBackupFile.sql")
 {
-	ui.setupUi(this); 
+	ui.setupUi(this);
 
 	QObject::connect(ui.backupDirectoryButton, SIGNAL(clicked()), this, SLOT(slotOpenBackupFileDialog()));
 	QObject::connect(ui.applyBackupSchedule, SIGNAL(clicked()), this, SLOT(slotUpdateBackupSchedule()));
@@ -56,13 +56,13 @@ ESBackupRestore::ESBackupRestore(QWidget *parent /*= 0*/)
 	{
 		int type = query.value("backup_type").toInt();
 		ui.backupSpinBox->setValue(query.value("repeating_value").toInt());
-		ui.backupTypeCombo->setCurrentIndex(type-1);
+		ui.backupTypeCombo->setCurrentIndex(type - 1);
 	}
 }
 
 ESBackupRestore::~ESBackupRestore()
 {
-	 
+
 }
 
 void ESBackupRestore::slotBackupDatabaseManually()
@@ -70,7 +70,7 @@ void ESBackupRestore::slotBackupDatabaseManually()
 	QString fileName("goldfishdump.sql");
 	QString cmd = QString("mysqldump.exe --log-error backup.log -u%1 -p%2 goldfish").arg("root", "123");
 	QString bckpPath = m_backupPath + "/" + fileName;
- 	QProcess *poc = new QProcess(this);
+	QProcess *poc = new QProcess(this);
 
 	poc->setStandardOutputFile(bckpPath);
 	poc->start(cmd);
@@ -87,7 +87,7 @@ void ESBackupRestore::slotOpenBackupFileDialog()
 	QString backupDirectoryPath = QFileDialog::getExistingDirectory(this, tr("Open Backup Directory"));
 	ui.backupDirectoryPath->setText(backupDirectoryPath);
 	m_backupPath = backupDirectoryPath;
-	
+
 }
 
 QString ESBackupRestore::getBackupPath() const
@@ -164,10 +164,10 @@ void ESBackupRestore::slotRestore()
 	QString Path = QString("%1").arg(m_manualRestorePath);
 	poc->setStandardInputFile(Path);
 
-// 	QStringList args;
-// 	args << "--user=root" << "--password=123" << "--host=localhost";
+	// 	QStringList args;
+	// 	args << "--user=root" << "--password=123" << "--host=localhost";
 
- 	poc->start(cmd);
+	poc->start(cmd);
 	poc->waitForFinished(-1);
 	qDebug() << poc->errorString();
 }
@@ -237,16 +237,15 @@ void BackupThread::run()
 			QDate lastBakupDate = query.value("last_backup_date").toDate();
 			QDate currentDate(QDate::currentDate());
 
-			QString bkpPath = ES::Session::getInstance()->getBackupPath();
-			QString timeStanmp = QDateTime::currentDateTime().toString("yyyy-MM-dd");
-			QString bakupFileName = "DBBackupFile-" + timeStanmp + ".sql";
 			switch (type)
 			{
 			case 1:
 			{
-					  int daysFromLastBakup = (int)lastBakupDate.daysTo(currentDate);
-					  if (daysFromLastBakup >= repeat)
+					  if (abs(currentDate.day() - lastBakupDate.day()) >= repeat)
 					  {
+						  QString bkpPath = ES::Session::getInstance()->getBackupPath();
+						  QString timeStanmp = QDateTime::currentDateTime().toString("yyyy-MM-dd");
+						  QString bakupFileName = "DBBackupFile-" + timeStanmp + ".sql";
 
 						  QString cmd = QString("mysqldump.exe --log-error backup.log -u%1 -p%2 goldfish").arg("root", "123");
 						  QString bckpPath = bkpPath + "\\" + bakupFileName;
@@ -256,23 +255,68 @@ void BackupThread::run()
 						  poc->start(cmd);
 						  poc->waitForFinished(-1);
 
-						  q = "UPDATE backup_status SET last_bakup_date ="+currentDate.toString();
+						  QString qStr = "UPDATE backup_status SET last_backup_date = '" + currentDate.toString("yyyy-MM-dd") + "'";
 						  QSqlQuery queryUpdate;
-						  if (!queryUpdate.exec(q))
+						  if (!queryUpdate.exec(qStr))
 						  {
-							  LOG(ERROR) << "ESBackupRestore::slotUpdateBackupSchedule : " << q.toLatin1().data();
+							  LOG(ERROR) << "ESBackupRestore::slotUpdateBackupSchedule : " << qStr.toLatin1().data();
 						  }
-
-// 						  qDebug() << poc->errorString();
-// 						  qDebug() << bkpPath;
-// 						  qDebug() << bakupFileName;
-// 						  qDebug() << bckpPath;
 					  }
 			}
 				break;
 			case 2:
+			{
+					  int dl = lastBakupDate.month();
+					  int dc = currentDate.month();
+					  int t = abs(currentDate.month() - lastBakupDate.month());
+					  int noOfWeeks = lastBakupDate.daysTo(currentDate) / 7;
+					  if (noOfWeeks>= repeat)
+					  {
+						  QString bkpPath = ES::Session::getInstance()->getBackupPath();
+						  QString timeStanmp = QDateTime::currentDateTime().toString("yyyy-MM-dd");
+						  QString bakupFileName = "DBBackupFile-" + timeStanmp + ".sql";
+
+						  QString cmd = QString("mysqldump.exe --log-error backup.log -u%1 -p%2 goldfish").arg("root", "123");
+						  QString bckpPath = bkpPath + "\\" + bakupFileName;
+						  QProcess *poc = new QProcess(this);
+
+						  poc->setStandardOutputFile(bckpPath);
+						  poc->start(cmd);
+						  poc->waitForFinished(-1);
+
+						  QString qStr = "UPDATE backup_status SET last_backup_date = '" + currentDate.toString("yyyy-MM-dd") + "'";
+						  QSqlQuery queryUpdate;
+						  if (!queryUpdate.exec(qStr))
+						  {
+							  LOG(ERROR) << "ESBackupRestore::slotUpdateBackupSchedule : " << qStr.toLatin1().data();
+						  }
+					  }
+			}
 				break;
 			case 3:
+			{
+					  if (abs(currentDate.month() - lastBakupDate.month()) >= repeat)
+					  {
+						  QString bkpPath = ES::Session::getInstance()->getBackupPath();
+						  QString timeStanmp = QDateTime::currentDateTime().toString("yyyy-MM-dd");
+						  QString bakupFileName = "DBBackupFile-" + timeStanmp + ".sql";
+
+						  QString cmd = QString("mysqldump.exe --log-error backup.log -u%1 -p%2 goldfish").arg("root", "123");
+						  QString bckpPath = bkpPath + "\\" + bakupFileName;
+						  QProcess *poc = new QProcess(this);
+
+						  poc->setStandardOutputFile(bckpPath);
+						  poc->start(cmd);
+						  poc->waitForFinished(-1);
+
+						  QString qStr = "UPDATE backup_status SET last_backup_date = '" + currentDate.toString("yyyy-MM-dd") + "'";
+						  QSqlQuery queryUpdate;
+						  if (!queryUpdate.exec(qStr))
+						  {
+							  LOG(ERROR) << "ESBackupRestore::slotUpdateBackupSchedule : " << qStr.toLatin1().data();
+						  }
+					  }
+			}
 				break;
 			default:
 				break;
