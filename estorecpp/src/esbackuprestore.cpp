@@ -180,6 +180,16 @@ void ESBackupRestore::slotEnableStandardRestore()
 		ui.tableWidget->setEnabled(true);
 		ui.standardLocationRadio->setChecked(true);
 		ui.fromManualLocationRadio->setChecked(false);
+
+		QDir recoredDir(ES::Session::getInstance()->getBackupPath());
+		QString filter = "File Description (*.sql)";
+		QStringList allFiles = recoredDir.entryList(QDir::NoDotAndDotDot | QDir::System | QDir::Files);
+		for (auto file : allFiles)
+		{
+			int row = ui.tableWidget->rowCount();
+			ui.tableWidget->insertRow(row);
+			ui.tableWidget->setItem(row, 0, new QTableWidgetItem(file));
+		}
 	}
 	else
 	{
