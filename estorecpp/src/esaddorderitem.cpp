@@ -7,6 +7,8 @@
 #include "utility/session.h"
 #include "utility/utility.h"
 #include "entities/SaleLineEdit.h"
+#include <KDReportsTextElement.h>
+#include <QPrintPreviewDialog>
 #include <set>
 
 AddOrderItem::AddOrderItem(QWidget *parent/* = 0*/)
@@ -188,6 +190,25 @@ void AddOrderItem::slotPlaceNewOrder()
 		}
 	}
 
+	if (ui.doPrint->isChecked() && false)
+	{
+		//KDReports::TextElement titleElement("Test");
+		//titleElement.setPointSize(15);
+		//report.addElement(titleElement, Qt::AlignHCenter);
+
+		QPrinter printer;
+		printer.setPaperSize(QPrinter::A4);
+
+		printer.setFullPage(false);
+		printer.setOrientation(QPrinter::Portrait);
+
+		QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, 0);
+		QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
+		dialog->setWindowTitle(tr("Print Document"));
+
+		dialog->exec();
+	}
+
 	ESManageOrderItems* manageItems = new ESManageOrderItems(ES::MainWindowHolder::instance()->getMainWindow());
 	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(manageItems);
 	this->close();
@@ -279,20 +300,20 @@ void AddOrderItem::displayItems(QSqlQuery& queryItems)
 			ui.itemTableWidget->setItem(row, 3, new QTableWidgetItem(queryCategories.value(2).toString()));
 		}
 
-		ui.itemTableWidget->setItem(row, 0, new QTableWidgetItem(queryItems.value(0).toString()));
-		ui.itemTableWidget->setItem(row, 1, new QTableWidgetItem(queryItems.value(2).toString()));
-		ui.itemTableWidget->setItem(row, 2, new QTableWidgetItem(queryItems.value(3).toString()));
+		ui.itemTableWidget->setItem(row, 0, new QTableWidgetItem(queryItems.value("item_id").toString()));
+		ui.itemTableWidget->setItem(row, 1, new QTableWidgetItem(queryItems.value("item_code").toString()));
+		ui.itemTableWidget->setItem(row, 2, new QTableWidgetItem(queryItems.value("item_name").toString()));
 
 		QSqlQuery queryMinQty("SELECT min_qty FROM stock WHERE item_id = " + queryItems.value(0).toString());
 		if (queryMinQty.next())
 		{
-			ui.itemTableWidget->setItem(row, 4, new QTableWidgetItem(queryMinQty.value(0).toString()));
+			ui.itemTableWidget->setItem(row, 4, new QTableWidgetItem(queryMinQty.value("min_qty").toString()));
 		}
 		else
 		{
 			ui.itemTableWidget->setItem(row, 4, new QTableWidgetItem("N/A"));
 		}
-		ui.itemTableWidget->setItem(row, 5, new QTableWidgetItem(queryItems.value(5).toString()));
+		ui.itemTableWidget->setItem(row, 5, new QTableWidgetItem(queryItems.value("unit").toString()));
 	}
 }
 
@@ -473,5 +494,10 @@ void AddOrderItem::slotRemove(QString itemId)
 		}
 		row++;
 	}
+}
+
+void AddOrderItem::slotPrint(QPrinter* printer)
+{
+	report.print(printer);
 }
 

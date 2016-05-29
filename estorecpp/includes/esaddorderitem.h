@@ -4,6 +4,7 @@
 #include <QStandardItemModel>
 #include <QtSql/QSqlQuery>
 #include <QtGui>
+#include <KDReportsReport.h>
 
 class AddOrderItem : public QWidget
 {
@@ -24,6 +25,7 @@ public:
 	void slotSupplierSelected(int row, int col);
 	void slotItemDoubleClicked(int row, int col);
 	void slotRemove(QString);
+	void slotPrint(QPrinter* printer);
 
 private:
 	void displayItems(QSqlQuery& queryItems);
@@ -33,6 +35,7 @@ private:
 	QString m_orderId;
 	QString m_selectedSupplierId;
 	QSignalMapper* m_removeButtonSignalMapper;
+	KDReports::Report report;
 
 };
 
