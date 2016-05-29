@@ -4,13 +4,18 @@
 #include "..\includes\utility\esdbconnection.h"
 #include <QMessageBox>
 #include "QDebug"
+#include <wingdi.h>
+#include "easylogging++.h"
+#include "QDateTime"
+#include <synchapi.h>
 
 ESBackupRestore::ESBackupRestore(QWidget *parent /*= 0*/)
-: QWidget(parent), m_backupCopy(false)
+: QWidget(parent), m_backupCopy(false) , m_backupFileName("DBBackupFile.sql")
 {
-	ui.setupUi(this);
+	ui.setupUi(this); 
 
-	QObject::connect(ui.backupDirectoryButton, SIGNAL(clicked()), this, SLOT(slotOpenBackupFileDialog())); 
+	QObject::connect(ui.backupDirectoryButton, SIGNAL(clicked()), this, SLOT(slotOpenBackupFileDialog()));
+	QObject::connect(ui.applyBackupSchedule, SIGNAL(clicked()), this, SLOT(slotUpdateBackupSchedule()));
 	QObject::connect(ui.manualDirectoryPathButton, SIGNAL(clicked()), this, SLOT(slotOpenCopyBackupFileDialog()));
 	QObject::connect(ui.openRestoreFileDirectoryBtn, SIGNAL(clicked()), this, SLOT(slotOpenRestoreFileDialog()));
 	QObject::connect(ui.manualRestoreBtn, SIGNAL(clicked()), this, SLOT(slotRestore()));
@@ -19,6 +24,11 @@ ESBackupRestore::ESBackupRestore(QWidget *parent /*= 0*/)
 	QObject::connect(ui.copyToDirectoryCheckbox, SIGNAL(clicked()), this, SLOT(slotEnableCopyDirectory()));
 	QObject::connect(ui.fromManualLocationRadio, SIGNAL(toggled(bool)), this, SLOT(slotEnableManualRestore()));
 	QObject::connect(ui.standardLocationRadio, SIGNAL(toggled(bool)), this, SLOT(slotEnableStandardRestore()));
+	QObject::connect(ui.backupTypeCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(slotBackupTypeChanged()));
+
+	ui.backupTypeCombo->addItem("DAILY", DAILY);
+	ui.backupTypeCombo->addItem("WEEKLY", WEEKLY);
+	ui.backupTypeCombo->addItem("MONTHLY", MONTHLY);
 
 	ui.backupDirectoryPath->setText(ES::Session::getInstance()->getBackupPath());
 	m_backupPath = ES::Session::getInstance()->getBackupPath();
@@ -31,6 +41,23 @@ ESBackupRestore::ESBackupRestore(QWidget *parent /*= 0*/)
 	ui.restoreFileText->setEnabled(false);
 	ui.openRestoreFileDirectoryBtn->setEnabled(false);
 	ui.tableWidget->setEnabled(false);
+
+	if (!ES::DbConnection::instance()->open())
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Critical);
+		mbox.setText(QString("Cannot connect to the database : ESBackupRestore"));
+		mbox.exec();
+		LOG(ERROR) << "Database connection failure in ESBackupRestore()";
+	}
+	QString q("SELECT * FROM backup_status");
+	QSqlQuery query(q);
+	if (query.next())
+	{
+		int type = query.value("backup_type").toInt();
+		ui.backupSpinBox->setValue(query.value("repeating_value").toInt());
+		ui.backupTypeCombo->setCurrentIndex(type-1);
+	}
 }
 
 ESBackupRestore::~ESBackupRestore()
@@ -40,13 +67,6 @@ ESBackupRestore::~ESBackupRestore()
 
 void ESBackupRestore::slotBackupDatabaseManually()
 {
-	if (!ES::DbConnection::instance()->open())
-	{
-		QMessageBox mbox;
-		mbox.setIcon(QMessageBox::Critical);
-		mbox.setText(QString("Cannot connect to the database : ESBackupRestore"));
-		mbox.exec();
-	}
 	QString fileName("goldfishdump.sql");
 	QString cmd = QString("mysqldump.exe --log-error backup.log -u%1 -p%2 goldfish").arg("root", "123");
 	QString bckpPath = m_backupPath + "/" + fileName;
@@ -165,4 +185,103 @@ void ESBackupRestore::slotEnableStandardRestore()
 	{
 		ui.tableWidget->setEnabled(false);
 	}
+}
+
+void ESBackupRestore::slotUpdateBackupSchedule()
+{
+	int repeatValue = ui.backupSpinBox->value();
+	int status = ui.backupTypeCombo->currentData().toInt();
+	AutoBackupType bkpType = AutoBackupType(status);
+	QString q("UPDATE backup_status SET backup_type=" + QString::number(bkpType) + ", 	repeating_value = " + QString::number(repeatValue) + ", updated_user=" + QString::number(ES::Session::getInstance()->getUser()->getId()));
+	QSqlQuery query;
+	if (!query.exec(q))
+	{
+		LOG(ERROR) << "ESBackupRestore::slotUpdateBackupSchedule : " << q.toLatin1().data();
+	}
+}
+
+void ESBackupRestore::slotBackupTypeChanged()
+{
+	switch (ui.backupTypeCombo->currentData().toInt())
+	{
+	case DAILY:
+		ui.backupSpinBox->setRange(1, 7);
+		break;
+	case WEEKLY:
+		ui.backupSpinBox->setRange(1, 4);
+		break;
+	case MONTHLY:
+		ui.backupSpinBox->setRange(1, 12);
+		break;
+	}
+}
+
+void BackupThread::run()
+{
+	while (true){
+		if (!ES::DbConnection::instance()->open())
+		{
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Critical);
+			mbox.setText(QString("Cannot connect to the database : BackupThread::run"));
+			mbox.exec();
+			LOG(ERROR) << "Database connection failure in BackupThread::run()";
+		}
+
+		QString q("SELECT * FROM backup_status");
+		QSqlQuery query(q);
+		if (query.next())
+		{
+			int type = query.value("backup_type").toInt();
+			int repeat = query.value("repeating_value").toInt();
+			QDate lastBakupDate = query.value("last_backup_date").toDate();
+			QDate currentDate(QDate::currentDate());
+
+			QString bkpPath = ES::Session::getInstance()->getBackupPath();
+			QString timeStanmp = QDateTime::currentDateTime().toString("yyyy-MM-dd");
+			QString bakupFileName = "DBBackupFile-" + timeStanmp + ".sql";
+			switch (type)
+			{
+			case 1:
+			{
+					  int daysFromLastBakup = (int)lastBakupDate.daysTo(currentDate);
+					  if (daysFromLastBakup >= repeat)
+					  {
+
+						  QString cmd = QString("mysqldump.exe --log-error backup.log -u%1 -p%2 goldfish").arg("root", "123");
+						  QString bckpPath = bkpPath + "\\" + bakupFileName;
+						  QProcess *poc = new QProcess(this);
+
+						  poc->setStandardOutputFile(bckpPath);
+						  poc->start(cmd);
+						  poc->waitForFinished(-1);
+
+						  q = "UPDATE backup_status SET last_bakup_date ="+currentDate.toString();
+						  QSqlQuery queryUpdate;
+						  if (!queryUpdate.exec(q))
+						  {
+							  LOG(ERROR) << "ESBackupRestore::slotUpdateBackupSchedule : " << q.toLatin1().data();
+						  }
+
+// 						  qDebug() << poc->errorString();
+// 						  qDebug() << bkpPath;
+// 						  qDebug() << bakupFileName;
+// 						  qDebug() << bckpPath;
+					  }
+			}
+				break;
+			case 2:
+				break;
+			case 3:
+				break;
+			default:
+				break;
+			}
+		}
+
+
+		Sleep(1000000);
+	}
+
+
 }

@@ -10,6 +10,7 @@
 #include <sstream>
 #include <string>
 #include "../includes/utility/session.h"
+#include "esbackuprestore.h"
 
 INITIALIZE_EASYLOGGINGPP
 using namespace std;
@@ -53,6 +54,7 @@ int main(int argc, char *argv[])
 	w.showMaximized();
 	LOG(INFO) << "Initializing the system...";
 	ES::MainWindowHolder::instance()->setMainWindow(&w);
-
+	BackupThread b;
+	b.start();
 	return a.exec();
 }

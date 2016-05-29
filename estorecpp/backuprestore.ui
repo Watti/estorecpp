@@ -81,7 +81,7 @@
          </font>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="tab">
          <attribute name="title">
@@ -210,21 +210,13 @@
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
-              <item>
-               <property name="text">
-                <string>days</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>weeks</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>months</string>
-               </property>
-              </item>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="applyBackupSchedule">
+              <property name="text">
+               <string>Apply</string>
+              </property>
              </widget>
             </item>
             <item>
