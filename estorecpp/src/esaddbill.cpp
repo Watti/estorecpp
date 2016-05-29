@@ -361,7 +361,7 @@ void ESAddBill::proceedPendingBill(QString billId)
 		{
 			QString stockId = queryAllSales.value("stock_id").toString();
 			QString qty = queryAllSales.value("quantity").toString();
-			QString discount = queryAllSales.value("discount").toString();
+			QString discount = QString::number(queryAllSales.value("discount").toDouble(), 'f', 2);
 			QString amount = QString::number(queryAllSales.value("total").toDouble(), 'f', 2);
 			QString saleId = queryAllSales.value("sale_id").toString();
 			QString price = "0", itemCode = "", itemName = "";
