@@ -35,12 +35,12 @@ int main(int argc, char *argv[])
 			branch = branch.substr(1, branch.size()-2);
 			ES::Session::getInstance()->setBranchName(QString::fromUtf8(branch.data(), branch.size()));
 		}
-		else if (val.compare("DUMP_FOLDER") == 0)
+		else if (val.compare("BACKUP_FOLDER") == 0)
 		{
 			string dumpPath;
 			std::getline(is, dumpPath, '-');
 			dumpPath = dumpPath.substr(1, dumpPath.size() - 2);
-			ES::Session::getInstance()->setDumpPath(QString::fromUtf8(dumpPath.data(), dumpPath.size()));
+			ES::Session::getInstance()->setBackupPath(QString::fromUtf8(dumpPath.data(), dumpPath.size()));
 		}
 		
 	}

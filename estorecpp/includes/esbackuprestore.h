@@ -13,12 +13,21 @@ public:
 	~ESBackupRestore();
 
 	public slots:
-	void backupDatabase();
-	void slotOpenFileDialog();
+	void slotBackupDatabaseManually();
+	void slotOpenBackupFileDialog();
+	void slotOpenCopyBackupFileDialog();
+	void slotOpenRestoreFileDialog();
+	void slotEnableCopyDirectory();
+	void slotEnableManualRestore();
+	void slotRestore();
+	void slotEnableStandardRestore();
 
 private:
 	Ui::BackupRestoreWidget ui;
 	QString m_backupPath;
+	QString m_copyPath;
+	bool m_backupCopy;
+	QString m_manualRestorePath;
 	QString getBackupPath() const;
 };
 
