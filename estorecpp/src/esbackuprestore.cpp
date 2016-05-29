@@ -9,6 +9,7 @@
 #include "QDateTime"
 #include <synchapi.h>
 #include <QtGlobal>
+#include "QFileInfo"
 ESBackupRestore::ESBackupRestore(QWidget *parent /*= 0*/)
 : QWidget(parent), m_backupCopy(false), m_backupFileName("DBBackupFile.sql")
 {
@@ -188,7 +189,9 @@ void ESBackupRestore::slotEnableStandardRestore()
 		{
 			int row = ui.tableWidget->rowCount();
 			ui.tableWidget->insertRow(row);
-			ui.tableWidget->setItem(row, 0, new QTableWidgetItem(file));
+			QFileInfo InfoAboutCurrentFile(ES::Session::getInstance()->getBackupPath()+"/"+file);
+			ui.tableWidget->setItem(row, 1, new QTableWidgetItem(file));
+			ui.tableWidget->setItem(row, 0, new QTableWidgetItem(InfoAboutCurrentFile.created().toString("yyyy-MM-dd hh:mm:ss")));
 		}
 	}
 	else
