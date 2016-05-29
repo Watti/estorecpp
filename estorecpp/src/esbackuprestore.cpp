@@ -218,113 +218,120 @@ void ESBackupRestore::slotBackupTypeChanged()
 
 void BackupThread::run()
 {
-	while (true){
-		if (!ES::DbConnection::instance()->open())
+	if (!ES::DbConnection::instance()->open())
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Critical);
+		mbox.setText(QString("Cannot connect to the database : BackupThread::run"));
+		mbox.exec();
+		LOG(ERROR) << "Database connection failure in BackupThread::run()";
+	}
+
+	QString q("SELECT auto_backup FROM backup_status");
+	QSqlQuery queryBackup(q);
+	if (queryBackup.next())
+	{
+		int autoBackup = queryBackup.value("auto_backup").toInt();
+		if (autoBackup != 0)
 		{
-			QMessageBox mbox;
-			mbox.setIcon(QMessageBox::Critical);
-			mbox.setText(QString("Cannot connect to the database : BackupThread::run"));
-			mbox.exec();
-			LOG(ERROR) << "Database connection failure in BackupThread::run()";
-		}
+			while (true){
+				QString q("SELECT * FROM backup_status");
+				QSqlQuery query(q);
+				if (query.next())
+				{
+					int type = query.value("backup_type").toInt();
+					int repeat = query.value("repeating_value").toInt();
+					QDate lastBakupDate = query.value("last_backup_date").toDate();
+					QDate currentDate(QDate::currentDate());
 
-		QString q("SELECT * FROM backup_status");
-		QSqlQuery query(q);
-		if (query.next())
-		{
-			int type = query.value("backup_type").toInt();
-			int repeat = query.value("repeating_value").toInt();
-			QDate lastBakupDate = query.value("last_backup_date").toDate();
-			QDate currentDate(QDate::currentDate());
+					switch (type)
+					{
+					case 1:
+					{
+							  if (abs(currentDate.day() - lastBakupDate.day()) >= repeat)
+							  {
+								  QString bkpPath = ES::Session::getInstance()->getBackupPath();
+								  QString timeStanmp = QDateTime::currentDateTime().toString("yyyy-MM-dd");
+								  QString bakupFileName = "DBBackupFile-" + timeStanmp + ".sql";
 
-			switch (type)
-			{
-			case 1:
-			{
-					  if (abs(currentDate.day() - lastBakupDate.day()) >= repeat)
-					  {
-						  QString bkpPath = ES::Session::getInstance()->getBackupPath();
-						  QString timeStanmp = QDateTime::currentDateTime().toString("yyyy-MM-dd");
-						  QString bakupFileName = "DBBackupFile-" + timeStanmp + ".sql";
+								  QString cmd = QString("mysqldump.exe --log-error backup.log -u%1 -p%2 goldfish").arg("root", "123");
+								  QString bckpPath = bkpPath + "\\" + bakupFileName;
+								  QProcess *poc = new QProcess(this);
 
-						  QString cmd = QString("mysqldump.exe --log-error backup.log -u%1 -p%2 goldfish").arg("root", "123");
-						  QString bckpPath = bkpPath + "\\" + bakupFileName;
-						  QProcess *poc = new QProcess(this);
+								  poc->setStandardOutputFile(bckpPath);
+								  poc->start(cmd);
+								  poc->waitForFinished(-1);
 
-						  poc->setStandardOutputFile(bckpPath);
-						  poc->start(cmd);
-						  poc->waitForFinished(-1);
+								  QString qStr = "UPDATE backup_status SET last_backup_date = '" + currentDate.toString("yyyy-MM-dd") + "'";
+								  QSqlQuery queryUpdate;
+								  if (!queryUpdate.exec(qStr))
+								  {
+									  LOG(ERROR) << "ESBackupRestore::slotUpdateBackupSchedule : " << qStr.toLatin1().data();
+								  }
+							  }
+					}
+						break;
+					case 2:
+					{
+							  int dl = lastBakupDate.month();
+							  int dc = currentDate.month();
+							  int t = abs(currentDate.month() - lastBakupDate.month());
+							  int noOfWeeks = lastBakupDate.daysTo(currentDate) / 7;
+							  if (noOfWeeks >= repeat)
+							  {
+								  QString bkpPath = ES::Session::getInstance()->getBackupPath();
+								  QString timeStanmp = QDateTime::currentDateTime().toString("yyyy-MM-dd");
+								  QString bakupFileName = "DBBackupFile-" + timeStanmp + ".sql";
 
-						  QString qStr = "UPDATE backup_status SET last_backup_date = '" + currentDate.toString("yyyy-MM-dd") + "'";
-						  QSqlQuery queryUpdate;
-						  if (!queryUpdate.exec(qStr))
-						  {
-							  LOG(ERROR) << "ESBackupRestore::slotUpdateBackupSchedule : " << qStr.toLatin1().data();
-						  }
-					  }
-			}
-				break;
-			case 2:
-			{
-					  int dl = lastBakupDate.month();
-					  int dc = currentDate.month();
-					  int t = abs(currentDate.month() - lastBakupDate.month());
-					  int noOfWeeks = lastBakupDate.daysTo(currentDate) / 7;
-					  if (noOfWeeks>= repeat)
-					  {
-						  QString bkpPath = ES::Session::getInstance()->getBackupPath();
-						  QString timeStanmp = QDateTime::currentDateTime().toString("yyyy-MM-dd");
-						  QString bakupFileName = "DBBackupFile-" + timeStanmp + ".sql";
+								  QString cmd = QString("mysqldump.exe --log-error backup.log -u%1 -p%2 goldfish").arg("root", "123");
+								  QString bckpPath = bkpPath + "\\" + bakupFileName;
+								  QProcess *poc = new QProcess(this);
 
-						  QString cmd = QString("mysqldump.exe --log-error backup.log -u%1 -p%2 goldfish").arg("root", "123");
-						  QString bckpPath = bkpPath + "\\" + bakupFileName;
-						  QProcess *poc = new QProcess(this);
+								  poc->setStandardOutputFile(bckpPath);
+								  poc->start(cmd);
+								  poc->waitForFinished(-1);
 
-						  poc->setStandardOutputFile(bckpPath);
-						  poc->start(cmd);
-						  poc->waitForFinished(-1);
+								  QString qStr = "UPDATE backup_status SET last_backup_date = '" + currentDate.toString("yyyy-MM-dd") + "'";
+								  QSqlQuery queryUpdate;
+								  if (!queryUpdate.exec(qStr))
+								  {
+									  LOG(ERROR) << "ESBackupRestore::slotUpdateBackupSchedule : " << qStr.toLatin1().data();
+								  }
+							  }
+					}
+						break;
+					case 3:
+					{
+							  if (abs(currentDate.month() - lastBakupDate.month()) >= repeat)
+							  {
+								  QString bkpPath = ES::Session::getInstance()->getBackupPath();
+								  QString timeStanmp = QDateTime::currentDateTime().toString("yyyy-MM-dd");
+								  QString bakupFileName = "DBBackupFile-" + timeStanmp + ".sql";
 
-						  QString qStr = "UPDATE backup_status SET last_backup_date = '" + currentDate.toString("yyyy-MM-dd") + "'";
-						  QSqlQuery queryUpdate;
-						  if (!queryUpdate.exec(qStr))
-						  {
-							  LOG(ERROR) << "ESBackupRestore::slotUpdateBackupSchedule : " << qStr.toLatin1().data();
-						  }
-					  }
-			}
-				break;
-			case 3:
-			{
-					  if (abs(currentDate.month() - lastBakupDate.month()) >= repeat)
-					  {
-						  QString bkpPath = ES::Session::getInstance()->getBackupPath();
-						  QString timeStanmp = QDateTime::currentDateTime().toString("yyyy-MM-dd");
-						  QString bakupFileName = "DBBackupFile-" + timeStanmp + ".sql";
+								  QString cmd = QString("mysqldump.exe --log-error backup.log -u%1 -p%2 goldfish").arg("root", "123");
+								  QString bckpPath = bkpPath + "\\" + bakupFileName;
+								  QProcess *poc = new QProcess(this);
 
-						  QString cmd = QString("mysqldump.exe --log-error backup.log -u%1 -p%2 goldfish").arg("root", "123");
-						  QString bckpPath = bkpPath + "\\" + bakupFileName;
-						  QProcess *poc = new QProcess(this);
+								  poc->setStandardOutputFile(bckpPath);
+								  poc->start(cmd);
+								  poc->waitForFinished(-1);
 
-						  poc->setStandardOutputFile(bckpPath);
-						  poc->start(cmd);
-						  poc->waitForFinished(-1);
-
-						  QString qStr = "UPDATE backup_status SET last_backup_date = '" + currentDate.toString("yyyy-MM-dd") + "'";
-						  QSqlQuery queryUpdate;
-						  if (!queryUpdate.exec(qStr))
-						  {
-							  LOG(ERROR) << "ESBackupRestore::slotUpdateBackupSchedule : " << qStr.toLatin1().data();
-						  }
-					  }
-			}
-				break;
-			default:
-				break;
+								  QString qStr = "UPDATE backup_status SET last_backup_date = '" + currentDate.toString("yyyy-MM-dd") + "'";
+								  QSqlQuery queryUpdate;
+								  if (!queryUpdate.exec(qStr))
+								  {
+									  LOG(ERROR) << "ESBackupRestore::slotUpdateBackupSchedule : " << qStr.toLatin1().data();
+								  }
+							  }
+					}
+						break;
+					default:
+						break;
+					}
+				}
+				Sleep(1000000);
 			}
 		}
-
-
-		Sleep(1000000);
 	}
 
 
