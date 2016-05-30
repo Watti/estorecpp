@@ -23,7 +23,7 @@
 #include <QMessageBox>
 #include <QShortcut>
 #include "esreturnitems.h"
-#include "essalesreport.h"
+//#include "essalesreport.h"
 
 ESMainWindow::ESMainWindow(QWidget *parent)
 : QMainWindow(parent)
@@ -292,9 +292,9 @@ void ESMainWindow::slotSalesReports()
 // 	this->setCentralWidget(salesReport);
 // 	salesReport->show();
 
-	ESSalesReport* salesReport = new ESSalesReport(this);
-	this->setCentralWidget(salesReport);
-	salesReport->show();
+// 	ESSalesReport* salesReport = new ESSalesReport(this);
+// 	this->setCentralWidget(salesReport);
+// 	salesReport->show();
 }
 
 void ESMainWindow::slotStocksReports()
