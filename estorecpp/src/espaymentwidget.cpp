@@ -11,14 +11,14 @@ QWidget(parent), m_addBill(addBill)
 {
 	ui.setupUi(this);
 
-	ui.cardNoLbl->hide();
-	ui.cardNoText->hide();
-	ui.cardAmountLbl->hide();
-	ui.cardAmountText->hide();
+// 	ui.cardNoLbl->hide();
+// 	ui.cardNoText->hide();
+// 	ui.cardAmountLbl->hide();
+// 	ui.cardAmountText->hide();
 
 	new QShortcut(QKeySequence(Qt::Key_Escape), this, SLOT(close()));
 	QObject::connect(ui.cashText, SIGNAL(textChanged(QString)), this, SLOT(slotCalculateBalance()));
-	QObject::connect(ui.cardAmountText, SIGNAL(textChanged(QString)), this, SLOT(slotCalculateBalance()));
+	//QObject::connect(ui.cardAmountText, SIGNAL(textChanged(QString)), this, SLOT(slotCalculateBalance()));
 	QObject::connect(ui.paymentMethodCombo, SIGNAL(activated(QString)), this, SLOT(slotEnableCardInfo()));
 	QObject::connect(ui.okBtn, SIGNAL(clicked()), this, SLOT(finalizeBill()));
 
@@ -59,7 +59,7 @@ void ESPayment::slotCalculateBalance()
 	}
 	if (ui.paymentMethodCombo->currentText() == "LOYALTY CARD" || ui.paymentMethodCombo->currentText() == "CREDIT CARD")
 	{
-		if (!ui.cardAmountText->text().isEmpty())
+		/*if (!ui.cardAmountText->text().isEmpty())
 		{
 			cardAmount = ui.cardAmountText->text().toDouble(&isValid);
 
@@ -72,7 +72,7 @@ void ESPayment::slotCalculateBalance()
 				ui.cardAmountText->clear();
 				return;
 			}
-		}
+		}*/
 	}
 	double amount = ui.totalBillLbl->text().toDouble();
 
@@ -81,7 +81,7 @@ void ESPayment::slotCalculateBalance()
 
 void ESPayment::slotEnableCardInfo()
 {
-	if (ui.paymentMethodCombo->currentText() == "LOYALTY CARD" || ui.paymentMethodCombo->currentText() == "CREDIT CARD")
+	/*if (ui.paymentMethodCombo->currentText() == "LOYALTY CARD" || ui.paymentMethodCombo->currentText() == "CREDIT CARD")
 	{
 		ui.cardNoText->show();
 		ui.cardNoLbl->show();
@@ -94,7 +94,7 @@ void ESPayment::slotEnableCardInfo()
 		ui.cardNoLbl->hide();
 		ui.cardAmountLbl->hide();
 		ui.cardAmountText->hide();
-	}
+	}*/
 }
 
 void ESPayment::finalizeBill()
@@ -105,7 +105,7 @@ void ESPayment::finalizeBill()
 
 	if (netAmount > 0)
 	{
-		QString queryUpdateStr("UPDATE bill set amount = " + netAmount + ", payment_method = " + paymentType + " , status = 1 WHERE bill_id = " + billId );
+		/*QString queryUpdateStr("UPDATE bill set amount = " + netAmount + ", payment_method = " + paymentType + " , status = 1 WHERE bill_id = " + billId );
 		QSqlQuery query;
 		if (ui.paymentMethodCombo->currentText() == "LOYALTY CARD" || ui.paymentMethodCombo->currentText() == "CREDIT CARD")
 		{
@@ -126,7 +126,7 @@ void ESPayment::finalizeBill()
 		else
 		{
 			LOG(ERROR) << queryUpdateStr.toLatin1().data();
-		}
+		}*/
 	}
 	else
 	{
