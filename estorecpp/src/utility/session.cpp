@@ -59,12 +59,12 @@ namespace ES
 		m_billId = val;
 	}
 
-	void Session::setDumpPath(const QString& val)
+	void Session::setBackupPath(const QString& val)
 	{
 		m_dumpPath = val;
 	}
 
-	QString Session::getDumpPath() const
+	QString Session::getBackupPath() const
 	{
 		return m_dumpPath;
 	}

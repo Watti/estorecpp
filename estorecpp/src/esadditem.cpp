@@ -71,7 +71,7 @@ void AddItem::slotAddItem()
 		}
 		else
 		{
-			q = "INSERT INTO item (item_code, item_name, description, bar_code, unit, itemcategory_id, deleted) VALUES ('" + 
+			q = "INSERT INTO item (item_code, item_name, description, bar_code, item_image, unit, itemcategory_id, deleted) VALUES ('" + 
 				iCode + "','" + iName + "','" + iDesc +"','"+barCode+"','" + imagePath + "','" +unit+"',"+catId+ ", 0)";
 		}
 		QSqlQuery query;

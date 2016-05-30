@@ -1,5 +1,6 @@
 ﻿#include "esstockreport.h"
 #include <QSqlQuery>
+#include <QPrintPreviewWidget>
 #include <QPrintPreviewDialog>
 #include <KDReportsReport.h>
 #include <KDReportsTextElement.h>
@@ -8,6 +9,7 @@
 #include "utility\session.h"
 #include "qlogging.h"
 #include <QTextEdit>
+#include "utility/esmainwindowholder.h"
 
 ESStockReport::ESStockReport(QWidget *parent /*= 0*/) : QWidget(parent)
 {
@@ -264,17 +266,19 @@ void ESStockReport::slotGenerate()
 		//printer.setOutputFormat(QPrinter::PdfFormat);
 		//printer.setOutputFileName("reports/" + reportName + ".pdf");
 		printer.setPaperSize(QPrinter::A4);
-		printer.setFullPage(true);
+		
+		printer.setFullPage(false);
 		//printer.setResolution(QPrinter::HighResolution);
 		printer.setOrientation(QPrinter::Portrait);
 
-		QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, 0);
+		QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
 		QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
 		dialog->setWindowTitle(tr("Print Document"));
 		//if (dialog->exec() != QDialog::Accepted)
 		//	return;
 		//report.printWithDialog(dialog);
-
+		ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
+		//dialog->show();
 		dialog->exec();
 
 		//report.print(&printer, 0);
@@ -290,4 +294,5 @@ void ESStockReport::slotPrint(QPrinter* printer)
 // 
 // 	report.paintPage(1, painter);
 	report.print(printer);
+	//report.p
 }

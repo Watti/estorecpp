@@ -16,6 +16,7 @@ public:
 
 public slots:
 void dayOff();
+void slotCalculateTotal();
 
 private:
 	Ui::CashBalanceStatus ui;

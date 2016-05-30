@@ -10,6 +10,8 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include "utility/session.h"
+#include "esbackuprestore.h"
 
 INITIALIZE_EASYLOGGINGPP
 
@@ -32,12 +34,12 @@ void readSettings()
 			branch = branch.substr(1, branch.size() - 2);
 			ES::Session::getInstance()->setBranchName(QString::fromUtf8(branch.data(), branch.size()));
 		}
-		else if (val.compare("DUMP_FOLDER") == 0)
+		else if (val.compare("BACKUP_FOLDER") == 0)
 		{
 			std::string dumpPath;
 			std::getline(is, dumpPath, '-');
 			dumpPath = dumpPath.substr(1, dumpPath.size() - 2);
-			ES::Session::getInstance()->setDumpPath(QString::fromUtf8(dumpPath.data(), dumpPath.size()));
+			ES::Session::getInstance()->setBackupPath(QString::fromUtf8(dumpPath.data(), dumpPath.size()));
 		}
 
 	}
@@ -58,6 +60,7 @@ int main(int argc, char *argv[])
 	w.showMaximized();
 	LOG(INFO) << "Initializing the system...";
 	ES::MainWindowHolder::instance()->setMainWindow(&w);
-
+// 	BackupThread b;
+// 	b.start();
 	return a.exec();
 }

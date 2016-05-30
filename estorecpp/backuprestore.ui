@@ -81,7 +81,7 @@
          </font>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="tab">
          <attribute name="title">
@@ -210,21 +210,13 @@
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
-              <item>
-               <property name="text">
-                <string>days</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>weeks</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>months</string>
-               </property>
-              </item>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="applyBackupSchedule">
+              <property name="text">
+               <string>Apply</string>
+              </property>
              </widget>
             </item>
             <item>
@@ -274,7 +266,7 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_5">
       <item>
-       <widget class="QRadioButton" name="radioButton">
+       <widget class="QRadioButton" name="standardLocationRadio">
         <property name="font">
          <font>
           <pointsize>10</pointsize>
@@ -301,7 +293,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QRadioButton" name="radioButton_2">
+       <widget class="QRadioButton" name="fromManualLocationRadio">
         <property name="font">
          <font>
           <pointsize>10</pointsize>
@@ -327,10 +319,10 @@
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="lineEdit_3"/>
+         <widget class="QLineEdit" name="restoreFileText"/>
         </item>
         <item>
-         <widget class="QPushButton" name="openBackupFileDirectoryBtn">
+         <widget class="QPushButton" name="openRestoreFileDirectoryBtn">
           <property name="font">
            <font>
             <pointsize>10</pointsize>

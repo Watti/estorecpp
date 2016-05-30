@@ -292,9 +292,13 @@ void ESMainWindow::slotGeneralReports()
 
 void ESMainWindow::slotSalesReports()
 {
-	ESGenericSalesStatistics* salesReport = new ESGenericSalesStatistics(this);
-	this->setCentralWidget(salesReport);
-	salesReport->show();
+// 	ESGenericSalesStatistics* salesReport = new ESGenericSalesStatistics(this);
+// 	this->setCentralWidget(salesReport);
+// 	salesReport->show();
+
+// 	ESSalesReport* salesReport = new ESSalesReport(this);
+// 	this->setCentralWidget(salesReport);
+// 	salesReport->show();
 }
 
 void ESMainWindow::slotStocksReports()

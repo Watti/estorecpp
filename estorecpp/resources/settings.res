@@ -1,2 +1,2 @@
 BRANCH-{නුගේගොඩ}
-DUMP_FOLDER-{D:\dev\estorecpp\dump}
+BACKUP_FOLDER-{I:\development\estorecpp\backup}

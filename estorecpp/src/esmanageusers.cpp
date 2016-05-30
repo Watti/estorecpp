@@ -16,7 +16,7 @@ ESManageUsers::ESManageUsers(QWidget *parent) : QWidget(parent)
 	{
 		QMessageBox mbox;
 		mbox.setIcon(QMessageBox::Critical);
-		mbox.setText(QString("Cannot connect to the database : AddItemCategory"));
+		mbox.setText(QString("Cannot connect to the database : ESManageUsers"));
 		mbox.exec();
 	}
 	else
