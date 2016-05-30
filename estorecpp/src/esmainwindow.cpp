@@ -23,6 +23,7 @@
 #include <QMessageBox>
 #include <QShortcut>
 #include "esreturnitems.h"
+#include "esreminders.h"
 
 ESMainWindow::ESMainWindow(QWidget *parent)
 : QMainWindow(parent)
@@ -315,7 +316,9 @@ void ESMainWindow::slotBackupRestore()
 
 void ESMainWindow::slotOffers()
 {
-
+	ESReminders* reminders = new ESReminders(this);
+	this->setCentralWidget(reminders);
+	reminders->show();
 }
 
 void ESMainWindow::slotGiftVouchers()
