@@ -38,6 +38,8 @@ public slots:
 	void slotProfile();
 	void slotLogout();
 	void slotShowCalculator();
+	void slotAddCustomer();
+	void slotViewCustomerHistory();
 
 	void checkForPendingBills();
 

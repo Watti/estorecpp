@@ -165,9 +165,17 @@
     <addaction name="menuLoyality"/>
     <addaction name="actionGiftVouchers"/>
    </widget>
+   <widget class="QMenu" name="menuCustomers">
+    <property name="title">
+     <string>Customers</string>
+    </property>
+    <addaction name="actionManageCustomers"/>
+    <addaction name="actionViewCustomerHistory"/>
+   </widget>
    <addaction name="menuStock"/>
    <addaction name="menuItems"/>
    <addaction name="menuOrders"/>
+   <addaction name="menuCustomers"/>
    <addaction name="menuBilling"/>
    <addaction name="menuReports"/>
    <addaction name="menuCashBalance"/>
@@ -272,6 +280,16 @@
   <action name="actionGiftVouchers">
    <property name="text">
     <string>Gift Vouchers</string>
+   </property>
+  </action>
+  <action name="actionManageCustomers">
+   <property name="text">
+    <string>Manage Customers</string>
+   </property>
+  </action>
+  <action name="actionViewCustomerHistory">
+   <property name="text">
+    <string>View History</string>
    </property>
   </action>
  </widget>

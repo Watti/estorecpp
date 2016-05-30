@@ -24,6 +24,8 @@
 #include <QShortcut>
 #include "esreturnitems.h"
 #include "esreminders.h"
+#include "esaddcustomer.h"
+#include "escustomerinfo.h"
 
 ESMainWindow::ESMainWindow(QWidget *parent)
 : QMainWindow(parent)
@@ -71,6 +73,8 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	QObject::connect(m_actionProfile, SIGNAL(triggered()), this, SLOT(slotProfile()));
 	QObject::connect(m_actionLogout, SIGNAL(triggered()), this, SLOT(slotLogout()));
 	QObject::connect(m_actionManageUsers, SIGNAL(triggered()), this, SLOT(slotManageUsers()));
+	QObject::connect(ui.actionManageCustomers, SIGNAL(triggered()), this, SLOT(slotAddCustomer()));
+	QObject::connect(ui.actionViewCustomerHistory, SIGNAL(triggered()), this, SLOT(slotViewCustomerHistory()));
 
 	new QShortcut(QKeySequence(Qt::Key_F9), this, SLOT(slotShowCalculator()));
 
@@ -422,6 +426,20 @@ void ESMainWindow::checkForPendingBills()
 void ESMainWindow::slotShowCalculator()
 {	
 	calc->show();
+}
+
+void ESMainWindow::slotAddCustomer()
+{
+	ESAddCustomer* addCustomer = new ESAddCustomer(this);
+	this->setCentralWidget(addCustomer);
+	addCustomer->show();
+}
+
+void ESMainWindow::slotViewCustomerHistory()
+{
+	ESCustomerInfo* customerInfo = new ESCustomerInfo(this);
+	this->setCentralWidget(customerInfo);
+	customerInfo->show();
 }
 
 
