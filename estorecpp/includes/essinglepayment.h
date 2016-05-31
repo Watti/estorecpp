@@ -22,6 +22,8 @@ public:
 	void slotFinalizeBill();
 
 private:
+	bool validate();
+
 	Ui::SinglePaymentWidget ui;
 	QString m_customerId;
 	QString m_selectedPM;

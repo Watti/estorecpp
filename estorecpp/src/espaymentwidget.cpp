@@ -32,7 +32,7 @@ QWidget(parent), m_addBill(addBill)
 		
 	new QShortcut(QKeySequence(Qt::Key_Escape), this, SLOT(close()));
 	QObject::connect(ui.searchText, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
-	QObject::connect(ui.customers, SIGNAL(cellClicked(int, int)), this, SLOT(slotCustomerSeleced(int, int)));
+	QObject::connect(ui.customers, SIGNAL(cellPressed(int, int)), this, SLOT(slotCustomerSeleced(int, int)));
 	QObject::connect(ui.singlePaymentButton, SIGNAL(clicked()), this, SLOT(slotSinglePayment()));
 	QObject::connect(ui.multiplePaymentButton, SIGNAL(clicked()), this, SLOT(slotMultiplePayment()));
 

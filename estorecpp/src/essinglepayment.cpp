@@ -1,6 +1,7 @@
 #include "essinglepayment.h"
 #include <QMessageBox>
 #include "utility\session.h"
+#include "QSqlQuery"
 
 
 ESSinglePayment::ESSinglePayment(QWidget *parent /*= 0*/) : QWidget(parent)
@@ -10,6 +11,8 @@ ESSinglePayment::ESSinglePayment(QWidget *parent /*= 0*/) : QWidget(parent)
 	slotPaymentMethodSelected(ui.paymentMethodCombo->currentText());
 
 	QObject::connect(ui.paymentMethodCombo, SIGNAL(activated(QString)), this, SLOT(slotPaymentMethodSelected(QString)));
+	QObject::connect(ui.cashText, SIGNAL(textChanged(QString)), this, SLOT(slotCalculateBalance()));
+	QObject::connect(ui.okBtn, SIGNAL(clicked()), this, SLOT(slotFinalizeBill()));
 }
 
 ESSinglePayment::~ESSinglePayment()
@@ -71,43 +74,56 @@ void ESSinglePayment::slotCalculateBalance()
 
 void ESSinglePayment::slotFinalizeBill()
 {
-	QString billId = ES::Session::getInstance()->getBillId();
-	QString netAmount = ui.totalBillLbl->text();
-	QString paymentType = ui.paymentMethodCombo->currentData().toString();
+	if (!validate())
+		return;
 
-	if (netAmount > 0)
+	QString billIdStr = ES::Session::getInstance()->getBillId();
+	QString netAmountStr = ui.totalBillLbl->text();
+	QString paymentType = ui.paymentMethodCombo->currentText();
+	bool isValid = false;
+
+	double netAmount = netAmountStr.toDouble(&isValid);
+	if (!isValid || netAmount < 0)
 	{
-		/*QString queryUpdateStr("UPDATE bill set amount = " + netAmount + ", payment_method = " + paymentType + " , status = 1 WHERE bill_id = " + billId );
+		return;
+	}		
+	int billId = billIdStr.toInt(&isValid);
+	if (!isValid)
+	{
+		return;
+	}
+
+	if (paymentType == "CASH")
+	{
 		QSqlQuery query;
-		if (ui.paymentMethodCombo->currentText() == "LOYALTY CARD" || ui.paymentMethodCombo->currentText() == "CREDIT CARD")
+		query.prepare("INSERT INTO payment (bill_id, total_amount, cash) VALUES (?, ?, 1)");
+		query.addBindValue(billId);
+		query.addBindValue(netAmount);
+		if (query.exec())
 		{
-		QString cardNo = ui.cardNoText->text();
-		QString cardAmount = ui.cardAmountText->text();
-		QString cardPaymentQryStr("INSERT INTO card_payment (bill_id , amount, card_no, payment_type_id ) VALUES ("+billId+ ", "+cardAmount+","+cardNo+", "+paymentType+")");
-		QSqlQuery queryCardPayment;
-		if (!queryCardPayment.exec(cardPaymentQryStr))
-		{
-		LOG(ERROR) << cardPaymentQryStr.toLatin1().data();
-		}
-		}
-		if (query.exec(queryUpdateStr))
-		{
-		this->close();
-		m_addBill->resetBill();
+			int lastInsertedId = query.lastInsertId().toInt();
+			QSqlQuery q;
+			q.prepare("INSERT INTO cash (payment_id, amount) VALUES (?, ?)");
+			q.addBindValue(lastInsertedId);
+			q.addBindValue(netAmount);
+			if (!q.exec())
+			{
+				QMessageBox mbox;
+				mbox.setIcon(QMessageBox::Critical);
+				mbox.setText(QString("Failed"));
+				mbox.exec();	
+			}
 		}
 		else
 		{
-		LOG(ERROR) << queryUpdateStr.toLatin1().data();
-		}*/
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Critical);
+			mbox.setText(QString("Failed"));
+			mbox.exec();
+		}
 	}
-	else
-	{
-		QMessageBox mbox;
-		mbox.setIcon(QMessageBox::Warning);
-		mbox.setText(QString("Empty Bill ! ! !"));
-		mbox.exec();
-		this->close();
-	}
+
+	this->close();
 }
 
 void ESSinglePayment::slotPaymentMethodSelected(QString pmMethod)
@@ -121,6 +137,8 @@ void ESSinglePayment::slotPaymentMethodSelected(QString pmMethod)
 		ui.txt1->hide();
 		ui.txt2->hide();
 		ui.dateEdit->show();
+
+		ui.paymentType->setText("Amount :  ");
 	}
 	else if (pmMethod == "CHEQUE")
 	{
@@ -134,6 +152,8 @@ void ESSinglePayment::slotPaymentMethodSelected(QString pmMethod)
 
 		ui.lbl1->setText("Cheque No. :  ");
 		ui.lbl2->setText("Bank :  ");
+
+		ui.paymentType->setText("Amount :  ");
 	}
 	else if (pmMethod == "CREDIT CARD")
 	{
@@ -146,6 +166,7 @@ void ESSinglePayment::slotPaymentMethodSelected(QString pmMethod)
 		ui.dateEdit->hide();
 
 		ui.lbl1->setText("Card No. :  ");
+		ui.paymentType->setText("Amount :  ");
 	}
 	else if (pmMethod == "LOYALITY CARD")
 	{
@@ -158,8 +179,9 @@ void ESSinglePayment::slotPaymentMethodSelected(QString pmMethod)
 		ui.dateEdit->hide();
 
 		ui.lbl1->setText("Card No. :  ");
+		ui.paymentType->setText("Amount :  ");
 	}
-	else
+	else if (pmMethod == "CASH")
 	{
 		ui.lbl1->hide();
 		ui.lbl2->hide();
@@ -168,9 +190,16 @@ void ESSinglePayment::slotPaymentMethodSelected(QString pmMethod)
 		ui.txt1->hide();
 		ui.txt2->hide();
 		ui.dateEdit->hide();
+
+		ui.paymentType->setText("Cash :  ");
 	}
 
 	m_selectedPM = pmMethod;
 	resize(500, 1);
 	adjustSize();
+}
+
+bool ESSinglePayment::validate()
+{
+	return true;
 }
