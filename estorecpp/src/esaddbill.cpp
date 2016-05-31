@@ -279,9 +279,9 @@ void ESAddBill::slotCommit()
 		//payment->setWindowFlags(Qt::CustomizeWindowHint | Qt::Window);
 		payment->show();
 		
-		payment->getUI().totalBillLbl->setText(QString::number(ui.netAmountLabel->text().toDouble(), 'f', 2));
-		payment->getUI().noOfItemsLbl->setText(ui.noOfItemLabel->text());
-		payment->getUI().balanceLbl->setText("0.00");
+		payment->setNetAmount(QString::number(ui.netAmountLabel->text().toDouble(), 'f', 2));
+		payment->setNoOfItems(ui.noOfItemLabel->text());
+		//payment->getUI().balanceLbl->setText("0.00");
 
 // 		QString billId = ES::Session::getInstance()->getBillId();
 // 		QString netAmount = ui.netAmountLabel->text();

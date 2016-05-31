@@ -15,11 +15,11 @@ public:
 
 	Ui::PaymentWidget& getUI() { return ui; };
 
+	void setNetAmount(QString netAmount) { m_netAmount = netAmount; }
+	void setNoOfItems(QString noOfItems) { m_noOfItems = noOfItems; }
+
 	public slots:
 	void slotSearch();
-	void slotCalculateBalance();
-	void slotEnableCardInfo();
-	void finalizeBill();
 	void slotCustomerSeleced(int,int);
 	void slotSinglePayment();
 	void slotMultiplePayment();
@@ -29,6 +29,13 @@ private:
 	Ui::PaymentWidget ui;
 	ESAddBill* m_addBill;
 	QString m_customerId;
+	QString m_name, 
+		m_phone, 
+		m_address, 
+		m_comments;
+
+	QString m_netAmount;
+	QString m_noOfItems;
 
 };
 
