@@ -451,7 +451,7 @@
         </font>
        </property>
        <property name="displayFormat">
-        <string>M/d/yyyy</string>
+        <string>yyyy-MM-dd</string>
        </property>
       </widget>
      </item>

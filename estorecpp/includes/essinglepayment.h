@@ -14,6 +14,7 @@ public:
 	~ESSinglePayment();
 
 	Ui::SinglePaymentWidget& getUI() { return ui; };
+	void setCustomerId(QString customerId);
 
 	public slots:
 	void slotSearch();
@@ -22,6 +23,10 @@ public:
 	void slotFinalizeBill();
 
 private:
+	void handleChequePayment(int billId, double netAmount);
+	void handleCreditPayment(int billId, double netAmount);
+	void handleCashPayment(int billId, double netAmount);
+	void finishBill(double netAmount, int billId);
 	bool validate();
 
 	Ui::SinglePaymentWidget ui;

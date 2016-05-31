@@ -117,6 +117,7 @@ void ESPayment::slotSinglePayment()
 	singlePayment->setWindowState(Qt::WindowActive);
 	singlePayment->setWindowModality(Qt::ApplicationModal);
 	singlePayment->setAttribute(Qt::WA_DeleteOnClose);
+	singlePayment->setCustomerId(m_customerId);
 
 	singlePayment->getUI().nameText->setText(m_name);
 	singlePayment->getUI().phoneText->setText(m_phone);
