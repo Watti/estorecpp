@@ -10,6 +10,7 @@ class ESPayment : public QWidget
 
 public:
 	ESPayment(ESAddBill* addBill , QWidget *parent = 0);
+
 	~ESPayment();
 
 	Ui::PaymentWidget& getUI() { return ui; };
@@ -19,11 +20,15 @@ public:
 	void slotCalculateBalance();
 	void slotEnableCardInfo();
 	void finalizeBill();
+	void slotCustomerSeleced(int,int);
+	void slotSinglePayment();
+	void slotMultiplePayment();
 	
 private:
 
 	Ui::PaymentWidget ui;
 	ESAddBill* m_addBill;
+	QString m_customerId;
 
 };
 

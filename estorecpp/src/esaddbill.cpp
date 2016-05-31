@@ -272,18 +272,16 @@ void ESAddBill::slotCommit()
 	if (ES::Session::getInstance()->isBillStarted())
 	{
 		ESPayment* payment = new ESPayment(this, 0);
-		payment->show();
 
 		payment->setWindowState(Qt::WindowActive);
 		payment->setWindowModality(Qt::ApplicationModal);
 		payment->setAttribute(Qt::WA_DeleteOnClose);
-		payment->setWindowFlags(Qt::CustomizeWindowHint | Qt::Window);
+		//payment->setWindowFlags(Qt::CustomizeWindowHint | Qt::Window);
 		payment->show();
 		
 		payment->getUI().totalBillLbl->setText(QString::number(ui.netAmountLabel->text().toDouble(), 'f', 2));
 		payment->getUI().noOfItemsLbl->setText(ui.noOfItemLabel->text());
 		payment->getUI().balanceLbl->setText("0.00");
-		payment->getUI().cashText->setFocus();
 
 // 		QString billId = ES::Session::getInstance()->getBillId();
 // 		QString netAmount = ui.netAmountLabel->text();
@@ -291,6 +289,9 @@ void ESAddBill::slotCommit()
 // 		QString queryUpdateStr("UPDATE bill set amount = " + netAmount + ", payment_method = " + paymentType + " , status = 1 WHERE bill_id = " + billId);
 // 		QSqlQuery query(queryUpdateStr);
 // 		resetBill();
+		QSize sz = payment->size();
+		QPoint screen = QApplication::desktop()->screen()->rect().center();
+		payment->move(screen.x() - sz.width()/2, screen.y() - sz.height()/2);
 	}
 
 }
