@@ -89,9 +89,18 @@ void ESManageItems::slotUpdate(QString itemId)
 	QSqlQuery queryItem("SELECT * FROM item WHERE item_id = " + itemId);
 	if (queryItem.next())
 	{
-		int categoryId = queryItem.value("itemcategory_id").toInt();
-		int index = addItem->getUI().itemCategoryComboBox->findData(categoryId);
-		addItem->getUI().itemCategoryComboBox->setCurrentIndex(index);
+		QString itemCatId = queryItem.value("itemcategory_id").toString();
+		addItem->setItemCategoryId(itemCatId);
+		int rowCount = ui.tableWidget->rowCount();
+		for (int i = 0; i < rowCount; ++i)
+		{
+			if (itemCatId == addItem->getUI().tableWidget->item(i, 0)->text())
+			{
+				addItem->getUI().tableWidget->setCurrentCell(i, 1);
+				addItem->getUI().itemCategoryLbl->setText(addItem->getUI().tableWidget->item(i, 1)->text());
+				break;
+			}
+		}
 		addItem->getUI().itemCode->setText(queryItem.value("item_code").toString());
 		addItem->getUI().barCode->setText(queryItem.value("bar_code").toString());
 		addItem->getUI().imagePath->setText(queryItem.value("item_image").toString());

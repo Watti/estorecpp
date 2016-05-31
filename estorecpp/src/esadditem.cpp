@@ -14,6 +14,21 @@ AddItem::AddItem(QWidget *parent /*= 0*/)
 	ui.setupUi(this);
 	QObject::connect(ui.addButton, SIGNAL(clicked()), this, SLOT(slotAddItem()));
 	QObject::connect(ui.openImage, SIGNAL(clicked()), this, SLOT(slotAddImage()));
+	QObject::connect(ui.tableWidget, SIGNAL(cellPressed(int, int)), this, SLOT(slotCategorySelected(int, int)));
+
+	QStringList headerLabels;
+	headerLabels.append("CatID");
+	headerLabels.append("Category Code");
+	headerLabels.append("Category Name");
+	headerLabels.append("Description");
+
+	ui.tableWidget->setHorizontalHeaderLabels(headerLabels);
+	ui.tableWidget->horizontalHeader()->setStretchLastSection(true);
+	ui.tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+	ui.tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	ui.tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
+	ui.tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+	ui.tableWidget->hideColumn(0);
 
 	if (!ES::DbConnection::instance()->open())
 	{
@@ -25,14 +40,19 @@ AddItem::AddItem(QWidget *parent /*= 0*/)
 
 	QSqlQuery queryCategory("SELECT * FROM item_category WHERE deleted = 0");
 	QString catCode = DEFAULT_DB_COMBO_VALUE;
-	int catId = -1;
-
-	ui.itemCategoryComboBox->addItem(catCode, catId);
-
+	
+	int row = 0;
 	while (queryCategory.next())
 	{
-		catId = queryCategory.value(0).toInt();
-		ui.itemCategoryComboBox->addItem(queryCategory.value(1).toString() + " / " + queryCategory.value("itemcategory_name").toString(), catId);
+		row = ui.tableWidget->rowCount();
+		ui.tableWidget->insertRow(row);
+
+		ui.tableWidget->setItem(row, 0, new QTableWidgetItem(queryCategory.value("itemcategory_id").toString()));
+		ui.tableWidget->setItem(row, 1, new QTableWidgetItem(queryCategory.value("itemcategory_code").toString()));
+		ui.tableWidget->setItem(row, 2, new QTableWidgetItem(queryCategory.value("itemcategory_name").toString()));
+		ui.tableWidget->setItem(row, 3, new QTableWidgetItem(queryCategory.value("description").toString()));
+
+		row++;
 	}
 
 	ui.barCode->setFocus();
@@ -48,7 +68,7 @@ void AddItem::slotAddItem()
 	QString iName = ui.itemName->text();
 	QString iCode = ui.itemCode->text();
 	QString iDesc = ui.descriptionText->toPlainText();
-	QString catId = ui.itemCategoryComboBox->itemData(ui.itemCategoryComboBox->currentIndex()).toString();
+	QString catId = m_categoryId;
 	QString barCode = ui.barCode->text();
 	QString imagePath = ui.imagePath->text();
 	QString unit = ui.unitText->text();
@@ -117,4 +137,16 @@ void AddItem::slotAddImage()
 { 
 	m_itemImage = QFileDialog::getOpenFileName(this, tr("Open Backup File"));
 	ui.imagePath->setText(m_itemImage);
+}
+
+void AddItem::slotCategorySelected(int row, int col)
+{
+	m_categoryId = ui.tableWidget->item(row, 0)->text();
+	QString categoryCode = ui.tableWidget->item(row, 1)->text();
+	ui.itemCategoryLbl->setText(categoryCode);
+}
+
+void AddItem::setItemCategoryId(QString categoryId)
+{
+	m_categoryId = categoryId;
 }

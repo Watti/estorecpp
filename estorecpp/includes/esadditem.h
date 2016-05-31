@@ -15,18 +15,21 @@ public:
 
 	Ui::AddItemWidget& getUI() { return ui; };
 
-	public slots:
-	void slotAddItem();
 	bool isUpdate() const;
 	void setUpdate(bool val);
 	QString getItemId() const;
 	void setItemId(QString val);
+	void setItemCategoryId(QString categoryId);
+
+	public slots:
+	void slotAddItem();
+	void slotCategorySelected(int row, int col);
 	void slotAddImage();
 
 private:
 	Ui::AddItemWidget ui;
 	bool m_isUpdate;
-	QString m_itemId;
+	QString m_itemId, m_categoryId;
 	QString m_itemImage;
 
 };
