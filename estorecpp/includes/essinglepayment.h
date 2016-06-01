@@ -3,13 +3,14 @@
 
 #include "ui_singlepayment.h"
 #include <QtGui>
+#include "esaddbill.h"
 
 class ESSinglePayment : public QWidget
 {
 	Q_OBJECT
 
 public:
-	ESSinglePayment(QWidget *parent = 0);
+	ESSinglePayment(ESAddBill* addBill, QWidget *parent = 0);
 
 	~ESSinglePayment();
 
@@ -32,6 +33,7 @@ private:
 	Ui::SinglePaymentWidget ui;
 	QString m_customerId;
 	QString m_selectedPM;
+	ESAddBill* m_addBill;
 
 };
 

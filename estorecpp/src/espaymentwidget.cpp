@@ -12,6 +12,7 @@
 ESPayment::ESPayment(ESAddBill* addBill, QWidget *parent /*= 0*/) :
 QWidget(parent), m_addBill(addBill)
 {
+	m_customerId = "-1";
 	ui.setupUi(this);
 	ui.addressText->setWordWrap(true);
 	ui.commentsText->setWordWrap(true);
@@ -103,7 +104,7 @@ void ESPayment::slotCustomerSeleced(int row, int col)
 	}
 	else
 	{
-		m_customerId = "";
+		m_customerId = "-1";
 		m_name = "";
 		m_phone = "";
 		m_address = "";
@@ -114,7 +115,7 @@ void ESPayment::slotCustomerSeleced(int row, int col)
 
 void ESPayment::slotSinglePayment()
 {
-	ESSinglePayment* singlePayment = new ESSinglePayment(0);
+	ESSinglePayment* singlePayment = new ESSinglePayment(m_addBill, 0);
 	singlePayment->setWindowState(Qt::WindowActive);
 	singlePayment->setWindowModality(Qt::ApplicationModal);
 	singlePayment->setAttribute(Qt::WA_DeleteOnClose);

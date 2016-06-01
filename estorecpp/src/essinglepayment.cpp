@@ -4,8 +4,9 @@
 #include "QSqlQuery"
 
 
-ESSinglePayment::ESSinglePayment(QWidget *parent /*= 0*/) : QWidget(parent)
+ESSinglePayment::ESSinglePayment(ESAddBill* addBill, QWidget *parent /*= 0*/) : QWidget(parent), m_addBill(addBill)
 {
+	m_customerId = "-1";
 	ui.setupUi(this);
 
 	slotPaymentMethodSelected(ui.paymentMethodCombo->currentText());
@@ -320,7 +321,7 @@ void ESSinglePayment::finishBill(double netAmount, int billId)
 	}
 	else
 	{
-		ES::Session::getInstance()->endBill();
+		m_addBill->resetBill();
 	}
 }
 
