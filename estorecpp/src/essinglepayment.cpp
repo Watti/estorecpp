@@ -338,8 +338,9 @@ void ESSinglePayment::finishBill(double netAmount, int billId)
 					double stockQuantity = q.value("qty").toDouble();
 					double remainingQty = stockQuantity - quantity;
 					QSqlQuery stockUpdateQuery;
-					stockUpdateQuery.prepare("UPDATE stock SET qty = ?");
+					stockUpdateQuery.prepare("UPDATE stock SET qty = ? WHERE stock_id = ?");
 					stockUpdateQuery.addBindValue(remainingQty);
+					stockUpdateQuery.addBindValue(stockId);
 					stockUpdateQuery.exec();
 				}
 				
