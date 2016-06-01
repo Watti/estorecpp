@@ -7,6 +7,7 @@
 #include <QMessageBox>
 #include <QDesktopWidget>
 #include "essinglepayment.h"
+#include "esmultiplepayment.h"
 
 ESPayment::ESPayment(ESAddBill* addBill, QWidget *parent /*= 0*/) :
 QWidget(parent), m_addBill(addBill)
@@ -134,6 +135,13 @@ void ESPayment::slotSinglePayment()
 
 void ESPayment::slotMultiplePayment()
 {
+	ESMultiplePayment* multiplePayment = new ESMultiplePayment(0);
+	multiplePayment->setWindowState(Qt::WindowActive);
+	multiplePayment->setWindowModality(Qt::ApplicationModal);
+	multiplePayment->setAttribute(Qt::WA_DeleteOnClose);
+	multiplePayment->setCustomerId(m_customerId);
 
+	multiplePayment->show();
+	close();
 }
 
