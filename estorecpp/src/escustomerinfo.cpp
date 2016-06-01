@@ -23,7 +23,8 @@ ESCustomerInfo::ESCustomerInfo(QWidget *parent /*= 0*/) : QWidget(parent)
 
 	slotSearch();
 
-	QObject::connect(ui.customers, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(slotCustomerSelected(int, int)));
+	QObject::connect(ui.customers, SIGNAL(cellPressed(int, int)), this, SLOT(slotCustomerSelected(int, int)));
+	ui.commentsLbl->setWordWrap(true);
 	
 }
 

@@ -84,6 +84,7 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	mmgr->addMenu("Stock", ui.menuStock);
 	mmgr->addMenu("Items", ui.menuItems);
 	mmgr->addMenu("Orders", ui.menuOrders);
+	mmgr->addMenu("Customers", ui.menuCustomers);
 	mmgr->addMenu("Billing", ui.menuBilling);
 	mmgr->addMenu("Reports", ui.menuReports);
 	mmgr->addMenu("Cash Balance", ui.menuCashBalance);
@@ -99,7 +100,7 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	mmgr->addAction("Manage Stock Items", ui.actionManageStockItems);
 	ui.actionManageStockItems->setIcon(QIcon("icons/manage_store.png"));
 
-	ui.mainToolBar->setIconSize(QSize(48, 48));
+	ui.mainToolBar->setIconSize(QSize(36, 36));
 	//ui.mainToolBar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 
 	QLabel* logoLabel = new QLabel(ui.mainToolBar);
@@ -110,7 +111,7 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	ui.mainToolBar->addAction(ui.actionManageStockItems);
 	mmgr->addSeparator(ui.mainToolBar->addSeparator());
 
-	ui.mainToolBar->setMinimumSize(60, 60);
+	ui.mainToolBar->setMinimumSize(48, 48);
 
 	mmgr->addAction("Manage Items", ui.actionManageItems);
 	ui.actionManageItems->setIcon(QIcon("icons/manage_items.png"));
@@ -132,6 +133,14 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	mmgr->addAction("Manage Suppliers", ui.actionManageSuppliers);
 	ui.actionManageSuppliers->setIcon(QIcon("icons/supplier.png"));
 	ui.mainToolBar->addAction(ui.actionManageSuppliers);
+	mmgr->addSeparator(ui.mainToolBar->addSeparator());
+
+	mmgr->addAction("Manage Customers", ui.actionManageCustomers);
+	ui.actionManageCustomers->setIcon(QIcon("icons/customer.png"));
+	ui.mainToolBar->addAction(ui.actionManageCustomers);
+	mmgr->addAction("View History", ui.actionViewCustomerHistory);
+	ui.actionViewCustomerHistory->setIcon(QIcon("icons/customer_history.png"));
+	ui.mainToolBar->addAction(ui.actionViewCustomerHistory);
 	mmgr->addSeparator(ui.mainToolBar->addSeparator());
 
 	mmgr->addAction("Add Bill", ui.actionAddBill);
@@ -183,6 +192,8 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	mmgr->addMenuActionMapping("Items", "Return Items");
 	mmgr->addMenuActionMapping("Orders", "Manage Order Items");
 	mmgr->addMenuActionMapping("Orders", "Manage Suppliers");
+	mmgr->addMenuActionMapping("Customers", "Manage Customers");
+	mmgr->addMenuActionMapping("Customers", "View History");
 	mmgr->addMenuActionMapping("Billing", "Add Bill");
 	mmgr->addMenuActionMapping("Billing", "Current Bills");
 	mmgr->addMenuActionMapping("Cash Balance", "Configure");
