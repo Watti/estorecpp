@@ -321,6 +321,31 @@ void ESSinglePayment::finishBill(double netAmount, int billId)
 	}
 	else
 	{
+		// Update stock quantity
+		QSqlQuery saleQuantityQuery;
+		saleQuantityQuery.prepare("SELECT * FROM sale WHERE bill_id = ?");
+		saleQuantityQuery.addBindValue(billId);
+		if (saleQuantityQuery.exec())
+		{
+			while (saleQuantityQuery.next())
+			{
+				QString stockId = saleQuantityQuery.value("stock_id").toString();
+				double quantity = saleQuantityQuery.value("quantity").toDouble();
+				
+				QSqlQuery q("SELECT * FROM stock WHERE stock_id = " + stockId);
+				if (q.next())
+				{
+					double stockQuantity = q.value("qty").toDouble();
+					double remainingQty = stockQuantity - quantity;
+					QSqlQuery stockUpdateQuery;
+					stockUpdateQuery.prepare("UPDATE stock SET qty = ?");
+					stockUpdateQuery.addBindValue(remainingQty);
+					stockUpdateQuery.exec();
+				}
+				
+			}
+		}
+
 		m_addBill->resetBill();
 	}
 }
