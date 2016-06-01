@@ -118,7 +118,7 @@ void ESCurrentBills::slotSearch()
 		{
 		case 1:
 		{
-			rowColor.setRgb(192, 227, 134);
+			rowColor.setRgb(169, 245, 208);
 			tableItem = new QTableWidgetItem("COMMITTED");
 			tableItem->setTextAlignment(Qt::AlignHCenter);
 			tableItem->setBackgroundColor(rowColor);
@@ -151,7 +151,7 @@ void ESCurrentBills::slotSearch()
 			break;
 		case 3:
 		{
-			rowColor.setRgb(255, 186, 186);
+			rowColor.setRgb(245, 169, 169);
 			tableItem = new QTableWidgetItem("CANCELED");
 			tableItem->setTextAlignment(Qt::AlignHCenter);
 			tableItem->setBackgroundColor(rowColor);
