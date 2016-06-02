@@ -126,6 +126,7 @@ void ESPayment::slotSinglePayment()
 	singlePayment->getUI().addressText->setText(m_address);
 	singlePayment->getUI().commentsText->setText(m_comments);
 
+	singlePayment->getUI().netAmountLbl->setText(m_netAmount);
 	singlePayment->getUI().totalBillLbl->setText(m_netAmount);
 	singlePayment->getUI().noOfItemsLbl->setText(m_noOfItems);
 	singlePayment->getUI().balanceLbl->setText("0.00");

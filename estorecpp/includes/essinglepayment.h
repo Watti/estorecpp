@@ -22,6 +22,7 @@ public:
 	void slotPaymentMethodSelected(QString);
 	void slotCalculateBalance();
 	void slotFinalizeBill();
+	void slotInterestChanged();
 
 private:
 	void handleChequePayment(int billId, double netAmount);

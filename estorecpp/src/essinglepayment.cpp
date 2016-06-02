@@ -13,6 +13,7 @@ ESSinglePayment::ESSinglePayment(ESAddBill* addBill, QWidget *parent /*= 0*/) : 
 
 	QObject::connect(ui.paymentMethodCombo, SIGNAL(activated(QString)), this, SLOT(slotPaymentMethodSelected(QString)));
 	QObject::connect(ui.cashText, SIGNAL(textChanged(QString)), this, SLOT(slotCalculateBalance()));
+	QObject::connect(ui.txt2, SIGNAL(textChanged(QString)), this, SLOT(slotInterestChanged()));
 	QObject::connect(ui.okBtn, SIGNAL(clicked()), this, SLOT(slotFinalizeBill()));
 }
 
@@ -350,5 +351,15 @@ void ESSinglePayment::finishBill(double netAmount, int billId)
 
 		m_addBill->resetBill();
 	}
+}
+
+void ESSinglePayment::slotInterestChanged()
+{
+	double interest = ui.txt2->text().toDouble();
+	double netAmout = ui.netAmountLbl->text().toDouble();
+
+	double totalBill = netAmout + netAmout * (interest / 100.0);
+
+	ui.totalBillLbl->setText(QString::number(totalBill, 'f', 2));
 }
 
