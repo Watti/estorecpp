@@ -232,13 +232,14 @@ void ESSinglePayment::slotPaymentMethodSelected(QString pmMethod)
 	if (pmMethod == "CREDIT")
 	{
 		ui.lbl1->hide();
-		ui.lbl2->hide();
+		ui.lbl2->show(); // interest
 		ui.dateLbl->show(); // due date
 
 		ui.txt1->hide();
-		ui.txt2->hide();
+		ui.txt2->show();
 		ui.dateEdit->show();
 
+		ui.lbl2->setText("Interest % :  ");
 		ui.paymentType->setText("Amount :  ");
 	}
 	else if (pmMethod == "CHEQUE")
