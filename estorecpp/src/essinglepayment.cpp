@@ -2,7 +2,9 @@
 #include <QMessageBox>
 #include "utility\session.h"
 #include "QSqlQuery"
-
+#include "QPrintPreviewDialog"
+#include "utility\esmainwindowholder.h"
+#include "KDReportsTextElement.h"
 
 ESSinglePayment::ESSinglePayment(ESAddBill* addBill, QWidget *parent /*= 0*/) : QWidget(parent), m_addBill(addBill)
 {
@@ -350,6 +352,11 @@ void ESSinglePayment::finishBill(double netAmount, int billId)
 		}
 
 		m_addBill->resetBill();
+
+		if (ui.doPrintCB->isChecked())
+		{
+			printBill();
+		}
 	}
 }
 
@@ -361,5 +368,21 @@ void ESSinglePayment::slotInterestChanged()
 	double totalBill = netAmout + netAmout * (interest / 100.0);
 
 	ui.totalBillLbl->setText(QString::number(totalBill, 'f', 2));
+}
+
+void ESSinglePayment::printBill()
+{
+	KDReports::Report report;
+
+	KDReports::TextElement titleElement("JIRA TASK LIST");
+	titleElement.setPointSize(15);
+	report.addElement(titleElement, Qt::AlignHCenter);
+
+	QPrinter printer;
+	printer.setPaperSize(QPrinter::A4);
+
+	printer.setFullPage(false);
+	printer.setOrientation(QPrinter::Portrait);
+	report.print(&printer);
 }
 

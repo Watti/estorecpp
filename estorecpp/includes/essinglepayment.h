@@ -4,6 +4,7 @@
 #include "ui_singlepayment.h"
 #include <QtGui>
 #include "esaddbill.h"
+#include <KDReportsReport.h>
 
 class ESSinglePayment : public QWidget
 {
@@ -29,6 +30,9 @@ private:
 	void handleCreditPayment(int billId, double netAmount);
 	void handleCashPayment(int billId, double netAmount);
 	void finishBill(double netAmount, int billId);
+
+	void printBill();
+
 	bool validate();
 
 	Ui::SinglePaymentWidget ui;
