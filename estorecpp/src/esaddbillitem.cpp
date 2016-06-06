@@ -38,6 +38,11 @@ ESAddBillItem::ESAddBillItem(ESAddBill* cart, QWidget *parent)
 
 	QObject::connect(ui.itemText, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
 	QObject::connect(ui.hideImages, SIGNAL(stateChanged(int)), this, SLOT(slotHideImages()));
+
+#ifdef HW_TOUCH_SCREEN
+	QObject::connect(ui.tableWidget, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(slotItemDoubleClicked(int, int)));
+#endif
+
 }
 
 ESAddBillItem::~ESAddBillItem()
@@ -238,6 +243,15 @@ void ESAddBillItem::slotHideImages()
 		ui.tableWidget->showColumn(3);
 		ui.tableWidget->verticalHeader()->setDefaultSectionSize(100);
 	}
+}
+
+void ESAddBillItem::slotItemDoubleClicked(int row, int col)
+{
+	QTableWidgetItem* idCell = ui.tableWidget->item(row, 0);
+	if (!idCell)
+		return;
+
+	addToBill(idCell->text());
 }
 
 
