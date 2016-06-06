@@ -50,7 +50,7 @@
         </font>
        </property>
        <property name="text">
-        <string>Item Code/Name :</string>
+        <string>Item Code/Category Code :</string>
        </property>
       </widget>
      </item>
