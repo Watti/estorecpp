@@ -60,11 +60,14 @@ void ESOrderCheckIn::slotAddToStock()
 	QString itemId = ui.itemIdText->text();
 	double currentQty = ui.quantity->text().toDouble();
 	double currentQtyInDB = -1;
+	double remainingQtyInDB = 0.0;
 	
+	// To check whether further check-in is possible
 	QSqlQuery stockPOQuery("SELECT * FROM stock_purchase_order_item WHERE purchaseorder_id = " + m_orderId + " AND item_id = " + itemId);
 	if (stockPOQuery.next())
 	{
 		currentQtyInDB = stockPOQuery.value("current_qty").toDouble();
+		remainingQtyInDB = stockPOQuery.value("remaining_qty").toDouble();
 		if (currentQty > currentQtyInDB)
 		{
 			QMessageBox mbox;
@@ -119,7 +122,9 @@ void ESOrderCheckIn::slotAddToStock()
 		double curQty = ui.quantity->text().toDouble();
 		QString qtyStr;
 		qtyStr.setNum(currentQtyInDB - curQty);
-		QString q("UPDATE stock_purchase_order_item SET current_qty = " + qtyStr + " WHERE purchaseorder_id = " + 
+		QString remQtyStr;
+		remQtyStr.setNum(remainingQtyInDB + curQty);
+		QString q("UPDATE stock_purchase_order_item SET current_qty = " + qtyStr + ", remaining_qty = " + remQtyStr + " WHERE purchaseorder_id = " +
 			m_orderId + " AND item_id = " + itemId);
 
 		QSqlQuery query;
@@ -138,8 +143,8 @@ void ESOrderCheckIn::slotAddToStock()
 		qtyStr.setNum(qty);
 		QString avlQtyStr;
 		avlQtyStr.setNum(availableQty);
-		QString q("INSERT INTO stock_purchase_order_item (purchaseorder_id, item_id, stock_id, qty, current_qty) VALUES (" +
-			m_orderId + "," + itemId + "," + stockId + "," + qtyStr + "," + avlQtyStr + ")");
+		QString q("INSERT INTO stock_purchase_order_item (purchaseorder_id, item_id, stock_id, qty, current_qty, remaining_qty) VALUES (" +
+			m_orderId + "," + itemId + "," + stockId + "," + qtyStr + "," + avlQtyStr + ", " + ui.quantity->text() + ")");
 
 		QSqlQuery query;
 		if (!query.exec(q))

@@ -230,9 +230,32 @@ void ESAddBill::slotReturnPressed(QString saleId, int row)
 			le->setReadOnly(true);
 			double quantity = le->text().toDouble();
 
-			QSqlQuery query("SELECT stock.selling_price, stock.discount FROM stock JOIN sale ON stock.stock_id = sale.stock_id WHERE sale.deleted = 0 AND sale.sale_id = " + saleId);
+			QSqlQuery query("SELECT stock.selling_price, stock.discount, stock.qty FROM stock JOIN sale ON stock.stock_id = sale.stock_id WHERE sale.deleted = 0 AND sale.sale_id = " + saleId);
 			if (query.first())
 			{
+				if (!le->text().isNull() && !le->text().isEmpty())
+				{
+					bool valid = false;
+					double requestedQty = le->text().toDouble(&valid);
+					if (!valid)
+					{
+						QMessageBox mbox;
+						mbox.setIcon(QMessageBox::Warning);
+						mbox.setText(QString("Please enter a valid number"));
+						mbox.exec();
+						return;
+					}
+					double currentQty = query.value("qty").toDouble();
+					if (requestedQty > currentQty)
+					{
+						QMessageBox mbox;
+						mbox.setIcon(QMessageBox::Critical);
+						mbox.setText(QString("Low stock"));
+						mbox.exec();
+						return;
+					}
+				}
+
 					double sellingPrice = query.value("selling_price").toDouble();
 					double discount = query.value("discount").toDouble();;
 					double subTotal = sellingPrice * quantity * ((100 - discount) / 100.f);

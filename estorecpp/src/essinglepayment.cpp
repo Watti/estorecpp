@@ -346,6 +346,28 @@ void ESSinglePayment::finishBill(double netAmount, int billId)
 					stockUpdateQuery.addBindValue(remainingQty);
 					stockUpdateQuery.addBindValue(stockId);
 					stockUpdateQuery.exec();
+
+					// stock quantity has been updated, match the update of the stock quantity 
+					// with the PO items in stock_purchase_order_item for profit calculation
+					// if multiple records are present first one will be updated
+					double qty = quantity;
+					QSqlQuery qq("SELECT * FROM stock_purchase_order_item WHERE stock_id = " + stockId);
+					while (qq.next())
+					{
+						QString id = qq.value("stock_po_item_id").toString();
+						double currentQty = qq.value("remaining_qty").toDouble();
+						if (qty <= currentQty)
+						{
+							QSqlQuery qqq("UPDATE stock_purchase_order_item SET remaining_qty = " + 
+								QString::number(currentQty - qty, 'f', 2) + " WHERE stock_po_item_id = " + id);
+							break;
+						}
+						else
+						{
+							QSqlQuery qqq("UPDATE stock_purchase_order_item SET remaining_qty = 0 WHERE stock_po_item_id = " + id);
+							qty -= currentQty;
+						}
+					}
 				}
 				
 			}
