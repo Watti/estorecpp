@@ -387,54 +387,7 @@ void ESMainWindow::checkForPendingBills()
 {
 	if (ES::Session::getInstance()->isBillStarted())
 	{
-		if (ES::Utility::verifyUsingMessageBox(this, "Warning", "Current Bill is not finished. Do you want to discard it and quit ? "))
-		{
-			QSqlQuery saleQuery("SELECT * FROM sale WHERE bill_id = " + ES::Session::getInstance()->getBillId());
-			while (saleQuery.next())
-			{
-				double quantity = saleQuery.value("quantity").toDouble();
-				QString stockId = saleQuery.value("stock_id").toString();
-
-				QSqlQuery currentStockQuery("SELECT qty FROM stock WHERE stock_id = " + stockId);
-				while (currentStockQuery.next())
-				{
-					double currentQty = currentStockQuery.value("qty").toDouble();
-					double newQtyInDouble = currentQty + quantity;
-					QString newQty = QString::number(newQtyInDouble);
-					QSqlQuery stockUpdate("UPDATE stock SET qty = " + newQty + " WHERE stock_id = " + stockId);
-				}
-				QSqlQuery saleDelete("DELETE FROM sale WHERE sale_id = " + saleQuery.value("sale_id").toString());
-			}
-			QSqlQuery q("DELETE FROM bill WHERE bill_id = " + ES::Session::getInstance()->getBillId());
-		}
-	}
-	QSqlQuery allBillQuery("SELECT * FROM bill WHERE deleted = 0 AND status = 2");
-	while (allBillQuery.next())
-	{
-		if (ES::Utility::verifyUsingMessageBox(this, "EStore", "Bill id = " + allBillQuery.value("bill_id").toString() + " is not completed. Do you want to delete it? "))
-		{
-			QString billId = allBillQuery.value("bill_id").toString();
-			QString salesQString("SELECT * FROM sale WHERE bill_id = " + billId);
-
-
-			QSqlQuery saleQuery(salesQString);
-			while (saleQuery.next())
-			{
-				double quantity = saleQuery.value("quantity").toDouble();
-				QString stockId = saleQuery.value("stock_id").toString();
-
-				QSqlQuery currentStockQuery("SELECT qty FROM stock WHERE stock_id = " + stockId);
-				while (currentStockQuery.next())
-				{
-					double currentQty = currentStockQuery.value("qty").toDouble();
-					double newQtyInDouble = currentQty + quantity;
-					QString newQty = QString::number(newQtyInDouble);
-					QSqlQuery stockUpdate("UPDATE stock SET qty = " + newQty + " WHERE stock_id = " + stockId);
-				}
-				QSqlQuery saleDelete("DELETE FROM sale WHERE sale_id = " + saleQuery.value("sale_id").toString());
-			}
-			QSqlQuery billUpdate("DELETE FROM bill WHERE bill_id = " + billId);
-		}
+		
 	}
 }
 

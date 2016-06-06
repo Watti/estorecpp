@@ -63,12 +63,12 @@ ESAddBill::ESAddBill(QWidget *parent)
 	}
 	else
 	{
-// 		QSqlQuery queryPayment("SELECT * FROM payment");
-// 		QStringList catogory;
-// 		while (queryPayment.next())
-// 		{
-// 			ui.paymentMethodComboBox->addItem(queryPayment.value("type").toString(), queryPayment.value("type_id").toInt());
-// 		}
+		// 		QSqlQuery queryPayment("SELECT * FROM payment");
+		// 		QStringList catogory;
+		// 		while (queryPayment.next())
+		// 		{
+		// 			ui.paymentMethodComboBox->addItem(queryPayment.value("type").toString(), queryPayment.value("type_id").toInt());
+		// 		}
 	}
 
 	ui.billedByLabel->setText(ES::Session::getInstance()->getUser()->getName());
@@ -130,27 +130,6 @@ ESAddBill::ESAddBill(QWidget *parent)
 
 ESAddBill::~ESAddBill()
 {
-	if (ES::Session::getInstance()->isBillStarted())
-	{
-// 			QSqlQuery saleQuery("SELECT * FROM sale WHERE bill_id = " + ES::Session::getInstance()->getBillId());
-// 			while (saleQuery.next())
-// 			{
-// 				double quantity = saleQuery.value("quantity").toDouble();
-// 				QString stockId = saleQuery.value("stock_id").toString();
-// 
-// 				QSqlQuery currentStockQuery("SELECT qty FROM stock WHERE stock_id = " + stockId);
-// 				while (currentStockQuery.next())
-// 				{
-// 					double currentQty = currentStockQuery.value("qty").toDouble();
-// 					double newQtyInDouble = currentQty + quantity;
-// 					QString newQty = QString::number(newQtyInDouble);
-// 					QSqlQuery stockUpdate("UPDATE stock SET qty = " + newQty + " WHERE stock_id = " + stockId);
-// 				}
-// 				QSqlQuery saleDelete("DELETE FROM sale WHERE sale_id = " + saleQuery.value("sale_id").toString());
-// 			}
-// 			QSqlQuery q("DELETE FROM bill WHERE bill_id = " + ES::Session::getInstance()->getBillId());
-		
-	}
 }
 
 void ESAddBill::slotShowAddItem()
@@ -256,17 +235,17 @@ void ESAddBill::slotReturnPressed(QString saleId, int row)
 					}
 				}
 
-					double sellingPrice = query.value("selling_price").toDouble();
-					double discount = query.value("discount").toDouble();;
-					double subTotal = sellingPrice * quantity * ((100 - discount) / 100.f);
+				double sellingPrice = query.value("selling_price").toDouble();
+				double discount = query.value("discount").toDouble();;
+				double subTotal = sellingPrice * quantity * ((100 - discount) / 100.f);
 
-					QString st = QString::number(subTotal, 'f', 2);
-					ui.tableWidget->item(row, 5)->setText(st);
+				QString st = QString::number(subTotal, 'f', 2);
+				ui.tableWidget->item(row, 5)->setText(st);
 
-					QSqlQuery q("UPDATE sale SET quantity = " + le->text() + ", total = " + st + " WHERE sale_id = " + saleId);
-					calculateAndDisplayTotal();
+				QSqlQuery q("UPDATE sale SET quantity = " + le->text() + ", total = " + st + " WHERE sale_id = " + saleId);
+				calculateAndDisplayTotal();
 			}
-		}		
+		}
 	}
 	le->setFocus();
 }
@@ -301,20 +280,20 @@ void ESAddBill::slotCommit()
 		payment->setAttribute(Qt::WA_DeleteOnClose);
 		//payment->setWindowFlags(Qt::CustomizeWindowHint | Qt::Window);
 		payment->show();
-		
+
 		payment->setNetAmount(QString::number(ui.netAmountLabel->text().toDouble(), 'f', 2));
 		payment->setNoOfItems(ui.noOfItemLabel->text());
 		//payment->getUI().balanceLbl->setText("0.00");
 
-// 		QString billId = ES::Session::getInstance()->getBillId();
-// 		QString netAmount = ui.netAmountLabel->text();
-// 		QString paymentType = "1"; // ui.paymentMethodComboBox->currentData().toString();
-// 		QString queryUpdateStr("UPDATE bill set amount = " + netAmount + ", payment_method = " + paymentType + " , status = 1 WHERE bill_id = " + billId);
-// 		QSqlQuery query(queryUpdateStr);
-// 		resetBill();
+		// 		QString billId = ES::Session::getInstance()->getBillId();
+		// 		QString netAmount = ui.netAmountLabel->text();
+		// 		QString paymentType = "1"; // ui.paymentMethodComboBox->currentData().toString();
+		// 		QString queryUpdateStr("UPDATE bill set amount = " + netAmount + ", payment_method = " + paymentType + " , status = 1 WHERE bill_id = " + billId);
+		// 		QSqlQuery query(queryUpdateStr);
+		// 		resetBill();
 		QSize sz = payment->size();
 		QPoint screen = QApplication::desktop()->screen()->rect().center();
-		payment->move(screen.x() - sz.width()/2, screen.y() - sz.height()/2);
+		payment->move(screen.x() - sz.width() / 2, screen.y() - sz.height() / 2);
 	}
 
 }
@@ -442,12 +421,12 @@ void ESAddBill::proceedPendingBill(QString billId)
 		ui.billIdLabel->setText(billId);
 		ui.billedByLabel->setText(ES::Session::getInstance()->getUser()->getName());
 		//ui.branchLabel->setText("NUGEGODA");
-//		QString paymentMethodQueryStr("SELECT type, type_id FROM payment WHERE type_id = (SELECT payment_method FROM bill WHERE bill_id = " + billId + ")");
-//		QSqlQuery paymentQuery(paymentMethodQueryStr);
-// 		while (paymentQuery.next())
-// 		{
-			//ui.paymentMethodComboBox->setCurrentText(paymentQuery.value("type").toString());
-//		}
+		//		QString paymentMethodQueryStr("SELECT type, type_id FROM payment WHERE type_id = (SELECT payment_method FROM bill WHERE bill_id = " + billId + ")");
+		//		QSqlQuery paymentQuery(paymentMethodQueryStr);
+		// 		while (paymentQuery.next())
+		// 		{
+		//ui.paymentMethodComboBox->setCurrentText(paymentQuery.value("type").toString());
+		//		}
 		int row = ui.tableWidget->rowCount();
 
 		QString q = "SELECT * FROM sale where bill_id= " + billId + " AND deleted = 0";
