@@ -275,7 +275,7 @@ void ESOrderCheckIn::slotSearch()
 			}
 			
 			ui.itemTableWidget->setItem(row, 0, new QTableWidgetItem(itemId));
-			QTableWidgetItem* priceItm = new QTableWidgetItem(QString::number(queryOrderItems.value("purchasing_price").toDouble(), 'f', 2));
+			QTableWidgetItem* priceItm = new QTableWidgetItem(QString::number(queryOrderItems.value("order_price").toDouble(), 'f', 2));
 			priceItm->setTextAlignment(Qt::AlignRight);
 			ui.itemTableWidget->setItem(row, 4, priceItm);
 			if (empty) priceItm->setBackgroundColor(red);
