@@ -108,11 +108,15 @@ void ESAddBillItem::keyPressEvent(QKeyEvent * event)
 	switch (event->key())
 	{
 	case Qt::Key_Return:
+	case Qt::Key_Enter:
 	{
 		int row = ui.tableWidget->currentRow();
 		QTableWidgetItem* idCell = ui.tableWidget->item(row, 0);
 		if (!idCell)
+		{
+			QWidget::keyPressEvent(event);
 			return;
+		}
 
 		addToBill(idCell->text());
 	}
@@ -127,8 +131,7 @@ void ESAddBillItem::keyPressEvent(QKeyEvent * event)
 	}
 		break;
 	default:
-		ui.itemText->setFocus();
-		break;
+		QWidget::keyPressEvent(event);
 	}
 }
 
