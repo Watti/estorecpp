@@ -218,7 +218,57 @@ void ESManageSuppliers::slotSearch()
 	}
 	else
 	{
-		// todo: filter based on supplier's item type
+		while (ui.tableWidget->rowCount() > 0)
+		{
+			ui.tableWidget->removeRow(0);
+		}
+		QString qry("SELECT supplier_item.item_id, supplier.supplier_code, supplier.supplier_name, supplier.phone, supplier.fax, supplier.email, supplier.address FROM supplier_item JOIN supplier ON supplier_item.supplier_id = supplier.	supplier_id WHERE supplier.deleted = 0 AND supplier_item.deleted = 0");
+		QSqlQuery q(qry);
+		while (q.next())
+		{
+			QString itemId = q.value("item_id").toString();
+			qry = "SELECT * FROM item WHERE item.itemcategory_id = " + QString::number(categoryId);
+			QSqlQuery queryFilteredItems(qry);
+			while (queryFilteredItems.next())
+			{
+				if (queryFilteredItems.value("item_id").toString() == itemId)
+				{
+					int row = ui.tableWidget->rowCount();
+					ui.tableWidget->insertRow(row);
+
+					ui.tableWidget->setItem(row, 0, new QTableWidgetItem(q.value("supplier_code").toString()));
+					ui.tableWidget->setItem(row, 1, new QTableWidgetItem(q.value("supplier_name").toString()));
+					ui.tableWidget->setItem(row, 2, new QTableWidgetItem(q.value("phone").toString()));
+					ui.tableWidget->setItem(row, 3, new QTableWidgetItem(q.value("fax").toString()));
+					ui.tableWidget->setItem(row, 4, new QTableWidgetItem(q.value("email").toString()));
+					ui.tableWidget->setItem(row, 5, new QTableWidgetItem(q.value("address").toString()));
+
+					QString supplierId = q.value("supplier_id").toString();
+
+					QWidget* base = new QWidget(ui.tableWidget);
+					QPushButton* updateBtn = new QPushButton("Update", base);
+					updateBtn->setMaximumWidth(100);
+					QPushButton* removeBtn = new QPushButton("Remove", base);
+					removeBtn->setMaximumWidth(100);
+
+					m_updateButtonSignalMapper->setMapping(updateBtn, supplierId);
+					QObject::connect(updateBtn, SIGNAL(clicked()), m_updateButtonSignalMapper, SLOT(map()));
+
+					QObject::connect(removeBtn, SIGNAL(clicked()), m_removeButtonSignalMapper, SLOT(map()));
+					m_removeButtonSignalMapper->setMapping(removeBtn, supplierId);
+
+					QHBoxLayout *layout = new QHBoxLayout;
+					layout->setContentsMargins(0, 0, 0, 0);
+					layout->addWidget(updateBtn);
+					layout->addWidget(removeBtn);
+					layout->insertStretch(2);
+					base->setLayout(layout);
+					ui.tableWidget->setCellWidget(row, 6, base);
+					base->show();
+				}
+			}
+		}
+
 	}
 }
 
