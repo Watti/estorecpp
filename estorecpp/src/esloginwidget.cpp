@@ -87,3 +87,18 @@ void ESLoginWidget::slotLogin()
 		}
 	}
 }
+
+void ESLoginWidget::keyPressEvent(QKeyEvent * event)
+{
+	switch (event->key())
+	{
+		case Qt::Key_Return:
+		case Qt::Key_Enter:
+		{
+			slotLogin();
+			break;
+		}
+		default:
+			QWidget::keyPressEvent(event);
+	}
+}

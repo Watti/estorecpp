@@ -15,6 +15,9 @@ public:
 public slots:
 	void slotLogin();
 
+protected:
+	void keyPressEvent(QKeyEvent * event);
+
 private:
 	Ui::LoginWidget ui;
 };
