@@ -29,7 +29,7 @@ private:
 	double m_existingQuantityInMainStock;
 	double m_existingQuantityInStock;
 	bool m_update;
-	QString m_itemId;
+	QString m_stockId;
 };
 
 #endif

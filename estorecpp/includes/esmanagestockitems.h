@@ -21,7 +21,7 @@ public:
 	void slotSearch();
 
 private:
-	void addItemToStock(QString itemId);
+	//void addItemToStock(QString itemId);
 
 	Ui::ManageStockItems ui;
 	QSignalMapper* m_updateButtonSignalMapper;
