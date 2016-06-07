@@ -11,12 +11,29 @@ ESSinglePayment::ESSinglePayment(ESAddBill* addBill, QWidget *parent /*= 0*/) : 
 	m_customerId = "-1";
 	ui.setupUi(this);
 
-	slotPaymentMethodSelected(ui.paymentMethodCombo->currentText());
+	ui.cashBtn->setChecked(true);
+	ui.lbl1->hide();
+	ui.lbl2->hide();
+	ui.dateLbl->hide();
 
-	QObject::connect(ui.paymentMethodCombo, SIGNAL(activated(QString)), this, SLOT(slotPaymentMethodSelected(QString)));
+	ui.txt1->hide();
+	ui.txt2->hide();
+	ui.dateEdit->hide();
+
+	ui.paymentType->setText("Cash :  ");
+
+	QObject::connect(ui.cashBtn, SIGNAL(clicked()), this, SLOT(slotPaymentMethodSelected()));
+	QObject::connect(ui.creditBtn, SIGNAL(clicked()), this, SLOT(slotPaymentMethodSelected()));
+	QObject::connect(ui.chequeBtn, SIGNAL(clicked()), this, SLOT(slotPaymentMethodSelected()));
+	QObject::connect(ui.creditCardBtn, SIGNAL(clicked()), this, SLOT(slotPaymentMethodSelected()));
+	QObject::connect(ui.loyalityCardBtn, SIGNAL(clicked()), this, SLOT(slotPaymentMethodSelected()));
+	
 	QObject::connect(ui.cashText, SIGNAL(textChanged(QString)), this, SLOT(slotCalculateBalance()));
 	QObject::connect(ui.txt2, SIGNAL(textChanged(QString)), this, SLOT(slotInterestChanged()));
 	QObject::connect(ui.okBtn, SIGNAL(clicked()), this, SLOT(slotFinalizeBill()));
+
+	resize(500, 1);
+	adjustSize();
 }
 
 ESSinglePayment::~ESSinglePayment()
@@ -48,7 +65,7 @@ void ESSinglePayment::slotCalculateBalance()
 		}
 	}
 
-	if (ui.paymentMethodCombo->currentText() == "LOYALTY CARD" || ui.paymentMethodCombo->currentText() == "CREDIT CARD")
+	//if (ui.paymentMethodCombo->currentText() == "LOYALTY CARD" || ui.paymentMethodCombo->currentText() == "CREDIT CARD")
 	{
 		/*if (!ui.cardAmountText->text().isEmpty())
 		{
@@ -83,7 +100,7 @@ void ESSinglePayment::slotFinalizeBill()
 
 	QString billIdStr = ES::Session::getInstance()->getBillId();
 	QString netAmountStr = ui.totalBillLbl->text();
-	QString paymentType = ui.paymentMethodCombo->currentText();
+	QString paymentType = "CASH";// ui.paymentMethodCombo->currentText();
 	bool isValid = false;
 
 	double netAmount = netAmountStr.toDouble(&isValid);
@@ -230,9 +247,9 @@ void ESSinglePayment::handleChequePayment(int billId, double netAmount)
 	}
 }
 
-void ESSinglePayment::slotPaymentMethodSelected(QString pmMethod)
+void ESSinglePayment::slotPaymentMethodSelected()
 {
-	if (pmMethod == "CREDIT")
+	if (ui.creditBtn == sender())
 	{
 		ui.lbl1->hide();
 		ui.lbl2->show(); // interest
@@ -244,8 +261,13 @@ void ESSinglePayment::slotPaymentMethodSelected(QString pmMethod)
 
 		ui.lbl2->setText("Interest % :  ");
 		ui.paymentType->setText("Amount :  ");
+
+		ui.cashBtn->setChecked(false);
+		ui.chequeBtn->setChecked(false);
+		ui.creditCardBtn->setChecked(false);
+		ui.loyalityCardBtn->setChecked(false);
 	}
-	else if (pmMethod == "CHEQUE")
+	else if (ui.chequeBtn == sender())
 	{
 		ui.lbl1->show(); // cheque no
 		ui.lbl2->show(); // bank
@@ -258,9 +280,14 @@ void ESSinglePayment::slotPaymentMethodSelected(QString pmMethod)
 		ui.lbl1->setText("Cheque No. :  ");
 		ui.lbl2->setText("Bank :  ");
 
+		ui.cashBtn->setChecked(false);
+		ui.creditBtn->setChecked(false);
+		ui.creditCardBtn->setChecked(false);
+		ui.loyalityCardBtn->setChecked(false);
+
 		ui.paymentType->setText("Amount :  ");
 	}
-	else if (pmMethod == "CREDIT CARD")
+	else if (ui.creditCardBtn == sender())
 	{
 		ui.lbl1->show(); // card no
 		ui.lbl2->hide();
@@ -272,8 +299,13 @@ void ESSinglePayment::slotPaymentMethodSelected(QString pmMethod)
 
 		ui.lbl1->setText("Card No. :  ");
 		ui.paymentType->setText("Amount :  ");
+
+		ui.cashBtn->setChecked(false);
+		ui.chequeBtn->setChecked(false);
+		ui.creditBtn->setChecked(false);
+		ui.loyalityCardBtn->setChecked(false);
 	}
-	else if (pmMethod == "LOYALITY CARD")
+	else if (ui.loyalityCardBtn == sender())
 	{
 		ui.lbl1->show(); // card no
 		ui.lbl2->hide();
@@ -285,8 +317,13 @@ void ESSinglePayment::slotPaymentMethodSelected(QString pmMethod)
 
 		ui.lbl1->setText("Card No. :  ");
 		ui.paymentType->setText("Amount :  ");
+
+		ui.cashBtn->setChecked(false);
+		ui.chequeBtn->setChecked(false);
+		ui.creditCardBtn->setChecked(false);
+		ui.creditBtn->setChecked(false);
 	}
-	else if (pmMethod == "CASH")
+	else if (ui.cashBtn == sender())
 	{
 		ui.lbl1->hide();
 		ui.lbl2->hide();
@@ -297,9 +334,13 @@ void ESSinglePayment::slotPaymentMethodSelected(QString pmMethod)
 		ui.dateEdit->hide();
 
 		ui.paymentType->setText("Cash :  ");
+
+		ui.creditBtn->setChecked(false);
+		ui.chequeBtn->setChecked(false);
+		ui.creditCardBtn->setChecked(false);
+		ui.loyalityCardBtn->setChecked(false);
 	}
 
-	m_selectedPM = pmMethod;
 	resize(500, 1);
 	adjustSize();
 }

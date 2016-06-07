@@ -20,7 +20,7 @@ public:
 
 	public slots:
 	void slotSearch();
-	void slotPaymentMethodSelected(QString);
+	void slotPaymentMethodSelected();
 	void slotCalculateBalance();
 	void slotFinalizeBill();
 	void slotInterestChanged();
@@ -37,7 +37,6 @@ private:
 
 	Ui::SinglePaymentWidget ui;
 	QString m_customerId;
-	QString m_selectedPM;
 	ESAddBill* m_addBill;
 
 };
