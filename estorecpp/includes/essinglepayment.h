@@ -32,7 +32,7 @@ private:
 	void handleCreditCardPayment(int billId, double netAmount);
 	void finishBill(double netAmount, int billId);
 
-	void printBill();
+	void printBill(int billId, float total);
 
 	bool validate();
 

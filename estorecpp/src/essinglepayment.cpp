@@ -5,6 +5,7 @@
 #include "QPrintPreviewDialog"
 #include "utility\esmainwindowholder.h"
 #include "KDReportsTextElement.h"
+#include "KDReportsTableElement.h"
 
 ESSinglePayment::ESSinglePayment(ESAddBill* addBill, QWidget *parent /*= 0*/) : QWidget(parent), m_addBill(addBill)
 {
@@ -419,7 +420,7 @@ void ESSinglePayment::finishBill(double netAmount, int billId)
 
 		if (ui.doPrintCB->isChecked())
 		{
-			printBill();
+			printBill(billId, netAmount);
 		}
 	}
 }
@@ -434,13 +435,38 @@ void ESSinglePayment::slotInterestChanged()
 	ui.totalBillLbl->setText(QString::number(totalBill, 'f', 2));
 }
 
-void ESSinglePayment::printBill()
+void ESSinglePayment::printBill(int billId, float total)
 {
 	KDReports::Report report;
 
-	KDReports::TextElement titleElement("JIRA TASK LIST");
+	KDReports::TextElement titleElement("HIRUNA MARKETING");
 	titleElement.setPointSize(15);
 	report.addElement(titleElement, Qt::AlignHCenter);
+	
+	QString querySaleStr("SELECT * FROM sale WHERE bill id = "+QString::number(billId)+" AND deleted = 0");
+	QSqlQuery querySale(querySaleStr);
+	//columns (item_code, Description, UnitPrice, Discount, Qty, SubTotal)
+	while (querySale.next())
+	{
+		QString stockId = querySale.value("stock_id").toString();
+		QString discount = querySale.value("discount").toString();
+		QString qty = querySale.value("quantity").toString();
+		QString subTotal = querySale.value("total").toString();
+		QString itemName = "";
+		QString unitPrice = "";
+		QString itemCode = "";
+	
+
+		//get the item name from the item table
+		QString qItemStr("SELECT it.item_code, it.item_name , st.selling_price FROM stock st JOIN item it ON st.item_id = it.item_id AND st.stock_id = "+stockId);
+		QSqlQuery queryItem(qItemStr);
+		if (queryItem.next())
+		{
+			itemName = queryItem.value("it.item_name").toString();
+			unitPrice = queryItem.value("st.selling_price").toString();
+			itemCode = queryItem.value("it.item_code").toString();
+		}
+	}
 
 	QPrinter printer;
 	printer.setPaperSize(QPrinter::A4);
