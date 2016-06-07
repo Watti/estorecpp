@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1259</width>
-    <height>552</height>
+    <width>1088</width>
+    <height>549</height>
    </rect>
   </property>
   <property name="palette">
@@ -1493,7 +1493,7 @@
           <property name="font">
            <font>
             <family>Arial</family>
-            <pointsize>14</pointsize>
+            <pointsize>12</pointsize>
             <weight>75</weight>
             <bold>true</bold>
            </font>
@@ -1558,7 +1558,7 @@
           <property name="font">
            <font>
             <family>Arial</family>
-            <pointsize>14</pointsize>
+            <pointsize>12</pointsize>
             <weight>75</weight>
             <bold>true</bold>
            </font>
@@ -1629,7 +1629,7 @@
           <property name="font">
            <font>
             <family>Arial</family>
-            <pointsize>14</pointsize>
+            <pointsize>12</pointsize>
             <weight>75</weight>
             <bold>true</bold>
            </font>
@@ -1637,28 +1637,6 @@
           <property name="text">
            <string> CANCEL 
 (F7)</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="cashDrawerButton">
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>80</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <family>Arial</family>
-            <pointsize>14</pointsize>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string> DRAWER 
-(F8)</string>
           </property>
          </widget>
         </item>
@@ -1673,7 +1651,7 @@
           <property name="font">
            <font>
             <family>Arial</family>
-            <pointsize>14</pointsize>
+            <pointsize>12</pointsize>
             <weight>75</weight>
             <bold>true</bold>
            </font>
@@ -1695,7 +1673,7 @@
           <property name="font">
            <font>
             <family>Arial</family>
-            <pointsize>14</pointsize>
+            <pointsize>12</pointsize>
             <weight>75</weight>
             <bold>true</bold>
            </font>
@@ -1721,7 +1699,7 @@ BILL
           <property name="font">
            <font>
             <family>Arial</family>
-            <pointsize>14</pointsize>
+            <pointsize>12</pointsize>
             <weight>75</weight>
             <bold>true</bold>
            </font>
@@ -1807,7 +1785,7 @@ ITEM
           <property name="font">
            <font>
             <family>Arial</family>
-            <pointsize>18</pointsize>
+            <pointsize>14</pointsize>
             <weight>75</weight>
             <italic>true</italic>
             <bold>true</bold>
@@ -1825,7 +1803,7 @@ ITEM
          <widget class="QLabel" name="noOfItemLabel">
           <property name="minimumSize">
            <size>
-            <width>100</width>
+            <width>80</width>
             <height>32</height>
            </size>
           </property>
@@ -1869,7 +1847,7 @@ ITEM
           <property name="font">
            <font>
             <family>Arial</family>
-            <pointsize>18</pointsize>
+            <pointsize>16</pointsize>
             <weight>75</weight>
             <bold>true</bold>
            </font>
@@ -1991,7 +1969,7 @@ ITEM
           <property name="font">
            <font>
             <family>Arial</family>
-            <pointsize>18</pointsize>
+            <pointsize>14</pointsize>
             <weight>75</weight>
             <italic>true</italic>
             <bold>true</bold>
@@ -2009,7 +1987,7 @@ ITEM
          <widget class="QLabel" name="grossAmountLabel">
           <property name="minimumSize">
            <size>
-            <width>100</width>
+            <width>90</width>
             <height>32</height>
            </size>
           </property>
@@ -2053,7 +2031,7 @@ ITEM
           <property name="font">
            <font>
             <family>Arial</family>
-            <pointsize>18</pointsize>
+            <pointsize>16</pointsize>
             <weight>75</weight>
             <bold>true</bold>
            </font>
@@ -2120,7 +2098,7 @@ ITEM
           <property name="font">
            <font>
             <family>Arial</family>
-            <pointsize>18</pointsize>
+            <pointsize>14</pointsize>
             <weight>75</weight>
             <italic>true</italic>
             <bold>true</bold>
@@ -2144,7 +2122,7 @@ ITEM
           </property>
           <property name="minimumSize">
            <size>
-            <width>100</width>
+            <width>90</width>
             <height>32</height>
            </size>
           </property>
@@ -2188,7 +2166,7 @@ ITEM
           <property name="font">
            <font>
             <family>Arial</family>
-            <pointsize>18</pointsize>
+            <pointsize>16</pointsize>
             <weight>75</weight>
             <bold>true</bold>
            </font>
