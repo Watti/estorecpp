@@ -128,6 +128,7 @@ void ESSinglePayment::slotFinalizeBill()
 	}
 	else if (paymentType == "CREDIT CARD")
 	{
+		handleCreditCardPayment(billId, netAmount);
 	}
 	else if (paymentType == "LOYALITY CARD")
 	{
@@ -144,7 +145,7 @@ bool ESSinglePayment::validate()
 void ESSinglePayment::handleCashPayment(int billId, double netAmount)
 {
 	QSqlQuery query;
-	query.prepare("INSERT INTO payment (bill_id, total_amount, cash) VALUES (?, ?, 1)");
+	query.prepare("INSERT INTO payment (bill_id, total_amount, payment_type_id) VALUES (?, ?, 1)");
 	query.addBindValue(billId);
 	query.addBindValue(netAmount);
 	if (query.exec())
@@ -178,7 +179,7 @@ void ESSinglePayment::handleCashPayment(int billId, double netAmount)
 void ESSinglePayment::handleCreditPayment(int billId, double netAmount)
 {
 	QSqlQuery query;
-	query.prepare("INSERT INTO payment (bill_id, total_amount, credit) VALUES (?, ?, 1)");
+	query.prepare("INSERT INTO payment (bill_id, total_amount, payment_type_id) VALUES (?, ?, 2)");
 	query.addBindValue(billId);
 	query.addBindValue(netAmount);
 	if (query.exec())
@@ -213,7 +214,7 @@ void ESSinglePayment::handleCreditPayment(int billId, double netAmount)
 void ESSinglePayment::handleChequePayment(int billId, double netAmount)
 {
 	QSqlQuery query;
-	query.prepare("INSERT INTO payment (bill_id, total_amount, cheque) VALUES (?, ?, 1)");
+	query.prepare("INSERT INTO payment (bill_id, total_amount, payment_type_id) VALUES (?, ?, 3)");
 	query.addBindValue(billId);
 	query.addBindValue(netAmount);
 	if (query.exec())
@@ -447,5 +448,41 @@ void ESSinglePayment::printBill()
 	printer.setFullPage(false);
 	printer.setOrientation(QPrinter::Portrait);
 	report.print(&printer);
+}
+
+void ESSinglePayment::handleCreditCardPayment(int billId, double netAmount)
+{
+
+	QSqlQuery query;
+	query.prepare("INSERT INTO payment (bill_id, total_amount, payment_type_id) VALUES (?, ?, 4)");
+	query.addBindValue(billId);
+	query.addBindValue(netAmount);
+	if (query.exec())
+	{
+		int lastInsertedId = query.lastInsertId().toInt();
+		QSqlQuery q;
+		q.prepare("INSERT INTO credit_card (payment_id, amount, card_no) VALUES (?, ?, ?)");
+		q.addBindValue(lastInsertedId);
+		q.addBindValue(netAmount);
+		q.addBindValue(ui.txt1->text());
+		if (!q.exec())
+		{
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Critical);
+			mbox.setText(QString("Failed"));
+			mbox.exec();
+		}
+		else
+		{
+			finishBill(netAmount, billId);
+		}
+	}
+	else
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Critical);
+		mbox.setText(QString("Failed"));
+		mbox.exec();
+	}
 }
 

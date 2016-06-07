@@ -29,6 +29,7 @@ private:
 	void handleChequePayment(int billId, double netAmount);
 	void handleCreditPayment(int billId, double netAmount);
 	void handleCashPayment(int billId, double netAmount);
+	void handleCreditCardPayment(int billId, double netAmount);
 	void finishBill(double netAmount, int billId);
 
 	void printBill();
