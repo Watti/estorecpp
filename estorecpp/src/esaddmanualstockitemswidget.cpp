@@ -123,6 +123,11 @@ void ESAddManualStockItems::slotSearch()
 
 void ESAddManualStockItems::slotItemSelected(int row, int col)
 {
+	ui.minQty->setText("0");
+	ui.discount->setText("0");
+	ui.sellingPrice->setText("0");
+	ui.qty->setText("0");
+
 	QTableWidgetItem* idCell = ui.tableWidget->item(row, 0);
 	if (!idCell)
 		return;
@@ -138,6 +143,9 @@ void ESAddManualStockItems::slotItemSelected(int row, int col)
 	if (queryStock.next())
 	{
 		ui.minQty->setText(queryStock.value("min_qty").toString());
+		ui.discount->setText(queryStock.value("discount").toString());
+		ui.sellingPrice->setText(queryStock.value("selling_price").toString());
+		ui.qty->setText(queryStock.value("qty").toString());
 	}
 	ui.itemIdText->setText(itemId);
 }
@@ -224,28 +232,24 @@ void ESAddManualStockItems::slotAddToStock()
 	int userId = ES::Session::getInstance()->getUser()->getId();
 	QString userIdStr;
 	userIdStr.setNum(userId);
-
-	QSqlQuery itemStock("SELECT * FROM stock WHERE deleted = 0 AND item_id = " + itemId);
+	bool success = true;
+	QSqlQuery itemStock("SELECT * FROM stock WHERE item_id = " + itemId);
 	if (itemStock.next())
 	{
+		//item is already available in the stock
 		QString stockId = itemStock.value("stock_id").toString();
 		QString currentSellingPrice = itemStock.value("selling_price").toString();
-// 		if (newSellingPrice.toDouble() != currentSellingPrice.toDouble())
-// 		{
-// 			QMessageBox mbox;
-// 			mbox.setIcon(QMessageBox::Warning);
-// 			mbox.setText(QString("Selling Price will be updated to "+newSellingPrice));
-// 			mbox.exec();
-// 		}
-		currentQty += itemStock.value("qty").toDouble();
+
+		//currentQty += itemStock.value("qty").toDouble();
 
 		QString qtyStr;
 		qtyStr.setNum(currentQty);
-		QString q("UPDATE stock SET qty = " + qtyStr + " , selling_price = "+ newSellingPrice + " , discount = "
+		QString q("UPDATE stock SET deleted = 0, qty = " + qtyStr + " , selling_price = "+ newSellingPrice + " , discount = "
 			+ discount + " , min_qty =  " + ui.minQty->text() + " WHERE stock_id = " + stockId);
 		QSqlQuery query;
 		if (!query.exec(q))
 		{
+			success = false;
 			QMessageBox mbox;
 			mbox.setIcon(QMessageBox::Critical);
 			mbox.setText(QString("Something goes wrong: stock update failed"));
@@ -260,11 +264,12 @@ void ESAddManualStockItems::slotAddToStock()
 	{
 		QString qtyStr;
 		qtyStr.setNum(currentQty);
-		QString q("INSERT INTO stock (item_id, qty, selling_price, discount, user_id) VALUES (" +
-			itemId + "," + qtyStr + "," + newSellingPrice + "," + discount + "," + userIdStr + ")");
+		QString q("INSERT INTO stock (item_id, qty, min_qty, selling_price, discount, user_id) VALUES (" +
+			itemId + "," + qtyStr + "," + ui.minQty->text() +","+ newSellingPrice + "," + discount + "," + userIdStr + ")");
 		QSqlQuery query;
 		if (!query.exec(q))
 		{
+			success = false;
 			QMessageBox mbox;
 			mbox.setIcon(QMessageBox::Critical);
 			mbox.setText(QString("Something goes wrong: stock update failed"));
@@ -274,6 +279,18 @@ void ESAddManualStockItems::slotAddToStock()
 			
 			LOG(ERROR) << logError.toLatin1().data();
 		}
+	}
+	if (success)
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Information);
+		mbox.setText(QString("Item has been added to the stock"));
+		mbox.exec();
+		ui.minQty->setText("");
+		ui.discount->setText("");
+		ui.sellingPrice->setText("");
+		ui.qty->setText("");
+		ui.itemCode->setText("");
 	}
 
 }

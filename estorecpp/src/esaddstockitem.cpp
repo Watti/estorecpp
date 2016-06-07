@@ -59,17 +59,35 @@ void AddStockItem::slotAddStockItem()
 				QString  price = ui.itemPrice->text();
 				QString discount = ui.discount->text();
 				price.toDouble(&isValid);
+				if (!isValid)
+				{
+					QMessageBox mbox;
+					mbox.setIcon(QMessageBox::Warning);
+					mbox.setText(QString("Invalid input - Price"));
+					mbox.exec();
+					return;
+				}
+				isValid = false;
+				discount.toDouble(&isValid);
+				if (!isValid)
+				{
+					QMessageBox mbox;
+					mbox.setIcon(QMessageBox::Warning);
+					mbox.setText(QString("Invalid input - Discount"));
+					mbox.exec();
+					return;
+				}
 				if (isValid)
 				{
 					QString q;
 					if (isUpdate())
 					{
-						q = "UPDATE stock SET qty = '" + qtyStr + "', min_qty = '" + minQtyStr + "' WHERE item_id = " + m_itemId;
+						q = "UPDATE stock SET qty = '" + qtyStr + "', min_qty = '" + minQtyStr + "' ,selling_price = '"+price+"', discount ='"+discount+"' WHERE stock_id = " + m_stockId;
 					}
-					else
-					{
-						q = "INSERT INTO stock  (item_id,  qty, min_qty, discount, deleted) VALUES(" + itemId + ", " + qtyStr + "," + minQtyStr + "," + discount + ", 0) ";
-					}
+// 					else
+// 					{
+// 						q = "INSERT INTO stock  (item_id,  qty, min_qty, discount, deleted) VALUES(" + itemId + ", " + qtyStr + "," + minQtyStr + "," + discount + ", 0) ";
+// 					}
 
 					QSqlQuery query;
 					if (query.exec(q))
@@ -77,13 +95,13 @@ void AddStockItem::slotAddStockItem()
 						double remainingQtyInMainStock = -1;
 						if (isUpdate())
 						{
-							remainingQtyInMainStock = m_existingQuantityInMainStock + (m_existingQuantityInStock - quantity);
+							remainingQtyInMainStock =  quantity;
 						}
 						else
 						{
-							 remainingQtyInMainStock = m_existingQuantityInMainStock - quantity;
+							 remainingQtyInMainStock = quantity;
 						}
-						QString updateOrder("UPDATE stock_order SET quantity = " + QString::number(remainingQtyInMainStock)+" WHERE item_id = "+itemId);
+						QString updateOrder("UPDATE stock SET qty = " + QString::number(remainingQtyInMainStock)+" WHERE stock_id = "+itemId);
 						QSqlQuery qUpdateOrder;
 						if (!qUpdateOrder.exec(updateOrder))
 						{
@@ -153,7 +171,7 @@ bool AddStockItem::isUpdate() const
 
 void AddStockItem::setItemId(QString val)
 {
-	m_itemId = val;
+	m_stockId = val;
 }
 
 double AddStockItem::getExistingQuantityInStock() const
