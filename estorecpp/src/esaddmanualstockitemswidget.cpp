@@ -232,7 +232,7 @@ void ESAddManualStockItems::slotAddToStock()
 	int userId = ES::Session::getInstance()->getUser()->getId();
 	QString userIdStr;
 	userIdStr.setNum(userId);
-
+	bool success = true;
 	QSqlQuery itemStock("SELECT * FROM stock WHERE item_id = " + itemId);
 	if (itemStock.next())
 	{
@@ -249,6 +249,7 @@ void ESAddManualStockItems::slotAddToStock()
 		QSqlQuery query;
 		if (!query.exec(q))
 		{
+			success = false;
 			QMessageBox mbox;
 			mbox.setIcon(QMessageBox::Critical);
 			mbox.setText(QString("Something goes wrong: stock update failed"));
@@ -268,6 +269,7 @@ void ESAddManualStockItems::slotAddToStock()
 		QSqlQuery query;
 		if (!query.exec(q))
 		{
+			success = false;
 			QMessageBox mbox;
 			mbox.setIcon(QMessageBox::Critical);
 			mbox.setText(QString("Something goes wrong: stock update failed"));
@@ -277,6 +279,18 @@ void ESAddManualStockItems::slotAddToStock()
 			
 			LOG(ERROR) << logError.toLatin1().data();
 		}
+	}
+	if (success)
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Information);
+		mbox.setText(QString("Item has been added to the stock"));
+		mbox.exec();
+		ui.minQty->setText("");
+		ui.discount->setText("");
+		ui.sellingPrice->setText("");
+		ui.qty->setText("");
+		ui.itemCode->setText("");
 	}
 
 }
