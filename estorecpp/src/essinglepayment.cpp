@@ -5,6 +5,7 @@
 #include "QPrintPreviewDialog"
 #include "utility\esmainwindowholder.h"
 #include "KDReportsTextElement.h"
+#include "KDReportsTableElement.h"
 
 ESSinglePayment::ESSinglePayment(ESAddBill* addBill, QWidget *parent /*= 0*/) : QWidget(parent), m_addBill(addBill)
 {
@@ -127,6 +128,7 @@ void ESSinglePayment::slotFinalizeBill()
 	}
 	else if (paymentType == "CREDIT CARD")
 	{
+		handleCreditCardPayment(billId, netAmount);
 	}
 	else if (paymentType == "LOYALITY CARD")
 	{
@@ -143,7 +145,7 @@ bool ESSinglePayment::validate()
 void ESSinglePayment::handleCashPayment(int billId, double netAmount)
 {
 	QSqlQuery query;
-	query.prepare("INSERT INTO payment (bill_id, total_amount, cash) VALUES (?, ?, 1)");
+	query.prepare("INSERT INTO payment (bill_id, total_amount, payment_type_id) VALUES (?, ?, 1)");
 	query.addBindValue(billId);
 	query.addBindValue(netAmount);
 	if (query.exec())
@@ -177,7 +179,7 @@ void ESSinglePayment::handleCashPayment(int billId, double netAmount)
 void ESSinglePayment::handleCreditPayment(int billId, double netAmount)
 {
 	QSqlQuery query;
-	query.prepare("INSERT INTO payment (bill_id, total_amount, credit) VALUES (?, ?, 1)");
+	query.prepare("INSERT INTO payment (bill_id, total_amount, payment_type_id) VALUES (?, ?, 2)");
 	query.addBindValue(billId);
 	query.addBindValue(netAmount);
 	if (query.exec())
@@ -212,7 +214,7 @@ void ESSinglePayment::handleCreditPayment(int billId, double netAmount)
 void ESSinglePayment::handleChequePayment(int billId, double netAmount)
 {
 	QSqlQuery query;
-	query.prepare("INSERT INTO payment (bill_id, total_amount, cheque) VALUES (?, ?, 1)");
+	query.prepare("INSERT INTO payment (bill_id, total_amount, payment_type_id) VALUES (?, ?, 3)");
 	query.addBindValue(billId);
 	query.addBindValue(netAmount);
 	if (query.exec())
@@ -417,7 +419,7 @@ void ESSinglePayment::finishBill(double netAmount, int billId)
 
 		if (ui.doPrintCB->isChecked())
 		{
-			printBill();
+			printBill(billId, netAmount);
 		}
 	}
 }
@@ -432,13 +434,38 @@ void ESSinglePayment::slotInterestChanged()
 	ui.totalBillLbl->setText(QString::number(totalBill, 'f', 2));
 }
 
-void ESSinglePayment::printBill()
+void ESSinglePayment::printBill(int billId, float total)
 {
 	KDReports::Report report;
 
-	KDReports::TextElement titleElement("JIRA TASK LIST");
+	KDReports::TextElement titleElement("HIRUNA MARKETING");
 	titleElement.setPointSize(15);
 	report.addElement(titleElement, Qt::AlignHCenter);
+	
+	QString querySaleStr("SELECT * FROM sale WHERE bill id = "+QString::number(billId)+" AND deleted = 0");
+	QSqlQuery querySale(querySaleStr);
+	//columns (item_code, Description, UnitPrice, Discount, Qty, SubTotal)
+	while (querySale.next())
+	{
+		QString stockId = querySale.value("stock_id").toString();
+		QString discount = querySale.value("discount").toString();
+		QString qty = querySale.value("quantity").toString();
+		QString subTotal = querySale.value("total").toString();
+		QString itemName = "";
+		QString unitPrice = "";
+		QString itemCode = "";
+	
+
+		//get the item name from the item table
+		QString qItemStr("SELECT it.item_code, it.item_name , st.selling_price FROM stock st JOIN item it ON st.item_id = it.item_id AND st.stock_id = "+stockId);
+		QSqlQuery queryItem(qItemStr);
+		if (queryItem.next())
+		{
+			itemName = queryItem.value("it.item_name").toString();
+			unitPrice = queryItem.value("st.selling_price").toString();
+			itemCode = queryItem.value("it.item_code").toString();
+		}
+	}
 
 	QPrinter printer;
 	printer.setPaperSize(QPrinter::A4);
@@ -446,5 +473,41 @@ void ESSinglePayment::printBill()
 	printer.setFullPage(false);
 	printer.setOrientation(QPrinter::Portrait);
 	report.print(&printer);
+}
+
+void ESSinglePayment::handleCreditCardPayment(int billId, double netAmount)
+{
+
+	QSqlQuery query;
+	query.prepare("INSERT INTO payment (bill_id, total_amount, payment_type_id) VALUES (?, ?, 4)");
+	query.addBindValue(billId);
+	query.addBindValue(netAmount);
+	if (query.exec())
+	{
+		int lastInsertedId = query.lastInsertId().toInt();
+		QSqlQuery q;
+		q.prepare("INSERT INTO credit_card (payment_id, amount, card_no) VALUES (?, ?, ?)");
+		q.addBindValue(lastInsertedId);
+		q.addBindValue(netAmount);
+		q.addBindValue(ui.txt1->text());
+		if (!q.exec())
+		{
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Critical);
+			mbox.setText(QString("Failed"));
+			mbox.exec();
+		}
+		else
+		{
+			finishBill(netAmount, billId);
+		}
+	}
+	else
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Critical);
+		mbox.setText(QString("Failed"));
+		mbox.exec();
+	}
 }
 

@@ -78,7 +78,8 @@ ESAddBill::ESAddBill(QWidget *parent)
 	QSqlQuery pendingBillQry(pendingBill);
 	if (pendingBillQry.next()/*ES::Session::getInstance()->isBillStarted()*/)
 	{
-		if (pendingBillQry.value("status").toInt() == 2)
+		if (pendingBillQry.value("status").toInt() == 2 && 
+			pendingBillQry.value("user_id").toInt() == ES::Session::getInstance()->getUser()->getId())
 		{
 			//There is a pending bill
 			QString billId = pendingBillQry.value("bill_id").toString();
