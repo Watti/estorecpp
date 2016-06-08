@@ -32,7 +32,7 @@ ESSinglePayment::ESSinglePayment(ESAddBill* addBill, QWidget *parent /*= 0*/) : 
 	QObject::connect(ui.txt2, SIGNAL(textChanged(QString)), this, SLOT(slotInterestChanged()));
 	QObject::connect(ui.okBtn, SIGNAL(clicked()), this, SLOT(slotFinalizeBill()));
 
-	resize(500, 1);
+	//resize(400, 1);
 	adjustSize();
 }
 
@@ -91,7 +91,6 @@ void ESSinglePayment::slotCalculateBalance()
 		ui.balanceLbl->clear();
 	}
 }
-
 
 void ESSinglePayment::slotFinalizeBill()
 {
@@ -341,7 +340,7 @@ void ESSinglePayment::slotPaymentMethodSelected()
 		ui.loyalityCardBtn->setChecked(false);
 	}
 
-	resize(500, 1);
+	//resize(400, 1);
 	adjustSize();
 }
 

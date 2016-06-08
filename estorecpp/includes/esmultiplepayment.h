@@ -18,6 +18,7 @@ public:
 
 	public slots:
 	void slotSearch();
+	void slotPaymentMethodSelected();
 
 private:
 	bool validate();
