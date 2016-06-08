@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>419</width>
-    <height>530</height>
+    <width>444</width>
+    <height>555</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -309,7 +309,7 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_4">
      <item>
-      <widget class="QPushButton" name="cashBtn">
+      <widget class="QToolButton" name="cashBtn">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -318,14 +318,14 @@
        </property>
        <property name="minimumSize">
         <size>
-         <width>75</width>
-         <height>50</height>
+         <width>80</width>
+         <height>80</height>
         </size>
        </property>
        <property name="maximumSize">
         <size>
-         <width>75</width>
-         <height>50</height>
+         <width>80</width>
+         <height>80</height>
         </size>
        </property>
        <property name="font">
@@ -335,18 +335,15 @@
         </font>
        </property>
        <property name="text">
-        <string>CASH</string>
+        <string/>
        </property>
        <property name="checkable">
-        <bool>true</bool>
-       </property>
-       <property name="flat">
         <bool>true</bool>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="creditBtn">
+      <widget class="QToolButton" name="creditBtn">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -355,14 +352,42 @@
        </property>
        <property name="minimumSize">
         <size>
-         <width>75</width>
-         <height>50</height>
+         <width>80</width>
+         <height>80</height>
         </size>
        </property>
        <property name="maximumSize">
         <size>
-         <width>75</width>
-         <height>50</height>
+         <width>80</width>
+         <height>80</height>
+        </size>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="chequeBtn">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>80</width>
+         <height>80</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>80</width>
+         <height>80</height>
         </size>
        </property>
        <property name="font">
@@ -372,55 +397,15 @@
         </font>
        </property>
        <property name="text">
-        <string>CREDIT</string>
+        <string/>
        </property>
        <property name="checkable">
-        <bool>true</bool>
-       </property>
-       <property name="flat">
         <bool>true</bool>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="chequeBtn">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>75</width>
-         <height>50</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>75</width>
-         <height>50</height>
-        </size>
-       </property>
-       <property name="font">
-        <font>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>CHEQUE</string>
-       </property>
-       <property name="checkable">
-        <bool>true</bool>
-       </property>
-       <property name="flat">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="creditCardBtn">
+      <widget class="QToolButton" name="creditCardBtn">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
          <horstretch>0</horstretch>
@@ -429,14 +414,14 @@
        </property>
        <property name="minimumSize">
         <size>
-         <width>75</width>
-         <height>50</height>
+         <width>80</width>
+         <height>80</height>
         </size>
        </property>
        <property name="maximumSize">
         <size>
-         <width>75</width>
-         <height>50</height>
+         <width>80</width>
+         <height>80</height>
         </size>
        </property>
        <property name="font">
@@ -446,19 +431,15 @@
         </font>
        </property>
        <property name="text">
-        <string>CREDIT 
-CARD</string>
+        <string/>
        </property>
        <property name="checkable">
-        <bool>true</bool>
-       </property>
-       <property name="flat">
         <bool>true</bool>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="loyalityCardBtn">
+      <widget class="QToolButton" name="loyalityCardBtn">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
          <horstretch>0</horstretch>
@@ -467,14 +448,14 @@ CARD</string>
        </property>
        <property name="minimumSize">
         <size>
-         <width>75</width>
-         <height>50</height>
+         <width>80</width>
+         <height>80</height>
         </size>
        </property>
        <property name="maximumSize">
         <size>
-         <width>75</width>
-         <height>50</height>
+         <width>80</width>
+         <height>80</height>
         </size>
        </property>
        <property name="font">
@@ -484,13 +465,9 @@ CARD</string>
         </font>
        </property>
        <property name="text">
-        <string>LOYALITY 
-CARD</string>
+        <string/>
        </property>
        <property name="checkable">
-        <bool>true</bool>
-       </property>
-       <property name="flat">
         <bool>true</bool>
        </property>
       </widget>

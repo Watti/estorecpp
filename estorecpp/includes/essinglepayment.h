@@ -5,6 +5,8 @@
 #include <QtGui>
 #include "esaddbill.h"
 #include <KDReportsReport.h>
+#include "QPrinter"
+#include "KDReportsTableElement.h"
 
 class ESSinglePayment : public QWidget
 {
@@ -24,6 +26,7 @@ public:
 	void slotCalculateBalance();
 	void slotFinalizeBill();
 	void slotInterestChanged();
+	void slotPrint(QPrinter* printer);
 
 private:
 	void handleChequePayment(int billId, double netAmount);
@@ -31,7 +34,7 @@ private:
 	void handleCashPayment(int billId, double netAmount);
 	void handleCreditCardPayment(int billId, double netAmount);
 	void finishBill(double netAmount, int billId);
-
+	void printRow(KDReports::TableElement& tableElement, int row, int col, QString elementStr);
 	void printBill(int billId, float total);
 
 	bool validate();
@@ -39,6 +42,8 @@ private:
 	Ui::SinglePaymentWidget ui;
 	QString m_customerId;
 	ESAddBill* m_addBill;
+	
+	//KDReports::Report report;
 
 };
 
