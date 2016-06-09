@@ -177,7 +177,7 @@ void AddOrderItem::slotPlaceNewOrder()
 
 		QString quantity = le->text();
 
-		QString qry = "INSERT INTO purchase_order_item (purchaseorder_id, item_id, qty, order_price) VALUES (" + 
+		QString qry = "INSERT INTO purchase_order_item (purchaseorder_id, item_id, qty, purchasing_price) VALUES (" + 
 			purchaseOrderId + "," + itemId + "," + quantity + "," + price + ")";
 
 		QSqlQuery insertQuery;
