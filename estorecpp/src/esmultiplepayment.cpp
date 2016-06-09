@@ -1,4 +1,5 @@
 #include "esmultiplepayment.h"
+#include "QMessageBox"
 
 ESMultiplePayment::ESMultiplePayment(QWidget *parent /*= 0*/) : QWidget(parent)
 {
@@ -15,6 +16,48 @@ ESMultiplePayment::ESMultiplePayment(QWidget *parent /*= 0*/) : QWidget(parent)
 	ui.dateEdit->hide();
 
 	ui.paymentType->setText("Cash :  ");
+	m_paymentType = "CASH";
+
+	ui.cashBtn->setIcon(QIcon("icons/cash_payment1.png"));
+	ui.cashBtn->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+	ui.cashBtn->setText("CASH");
+	ui.cashBtn->setIconSize(QSize(48, 48));
+
+	ui.creditBtn->setIcon(QIcon("icons/credit_payment.png"));
+	ui.creditBtn->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+	ui.creditBtn->setText("CREDIT");
+	ui.creditBtn->setIconSize(QSize(48, 48));
+
+	ui.creditCardBtn->setIcon(QIcon("icons/creditcard_payment.png"));
+	ui.creditCardBtn->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+	ui.creditCardBtn->setText("CARD");
+	ui.creditCardBtn->setIconSize(QSize(48, 48));
+
+	ui.chequeBtn->setIcon(QIcon("icons/cheque_payment.png"));
+	ui.chequeBtn->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+	ui.chequeBtn->setText("CHEQUE");
+	ui.chequeBtn->setIconSize(QSize(48, 48));
+
+	ui.loyalityCardBtn->setIcon(QIcon("icons/loyalty_payment.png"));
+	ui.loyalityCardBtn->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+	ui.loyalityCardBtn->setText("LOYALTY");
+	ui.loyalityCardBtn->setIconSize(QSize(48, 48));
+
+	QStringList headerLabels;
+	headerLabels.append("Payment Type");
+	headerLabels.append("Amount");
+	headerLabels.append("Interest");
+	headerLabels.append("Due Date");
+	headerLabels.append("Number");
+	headerLabels.append("Bank");
+	headerLabels.append("Actions");
+
+	ui.tableWidget->setHorizontalHeaderLabels(headerLabels);
+	ui.tableWidget->horizontalHeader()->setStretchLastSection(true);
+	ui.tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+	ui.tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	ui.tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
+	ui.tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
 
 	QObject::connect(ui.cashBtn, SIGNAL(clicked()), this, SLOT(slotPaymentMethodSelected()));
 	QObject::connect(ui.creditBtn, SIGNAL(clicked()), this, SLOT(slotPaymentMethodSelected()));
@@ -22,6 +65,10 @@ ESMultiplePayment::ESMultiplePayment(QWidget *parent /*= 0*/) : QWidget(parent)
 	QObject::connect(ui.creditCardBtn, SIGNAL(clicked()), this, SLOT(slotPaymentMethodSelected()));
 	QObject::connect(ui.loyalityCardBtn, SIGNAL(clicked()), this, SLOT(slotPaymentMethodSelected()));
 
+	QObject::connect(ui.cashText, SIGNAL(textChanged(QString)), this, SLOT(slotCalculateBalance()));
+	QObject::connect(ui.addBtn, SIGNAL(clicked()), this, SLOT(slotAdd()));
+
+	setMinimumWidth(900);
 	//resize(900, 1);
 	adjustSize();
 }
@@ -46,6 +93,53 @@ bool ESMultiplePayment::validate()
 	return true;
 }
 
+
+void ESMultiplePayment::slotCalculateBalance()
+{
+	bool isValid = false;
+	double cash = 0, cardAmount = 0;
+	if (!ui.cashText->text().isEmpty())
+	{
+		cash = ui.cashText->text().toDouble(&isValid);
+		if (!isValid)
+		{
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Warning);
+			mbox.setText(QString("Invalid input - Cash"));
+			mbox.exec();
+			ui.cashText->clear();
+			return;
+		}
+	}
+
+	//if (ui.paymentMethodCombo->currentText() == "LOYALTY CARD" || ui.paymentMethodCombo->currentText() == "CREDIT CARD")
+	{
+		/*if (!ui.cardAmountText->text().isEmpty())
+		{
+		cardAmount = ui.cardAmountText->text().toDouble(&isValid);
+
+		if (!isValid)
+		{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Warning);
+		mbox.setText(QString("Invalid input - Card Amount"));
+		mbox.exec();
+		ui.cardAmountText->clear();
+		return;
+		}
+		}*/
+	}
+	double amount = ui.totalBillLbl->text().toDouble();
+
+	ui.balanceLbl->setText(QString::number(cash - (amount - cardAmount), 'f', 2));
+
+	if (ui.cashText->text().isEmpty())
+	{
+		ui.balanceLbl->clear();
+	}
+}
+
+
 void ESMultiplePayment::slotPaymentMethodSelected()
 {
 	if (ui.creditBtn == sender())
@@ -65,6 +159,7 @@ void ESMultiplePayment::slotPaymentMethodSelected()
 		ui.chequeBtn->setChecked(false);
 		ui.creditCardBtn->setChecked(false);
 		ui.loyalityCardBtn->setChecked(false);
+		m_paymentType = "CREDIT";
 	}
 	else if (ui.chequeBtn == sender())
 	{
@@ -85,6 +180,7 @@ void ESMultiplePayment::slotPaymentMethodSelected()
 		ui.loyalityCardBtn->setChecked(false);
 
 		ui.paymentType->setText("Amount :  ");
+		m_paymentType = "CHEQUE";
 	}
 	else if (ui.creditCardBtn == sender())
 	{
@@ -103,6 +199,8 @@ void ESMultiplePayment::slotPaymentMethodSelected()
 		ui.chequeBtn->setChecked(false);
 		ui.creditBtn->setChecked(false);
 		ui.loyalityCardBtn->setChecked(false);
+
+		m_paymentType = "CARD";
 	}
 	else if (ui.loyalityCardBtn == sender())
 	{
@@ -121,6 +219,8 @@ void ESMultiplePayment::slotPaymentMethodSelected()
 		ui.chequeBtn->setChecked(false);
 		ui.creditCardBtn->setChecked(false);
 		ui.creditBtn->setChecked(false);
+
+		m_paymentType = "LOYALTY";
 	}
 	else if (ui.cashBtn == sender())
 	{
@@ -138,10 +238,20 @@ void ESMultiplePayment::slotPaymentMethodSelected()
 		ui.chequeBtn->setChecked(false);
 		ui.creditCardBtn->setChecked(false);
 		ui.loyalityCardBtn->setChecked(false);
+		m_paymentType = "CASH";
 	}
 
 	//resize(900, 1);
 	adjustSize();
+}
+
+void ESMultiplePayment::slotAdd()
+{
+	int row = ui.tableWidget->rowCount();
+	ui.tableWidget->insertRow(row);
+
+	ui.tableWidget->setItem(row, 0, new QTableWidgetItem(m_paymentType));
+	ui.tableWidget->setItem(row, 1, new QTableWidgetItem(ui.cashText->text()));
 }
 
 

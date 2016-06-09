@@ -19,12 +19,14 @@ public:
 	public slots:
 	void slotSearch();
 	void slotPaymentMethodSelected();
+	void slotCalculateBalance();
+	void slotAdd();
 
 private:
 	bool validate();
-
 	Ui::MultiplePaymentWidget ui;
 	QString m_customerId;
+	QString m_paymentType;
 
 };
 
