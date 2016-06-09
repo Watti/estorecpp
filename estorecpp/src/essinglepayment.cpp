@@ -24,7 +24,7 @@ ESSinglePayment::ESSinglePayment(ESAddBill* addBill, QWidget *parent /*= 0*/) : 
 
 	ui.paymentType->setText("Cash :  ");
 
-	ui.cashBtn->setIcon(QIcon("icons/cash_payment.png"));
+	ui.cashBtn->setIcon(QIcon("icons/cash_payment1.png"));
 	ui.cashBtn->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 	ui.cashBtn->setText("CASH");
 	ui.cashBtn->setIconSize(QSize(48, 48));
