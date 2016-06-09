@@ -25,25 +25,29 @@ ESSinglePayment::ESSinglePayment(ESAddBill* addBill, QWidget *parent /*= 0*/) : 
 	ui.paymentType->setText("Cash :  ");
 
 	ui.cashBtn->setIcon(QIcon("icons/cash_payment.png"));
+	ui.cashBtn->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+	ui.cashBtn->setText("CASH");
+	ui.cashBtn->setIconSize(QSize(48, 48));
+
 	ui.creditBtn->setIcon(QIcon("icons/credit_payment.png"));
 	ui.creditBtn->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 	ui.creditBtn->setText("CREDIT");
-	ui.creditBtn->setIconSize(QSize(40, 40));
+	ui.creditBtn->setIconSize(QSize(48, 48));
 
 	ui.creditCardBtn->setIcon(QIcon("icons/creditcard_payment.png"));
 	ui.creditCardBtn->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-	ui.creditCardBtn->setText("CREDIT CARD");
-	ui.creditCardBtn->setIconSize(QSize(40, 40));
+	ui.creditCardBtn->setText("CARD");
+	ui.creditCardBtn->setIconSize(QSize(48, 48));
 
 	ui.chequeBtn->setIcon(QIcon("icons/cheque_payment.png"));
 	ui.chequeBtn->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 	ui.chequeBtn->setText("CHEQUE");
-	ui.chequeBtn->setIconSize(QSize(40, 40));
+	ui.chequeBtn->setIconSize(QSize(48, 48));
 
 	ui.loyalityCardBtn->setIcon(QIcon("icons/loyalty_payment.png"));
 	ui.loyalityCardBtn->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 	ui.loyalityCardBtn->setText("LOYALTY");
-	ui.loyalityCardBtn->setIconSize(QSize(40, 40));
+	ui.loyalityCardBtn->setIconSize(QSize(48, 48));
 
 	QObject::connect(ui.cashBtn, SIGNAL(clicked()), this, SLOT(slotPaymentMethodSelected()));
 	QObject::connect(ui.creditBtn, SIGNAL(clicked()), this, SLOT(slotPaymentMethodSelected()));
