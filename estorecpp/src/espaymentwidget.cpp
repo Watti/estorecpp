@@ -143,6 +143,16 @@ void ESPayment::slotMultiplePayment()
 	multiplePayment->setAttribute(Qt::WA_DeleteOnClose);
 	multiplePayment->setCustomerId(m_customerId);
 
+	multiplePayment->getUI().nameText->setText(m_name);
+	multiplePayment->getUI().phoneText->setText(m_phone);
+	multiplePayment->getUI().addressText->setText(m_address);
+	multiplePayment->getUI().commentsText->setText(m_comments);
+
+	multiplePayment->getUI().netAmountLbl->setText(m_netAmount);
+	multiplePayment->getUI().totalBillLbl->setText(m_netAmount);
+	multiplePayment->getUI().noOfItemsLbl->setText(m_noOfItems);
+	multiplePayment->getUI().balanceLbl->setText("0.00");
+
 	multiplePayment->show();
 	close();
 }
