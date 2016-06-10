@@ -23,6 +23,7 @@ public slots:
 
 private:
 	Ui::ManageUsers ui;
+	QString m_selectedUserId;
 
 };
 

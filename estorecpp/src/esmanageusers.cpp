@@ -55,18 +55,66 @@ void ESManageUsers::slotClear()
 
 void ESManageUsers::slotUpdate()
 {
+	QSqlQuery userQuery;
+	userQuery.prepare("UPDATE user SET username = ?, usertype_id = ?, display_name = ?, active = ? WHERE user_id = ?");
+	userQuery.addBindValue(ui.usernameText->text());
+	userQuery.addBindValue(ui.roleCombo->currentData().toInt());
+	userQuery.addBindValue(ui.displayNameText->text());
+	userQuery.addBindValue(ui.checkBox->isChecked() ? 1 : 0);
+	userQuery.addBindValue(m_selectedUserId);
 
+	if (userQuery.exec())
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Information);
+		mbox.setText(QString("User data updated"));
+		mbox.exec();
+		slotRoleSearch();
+	}
+	else
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Critical);
+		mbox.setText(QString("Failed to update user"));
+		mbox.exec();
+	}
+
+	if (ui.updatePW->isChecked())
+	{
+		QSqlQuery userQuery;
+		userQuery.prepare("UPDATE user SET password = MD5(?) WHERE user_id = ?");
+		userQuery.addBindValue(ui.passwordText->text());
+		userQuery.addBindValue(m_selectedUserId);
+
+		if (userQuery.exec())
+		{
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Information);
+			mbox.setText(QString("Password updated"));
+			mbox.exec();
+			slotRoleSearch();
+		}
+		else
+		{
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Critical);
+			mbox.setText(QString("Failed to update password"));
+			mbox.exec();
+		}
+	}
+	
 }
 
 void ESManageUsers::slotAdd()
 {
 	QSqlQuery userQuery;
 	userQuery.prepare("INSERT INTO user (username, password, usertype_id, display_name, active) \
-		VALUES(?, MD5(?), ?, ?, 1)");
+		VALUES(?, MD5(?), ?, ?, ?)");
 	userQuery.addBindValue(ui.usernameText->text());
 	userQuery.addBindValue(ui.passwordText->text());
 	userQuery.addBindValue(ui.roleCombo->currentData().toInt());
 	userQuery.addBindValue(ui.displayNameText->text());
+	userQuery.addBindValue(ui.checkBox->isChecked() ? 1 : 0);
 
 	if (userQuery.exec())
 	{
@@ -111,12 +159,15 @@ void ESManageUsers::slotUserSelected(QListWidgetItem* item)
 	if (!item) return;
 
 	QString q = "SELECT * FROM user WHERE user_id = " + (item->data(Qt::UserRole)).toString();
+	m_selectedUserId = (item->data(Qt::UserRole)).toString();
+
 	QSqlQuery userQuery(q);
 	if (userQuery.first())
 	{
-		ui.nameText->setText(userQuery.value(5).toString());
-		ui.usernameText->setText(userQuery.value(1).toString());
+		ui.nameText->setText(userQuery.value("display_name").toString());
+		ui.usernameText->setText(userQuery.value("username").toString());
 		//ui.passwordText->setText(userQuery.value(2).toString());
+		ui.displayNameText->setText(userQuery.value("display_name").toString());
 
 		QString q2 = "SELECT * FROM usertype WHERE usertype_id = " + userQuery.value(3).toString();
 		QSqlQuery userRoleQuery(q2);
