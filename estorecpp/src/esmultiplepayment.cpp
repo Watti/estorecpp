@@ -1,5 +1,6 @@
 #include "esmultiplepayment.h"
 #include "QMessageBox"
+#include "QShortcut"
 
 ESMultiplePayment::ESMultiplePayment(QWidget *parent /*= 0*/) : QWidget(parent)
 {
@@ -68,6 +69,7 @@ ESMultiplePayment::ESMultiplePayment(QWidget *parent /*= 0*/) : QWidget(parent)
 	QObject::connect(ui.cashText, SIGNAL(textChanged(QString)), this, SLOT(slotCalculateBalance()));
 	QObject::connect(ui.addBtn, SIGNAL(clicked()), this, SLOT(slotAdd()));
 
+	new QShortcut(QKeySequence(Qt::Key_Escape), this, SLOT(close()));
 	setMinimumWidth(900);
 	//resize(900, 1);
 	adjustSize();

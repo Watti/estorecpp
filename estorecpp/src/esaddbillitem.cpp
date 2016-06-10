@@ -33,14 +33,14 @@ ESAddBillItem::ESAddBillItem(ESAddBill* cart, QWidget *parent)
 	slotHideImages();
 
 	new QShortcut(QKeySequence(Qt::Key_Escape), this, SLOT(close()));
-	ui.itemText->setFocus();
 	ui.itemText->setFocusPolicy(Qt::StrongFocus);
+	setFocus();
 
 	QObject::connect(ui.itemText, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
 	QObject::connect(ui.hideImages, SIGNAL(stateChanged(int)), this, SLOT(slotHideImages()));
 
 #ifdef HW_TOUCH_SCREEN
-	QObject::connect(ui.tableWidget, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(slotItemDoubleClicked(int, int)));
+	QObject::connect(ui.tableWidget, SIGNAL(cellClicked(int, int)), this, SLOT(slotItemDoubleClicked(int, int)));
 #endif
 
 }
@@ -252,6 +252,11 @@ void ESAddBillItem::slotItemDoubleClicked(int row, int col)
 		return;
 
 	addToBill(idCell->text());
+}
+
+void ESAddBillItem::focus()
+{
+	ui.itemText->setFocus();
 }
 
 

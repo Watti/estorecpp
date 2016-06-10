@@ -7,6 +7,7 @@
 #include "KDReportsTextElement.h"
 #include "KDReportsTableElement.h"
 #include "KDReportsCell.h"
+#include "QShortcut"
 
 ESSinglePayment::ESSinglePayment(ESAddBill* addBill, QWidget *parent /*= 0*/) : QWidget(parent), m_addBill(addBill)
 {
@@ -59,6 +60,7 @@ ESSinglePayment::ESSinglePayment(ESAddBill* addBill, QWidget *parent /*= 0*/) : 
 	QObject::connect(ui.txt2, SIGNAL(textChanged(QString)), this, SLOT(slotInterestChanged()));
 	QObject::connect(ui.okBtn, SIGNAL(clicked()), this, SLOT(slotFinalizeBill()));
 
+	new QShortcut(QKeySequence(Qt::Key_Escape), this, SLOT(close()));
 	//resize(400, 1);
 	adjustSize();
 }
@@ -644,3 +646,17 @@ void ESSinglePayment::printRow(KDReports::TableElement& tableElement, int row, i
 	cell.addElement(te);
 }
 
+void ESSinglePayment::keyPressEvent(QKeyEvent * event)
+{
+	switch (event->key())
+	{
+	case Qt::Key_Return:
+	case Qt::Key_Enter:
+	{
+		slotFinalizeBill();
+		break;
+	}
+	default:
+		QWidget::keyPressEvent(event);
+	}
+}

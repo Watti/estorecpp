@@ -28,6 +28,9 @@ public:
 	void slotInterestChanged();
 	void slotPrint(QPrinter* printer);
 
+protected:
+	void keyPressEvent(QKeyEvent * event);
+
 private:
 	void handleChequePayment(int billId, double netAmount);
 	void handleCreditPayment(int billId, double netAmount);

@@ -14,6 +14,7 @@ public:
 	~ESAddBillItem();
 
 	Ui::AddBillItemWidget& getUI() { return ui; };
+	void focus();
 
 	public slots:
 	void slotSearch();

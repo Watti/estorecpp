@@ -163,6 +163,8 @@ void ESAddBill::slotShowAddItem()
 	addBillItem->setAttribute(Qt::WA_DeleteOnClose);
 	addBillItem->setWindowFlags(Qt::CustomizeWindowHint | Qt::Window);
 	addBillItem->show();
+	addBillItem->setFocus();
+	addBillItem->focus();
 }
 
 void ESAddBill::slotStartNewBill()
