@@ -118,7 +118,9 @@ ESAddBill::ESAddBill(QWidget *parent)
 				ui.tableWidget->setItem(row, 5, new QTableWidgetItem(amount));
 
 				QWidget* base = new QWidget(ui.tableWidget);
-				QPushButton* removeBtn = new QPushButton("Remove", base);
+				QPushButton* removeBtn = new QPushButton(base);
+				removeBtn->setIcon(QIcon("icons/delete.png"));
+				removeBtn->setIconSize(QSize(24, 24));
 				removeBtn->setMaximumWidth(100);
 
 				QObject::connect(removeBtn, SIGNAL(clicked()), m_removeButtonSignalMapper, SLOT(map()));

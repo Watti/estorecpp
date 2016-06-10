@@ -181,10 +181,15 @@ void ESManageItems::displayItems(QSqlQuery& queryItems)
 // 		}
 
 		QWidget* base = new QWidget(ui.tableWidget);
-		QPushButton* updateBtn = new QPushButton("Update", base);
+		QPushButton* updateBtn = new QPushButton(base);
+		updateBtn->setIcon(QIcon("icons/update.png"));
+		updateBtn->setIconSize(QSize(24, 24));
 		updateBtn->setMaximumWidth(100);
-		QPushButton* removeBtn = new QPushButton("Remove", base);
+
+		QPushButton* removeBtn = new QPushButton(base);
 		removeBtn->setMaximumWidth(100);
+		removeBtn->setIcon(QIcon("icons/delete.png"));
+		removeBtn->setIconSize(QSize(24, 24));
 
 		m_updateButtonSignalMapper->setMapping(updateBtn, itemId);
 		QObject::connect(updateBtn, SIGNAL(clicked()), m_updateButtonSignalMapper, SLOT(map()));

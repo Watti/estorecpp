@@ -60,7 +60,29 @@ void ESManageUsers::slotUpdate()
 
 void ESManageUsers::slotAdd()
 {
+	QSqlQuery userQuery;
+	userQuery.prepare("INSERT INTO user (username, password, usertype_id, display_name, active) \
+		VALUES(?, MD5(?), ?, ?, 1)");
+	userQuery.addBindValue(ui.usernameText->text());
+	userQuery.addBindValue(ui.passwordText->text());
+	userQuery.addBindValue(ui.roleCombo->currentData().toInt());
+	userQuery.addBindValue(ui.displayNameText->text());
 
+	if (userQuery.exec())
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Information);
+		mbox.setText(QString("New user registered"));
+		mbox.exec();
+		slotRoleSearch();
+	}
+	else
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Critical);
+		mbox.setText(QString("Failed to add new user"));
+		mbox.exec();
+	}
 }
 
 void ESManageUsers::slotRoleSearch()
