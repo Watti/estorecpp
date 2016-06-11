@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="pre">
+    <file>icons/usb.png</file>
+  </qresource>
+</RCC>

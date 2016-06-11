@@ -3,6 +3,7 @@
 #include <QMessageBox>
 #include "QDateTime"
 #include "utility\session.h"
+#include <QSqlError>
 
 ESOrderCheckIn::ESOrderCheckIn(QString orderId, QWidget *parent /*= 0*/)
 :QWidget(parent), m_orderId(orderId)
@@ -15,7 +16,7 @@ ESOrderCheckIn::ESOrderCheckIn(QString orderId, QWidget *parent /*= 0*/)
 	headerLabels.append("Item Code");
 	headerLabels.append("Item Name");
 	headerLabels.append("Category");
-	headerLabels.append("Purchasing Price");
+	headerLabels.append("Order Price");
 	headerLabels.append("Qty");
 	headerLabels.append("Cur. Qty");
 	headerLabels.append("Unit");
@@ -66,7 +67,7 @@ void ESOrderCheckIn::slotAddToStock()
 	QSqlQuery stockPOQuery("SELECT * FROM stock_purchase_order_item WHERE purchaseorder_id = " + m_orderId + " AND item_id = " + itemId);
 	if (stockPOQuery.next())
 	{
-		currentQtyInDB = stockPOQuery.value("current_qty").toDouble();
+		currentQtyInDB = stockPOQuery.value("checkin_qty").toDouble();
 		remainingQtyInDB = stockPOQuery.value("remaining_qty").toDouble();
 		if (currentQty > currentQtyInDB)
 		{
@@ -78,7 +79,7 @@ void ESOrderCheckIn::slotAddToStock()
 		}
 	}
 	
-	QString sellingPrice = ui.sellingPrice->text();
+	QString stockSellingPrice = "0.0";
 	QString discount = ui.discount->text();
 	QString stockId;
 	
@@ -90,7 +91,7 @@ void ESOrderCheckIn::slotAddToStock()
 	if (itemStock.next())
 	{
 		stockId = itemStock.value("stock_id").toString();
-		sellingPrice = itemStock.value("selling_price").toString();
+		stockSellingPrice = itemStock.value("selling_price").toString();
 		currentQty += itemStock.value("qty").toDouble();
 
 		QString qtyStr;
@@ -102,7 +103,7 @@ void ESOrderCheckIn::slotAddToStock()
 		QString qtyStr;
 		qtyStr.setNum(currentQty);
 		QString q("INSERT INTO stock (item_id, qty, selling_price, discount, user_id) VALUES (" + 
-			itemId + "," + qtyStr + "," + sellingPrice + "," + discount + "," + userIdStr + ")");
+			itemId + "," + qtyStr + "," + stockSellingPrice + "," + discount + "," + userIdStr + ")");
 		QSqlQuery query;
 		if (query.exec(q))
 		{
@@ -110,6 +111,7 @@ void ESOrderCheckIn::slotAddToStock()
 		}
 	}
 
+	QString itemSellingPrice = ui.sellingPrice->text();
 	double qty = 0;
 	QSqlQuery queryOrderItems("SELECT * FROM purchase_order_item WHERE deleted = 0 AND purchaseorder_id = " + m_orderId + " AND item_id = " + itemId);
 	if (queryOrderItems.next())
@@ -120,38 +122,48 @@ void ESOrderCheckIn::slotAddToStock()
 	if (currentQtyInDB != -1)
 	{
 		double curQty = ui.quantity->text().toDouble();
-		QString qtyStr;
-		qtyStr.setNum(currentQtyInDB - curQty);
-		QString remQtyStr;
-		remQtyStr.setNum(remainingQtyInDB + curQty);
-		QString q("UPDATE stock_purchase_order_item SET current_qty = " + qtyStr + ", remaining_qty = " + remQtyStr + " WHERE purchaseorder_id = " +
-			m_orderId + " AND item_id = " + itemId);
 
 		QSqlQuery query;
-		if (!query.exec(q))
+		query.prepare("UPDATE stock_purchase_order_item SET checkin_qty = ?, remaining_qty = ?, \
+				selling_price = ? WHERE purchaseorder_id = ? AND item_id = ?");
+		query.addBindValue(currentQtyInDB - curQty);
+		query.addBindValue(remainingQtyInDB + curQty);
+		query.addBindValue(itemSellingPrice);
+		query.addBindValue(m_orderId);
+		query.addBindValue(itemId);
+
+		if (!query.exec())
 		{
+			QString errorMsg = "Something goes wrong: ";
+			errorMsg.append(query.lastError().databaseText());
 			QMessageBox mbox;
 			mbox.setIcon(QMessageBox::Critical);
-			mbox.setText(QString("Something goes wrong: order check-in failed"));
+			mbox.setText(errorMsg);
 			mbox.exec();
 		}
 	}
 	else
 	{
 		double availableQty = qty - ui.quantity->text().toDouble();
-		QString qtyStr;
-		qtyStr.setNum(qty);
-		QString avlQtyStr;
-		avlQtyStr.setNum(availableQty);
-		QString q("INSERT INTO stock_purchase_order_item (purchaseorder_id, item_id, stock_id, qty, current_qty, remaining_qty) VALUES (" +
-			m_orderId + "," + itemId + "," + stockId + "," + qtyStr + "," + avlQtyStr + ", " + ui.quantity->text() + ")");
-
+		
 		QSqlQuery query;
-		if (!query.exec(q))
+		query.prepare("INSERT INTO stock_purchase_order_item (purchaseorder_id, item_id, stock_id, qty, checkin_qty, \
+				remaining_qty, selling_price) VALUES (?, ?, ?, ?, ?, ?, ?)");
+		query.addBindValue(m_orderId);
+		query.addBindValue(itemId);
+		query.addBindValue(stockId);
+		query.addBindValue(qty);
+		query.addBindValue(availableQty);
+		query.addBindValue(ui.quantity->text());
+		query.addBindValue(itemSellingPrice);
+
+		if (!query.exec())
 		{
+			QString errorMsg = "Something goes wrong: ";
+			errorMsg.append(query.lastError().databaseText());
 			QMessageBox mbox;
 			mbox.setIcon(QMessageBox::Critical);
-			mbox.setText(QString("Something goes wrong: order check-in failed"));
+			mbox.setText(errorMsg);
 			mbox.exec();
 		}
 	}
@@ -182,7 +194,7 @@ void ESOrderCheckIn::slotFinalizeOrder()
 	{
 		while (stockPoItemQry.next())
 		{
-			if (stockPoItemQry.value("current_qty").toDouble() > 0)
+			if (stockPoItemQry.value("checkin_qty").toDouble() > 0)
 			{
 				canCheckedIn = false;
 				break;
@@ -257,7 +269,7 @@ void ESOrderCheckIn::slotSearch()
 			QSqlQuery stockPOQuery("SELECT * FROM stock_purchase_order_item WHERE purchaseorder_id = " + m_orderId + " AND item_id = " + itemId);
 			if (stockPOQuery.next())
 			{
-				QString currentQty = stockPOQuery.value("current_qty").toString();
+				QString currentQty = stockPOQuery.value("checkin_qty").toString();
 				QTableWidgetItem* curQtyItem = new QTableWidgetItem(currentQty);
 				curQtyItem->setTextAlignment(Qt::AlignRight);
 				ui.itemTableWidget->setItem(row, 6, curQtyItem);
@@ -331,11 +343,20 @@ void ESOrderCheckIn::slotItemSelected(int row, int col)
 	if (!idCell)
 		return;
 
-	ui.sellingPrice->setText(idCell->text());
+	ui.purchasingPrice->setText(idCell->text());
 
 	idCell = ui.itemTableWidget->item(row, 6);
 	if (!idCell)
 		return;
 
 	ui.quantity->setText(idCell->text());
+
+	QSqlQuery queryStockPOItem("SELECT * FROM stock_purchase_order_item WHERE item_id = " +
+		itemId + " AND purchaseorder_id = " + m_orderId);
+
+	if (queryStockPOItem.next())
+	{
+		double price = queryStockPOItem.value("selling_price").toDouble();
+		ui.sellingPrice->setText(QString::number(price, 'f', 2));
+	}
 }

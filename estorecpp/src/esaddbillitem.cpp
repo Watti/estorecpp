@@ -202,7 +202,9 @@ void ESAddBillItem::addToBill(QString stockId)
 			m_cart->getUI().tableWidget->setItem(row, 5, total);
 
 			QWidget* base = new QWidget(m_cart->getUI().tableWidget);
-			QPushButton* removeBtn = new QPushButton("Remove", base);
+			QPushButton* removeBtn = new QPushButton(base);
+			removeBtn->setIcon(QIcon("icons/delete.png"));
+			removeBtn->setIconSize(QSize(24, 24));
 			removeBtn->setMaximumWidth(100);
 			
 			QObject::connect(removeBtn, SIGNAL(clicked()), m_cart->getRemoveButtonSignalMapper(), SLOT(map()));

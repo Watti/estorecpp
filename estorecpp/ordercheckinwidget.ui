@@ -1368,7 +1368,7 @@
         <item>
          <widget class="QLabel" name="label_10">
           <property name="text">
-           <string>Quantity</string>
+           <string>Check-in Quantity</string>
           </property>
          </widget>
         </item>
@@ -1428,6 +1428,20 @@
          </widget>
         </item>
         <item>
+         <widget class="QPushButton" name="generateGRN">
+          <property name="text">
+           <string>Generate GRN</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="finalizeOrder">
+          <property name="text">
+           <string>Finalize Order</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <spacer name="verticalSpacer">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
@@ -1439,13 +1453,6 @@
            </size>
           </property>
          </spacer>
-        </item>
-        <item>
-         <widget class="QPushButton" name="orderStats">
-          <property name="text">
-           <string>Order Statistics</string>
-          </property>
-         </widget>
         </item>
         <item>
          <widget class="QPushButton" name="viewOrder">
@@ -1469,13 +1476,6 @@
           </property>
           <property name="text">
            <string>Hold Order</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="finalizeOrder">
-          <property name="text">
-           <string>Finalize Order</string>
           </property>
          </widget>
         </item>

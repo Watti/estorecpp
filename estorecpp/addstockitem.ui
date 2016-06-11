@@ -238,7 +238,15 @@
        </layout>
       </item>
       <item row="1" column="1">
-       <widget class="QLineEdit" name="itemPrice"/>
+       <widget class="QLineEdit" name="itemPrice">
+        <property name="font">
+         <font>
+          <pointsize>11</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+       </widget>
       </item>
       <item row="2" column="0">
        <widget class="QLabel" name="label">

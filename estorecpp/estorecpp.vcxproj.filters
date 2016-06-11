@@ -398,13 +398,22 @@
     <ClCompile Include="GeneratedFiles\Release\moc_esmultiplepayment.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
+    <ClCompile Include="src\entities\tabletextwidget.cpp">
+      <Filter>Source Files\entities</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_tabletextwidget.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_tabletextwidget.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\qrc_test.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="esmainwindow.ui">
       <Filter>Form Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="esmainwindow.qrc">
-      <Filter>Resource Files</Filter>
     </CustomBuild>
     <CustomBuild Include="loginwidget.ui">
       <Filter>Form Files</Filter>
@@ -616,6 +625,12 @@
     <CustomBuild Include="includes\esmultiplepayment.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
+    <CustomBuild Include="includes\entities\tabletextwidget.h">
+      <Filter>Header Files\enities</Filter>
+    </CustomBuild>
+    <CustomBuild Include="test.qrc">
+      <Filter>Resource Files</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="includes\utility\esdbconnection.h">
@@ -757,6 +772,9 @@
     </Image>
     <Image Include="icons\all_bills.png">
       <Filter>Icons</Filter>
+    </Image>
+    <Image Include="icons\usb.png">
+      <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
 </Project>

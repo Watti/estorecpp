@@ -11,6 +11,16 @@
 #include "QMessageBox"
 #include "utility/utility.h"
 #include "espaymentwidget.h"
+#include "entities/tabletextwidget.h"
+
+namespace
+{
+	QString formatText(QString text)
+	{
+		double val = text.toDouble();
+		return QString::number(val, 'f', 2);
+	}	
+}
 
 ESAddBill::ESAddBill(QWidget *parent)
 :QWidget(parent)
@@ -46,7 +56,7 @@ ESAddBill::ESAddBill(QWidget *parent)
 	new QShortcut(QKeySequence(Qt::Key_F6), this, SLOT(slotSuspend()));
 	new QShortcut(QKeySequence(Qt::Key_F7), this, SLOT(slotCancel()));
 	QObject::connect(timer, SIGNAL(timeout()), this, SLOT(showTime()));
-	QObject::connect(ui.tableWidget, SIGNAL(cellActivated(int, int)), this, SLOT(slotCellActivated(int, int)));
+	QObject::connect(ui.tableWidget, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(slotCellDoubleClicked(int, int)));
 	QObject::connect(ui.commitButton, SIGNAL(clicked()), this, SLOT(slotCommit()));
 	QObject::connect(ui.suspendButton, SIGNAL(clicked()), this, SLOT(slotSuspend()));
 	QObject::connect(ui.cancelButton, SIGNAL(clicked()), this, SLOT(slotCancel()));
@@ -60,15 +70,6 @@ ESAddBill::ESAddBill(QWidget *parent)
 		mbox.setIcon(QMessageBox::Critical);
 		mbox.setText(QString("Cannot connect to the database : ESAddBill::ESAddBill "));
 		mbox.exec();
-	}
-	else
-	{
-		// 		QSqlQuery queryPayment("SELECT * FROM payment");
-		// 		QStringList catogory;
-		// 		while (queryPayment.next())
-		// 		{
-		// 			ui.paymentMethodComboBox->addItem(queryPayment.value("type").toString(), queryPayment.value("type_id").toInt());
-		// 		}
 	}
 
 	ui.billedByLabel->setText(ES::Session::getInstance()->getUser()->getName());
@@ -112,7 +113,9 @@ ESAddBill::ESAddBill(QWidget *parent)
 				ui.tableWidget->insertRow(row);
 				ui.tableWidget->setItem(row, 0, new QTableWidgetItem(itemCode));
 				ui.tableWidget->setItem(row, 1, new QTableWidgetItem(itemName));
-				ui.tableWidget->setItem(row, 2, new QTableWidgetItem(price));
+				QTableWidgetItem* priceItem = new QTableWidgetItem(price);
+				priceItem->setTextAlignment(Qt::AlignRight);
+				ui.tableWidget->setItem(row, 2, priceItem);
 				ui.tableWidget->setItem(row, 3, new QTableWidgetItem(qty));
 				ui.tableWidget->setItem(row, 4, new QTableWidgetItem(discount));
 				ui.tableWidget->setItem(row, 5, new QTableWidgetItem(amount));
@@ -299,12 +302,6 @@ void ESAddBill::slotCommit()
 		payment->setNoOfItems(ui.noOfItemLabel->text());
 		//payment->getUI().balanceLbl->setText("0.00");
 
-		// 		QString billId = ES::Session::getInstance()->getBillId();
-		// 		QString netAmount = ui.netAmountLabel->text();
-		// 		QString paymentType = "1"; // ui.paymentMethodComboBox->currentData().toString();
-		// 		QString queryUpdateStr("UPDATE bill set amount = " + netAmount + ", payment_method = " + paymentType + " , status = 1 WHERE bill_id = " + billId);
-		// 		QSqlQuery query(queryUpdateStr);
-		// 		resetBill();
 		QSize sz = payment->size();
 		QPoint screen = QApplication::desktop()->screen()->rect().center();
 		payment->move(screen.x() - sz.width() / 2, screen.y() - sz.height() / 2);
@@ -341,15 +338,6 @@ void ESAddBill::slotCancel()
 			resetBill();
 		}
 	}
-
-// 	if (ES::Session::getInstance()->isBillStarted())
-// 	{
-// 		QString billId = ES::Session::getInstance()->getBillId();
-// 		QString netAmount = ui.netAmountLabel->text();
-// 		QString queryUpdateStr("UPDATE bill set amount = " + netAmount + ", status = 3 WHERE bill_id = " + billId);
-// 		QSqlQuery query(queryUpdateStr);
-// 		resetBill();
-// 	}
 }
 
 void ESAddBill::resetBill()
@@ -417,7 +405,9 @@ void ESAddBill::slotRemoveItem(QString saleId)
 					}
 				}
 				QWidget* base = new QWidget(ui.tableWidget);
-				QPushButton* removeBtn = new QPushButton("Remove", base);
+				QPushButton* removeBtn = new QPushButton(base);
+				removeBtn->setIcon(QIcon("icons/delete.png"));
+				removeBtn->setIconSize(QSize(24, 24));
 				removeBtn->setMaximumWidth(100);
 
 				QObject::connect(removeBtn, SIGNAL(clicked()), m_removeButtonSignalMapper, SLOT(map()));
@@ -449,13 +439,7 @@ void ESAddBill::proceedPendingBill(QString billId)
 		ES::Session::getInstance()->setBillId(billId);
 		ui.billIdLabel->setText(billId);
 		ui.billedByLabel->setText(ES::Session::getInstance()->getUser()->getName());
-		//ui.branchLabel->setText("NUGEGODA");
-		//		QString paymentMethodQueryStr("SELECT type, type_id FROM payment WHERE type_id = (SELECT payment_method FROM bill WHERE bill_id = " + billId + ")");
-		//		QSqlQuery paymentQuery(paymentMethodQueryStr);
-		// 		while (paymentQuery.next())
-		// 		{
-		//ui.paymentMethodComboBox->setCurrentText(paymentQuery.value("type").toString());
-		//		}
+
 		int row = ui.tableWidget->rowCount();
 
 		QString q = "SELECT * FROM sale where bill_id= " + billId + " AND deleted = 0";
@@ -480,7 +464,9 @@ void ESAddBill::proceedPendingBill(QString billId)
 			ui.tableWidget->insertRow(row);
 			ui.tableWidget->setItem(row, 0, new QTableWidgetItem(itemCode));
 			ui.tableWidget->setItem(row, 1, new QTableWidgetItem(itemName));
-			ui.tableWidget->setItem(row, 2, new QTableWidgetItem(price));
+			QTableWidgetItem* priceItem = new QTableWidgetItem(price);
+			priceItem->setTextAlignment(Qt::AlignRight);
+			ui.tableWidget->setItem(row, 2, priceItem);
 			ui.tableWidget->setItem(row, 3, new QTableWidgetItem(qty));
 			ui.tableWidget->setItem(row, 4, new QTableWidgetItem(discount));
 			ui.tableWidget->setItem(row, 5, new QTableWidgetItem(amount));
@@ -504,7 +490,12 @@ void ESAddBill::proceedPendingBill(QString billId)
 	}
 }
 
-void ESAddBill::slotCellActivated(int row, int col)
+void ESAddBill::slotCellDoubleClicked(int row, int col)
 {
-	int x = 0;
+	if (col == 2)
+	{
+		TableTextWidget* textWidget = new TableTextWidget(ui.tableWidget, row, col, ui.tableWidget);
+		textWidget->setTextFormatterFunc(formatText);
+		ui.tableWidget->setCellWidget(row, col, textWidget);
+	}
 }
