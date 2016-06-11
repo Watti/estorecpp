@@ -178,7 +178,9 @@ void ESManageOrderItems::displayItems(QSqlQuery& queryOrder)
 
 		if (!checkedIn)
 		{
-			checkInBtn = new QPushButton("Check In", base);
+			checkInBtn = new QPushButton(base);
+			checkInBtn->setIcon(QIcon("icons/checkin.png"));
+			checkInBtn->setIconSize(QSize(24, 24));
 			checkInBtn->setMaximumWidth(100);
 		}
 		QPushButton* removeBtn = new QPushButton(base);
