@@ -34,7 +34,6 @@ private:
 	int m_totalRecords;
 	int m_nextCounter;
 	int m_maxNextCount;
-	bool m_oddRecords;
 };
 
 #endif

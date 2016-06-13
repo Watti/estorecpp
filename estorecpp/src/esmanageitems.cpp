@@ -7,7 +7,7 @@
 #include "utility/utility.h"
 
 ESManageItems::ESManageItems(QWidget *parent /*= 0*/)  
-: QWidget(parent), m_startingLimit(0), m_pageOffset(1), m_nextCounter(0), m_maxNextCount(0)
+: QWidget(parent), m_startingLimit(0), m_pageOffset(3), m_nextCounter(0), m_maxNextCount(0)
 {
 	ui.setupUi(this);
 	m_updateButtonSignalMapper = new QSignalMapper(this);
@@ -128,7 +128,15 @@ void ESManageItems::slotRemove(QString itemId)
 			{
 				ui.tableWidget->removeRow(0);
 			}
-			QSqlQuery displayQuery("SELECT * from Item WHERE deleted = 0");
+			QString displayQueryStr("SELECT * FROM Item WHERE deleted = 0");
+			displayQueryStr.append(" LIMIT ").append(QString::number(m_startingLimit));
+			displayQueryStr.append(" , ").append(QString::number(m_pageOffset));
+			QSqlQuery displayQuery(displayQueryStr);
+			QSqlQuery countQuery("SELECT COUNT(*) as c FROM Item WHERE deleted = 0");
+			if (countQuery.next())
+			{
+				m_totalRecords = countQuery.value("c").toInt();
+			}
 			displayItems(displayQuery);
 		}
 	}
@@ -136,6 +144,16 @@ void ESManageItems::slotRemove(QString itemId)
 
 void ESManageItems::displayItems(QSqlQuery& queryItems)
 {
+	m_maxNextCount = m_totalRecords / m_pageOffset;
+
+	if (m_maxNextCount > m_nextCounter)
+	{
+		ui.nextBtn->setEnabled(true);
+	}
+	if (m_maxNextCount == m_nextCounter)
+	{
+		ui.nextBtn->setDisabled(true);
+	}
 	int row = 0;
 	while (queryItems.next())
 	{
@@ -227,7 +245,7 @@ void ESManageItems::slotSearch()
 	if (categoryId != -1)
 	{
 		searchQuery.append(" WHERE deleted =0 AND itemcategory_id = ");
-		countQueryStr.append("WHERE deleted = 0 AND itemcategory_id = ");
+		countQueryStr.append(" WHERE deleted = 0 AND itemcategory_id = ");
 		QString catId;
 		catId.setNum(categoryId);
 		searchQuery.append(catId);
@@ -262,18 +280,6 @@ void ESManageItems::slotSearch()
 	if (queryCount.next())
 	{
 		m_totalRecords = queryCount.value("c").toInt();
-		m_maxNextCount = m_totalRecords / m_pageOffset;
-		int remainder = m_totalRecords % m_pageOffset;
-		m_oddRecords = remainder == 1 ? true : false;
-
-		if (m_maxNextCount > m_nextCounter)
-		{
-			ui.nextBtn->setEnabled(true);
-		}
-		if (!m_oddRecords && ((m_maxNextCount - 1) == m_nextCounter))
-		{
-			ui.nextBtn->setDisabled(true);
-		}
 	}
 	searchQuery.append(" LIMIT ").append(QString::number(m_startingLimit));
 	searchQuery.append(" , ").append(QString::number(m_pageOffset));
@@ -339,10 +345,6 @@ void ESManageItems::slotNext()
 		m_startingLimit += m_pageOffset;
 	}
 	if (m_maxNextCount == m_nextCounter)
-	{
-		ui.nextBtn->setDisabled(true);
-	}
-	if (!m_oddRecords && ((m_maxNextCount-1) == m_nextCounter))
 	{
 		ui.nextBtn->setDisabled(true);
 	}
