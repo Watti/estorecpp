@@ -144,16 +144,14 @@ void ESManageItems::slotRemove(QString itemId)
 
 void ESManageItems::displayItems(QSqlQuery& queryItems)
 {
+	//pagination start
 	m_maxNextCount = m_totalRecords / m_pageOffset;
 
 	if (m_maxNextCount > m_nextCounter)
 	{
 		ui.nextBtn->setEnabled(true);
 	}
-	if (m_maxNextCount == m_nextCounter)
-	{
-		ui.nextBtn->setDisabled(true);
-	}
+	//pagination end
 	int row = 0;
 	while (queryItems.next())
 	{
@@ -281,8 +279,10 @@ void ESManageItems::slotSearch()
 	{
 		m_totalRecords = queryCount.value("c").toInt();
 	}
+	//pagination start
 	searchQuery.append(" LIMIT ").append(QString::number(m_startingLimit));
 	searchQuery.append(" , ").append(QString::number(m_pageOffset));
+	//pagination end
 	ui.tableWidget->setSortingEnabled(false);
 	QSqlQuery queryItems(searchQuery);
 	displayItems(queryItems);

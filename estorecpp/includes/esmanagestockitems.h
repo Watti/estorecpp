@@ -19,6 +19,8 @@ public:
 	void slotUpdate(QString itemId);
 	void slotRemove(QString itemId);
 	void slotSearch();
+	void slotPrev();
+	void slotNext();
 
 private:
 	//void addItemToStock(QString itemId);
@@ -27,7 +29,11 @@ private:
 	QSignalMapper* m_updateButtonSignalMapper;
 	QSignalMapper* m_removeButtonSignalMapper;
 	QSignalMapper* m_addToStockButtonSignalMapper;
-
+	int m_pageOffset;
+	int m_startingLimit;
+	int m_totalRecords;
+	int m_nextCounter;
+	int m_maxNextCount;
 };
 
 #endif

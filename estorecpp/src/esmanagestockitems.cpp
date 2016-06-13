@@ -9,7 +9,7 @@
 
 
 ESManageStockItems::ESManageStockItems(QWidget *parent /*= 0*/)
-: QWidget(parent)
+: QWidget(parent), m_startingLimit(0), m_pageOffset(15), m_nextCounter(0), m_maxNextCount(0)
 {
 	ui.setupUi(this);
 	m_updateButtonSignalMapper = new QSignalMapper(this);
@@ -19,6 +19,8 @@ ESManageStockItems::ESManageStockItems(QWidget *parent /*= 0*/)
 	QObject::connect(m_updateButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotUpdate(QString)));
 	QObject::connect(m_removeButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotRemove(QString)));
 	QObject::connect(ui.addItemToStockBtn, SIGNAL(clicked()), this, SLOT(slotAddToStock()));
+	QObject::connect(ui.nextBtn, SIGNAL(clicked()), this, SLOT(slotNext()));
+	QObject::connect(ui.prevBtn, SIGNAL(clicked()), this, SLOT(slotPrev()));
 
 	QStringList headerLabels;
 	headerLabels.append("Stock ID");
@@ -84,28 +86,57 @@ void ESManageStockItems::slotSearch()
 	QString text = ui.searchTextBox->text();
 	QString selectedCategory = ui.categoryComboBox->currentText();
 
-	QString q;
+	QString q, qRecordCountStr;
 	q.append("SELECT * FROM stock JOIN item ON stock.item_id = item.item_id ");
 	q.append("JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id ");
 	q.append("WHERE item.deleted = 0 AND stock.deleted = 0");
 
+
+	qRecordCountStr.append("SELECT COUNT(*) as c FROM stock JOIN item ON stock.item_id = item.item_id ");
+	qRecordCountStr.append("JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id ");
+	qRecordCountStr.append("WHERE item.deleted = 0 AND stock.deleted = 0");
+
+
 	if (!text.isEmpty())
 	{
-		q.append("AND (item.item_code LIKE '%");
+		q.append(" AND (item.item_code LIKE '%");
 		q.append(text);
 		q.append("%' OR item.item_name LIKE '%");
 		q.append(text);
 		q.append("%' OR item.description LIKE '%");
 		q.append(text);
 		q.append("%') ");
+
+		qRecordCountStr.append(" AND (item.item_code LIKE '%");
+		qRecordCountStr.append(text);
+		qRecordCountStr.append("%' OR item.item_name LIKE '%");
+		qRecordCountStr.append(text);
+		qRecordCountStr.append("%' OR item.description LIKE '%");
+		qRecordCountStr.append(text);
+		qRecordCountStr.append("%') ");
+
 	}
 	if (!selectedCategory.isEmpty() && selectedCategory != DEFAULT_DB_COMBO_VALUE)
 	{
-		q.append("AND item_category.itemcategory_name = '");
+		q.append(" AND item_category.itemcategory_name = '");
 		q.append(selectedCategory);
 		q.append("' ");
+
+		qRecordCountStr.append(" AND item_category.itemcategory_name = '");
+		qRecordCountStr.append(selectedCategory);
+		qRecordCountStr.append("' ");
 	}
-	
+
+	QSqlQuery queryRecordCount(qRecordCountStr);
+	if (queryRecordCount.next())
+	{
+		m_totalRecords = queryRecordCount.value("c").toInt();
+	}
+	//pagination start
+	q.append(" LIMIT ").append(QString::number(m_startingLimit));
+	q.append(" , ").append(QString::number(m_pageOffset));
+	//pagination end
+
 	QSqlQuery query;
 	if (!query.exec(q))
 	{
@@ -116,6 +147,16 @@ void ESManageStockItems::slotSearch()
 	}
 	else
 	{
+
+		//pagination start
+		m_maxNextCount = m_totalRecords / m_pageOffset;
+
+		if (m_maxNextCount > m_nextCounter)
+		{
+			ui.nextBtn->setEnabled(true);
+		}
+		//pagination end
+
 		while (query.next())
 		{
 			int row = ui.tableWidget->rowCount();
@@ -262,5 +303,35 @@ void ESManageStockItems::slotAddToStock()
 	ESAddManualStockItems* addManualStockItems = new ESAddManualStockItems(this);
 	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(addManualStockItems);
 	addManualStockItems->show();
+}
+
+void ESManageStockItems::slotNext()
+{
+	if (m_nextCounter < m_maxNextCount)
+	{
+		m_nextCounter++;
+		ui.prevBtn->setEnabled(true);
+		m_startingLimit += m_pageOffset;
+	}
+	if (m_maxNextCount == m_nextCounter)
+	{
+		ui.nextBtn->setDisabled(true);
+	}
+	slotSearch();
+}
+
+void ESManageStockItems::slotPrev()
+{
+	if (m_nextCounter == 1)
+	{
+		ui.prevBtn->setDisabled(true);
+	}
+	if (m_nextCounter > 0)
+	{
+		m_nextCounter--;
+		m_startingLimit -= m_pageOffset;
+		ui.nextBtn->setEnabled(true);
+	}
+	slotSearch();
 }
 
