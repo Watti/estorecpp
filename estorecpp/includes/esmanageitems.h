@@ -19,6 +19,8 @@ public:
 	void slotSearch();
 	void slotFitImages();
 	void slotHideImages();
+	void slotPrev();
+	void slotNext();
 
 private:
 	void displayItems(QSqlQuery& queryItems);
@@ -27,7 +29,12 @@ private:
 	QSignalMapper* m_updateButtonSignalMapper;
 	QSignalMapper* m_removeButtonSignalMapper;
 	bool m_imagesHidden;
-	
+	int m_pageOffset;
+	int m_startingLimit;
+	int m_totalRecords;
+	int m_nextCounter;
+	int m_maxNextCount;
+	bool m_oddRecords;
 };
 
 #endif

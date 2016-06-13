@@ -6,8 +6,8 @@
 #include <QPushButton>
 #include "utility/utility.h"
 
-ESManageItems::ESManageItems(QWidget *parent /*= 0*/)
-: QWidget(parent)
+ESManageItems::ESManageItems(QWidget *parent /*= 0*/)  
+: QWidget(parent), m_startingLimit(0), m_pageOffset(1), m_nextCounter(0), m_maxNextCount(0)
 {
 	ui.setupUi(this);
 	m_updateButtonSignalMapper = new QSignalMapper(this);
@@ -20,6 +20,8 @@ ESManageItems::ESManageItems(QWidget *parent /*= 0*/)
 	QObject::connect(ui.categoryComboBox, SIGNAL(activated(QString)), this, SLOT(slotSearch()));
 	QObject::connect(ui.fitImages, SIGNAL(stateChanged(int)), this, SLOT(slotFitImages()));
 	QObject::connect(ui.hideImages, SIGNAL(stateChanged(int)), this, SLOT(slotHideImages()));
+	QObject::connect(ui.nextBtn, SIGNAL(clicked()), this, SLOT(slotNext()));
+	QObject::connect(ui.prevBtn, SIGNAL(clicked()), this, SLOT(slotPrev()));
 
 	QStringList headerLabels;
 	headerLabels.append("Item Code");
@@ -220,13 +222,16 @@ void ESManageItems::slotSearch()
 	}
 
 	QString searchQuery = "SELECT * FROM item ";
+	QString countQueryStr("SELECT COUNT(*) as c FROM item");
 	bool categorySelected = false;
 	if (categoryId != -1)
 	{
 		searchQuery.append(" WHERE deleted =0 AND itemcategory_id = ");
+		countQueryStr.append("WHERE deleted = 0 AND itemcategory_id = ");
 		QString catId;
 		catId.setNum(categoryId);
 		searchQuery.append(catId);
+		countQueryStr.append(catId);
 		categorySelected = true;
 	}
 
@@ -235,20 +240,43 @@ void ESManageItems::slotSearch()
 		if (categorySelected)
 		{
 			searchQuery.append(" AND ");
+			countQueryStr.append(" AND ");
 		}
 		else
 		{
 			searchQuery.append(" WHERE deleted = 0 AND ");
+			countQueryStr.append(" WHERE deleted = 0 AND ");
 		}
 		searchQuery.append(" (item_code LIKE '%" + searchText + "%' OR item_name LIKE '%" + searchText + "%')");
+		countQueryStr.append(" (item_code LIKE '%" + searchText + "%' OR item_name LIKE '%" + searchText + "%')");
 	}
 	else
 	{
 		if (!categorySelected)
 		{
 			searchQuery.append(" WHERE deleted = 0");
+			countQueryStr.append(" WHERE deleted = 0");
 		}
 	}
+	QSqlQuery queryCount(countQueryStr);
+	if (queryCount.next())
+	{
+		m_totalRecords = queryCount.value("c").toInt();
+		m_maxNextCount = m_totalRecords / m_pageOffset;
+		int remainder = m_totalRecords % m_pageOffset;
+		m_oddRecords = remainder == 1 ? true : false;
+
+		if (m_maxNextCount > m_nextCounter)
+		{
+			ui.nextBtn->setEnabled(true);
+		}
+		if (!m_oddRecords && ((m_maxNextCount - 1) == m_nextCounter))
+		{
+			ui.nextBtn->setDisabled(true);
+		}
+	}
+	searchQuery.append(" LIMIT ").append(QString::number(m_startingLimit));
+	searchQuery.append(" , ").append(QString::number(m_pageOffset));
 	ui.tableWidget->setSortingEnabled(false);
 	QSqlQuery queryItems(searchQuery);
 	displayItems(queryItems);
@@ -285,4 +313,38 @@ void ESManageItems::slotHideImages()
 		m_imagesHidden = true;
 	}
 	slotFitImages();
+}
+
+void ESManageItems::slotPrev()
+{
+	if (m_nextCounter == 1)
+	{
+		ui.prevBtn->setDisabled(true);
+	}
+	if (m_nextCounter > 0)
+	{
+		m_nextCounter--;
+		m_startingLimit -= m_pageOffset;
+		ui.nextBtn->setEnabled(true);
+	}
+	slotSearch();
+}
+
+void ESManageItems::slotNext()
+{
+	if (m_nextCounter < m_maxNextCount)
+	{
+		m_nextCounter++;
+		ui.prevBtn->setEnabled(true);
+		m_startingLimit += m_pageOffset;
+	}
+	if (m_maxNextCount == m_nextCounter)
+	{
+		ui.nextBtn->setDisabled(true);
+	}
+	if (!m_oddRecords && ((m_maxNextCount-1) == m_nextCounter))
+	{
+		ui.nextBtn->setDisabled(true);
+	}
+	slotSearch();
 }
