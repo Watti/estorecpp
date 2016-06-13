@@ -7,6 +7,17 @@
 #include "entities\SaleLineEdit.h"
 #include "QWidget"
 #include "utility\utility.h"
+#include "entities\tabletextwidget.h"
+
+namespace
+{
+	QString convertToQuantityFormat(QString text)
+	{
+// 		double val = text.toDouble();
+// 		return QString::number(val, 'f', 3);
+		return text;
+	}
+}
 
 ESAddBillItem::ESAddBillItem(ESAddBill* cart, QWidget *parent)
 :QWidget(parent)
@@ -144,11 +155,13 @@ void ESAddBillItem::addToBill(QString stockId)
 {
 	QString billId = ES::Session::getInstance()->getBillId();
 	QString lastInsertedID;
-	QSqlQuery queryStock("SELECT discount FROM stock WHERE  stock_id = "+stockId+ " AND deleted = 0");
+	QSqlQuery queryStock("SELECT discount, selling_price FROM stock WHERE stock_id = " + stockId + " AND deleted = 0");
 	if (queryStock.next())
 	{
 		QString discount = queryStock.value("discount").toString();
-		QString q = "INSERT INTO sale (stock_id, bill_id, discount) VALUES(" + stockId + ", " + billId + ", "+discount+")";
+		QString itemPrice = queryStock.value("selling_price").toString();
+		QString q = "INSERT INTO sale (stock_id, bill_id, discount, item_price) VALUES(" + stockId + ", " + 
+			billId + ", " + discount + ", " + itemPrice + ")";
 		QSqlQuery query;
 		if (query.exec(q))
 		{
@@ -174,6 +187,9 @@ void ESAddBillItem::addToBill(QString stockId)
 
 		QString saleId = queryBillTable.value("sale_id").toString();
 		QString stockId = queryBillTable.value("stock_id").toString();
+		double discount = queryBillTable.value("discount").toDouble();
+		double itemPrice = queryBillTable.value("item_price").toDouble();
+		double quantity = queryBillTable.value("quantity").toDouble();
 
 		QSqlQuery queryItem("SELECT item.*, stock.selling_price, stock.discount FROM item JOIN stock ON item.item_id = stock.item_id WHERE stock.stock_id = " + stockId);
 		if (queryItem.first())
@@ -181,25 +197,25 @@ void ESAddBillItem::addToBill(QString stockId)
 			m_cart->getUI().tableWidget->setItem(row, 0, new QTableWidgetItem(queryItem.value("item_code").toString()));
 			m_cart->getUI().tableWidget->setItem(row, 1, new QTableWidgetItem(queryItem.value("item_name").toString()));
 
-			QTableWidgetItem* sellingPrice = new QTableWidgetItem();
-			sellingPrice->setTextAlignment(Qt::AlignRight);
-			sellingPrice->setText(QString::number(queryItem.value("selling_price").toDouble(), 'f', 2));
-			m_cart->getUI().tableWidget->setItem(row, 2, sellingPrice);
+			QTableWidgetItem* sellingPriceItem = new QTableWidgetItem();
+			sellingPriceItem->setTextAlignment(Qt::AlignRight);
+			sellingPriceItem->setText(QString::number(itemPrice, 'f', 2));
+			m_cart->getUI().tableWidget->setItem(row, 2, sellingPriceItem);
 
-			QTableWidgetItem* quentity = new QTableWidgetItem();
-			quentity->setTextAlignment(Qt::AlignRight);
-			quentity->setText(queryBillTable.value("quantity").toString());
-			m_cart->getUI().tableWidget->setItem(row, 3, quentity);
+			QTableWidgetItem* quentityItem = new QTableWidgetItem();
+			quentityItem->setTextAlignment(Qt::AlignRight);
+			quentityItem->setText(QString::number(quantity));
+			m_cart->getUI().tableWidget->setItem(row, 3, quentityItem);
 
-			QTableWidgetItem* discount = new QTableWidgetItem();
-			discount->setTextAlignment(Qt::AlignRight);
-			discount->setText(QString::number(queryItem.value("discount").toDouble(), 'f', 2));
-			m_cart->getUI().tableWidget->setItem(row, 4, discount);
+			QTableWidgetItem* discountItem = new QTableWidgetItem();
+			discountItem->setTextAlignment(Qt::AlignRight);
+			discountItem->setText(QString::number(discount, 'f', 2));
+			m_cart->getUI().tableWidget->setItem(row, 4, discountItem);
 			
-			QTableWidgetItem* total = new QTableWidgetItem();
-			total->setTextAlignment(Qt::AlignRight);
-			total->setText(QString::number(queryBillTable.value("total").toDouble(), 'f', 2));
-			m_cart->getUI().tableWidget->setItem(row, 5, total);
+			QTableWidgetItem* totalItem = new QTableWidgetItem();
+			totalItem->setTextAlignment(Qt::AlignRight);
+			totalItem->setText(QString::number(queryBillTable.value("total").toDouble(), 'f', 2));
+			m_cart->getUI().tableWidget->setItem(row, 5, totalItem);
 
 			QWidget* base = new QWidget(m_cart->getUI().tableWidget);
 			QPushButton* removeBtn = new QPushButton(base);
@@ -222,12 +238,13 @@ void ESAddBillItem::addToBill(QString stockId)
 	}
 	if (row >= 0)
 	{
-		ES::SaleLineEdit* le = new ES::SaleLineEdit(lastInsertedID, row);
-		le->setAlignment(Qt::AlignRight);
-		m_cart->getUI().tableWidget->setCellWidget(row, 3, le);
-		le->setFocus();
-		connect(le, SIGNAL(returnPressed()), le, SLOT(slotQuantityUpdate()));
-		connect(le, SIGNAL(notifyQuantityUpdate(QString, int)), m_cart, SLOT(slotReturnPressed(QString, int)));
+		TableTextWidget* textWidget = new TableTextWidget(m_cart->getUI().tableWidget, row, 3, m_cart->getUI().tableWidget);
+		QObject::connect(textWidget, SIGNAL(notifyEnterPressed(QString, int, int)), m_cart, SLOT(slotQuantityCellUpdated(QString, int, int)));
+		textWidget->setTextFormatterFunc(convertToQuantityFormat);
+		m_cart->getUI().tableWidget->setCellWidget(row, 3, textWidget);
+		m_cart->getUI().tableWidget->setCurrentCell(row, 3);
+		m_cart->getUI().tableWidget->setFocus();
+		textWidget->setFocus();
 	}
 
 	close();

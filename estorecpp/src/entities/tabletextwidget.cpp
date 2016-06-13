@@ -36,6 +36,7 @@ void TableTextWidget::keyPressEvent(QKeyEvent* evt)
 	default:
 		QLineEdit::keyPressEvent(evt);
 	}
+	
 }
 
 void TableTextWidget::slotFinish()
@@ -46,6 +47,7 @@ void TableTextWidget::slotFinish()
 	priceItem->setTextAlignment(Qt::AlignRight);
 	m_table->setCellWidget(m_row, m_col, NULL);
 	m_table->setItem(m_row, m_col, priceItem);
+	m_table->setFocus();
 	
 	emit notifyEnterPressed(text(), m_row, m_col);
 }

@@ -2,6 +2,7 @@
 #define ADDBILL_H
 #include "ui_addbill.h"
 #include "QSignalMapper"
+#include <QSqlQuery>
 
 class ESAddBill : public QWidget
 {
@@ -11,7 +12,8 @@ public:
 	ESAddBill(QWidget *parent = 0);
 	~ESAddBill();
 
-	Ui::AddBillWidget& getUI();;
+	Ui::AddBillWidget& getUI();
+	QSignalMapper* getRemoveButtonSignalMapper() const { return m_removeButtonSignalMapper; }
 
 	public slots:
 	void slotShowAddItem();
@@ -23,15 +25,23 @@ public:
 	void slotSuspend();
 	void slotCancel();
 	void slotRemoveItem(QString);
+
 	void slotCellDoubleClicked(int row, int col);
 
-	void resetBill();
+	void slotQuantityCellUpdated(QString txt, int row, int col);
 
-	QSignalMapper* getRemoveButtonSignalMapper() const { return m_removeButtonSignalMapper; }
+	void resetBill();
 	void proceedPendingBill(QString billId);
+
+protected:
+	void keyPressEvent(QKeyEvent* evt);
+
 private:
-	Ui::AddBillWidget ui;
+	void checkAndContinuePendingBill();
 	void calculateAndDisplayTotal();
+	void populateTable(QSqlQuery &queryBillTable);
+
+	Ui::AddBillWidget ui;
 	QSignalMapper* m_removeButtonSignalMapper;
 };
 

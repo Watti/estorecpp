@@ -998,6 +998,9 @@
        <pointsize>11</pointsize>
       </font>
      </property>
+     <property name="focusPolicy">
+      <enum>Qt::StrongFocus</enum>
+     </property>
      <property name="columnCount">
       <number>8</number>
      </property>
