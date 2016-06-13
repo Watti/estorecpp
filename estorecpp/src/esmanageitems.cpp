@@ -7,7 +7,7 @@
 #include "utility/utility.h"
 
 ESManageItems::ESManageItems(QWidget *parent /*= 0*/)  
-: QWidget(parent), m_startingLimit(0), m_pageOffset(3), m_nextCounter(0), m_maxNextCount(0)
+: QWidget(parent), m_startingLimit(0), m_pageOffset(15), m_nextCounter(0), m_maxNextCount(0)
 {
 	ui.setupUi(this);
 	m_updateButtonSignalMapper = new QSignalMapper(this);
