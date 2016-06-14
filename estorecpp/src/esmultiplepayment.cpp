@@ -13,10 +13,12 @@ ESMultiplePayment::ESMultiplePayment(QWidget *parent /*= 0*/) : QWidget(parent)
 	ui.lbl1->hide();
 	ui.lbl2->hide();
 	ui.dateLbl->hide();
+	ui.interestLbl->hide();
 
 	ui.txt1->hide();
 	ui.txt2->hide();
 	ui.dateEdit->hide();
+	ui.interestTxt->hide();
 
 	ui.paymentType->setText("Cash :  ");
 	m_paymentType = "CASH";
@@ -150,14 +152,13 @@ void ESMultiplePayment::slotPaymentMethodSelected()
 	if (ui.creditBtn == sender())
 	{
 		ui.lbl1->hide();
-		ui.lbl2->show(); // interest
+		ui.interestLbl->show();
 		ui.dateLbl->show(); // due date
 
 		ui.txt1->hide();
-		ui.txt2->show();
+		ui.interestTxt->show();
 		ui.dateEdit->show();
 
-		ui.lbl2->setText("Interest % :  ");
 		ui.paymentType->setText("Amount :  ");
 
 		ui.cashBtn->setChecked(false);
@@ -171,10 +172,12 @@ void ESMultiplePayment::slotPaymentMethodSelected()
 		ui.lbl1->show(); // cheque no
 		ui.lbl2->show(); // bank
 		ui.dateLbl->show(); // due date
+		ui.interestLbl->show();
 
 		ui.txt1->show();
 		ui.txt2->show();
 		ui.dateEdit->show();
+		ui.interestTxt->show();
 
 		ui.lbl1->setText("Cheque No. :  ");
 		ui.lbl2->setText("Bank :  ");
@@ -191,13 +194,16 @@ void ESMultiplePayment::slotPaymentMethodSelected()
 	{
 		ui.lbl1->show(); // card no
 		ui.lbl2->hide();
+		ui.interestLbl->show();
 		ui.dateLbl->hide();
 
 		ui.txt1->show();
 		ui.txt2->hide();
+		ui.interestTxt->show();
 		ui.dateEdit->hide();
 
 		ui.lbl1->setText("Card No. :  ");
+		//ui.lbl2->setText("Interest % :  ");
 		ui.paymentType->setText("Amount :  ");
 
 		ui.cashBtn->setChecked(false);
@@ -212,10 +218,12 @@ void ESMultiplePayment::slotPaymentMethodSelected()
 		ui.lbl1->show(); // card no
 		ui.lbl2->hide();
 		ui.dateLbl->hide();
+		ui.interestLbl->show();
 
 		ui.txt1->show();
 		ui.txt2->hide();
 		ui.dateEdit->hide();
+		ui.interestTxt->show();
 
 		ui.lbl1->setText("Card No. :  ");
 		ui.paymentType->setText("Amount :  ");
@@ -232,10 +240,12 @@ void ESMultiplePayment::slotPaymentMethodSelected()
 		ui.lbl1->hide();
 		ui.lbl2->hide();
 		ui.dateLbl->hide();
+		ui.interestLbl->hide();
 
 		ui.txt1->hide();
 		ui.txt2->hide();
 		ui.dateEdit->hide();
+		ui.interestTxt->hide();
 
 		ui.paymentType->setText("Cash :  ");
 
@@ -272,26 +282,46 @@ void ESMultiplePayment::slotAdd()
 	{
 		ui.tableWidget->setItem(row, 0, new QTableWidgetItem(m_paymentType));
 		ui.tableWidget->setItem(row, 1, new QTableWidgetItem(ui.cashText->text()));
+		ui.tableWidget->setItem(row, 2, new QTableWidgetItem("-/-"));
+		ui.tableWidget->setItem(row, 3, new QTableWidgetItem("-/-"));
+		ui.tableWidget->setItem(row, 4, new QTableWidgetItem("-/-"));
+		ui.tableWidget->setItem(row, 5, new QTableWidgetItem("-/-"));
 	}
 	else if (m_paymentType == "CREDIT")
 	{
 		ui.tableWidget->setItem(row, 0, new QTableWidgetItem(m_paymentType));
 		ui.tableWidget->setItem(row, 1, new QTableWidgetItem(ui.cashText->text()));
+		ui.tableWidget->setItem(row, 2, new QTableWidgetItem(ui.interestTxt->text()));
+		ui.tableWidget->setItem(row, 3, new QTableWidgetItem(ui.dateEdit->text()));
+		ui.tableWidget->setItem(row, 4, new QTableWidgetItem("-/-"));
+		ui.tableWidget->setItem(row, 5, new QTableWidgetItem("-/-"));
 	}
 	else if (m_paymentType == "CHEQUE")
 	{
 		ui.tableWidget->setItem(row, 0, new QTableWidgetItem(m_paymentType));
 		ui.tableWidget->setItem(row, 1, new QTableWidgetItem(ui.cashText->text()));
+		ui.tableWidget->setItem(row, 2, new QTableWidgetItem(ui.interestTxt->text()));
+		ui.tableWidget->setItem(row, 3, new QTableWidgetItem(ui.dateEdit->text()));
+		ui.tableWidget->setItem(row, 4, new QTableWidgetItem(ui.txt1->text()));
+		ui.tableWidget->setItem(row, 5, new QTableWidgetItem(ui.txt2->text()));
 	}
 	else if (m_paymentType == "CARD")
 	{
 		ui.tableWidget->setItem(row, 0, new QTableWidgetItem(m_paymentType));
 		ui.tableWidget->setItem(row, 1, new QTableWidgetItem(ui.cashText->text()));
+		ui.tableWidget->setItem(row, 2, new QTableWidgetItem(ui.interestTxt->text()));
+		ui.tableWidget->setItem(row, 3, new QTableWidgetItem("-/-"));
+		ui.tableWidget->setItem(row, 4, new QTableWidgetItem(ui.txt1->text()));
+		ui.tableWidget->setItem(row, 5, new QTableWidgetItem("-/-"));
 	}
 	else if (m_paymentType == "LOYALTY")
 	{
 		ui.tableWidget->setItem(row, 0, new QTableWidgetItem(m_paymentType));
 		ui.tableWidget->setItem(row, 1, new QTableWidgetItem(ui.cashText->text()));
+		ui.tableWidget->setItem(row, 2, new QTableWidgetItem(ui.interestTxt->text()));
+		ui.tableWidget->setItem(row, 3, new QTableWidgetItem("-/-"));
+		ui.tableWidget->setItem(row, 4, new QTableWidgetItem(ui.txt1->text()));
+		ui.tableWidget->setItem(row, 5, new QTableWidgetItem("-/-"));
 	}
 	
 	m_removeButtonSignalMapper->setMapping(removeBtn, row);

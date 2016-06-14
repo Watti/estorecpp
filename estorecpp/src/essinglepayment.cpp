@@ -281,14 +281,16 @@ void ESSinglePayment::slotPaymentMethodSelected()
 	if (ui.creditBtn == sender())
 	{
 		ui.lbl1->hide();
-		ui.lbl2->show(); // interest
+		//ui.lbl2->show(); // interest
 		ui.dateLbl->show(); // due date
+		ui.label_6->hide();
+		ui.balanceLbl->hide();
 
 		ui.txt1->hide();
-		ui.txt2->show();
+		//ui.txt2->show();
 		ui.dateEdit->show();
 
-		ui.lbl2->setText("Interest % :  ");
+		//ui.lbl2->setText("Interest % :  ");
 		ui.paymentType->setText("Amount :  ");
 
 		ui.cashBtn->setChecked(false);
@@ -301,6 +303,8 @@ void ESSinglePayment::slotPaymentMethodSelected()
 		ui.lbl1->show(); // cheque no
 		ui.lbl2->show(); // bank
 		ui.dateLbl->show(); // due date
+		ui.label_6->hide();
+		ui.balanceLbl->hide();
 
 		ui.txt1->show();
 		ui.txt2->show();
@@ -321,6 +325,8 @@ void ESSinglePayment::slotPaymentMethodSelected()
 		ui.lbl1->show(); // card no
 		ui.lbl2->hide();
 		ui.dateLbl->hide();
+		ui.label_6->hide();
+		ui.balanceLbl->hide();
 
 		ui.txt1->show();
 		ui.txt2->hide();
@@ -339,6 +345,8 @@ void ESSinglePayment::slotPaymentMethodSelected()
 		ui.lbl1->show(); // card no
 		ui.lbl2->hide();
 		ui.dateLbl->hide();
+		ui.label_6->hide();
+		ui.balanceLbl->hide();
 
 		ui.txt1->show();
 		ui.txt2->hide();
@@ -357,6 +365,8 @@ void ESSinglePayment::slotPaymentMethodSelected()
 		ui.lbl1->hide();
 		ui.lbl2->hide();
 		ui.dateLbl->hide();
+		ui.label_6->show();
+		ui.balanceLbl->show();
 
 		ui.txt1->hide();
 		ui.txt2->hide();
