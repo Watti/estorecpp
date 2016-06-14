@@ -7,6 +7,8 @@ ESMultiplePayment::ESMultiplePayment(QWidget *parent /*= 0*/) : QWidget(parent)
 	m_customerId = "-1";
 	ui.setupUi(this);
 
+	m_removeButtonSignalMapper = new QSignalMapper(this);
+
 	ui.cashBtn->setChecked(true);
 	ui.lbl1->hide();
 	ui.lbl2->hide();
@@ -71,6 +73,7 @@ ESMultiplePayment::ESMultiplePayment(QWidget *parent /*= 0*/) : QWidget(parent)
 
 	new QShortcut(QKeySequence(Qt::Key_Escape), this, SLOT(close()));
 	setMinimumWidth(900);
+	setMinimumHeight(550);
 	//resize(900, 1);
 	adjustSize();
 }
@@ -251,9 +254,49 @@ void ESMultiplePayment::slotAdd()
 {
 	int row = ui.tableWidget->rowCount();
 	ui.tableWidget->insertRow(row);
+// 
+// 	headerLabels.append("Payment Type");
+// 	headerLabels.append("Amount");
+// 	headerLabels.append("Interest");
+// 	headerLabels.append("Due Date");
+// 	headerLabels.append("Number");
+// 	headerLabels.append("Bank");
+// 	headerLabels.append("Actions");
 
-	ui.tableWidget->setItem(row, 0, new QTableWidgetItem(m_paymentType));
-	ui.tableWidget->setItem(row, 1, new QTableWidgetItem(ui.cashText->text()));
+	QPushButton* removeBtn = new QPushButton(ui.tableWidget);
+	removeBtn->setIcon(QIcon("icons/delete.png"));
+	removeBtn->setIconSize(QSize(24, 24));
+	removeBtn->setMaximumWidth(36);
+
+	if (m_paymentType == "CASH")
+	{
+		ui.tableWidget->setItem(row, 0, new QTableWidgetItem(m_paymentType));
+		ui.tableWidget->setItem(row, 1, new QTableWidgetItem(ui.cashText->text()));
+	}
+	else if (m_paymentType == "CREDIT")
+	{
+		ui.tableWidget->setItem(row, 0, new QTableWidgetItem(m_paymentType));
+		ui.tableWidget->setItem(row, 1, new QTableWidgetItem(ui.cashText->text()));
+	}
+	else if (m_paymentType == "CHEQUE")
+	{
+		ui.tableWidget->setItem(row, 0, new QTableWidgetItem(m_paymentType));
+		ui.tableWidget->setItem(row, 1, new QTableWidgetItem(ui.cashText->text()));
+	}
+	else if (m_paymentType == "CARD")
+	{
+		ui.tableWidget->setItem(row, 0, new QTableWidgetItem(m_paymentType));
+		ui.tableWidget->setItem(row, 1, new QTableWidgetItem(ui.cashText->text()));
+	}
+	else if (m_paymentType == "LOYALTY")
+	{
+		ui.tableWidget->setItem(row, 0, new QTableWidgetItem(m_paymentType));
+		ui.tableWidget->setItem(row, 1, new QTableWidgetItem(ui.cashText->text()));
+	}
+	
+	m_removeButtonSignalMapper->setMapping(removeBtn, row);
+	QObject::connect(removeBtn, SIGNAL(clicked()), m_removeButtonSignalMapper, SLOT(map()));
+	ui.tableWidget->setCellWidget(row, 6, removeBtn);
 }
 
 

@@ -383,8 +383,12 @@ void ESAddBill::slotCellDoubleClicked(int row, int col)
 {
 	if (col == 2)
 	{
+		QTableWidgetItem* item = ui.tableWidget->item(row, col);
+		QString price = (item) ? item->text() : "";
 		TableTextWidget* textWidget = new TableTextWidget(ui.tableWidget, row, col, ui.tableWidget);
 		textWidget->setTextFormatterFunc(convertToPriceFormat);
+		textWidget->setText(price);
+		textWidget->selectAll();
 		ui.tableWidget->setCellWidget(row, col, textWidget);
 	}
 }

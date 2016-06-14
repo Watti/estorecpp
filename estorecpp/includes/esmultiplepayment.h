@@ -27,6 +27,7 @@ private:
 	Ui::MultiplePaymentWidget ui;
 	QString m_customerId;
 	QString m_paymentType;
+	QSignalMapper* m_removeButtonSignalMapper;
 
 };
 
