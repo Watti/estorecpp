@@ -9,7 +9,7 @@
 
 
 ESManageStockItems::ESManageStockItems(QWidget *parent /*= 0*/)
-: QWidget(parent), m_startingLimit(0), m_pageOffset(15), m_nextCounter(0), m_maxNextCount(0)
+: QWidget(parent), m_startingLimit(0), m_pageOffset(1), m_nextCounter(0), m_maxNextCount(0)
 {
 	ui.setupUi(this);
 	m_updateButtonSignalMapper = new QSignalMapper(this);
@@ -150,10 +150,14 @@ void ESManageStockItems::slotSearch()
 
 		//pagination start
 		m_maxNextCount = m_totalRecords / m_pageOffset;
-
 		if (m_maxNextCount > m_nextCounter)
 		{
 			ui.nextBtn->setEnabled(true);
+		}
+		int currentlyShowdItemCount = (m_nextCounter +1 )*m_pageOffset;
+		if (currentlyShowdItemCount>=m_totalRecords)
+		{
+			ui.nextBtn->setDisabled(true);
 		}
 		//pagination end
 
@@ -312,10 +316,6 @@ void ESManageStockItems::slotNext()
 		m_nextCounter++;
 		ui.prevBtn->setEnabled(true);
 		m_startingLimit += m_pageOffset;
-	}
-	if (m_maxNextCount == m_nextCounter)
-	{
-		ui.nextBtn->setDisabled(true);
 	}
 	slotSearch();
 }

@@ -151,6 +151,11 @@ void ESManageItems::displayItems(QSqlQuery& queryItems)
 	{
 		ui.nextBtn->setEnabled(true);
 	}
+	int currentlyShowdItemCount = (m_nextCounter + 1)*m_pageOffset;
+	if (currentlyShowdItemCount >= m_totalRecords)
+	{
+		ui.nextBtn->setDisabled(true);
+	}
 	//pagination end
 	int row = 0;
 	while (queryItems.next())
@@ -343,10 +348,6 @@ void ESManageItems::slotNext()
 		m_nextCounter++;
 		ui.prevBtn->setEnabled(true);
 		m_startingLimit += m_pageOffset;
-	}
-	if (m_maxNextCount == m_nextCounter)
-	{
-		ui.nextBtn->setDisabled(true);
 	}
 	slotSearch();
 }
