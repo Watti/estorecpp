@@ -21,6 +21,7 @@ public:
 	void slotPaymentMethodSelected();
 	void slotCalculateBalance();
 	void slotAdd();
+	void slotRemove(int row);
 
 private:
 	bool validate();

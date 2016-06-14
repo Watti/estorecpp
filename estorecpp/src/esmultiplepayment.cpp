@@ -1,6 +1,7 @@
 #include "esmultiplepayment.h"
 #include "QMessageBox"
 #include "QShortcut"
+#include <string>
 
 ESMultiplePayment::ESMultiplePayment(QWidget *parent /*= 0*/) : QWidget(parent)
 {
@@ -56,6 +57,7 @@ ESMultiplePayment::ESMultiplePayment(QWidget *parent /*= 0*/) : QWidget(parent)
 	headerLabels.append("Number");
 	headerLabels.append("Bank");
 	headerLabels.append("Actions");
+	headerLabels.append("Id");
 
 	ui.tableWidget->setHorizontalHeaderLabels(headerLabels);
 	ui.tableWidget->horizontalHeader()->setStretchLastSection(true);
@@ -63,12 +65,14 @@ ESMultiplePayment::ESMultiplePayment(QWidget *parent /*= 0*/) : QWidget(parent)
 	ui.tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	ui.tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
 	ui.tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+	ui.tableWidget->hideColumn(7);
 
 	QObject::connect(ui.cashBtn, SIGNAL(clicked()), this, SLOT(slotPaymentMethodSelected()));
 	QObject::connect(ui.creditBtn, SIGNAL(clicked()), this, SLOT(slotPaymentMethodSelected()));
 	QObject::connect(ui.chequeBtn, SIGNAL(clicked()), this, SLOT(slotPaymentMethodSelected()));
 	QObject::connect(ui.creditCardBtn, SIGNAL(clicked()), this, SLOT(slotPaymentMethodSelected()));
 	QObject::connect(ui.loyalityCardBtn, SIGNAL(clicked()), this, SLOT(slotPaymentMethodSelected()));
+	QObject::connect(m_removeButtonSignalMapper, SIGNAL(mapped(int)), this, SLOT(slotRemove(int)));
 
 	QObject::connect(ui.cashText, SIGNAL(textChanged(QString)), this, SLOT(slotCalculateBalance()));
 	QObject::connect(ui.addBtn, SIGNAL(clicked()), this, SLOT(slotAdd()));
@@ -327,6 +331,23 @@ void ESMultiplePayment::slotAdd()
 	m_removeButtonSignalMapper->setMapping(removeBtn, row);
 	QObject::connect(removeBtn, SIGNAL(clicked()), m_removeButtonSignalMapper, SLOT(map()));
 	ui.tableWidget->setCellWidget(row, 6, removeBtn);
+	ui.tableWidget->setItem(row, 7, new QTableWidgetItem(QString::number(row)));
+}
+
+void ESMultiplePayment::slotRemove(int row)
+{
+	int rowCount = ui.tableWidget->rowCount();
+	for (int i = 0; i < rowCount; ++i)
+	{
+		QTableWidgetItem* item = ui.tableWidget->item(i, 7);
+		std::string s = item->text().toStdString();
+		if (item && item->text().toInt() == row)
+		{
+			ui.tableWidget->removeRow(i);
+			break;
+		}
+	}
+	
 }
 
 
