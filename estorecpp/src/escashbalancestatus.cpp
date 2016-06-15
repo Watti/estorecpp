@@ -145,11 +145,12 @@ void ESCashBalanceStatus::displayStatus()
 	ui.handoverLbl->setText(QString::number(handOver, 'f', 2));
 	ui.startBalanceLbl->setText(QString::number(startAmount, 'f', 2));
 
-	QSqlQuery userQuery("SELECT display_name FROM user WHERE user_id = " + userId);
+	QSqlQuery userQuery("SELECT display_name FROM user WHERE user_id = " + QString::number(userId));
 	while (userQuery.next())
 	{
-		//ui.tableWidget->setItem(row, 0, new QTableWidgetItem(userQuery.value("display_name").toString()));
+		ui.userLbl->setText(userQuery.value("display_name").toString());
 	}
+	ui.dateLbl->setText(QDate::currentDate().toString("yyyy-MM-dd"));
 }
 
 void ESCashBalanceStatus::dayOff()

@@ -16,7 +16,7 @@
   <widget class="QLabel" name="label_11">
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>10</x>
      <y>430</y>
      <width>92</width>
      <height>16</height>
@@ -29,15 +29,15 @@
     </font>
    </property>
    <property name="text">
-    <string>Starting Balnce :</string>
+    <string>User :</string>
    </property>
   </widget>
   <widget class="QLabel" name="startBalanceLbl">
    <property name="geometry">
     <rect>
-     <x>130</x>
-     <y>430</y>
-     <width>22</width>
+     <x>120</x>
+     <y>470</y>
+     <width>91</width>
      <height>16</height>
     </rect>
    </property>
@@ -48,8 +48,8 @@
   <widget class="QLabel" name="label_13">
    <property name="geometry">
     <rect>
-     <x>330</x>
-     <y>420</y>
+     <x>290</x>
+     <y>470</y>
      <width>121</width>
      <height>16</height>
     </rect>
@@ -67,9 +67,9 @@
   <widget class="QLabel" name="handoverLbl">
    <property name="geometry">
     <rect>
-     <x>460</x>
-     <y>420</y>
-     <width>22</width>
+     <x>420</x>
+     <y>470</y>
+     <width>81</width>
      <height>16</height>
     </rect>
    </property>
@@ -722,6 +722,70 @@
      </widget>
     </item>
    </layout>
+  </widget>
+  <widget class="QLabel" name="label_12">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>470</y>
+     <width>92</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Starting Balnce :</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="userLbl">
+   <property name="geometry">
+    <rect>
+     <x>80</x>
+     <y>430</y>
+     <width>131</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_14">
+   <property name="geometry">
+    <rect>
+     <x>380</x>
+     <y>430</y>
+     <width>92</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Date :</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="dateLbl">
+   <property name="geometry">
+    <rect>
+     <x>450</x>
+     <y>430</y>
+     <width>131</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
   </widget>
  </widget>
  <resources/>
