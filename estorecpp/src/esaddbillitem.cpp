@@ -78,6 +78,10 @@ void ESAddBillItem::slotSearch()
 		//q.append(" AND (item.item_code LIKE '%" + searchText + "%' OR item_category.itemcategory_code LIKE '%" + searchText + "%')");
 		q.append(" AND (item_category.itemcategory_code LIKE '%" + searchText + "%')");//ONLY the items matched with the category code are shown
 	}
+	else
+	{
+		q.append(" LIMIT 25");
+	}
 
 	ui.tableWidget->setSortingEnabled(false);
 	//q.append(" LIMIT 75");
