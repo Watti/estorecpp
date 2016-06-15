@@ -11,7 +11,8 @@ ESCashBalanceConfigure::ESCashBalanceConfigure(QWidget *parent) : QWidget(parent
 	ui.setupUi(this);
 	//ui.labelWelcome->setText("Hello : " + ES::Session::getInstance()->getUser()->getName());
 	ui.label_4->setText(QDate::currentDate().toString("yyyy-MM-dd"));
-	
+	ui.typeBox->addItem("Expense", CashType::EXPENSE);
+	ui.typeBox->addItem("Income", CashType::INCOME);
 	if (!ES::DbConnection::instance()->open())
 	{
 		QMessageBox mbox;
@@ -22,6 +23,13 @@ ESCashBalanceConfigure::ESCashBalanceConfigure(QWidget *parent) : QWidget(parent
 	QObject::connect(ui.buttonDayStart, SIGNAL(clicked()), this, SLOT(startDay()));
 	QObject::connect(ui.btnCancel, SIGNAL(clicked()), this, SLOT(exit()));
 	QObject::connect(ui.pettyCashOk, SIGNAL(clicked()), this, SLOT(slotPettyCash()));
+	QString curDate = QDate::currentDate().toString("yyyy-MM-dd");
+	QString selectQryStr("SELECT * FROM cash_config WHERE DATE(date) = '" + curDate + "'");
+	QSqlQuery selectQuery(selectQryStr);
+	if (selectQuery.size() > 0)
+	{
+		ui.buttonDayStart->setDisabled(true);
+	}
 }
 
 ESCashBalanceConfigure::~ESCashBalanceConfigure()
@@ -106,11 +114,13 @@ void ESCashBalanceConfigure::slotPettyCash()
 		return;
 	}
 	int userId = ES::Session::getInstance()->getUser()->getId();
+	int cType = ui.typeBox->currentData().toInt();
 	QSqlQuery query;
-	query.prepare("INSERT INTO petty_cash (user_id, amount, remarks) VALUES (?, ?, ?)");
+	query.prepare("INSERT INTO petty_cash (user_id, amount, remarks, type) VALUES (?, ?, ?, ?)");
 	query.addBindValue(userId);
 	query.addBindValue(amount);
 	query.addBindValue(pCashRemarks);
+	query.addBindValue(cType);
 	if (!query.exec())
 	{
 		QMessageBox mbox;

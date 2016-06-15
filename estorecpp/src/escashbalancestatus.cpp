@@ -16,12 +16,12 @@ ESCashBalanceStatus::ESCashBalanceStatus(QWidget *parent) : QWidget(parent)
 		mbox.setText(QString("Cannot connect to the database : ESCashBalanceStatus"));
 		mbox.exec();
 	}
-	ui.setupUi(this); 
+	ui.setupUi(this);
 	QStringList headerLabels;
-	headerLabels.append("User");
-	headerLabels.append("Day Starting Amount");
-	headerLabels.append("Total Cash Sales");
-	headerLabels.append("Handover Amount");
+	headerLabels.append("Type");
+	headerLabels.append("Description");
+	headerLabels.append("Amount");
+	//headerLabels.append("Handover Amount");
 	ui.tableWidget->setHorizontalHeaderLabels(headerLabels);
 	ui.tableWidget->horizontalHeader()->setStretchLastSection(true);
 	ui.tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
@@ -51,41 +51,104 @@ Ui::CashBalanceStatus& ESCashBalanceStatus::getUI()
 
 void ESCashBalanceStatus::displayStatus()
 {
-	QString curDate = QDate::currentDate().toString("yyyy-MM-dd");
 	int userId = ES::Session::getInstance()->getUser()->getId();
+	int row = 0;
+	QString curDate = QDate::currentDate().toString("yyyy-MM-dd");
 	QString selectQryStr("SELECT start_amount FROM cash_config WHERE DATE(date) = CURDATE() AND user_id = " + QString::number(userId));
 	QSqlQuery selectQuery(selectQryStr);
-	if (selectQuery.size() == 1 )
+	float handOver = 0, startAmount = 0; 
+	QColor red(245, 169, 169);
+	QColor green(169, 245, 208);
+	if (selectQuery.size() == 1)
 	{
 		while (selectQuery.next())
 		{
-			float startAmount = selectQuery.value("start_amount").toFloat();
-			int row = 0;
-			QSqlQuery billQueary("SELECT SUM(amount) as totalAmount, user_id FROM bill WHERE status = 1 AND payment_method = 1 AND DATE(`date`) = CURDATE() AND deleted = 0 GROUP BY user_id");
-			while (billQueary.next())
-			{
-				row = ui.tableWidget->rowCount();
-				ui.tableWidget->insertRow(row);
-				float total = billQueary.value("totalAmount").toFloat();
-				QString userId = billQueary.value("user_id").toString();
-				QString paymentMethod = billQueary.value(1).toString();
-				QSqlQuery paymentQuery("SELECT type FROM payment WHERE type_id = " + paymentMethod);
-				ui.tableWidget->setItem(row, 1, new QTableWidgetItem(QString::number(startAmount)));
-				ui.tableWidget->setItem(row, 3, new QTableWidgetItem(QString::number(startAmount + total)));
+			startAmount = selectQuery.value("start_amount").toFloat();
+			handOver += startAmount;
+			row = ui.tableWidget->rowCount();
+			ui.tableWidget->insertRow(row);
+			QTableWidgetItem* tWidget = new QTableWidgetItem("(+)");
+			tWidget->setBackgroundColor(green);
+			ui.tableWidget->setItem(row, 0, tWidget);
 
-				QSqlQuery userQuery("SELECT display_name FROM user WHERE user_id = " + userId);
-				while (userQuery.next())
-				{
-					ui.tableWidget->setItem(row, 0, new QTableWidgetItem(userQuery.value("display_name").toString()));
-				}
-				ui.tableWidget->setItem(row, 2, new QTableWidgetItem(QString::number(total)));
-			}
+			QTableWidgetItem* descWidget = new QTableWidgetItem("Starting Balance");
+			descWidget->setBackgroundColor(green);
+			ui.tableWidget->setItem(row, 1, descWidget);
+			
+			QTableWidgetItem* amountWidget = new QTableWidgetItem(QString::number(startAmount, 'f', 2));
+			amountWidget->setBackgroundColor(green);
+			ui.tableWidget->setItem(row, 2, amountWidget);
 		}
-		
 	}
-	else
+	QSqlQuery billQueary("SELECT SUM(amount) as totalAmount, user_id FROM payment as p JOIN bill as b ON p.bill_id = b.bill_id WHERE b.status = 1 AND p.payment_type_id = 1 AND b.deleted = 0 AND b.user_id = "+QString::number(userId)+" GROUP BY DATE(`date`)");
+	while (billQueary.next())
 	{
-		LOG(ERROR) << "ESCashBalanceStatus::displayStatus() - More than one entry for start day in cash_config";
+		row = ui.tableWidget->rowCount();
+		ui.tableWidget->insertRow(row);
+		float totalCashSales = billQueary.value("totalAmount").toFloat();
+		handOver += totalCashSales;
+		QString userId = billQueary.value("user_id").toString();
+		QString paymentMethod = billQueary.value(1).toString();
+		QSqlQuery paymentQuery("SELECT type FROM payment WHERE type_id = " + paymentMethod);
+		QTableWidgetItem* tWidget = new QTableWidgetItem("(+)");
+		tWidget->setBackgroundColor(green);
+		ui.tableWidget->setItem(row, 0, tWidget);
+
+		QTableWidgetItem* descWidget = new QTableWidgetItem("Total Sales");
+		descWidget->setBackgroundColor(green);
+		ui.tableWidget->setItem(row, 1, descWidget);
+
+		QTableWidgetItem* amountWidget = new QTableWidgetItem(QString::number(totalCashSales, 'f', 2));
+		amountWidget->setBackgroundColor(green);
+		ui.tableWidget->setItem(row, 2, amountWidget);
+	}
+
+	//Expenses
+	QString pCashQStr("SELECT amount, remarks, type FROM petty_cash WHERE DATE(date) = CURDATE() AND user_id = " + QString::number(userId));
+	QSqlQuery qPettyCash(pCashQStr);
+	while (qPettyCash.next())
+	{
+		row = ui.tableWidget->rowCount();
+		ui.tableWidget->insertRow(row);
+		float pCashAmount = qPettyCash.value("amount").toFloat();
+		int cType = qPettyCash.value("type").toInt();
+		if (cType == 0)
+		{
+			QTableWidgetItem* tWidget = new QTableWidgetItem("(-)");
+			tWidget->setBackgroundColor(red);
+			ui.tableWidget->setItem(row, 0, tWidget);
+
+			QTableWidgetItem* descWidget = new QTableWidgetItem(qPettyCash.value("remarks").toString());
+			descWidget->setBackgroundColor(red);
+			ui.tableWidget->setItem(row, 1, descWidget);
+
+			QTableWidgetItem* amountWidget = new QTableWidgetItem(QString::number(pCashAmount, 'f', 2));
+			amountWidget->setBackgroundColor(red);
+			ui.tableWidget->setItem(row, 2, amountWidget);
+		}
+		else
+		{
+			QTableWidgetItem* tWidget = new QTableWidgetItem("(+)");
+			tWidget->setBackgroundColor(green);
+			ui.tableWidget->setItem(row, 0, tWidget);
+
+			QTableWidgetItem* descWidget = new QTableWidgetItem(qPettyCash.value("remarks").toString());
+			descWidget->setBackgroundColor(green);
+			ui.tableWidget->setItem(row, 1, descWidget);
+
+			QTableWidgetItem* amountWidget = new QTableWidgetItem(QString::number(pCashAmount, 'f', 2));
+			amountWidget->setBackgroundColor(green);
+			ui.tableWidget->setItem(row, 2, amountWidget);
+		}
+		handOver -= pCashAmount;
+	}
+	ui.handoverLbl->setText(QString::number(handOver, 'f', 2));
+	ui.startBalanceLbl->setText(QString::number(startAmount, 'f', 2));
+
+	QSqlQuery userQuery("SELECT display_name FROM user WHERE user_id = " + userId);
+	while (userQuery.next())
+	{
+		//ui.tableWidget->setItem(row, 0, new QTableWidgetItem(userQuery.value("display_name").toString()));
 	}
 }
 
@@ -101,7 +164,7 @@ void ESCashBalanceStatus::slotCalculateTotal()
 {
 	int total = 0;
 
-	int total5000 = ui.note5000->text().toInt()*5000;
+	int total5000 = ui.note5000->text().toInt() * 5000;
 	ui.note5000Total->setText(QString::number(total5000));
 
 	int total2000 = ui.note2000->text().toInt() * 2000;

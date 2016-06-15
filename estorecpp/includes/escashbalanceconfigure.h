@@ -8,6 +8,11 @@ class ESCashBalanceConfigure : public QWidget
 	Q_OBJECT
 
 public:
+	enum CashType
+	{
+		EXPENSE = 0,
+		INCOME = 1
+	};
 	ESCashBalanceConfigure(QWidget *parent = 0);
 	~ESCashBalanceConfigure();
 
