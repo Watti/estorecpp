@@ -2,4 +2,7 @@
   <qresource prefix="pre">
     <file>icons/usb.png</file>
   </qresource>
+  <qresource prefix="powered_by">
+    <file>icons/powered by.png</file>
+  </qresource>
 </RCC>
