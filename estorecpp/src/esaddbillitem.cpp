@@ -75,10 +75,12 @@ void ESAddBillItem::slotSearch()
 	q.append("SELECT stock.stock_id, item.item_code, item.item_name, item.item_image, item.itemcategory_id, item_category.itemcategory_code , stock.selling_price FROM item JOIN stock ON item.item_id = stock.item_id  JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id WHERE stock.deleted = 0");
 	if (!searchText.isEmpty())
 	{
-		q.append(" AND (item.item_code LIKE '%" + searchText + "%' OR item_category.itemcategory_code LIKE '%" + searchText + "%')");
+		//q.append(" AND (item.item_code LIKE '%" + searchText + "%' OR item_category.itemcategory_code LIKE '%" + searchText + "%')");
+		q.append(" AND (item_category.itemcategory_code LIKE '%" + searchText + "%')");//ONLY the items matched with the category code are shown
 	}
 
 	ui.tableWidget->setSortingEnabled(false);
+	//q.append(" LIMIT 75");
 	QSqlQuery queryStocks(q);
 	while (queryStocks.next())
 	{
