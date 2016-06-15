@@ -4,6 +4,7 @@
 #include "utility\session.h"
 #include "entities\user.h"
 #include "QDateTime"
+#include "QSqlQuery"
 
 ESCashBalanceConfigure::ESCashBalanceConfigure(QWidget *parent) : QWidget(parent)
 {
@@ -20,6 +21,7 @@ ESCashBalanceConfigure::ESCashBalanceConfigure(QWidget *parent) : QWidget(parent
 	}
 	QObject::connect(ui.buttonDayStart, SIGNAL(clicked()), this, SLOT(startDay()));
 	QObject::connect(ui.btnCancel, SIGNAL(clicked()), this, SLOT(exit()));
+	QObject::connect(ui.pettyCashOk, SIGNAL(clicked()), this, SLOT(slotPettyCash()));
 }
 
 ESCashBalanceConfigure::~ESCashBalanceConfigure()
@@ -78,4 +80,43 @@ void ESCashBalanceConfigure::startDay()
 void ESCashBalanceConfigure::exit()
 {
 	this->close();
+}
+
+void ESCashBalanceConfigure::slotPettyCash()
+{
+	QString pCashAmountStr = ui.pettyCashAmount->text();
+	QString pCashRemarks = ui.pettyCashRemarks->toPlainText();
+
+	if (pCashAmountStr.isEmpty() || pCashRemarks.isEmpty())
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Warning);
+		mbox.setText(QString("Amount/Remarks cannot be empty !"));
+		mbox.exec();
+		return;
+	}
+	bool valid = false;
+	float amount = pCashAmountStr.toFloat(&valid);
+	if (!valid)
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Warning);
+		mbox.setText(QString("Invalid input for Amount !"));
+		mbox.exec();
+		return;
+	}
+	int userId = ES::Session::getInstance()->getUser()->getId();
+	QSqlQuery query;
+	query.prepare("INSERT INTO petty_cash (user_id, amount, remarks) VALUES (?, ?, ?)");
+	query.addBindValue(userId);
+	query.addBindValue(amount);
+	query.addBindValue(pCashRemarks);
+	if (!query.exec())
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Warning);
+		mbox.setText(QString("Something goes wrong!"));
+		mbox.exec();
+		return;
+	}
 }

@@ -15,6 +15,7 @@ public:
 public slots:
 void startDay();
 void exit();
+void slotPettyCash();
 
 private:
 	Ui::CashBalanceConfigure ui;
