@@ -857,7 +857,7 @@
       </font>
      </property>
      <property name="columnCount">
-      <number>7</number>
+      <number>6</number>
      </property>
      <attribute name="horizontalHeaderCascadingSectionResizes">
       <bool>true</bool>
@@ -865,7 +865,6 @@
      <attribute name="horizontalHeaderStretchLastSection">
       <bool>true</bool>
      </attribute>
-     <column/>
      <column/>
      <column/>
      <column/>

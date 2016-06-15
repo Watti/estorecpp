@@ -18,7 +18,7 @@ ESCurrentBills::ESCurrentBills(QWidget *parent)
 	QStringList headerLabels;
 	headerLabels.append("Bill ID");
 	headerLabels.append("Date");
-	headerLabels.append("Payment Method");
+	//headerLabels.append("Payment Method");
 	headerLabels.append("Amount");
 	headerLabels.append("User");
 	headerLabels.append("Status");
@@ -90,17 +90,17 @@ void ESCurrentBills::slotSearch()
 	{		
 		if (selectedUser > 0)
 		{
-			if (selectedUser != allBillQuery.value(2).toInt())
+			if (selectedUser != allBillQuery.value("user_id").toInt())
 			{
 				continue;
 			}
 		}
-		QDateTime billedDate = QDateTime::fromString(allBillQuery.value(1).toString(), Qt::ISODate);
+		QDateTime billedDate = QDateTime::fromString(allBillQuery.value("date").toString(), Qt::ISODate);
 		if (billedDate < startDate || billedDate > endDate)
 		{
 			continue;
 		}
-		int statusId = allBillQuery.value(5).toInt();
+		int statusId = allBillQuery.value("status").toInt();
 		if (selectedStatus > 0)
 		{
 			if (selectedStatus != statusId)
@@ -113,7 +113,7 @@ void ESCurrentBills::slotSearch()
 		row = ui.tableWidget->rowCount();
 		ui.tableWidget->insertRow(row);		
 		QColor rowColor;
-		QString billId = allBillQuery.value(0).toString();
+		QString billId = allBillQuery.value("bill_id").toString();
 		switch (statusId)
 		{
 		case 1:
@@ -122,7 +122,7 @@ void ESCurrentBills::slotSearch()
 			tableItem = new QTableWidgetItem("COMMITTED");
 			tableItem->setTextAlignment(Qt::AlignHCenter);
 			tableItem->setBackgroundColor(rowColor);
-			ui.tableWidget->setItem(row, 5, tableItem);
+			ui.tableWidget->setItem(row, 4, tableItem);
 		}
 			break;
 		case 2:
@@ -131,7 +131,7 @@ void ESCurrentBills::slotSearch()
 			tableItem = new QTableWidgetItem("PENDING");
 			tableItem->setTextAlignment(Qt::AlignHCenter);
 			tableItem->setBackgroundColor(rowColor);
-			ui.tableWidget->setItem(row, 5, tableItem);
+			ui.tableWidget->setItem(row, 4, tableItem);
 
 			QWidget* base = new QWidget(ui.tableWidget);
 			QPushButton* proceedBtn = new QPushButton("Proceed", base);
@@ -145,7 +145,7 @@ void ESCurrentBills::slotSearch()
 			layout->addWidget(proceedBtn);
 			layout->insertStretch(2);
 			base->setLayout(layout);
-			ui.tableWidget->setCellWidget(row, 6, base);
+			ui.tableWidget->setCellWidget(row, 5, base);
 			base->show();
 		}
 			break;
@@ -155,7 +155,7 @@ void ESCurrentBills::slotSearch()
 			tableItem = new QTableWidgetItem("CANCELED");
 			tableItem->setTextAlignment(Qt::AlignHCenter);
 			tableItem->setBackgroundColor(rowColor);
-			ui.tableWidget->setItem(row, 5, tableItem);
+			ui.tableWidget->setItem(row, 4, tableItem);
 		}
 			break;
 		default:
@@ -164,7 +164,7 @@ void ESCurrentBills::slotSearch()
 			tableItem = new QTableWidgetItem("UNSPECIFIED");
 			tableItem->setTextAlignment(Qt::AlignHCenter);
 			tableItem->setBackgroundColor(rowColor);
-			ui.tableWidget->setItem(row, 5, tableItem);
+			ui.tableWidget->setItem(row, 4, tableItem);
 		}
 			
 			break;
@@ -173,35 +173,30 @@ void ESCurrentBills::slotSearch()
 		tableItem = new QTableWidgetItem(billId);
 		tableItem->setBackgroundColor(rowColor);
 		ui.tableWidget->setItem(row, 0, tableItem);
-		QDateTime datetime = QDateTime::fromString(allBillQuery.value(1).toString(), Qt::ISODate);
+		QDateTime datetime = QDateTime::fromString(allBillQuery.value("date").toString(), Qt::ISODate);
 		tableItem = new QTableWidgetItem(datetime.toString(Qt::SystemLocaleShortDate));
 		tableItem->setBackgroundColor(rowColor);
 		ui.tableWidget->setItem(row, 1, tableItem);
 
-		QString pmQueryStr("SELECT * FROM payment_method WHERE type_id=");
-		pmQueryStr.append(allBillQuery.value(4).toString());
-		QSqlQuery pmQuery(pmQueryStr);
-		if (pmQuery.first())
+
+		QSqlQuery qSales("SELECT SUM(total) as GTot FROM sale WHERE bill_id = " + billId);
+		if (qSales.next())
 		{
-			tableItem = new QTableWidgetItem(pmQuery.value(1).toString());
-			tableItem->setTextAlignment(Qt::AlignHCenter);
+			tableItem = new QTableWidgetItem(QString::number(qSales.value("GTot").toFloat(), 'f', 2));
+			tableItem->setTextAlignment(Qt::AlignRight);
 			tableItem->setBackgroundColor(rowColor);
 			ui.tableWidget->setItem(row, 2, tableItem);
 		}
-		tableItem = new QTableWidgetItem(QString::number(allBillQuery.value(3).toFloat(), 'f', 2));
-		tableItem->setTextAlignment(Qt::AlignRight);
-		tableItem->setBackgroundColor(rowColor);
-		ui.tableWidget->setItem(row, 3, tableItem);
 
 		QString userQueryStr("SELECT * FROM user WHERE user_id=");
-		userQueryStr.append(allBillQuery.value(2).toString());
+		userQueryStr.append(allBillQuery.value("user_id").toString());
 		QSqlQuery userQuery(userQueryStr);
 		if (userQuery.first())
 		{
-			tableItem = new QTableWidgetItem(userQuery.value(1).toString());
+			tableItem = new QTableWidgetItem(userQuery.value("display_name").toString());
 			tableItem->setTextAlignment(Qt::AlignHCenter);
 			tableItem->setBackgroundColor(rowColor);
-			ui.tableWidget->setItem(row, 4, tableItem);
+			ui.tableWidget->setItem(row, 3, tableItem);
 		}
 	}
 
