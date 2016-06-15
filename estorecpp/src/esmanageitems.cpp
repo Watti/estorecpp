@@ -128,6 +128,7 @@ void ESManageItems::slotRemove(QString itemId)
 			{
 				ui.tableWidget->removeRow(0);
 			}
+			//pagination
 			QString displayQueryStr("SELECT * FROM Item WHERE deleted = 0");
 			displayQueryStr.append(" LIMIT ").append(QString::number(m_startingLimit));
 			displayQueryStr.append(" , ").append(QString::number(m_pageOffset));
@@ -279,12 +280,12 @@ void ESManageItems::slotSearch()
 			countQueryStr.append(" WHERE deleted = 0");
 		}
 	}
+	//pagination start
 	QSqlQuery queryCount(countQueryStr);
 	if (queryCount.next())
 	{
 		m_totalRecords = queryCount.value("c").toInt();
 	}
-	//pagination start
 	searchQuery.append(" LIMIT ").append(QString::number(m_startingLimit));
 	searchQuery.append(" , ").append(QString::number(m_pageOffset));
 	//pagination end

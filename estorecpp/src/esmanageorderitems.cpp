@@ -7,7 +7,8 @@
 #include "esaddorderitem.h"
 #include "esordercheckin.h"
 
-ESManageOrderItems::ESManageOrderItems(QWidget *parent/* = 0*/)
+ESManageOrderItems::ESManageOrderItems(QWidget *parent/* = 0*/) : 
+m_startingLimit(0), m_pageOffset(15), m_nextCounter(0), m_maxNextCount(0)
 {
 	ui.setupUi(this);
 
@@ -20,6 +21,8 @@ ESManageOrderItems::ESManageOrderItems(QWidget *parent/* = 0*/)
 	QObject::connect(ui.supplierSearch, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
 	QObject::connect(ui.addOrderItemBtn, SIGNAL(clicked()), this, SLOT(slotAddNewOrderItem()));
 	QObject::connect(ui.showAllOrders, SIGNAL(stateChanged(int)), this, SLOT(slotSearch()));
+	QObject::connect(ui.nextBtn, SIGNAL(clicked()), this, SLOT(slotNext()));
+	QObject::connect(ui.prevBtn, SIGNAL(clicked()), this, SLOT(slotPrev()));
 
 	QStringList headerLabels;
 	headerLabels.append("Order ID");	
@@ -68,7 +71,6 @@ void ESManageOrderItems::slotAddNewOrderItem()
 
 void ESManageOrderItems::slotSearch()
 {
-
 	QString searchUser = ui.userSearch->text();
 	QString searchSupplier = ui.supplierSearch->text();
 
@@ -88,37 +90,56 @@ void ESManageOrderItems::slotSearch()
 		supplierGiven = true;
 	}
 
-	QString searchQuery = "SELECT * FROM purchase_order WHERE deleted = 0 ";
+	QString searchQuery = "(SELECT * FROM purchase_order WHERE deleted = 0 ";
+	QString countQueryStr = "SELECT COUNT(*) AS c FROM purchase_order WHERE deleted = 0 ";//to count no of records in the above query
 	if (!ui.showAllOrders->isChecked())
 	{
 		searchQuery.append("AND checked_in = 0");
+		countQueryStr.append("AND checked_in = 0");
 	}
 
 	if (!supplierGiven && userGiven)
 	{
-		searchQuery = "SELECT * FROM purchase_order so, user u WHERE so.user_id = u.user_id AND u.username LIKE '%" + searchUser + "%' AND so.deleted = 0 ";
+		searchQuery = "(SELECT * FROM purchase_order so, user u WHERE so.user_id = u.user_id AND u.username LIKE '%" + searchUser + "%' AND so.deleted = 0 ";
+		countQueryStr = "SELECT COUNT(*) as c FROM purchase_order so, user u WHERE so.user_id = u.user_id AND u.username LIKE '%" + searchUser + "%' AND so.deleted = 0 ";
+		if (!ui.showAllOrders->isChecked())
 		if (!ui.showAllOrders->isChecked())
 		{
 			searchQuery.append("AND checked_in = 0");
+			countQueryStr.append("AND checked_in = 0");
 		}
 	}
 	else if (supplierGiven && !userGiven)
 	{
-		searchQuery = "SELECT * FROM purchase_order so, item i WHERE so.item_id = i.item_id AND i.item_code LIKE '%" + searchSupplier + "%' AND so.deleted = 0 ";
+		searchQuery = "(SELECT * FROM purchase_order so, item i WHERE so.item_id = i.item_id AND i.item_code LIKE '%" + searchSupplier + "%' AND so.deleted = 0 ";
+		countQueryStr = "SELECT COUNT(*) as c FROM purchase_order so, item i WHERE so.item_id = i.item_id AND i.item_code LIKE '%" + searchSupplier + "%' AND so.deleted = 0 ";
 		if (!ui.showAllOrders->isChecked())
 		{
 			searchQuery.append("AND checked_in = 0");
+			countQueryStr.append("AND checked_in = 0");
 		}
 	}
 	else if (supplierGiven && userGiven)
 	{
-		searchQuery = "SELECT * FROM purchase_order so, user u , item i WHERE (so.user_id = u.user_id AND so.item_id = i.item_id) AND u.username LIKE '%" + searchUser + "%' AND i.item_code LIKE '%" + searchSupplier + "%' AND so.deleted = 0 ";
+		searchQuery = "(SELECT * FROM purchase_order so, user u , item i WHERE (so.user_id = u.user_id AND so.item_id = i.item_id) AND u.username LIKE '%" + searchUser + "%' AND i.item_code LIKE '%" + searchSupplier + "%' AND so.deleted = 0 ";
+		countQueryStr = "SELECT COUNT(*) as c FROM purchase_order so, user u , item i WHERE (so.user_id = u.user_id AND so.item_id = i.item_id) AND u.username LIKE '%" + searchUser + "%' AND i.item_code LIKE '%" + searchSupplier + "%' AND so.deleted = 0 ";
 		if (!ui.showAllOrders->isChecked())
 		{
 			searchQuery.append("AND checked_in = 0");
+			countQueryStr.append("AND checked_in = 0");
 		}
 	}
 	ui.tableWidget->setSortingEnabled(false);
+	searchQuery.append(") ORDER BY order_date DESC ");
+	//pagination start
+	QSqlQuery queryCount(countQueryStr);
+	if (queryCount.next())
+	{
+		m_totalRecords = queryCount.value("c").toInt();
+	}
+	searchQuery.append(" LIMIT ").append(QString::number(m_startingLimit));
+	searchQuery.append(" , ").append(QString::number(m_pageOffset));
+	//pagination end
 	QSqlQuery queryItems(searchQuery);
 	displayItems(queryItems);
 	ui.tableWidget->setSortingEnabled(true);
@@ -126,6 +147,19 @@ void ESManageOrderItems::slotSearch()
 
 void ESManageOrderItems::displayItems(QSqlQuery& queryOrder)
 {
+	//pagination start
+	m_maxNextCount = m_totalRecords / m_pageOffset;
+
+	if (m_maxNextCount > m_nextCounter)
+	{
+		ui.nextBtn->setEnabled(true);
+	}
+	int currentlyShowdItemCount = (m_nextCounter + 1)*m_pageOffset;
+	if (currentlyShowdItemCount >= m_totalRecords)
+	{
+		ui.nextBtn->setDisabled(true);
+	}
+	//pagination end
 	int row = 0;
 	while (queryOrder.next())
 	{
@@ -230,8 +264,43 @@ void ESManageOrderItems::slotRemove(QString order_id)
 			{
 				ui.tableWidget->removeRow(0);
 			}
-			QSqlQuery displayQuery("SELECT * from purchase_order WHERE deleted = 0");
+
+			QString displayQueryStr("(SELECT * from purchase_order WHERE deleted = 0 ) ORDER BY order_date DESC ");
+			displayQueryStr.append(" LIMIT ").append(QString::number(m_startingLimit));
+			displayQueryStr.append(" , ").append(QString::number(m_pageOffset));
+			QSqlQuery countQuery("SELECT COUNT(*) as c FROM purchase_order WHERE deleted = 0");
+			if (countQuery.next())
+			{
+				m_totalRecords = countQuery.value("c").toInt();
+			}
+			QSqlQuery displayQuery(displayQueryStr);
 			displayItems(displayQuery);
 		}
 	}
+}
+
+void ESManageOrderItems::slotPrev()
+{
+	if (m_nextCounter == 1)
+	{
+		ui.prevBtn->setDisabled(true);
+	}
+	if (m_nextCounter > 0)
+	{
+		m_nextCounter--;
+		m_startingLimit -= m_pageOffset;
+		ui.nextBtn->setEnabled(true);
+	}
+	slotSearch();
+}
+
+void ESManageOrderItems::slotNext()
+{
+	if (m_nextCounter < m_maxNextCount)
+	{
+		m_nextCounter++;
+		ui.prevBtn->setEnabled(true);
+		m_startingLimit += m_pageOffset;
+	}
+	slotSearch();
 }
