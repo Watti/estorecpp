@@ -93,6 +93,9 @@ void ESManageUsers::slotUpdate()
 			mbox.setText(QString("Password updated"));
 			mbox.exec();
 			slotRoleSearch();
+			ui.usernameText->setText("");
+			ui.passwordText->setText("");
+			ui.displayNameText->setText("");
 		}
 		else
 		{
@@ -122,6 +125,9 @@ void ESManageUsers::slotAdd()
 		mbox.setIcon(QMessageBox::Information);
 		mbox.setText(QString("New user registered"));
 		mbox.exec();
+		ui.usernameText->setText("");
+		ui.passwordText->setText("");
+		ui.displayNameText->setText("");
 		slotRoleSearch();
 	}
 	else
