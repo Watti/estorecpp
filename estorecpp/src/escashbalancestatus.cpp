@@ -81,27 +81,30 @@ void ESCashBalanceStatus::displayStatus()
 			ui.tableWidget->setItem(row, 2, amountWidget);
 		}
 	}
-	QSqlQuery billQueary("SELECT SUM(amount) as totalAmount, user_id FROM payment as p JOIN bill as b ON p.bill_id = b.bill_id WHERE b.status = 1 AND p.payment_type_id = 1 AND b.deleted = 0 AND b.user_id = "+QString::number(userId)+" GROUP BY DATE(`date`)");
+	QSqlQuery billQueary("SELECT SUM(amount) as totalAmount, user_id FROM payment as p JOIN bill as b ON p.bill_id = b.bill_id WHERE b.status = 1 AND p.payment_type_id = 1 AND b.deleted = 0 AND b.user_id = "+QString::number(userId)+" AND b.date >= CURDATE() - INTERVAL 1 DAY");
 	while (billQueary.next())
 	{
-		row = ui.tableWidget->rowCount();
-		ui.tableWidget->insertRow(row);
 		float totalCashSales = billQueary.value("totalAmount").toFloat();
-		handOver += totalCashSales;
-		QString userId = billQueary.value("user_id").toString();
-		QString paymentMethod = billQueary.value(1).toString();
-		QSqlQuery paymentQuery("SELECT type FROM payment WHERE type_id = " + paymentMethod);
-		QTableWidgetItem* tWidget = new QTableWidgetItem("(+)");
-		tWidget->setBackgroundColor(green);
-		ui.tableWidget->setItem(row, 0, tWidget);
+		if (totalCashSales > 0)
+		{
+			row = ui.tableWidget->rowCount();
+			ui.tableWidget->insertRow(row);
+			handOver += totalCashSales;
+			QString userId = billQueary.value("user_id").toString();
+			QString paymentMethod = billQueary.value(1).toString();
+			QSqlQuery paymentQuery("SELECT type FROM payment WHERE type_id = " + paymentMethod);
+			QTableWidgetItem* tWidget = new QTableWidgetItem("(+)");
+			tWidget->setBackgroundColor(green);
+			ui.tableWidget->setItem(row, 0, tWidget);
 
-		QTableWidgetItem* descWidget = new QTableWidgetItem("Total Sales");
-		descWidget->setBackgroundColor(green);
-		ui.tableWidget->setItem(row, 1, descWidget);
+			QTableWidgetItem* descWidget = new QTableWidgetItem("Total Sales");
+			descWidget->setBackgroundColor(green);
+			ui.tableWidget->setItem(row, 1, descWidget);
 
-		QTableWidgetItem* amountWidget = new QTableWidgetItem(QString::number(totalCashSales, 'f', 2));
-		amountWidget->setBackgroundColor(green);
-		ui.tableWidget->setItem(row, 2, amountWidget);
+			QTableWidgetItem* amountWidget = new QTableWidgetItem(QString::number(totalCashSales, 'f', 2));
+			amountWidget->setBackgroundColor(green);
+			ui.tableWidget->setItem(row, 2, amountWidget);
+		}
 	}
 
 	//Expenses

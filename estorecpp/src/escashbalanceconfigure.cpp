@@ -85,10 +85,10 @@ Ui::CashBalanceConfigure& ESCashBalanceConfigure::getUI()
 // 	}
 // }
 
-void ESCashBalanceConfigure::exit()
-{
-	this->close();
-}
+// void ESCashBalanceConfigure::exit()
+// {
+// 	this->close();
+// }
 
 void ESCashBalanceConfigure::slotPettyCash()
 {
@@ -129,4 +129,12 @@ void ESCashBalanceConfigure::slotPettyCash()
 		mbox.exec();
 		return;
 	}
+
+	QMessageBox mbox;
+	mbox.setIcon(QMessageBox::Information);
+	mbox.setText(QString("Successfully saved the information"));
+	mbox.exec();
+	ui.pettyCashAmount->setText("");
+	ui.pettyCashRemarks->setText("");
+
 }
