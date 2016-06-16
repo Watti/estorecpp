@@ -465,7 +465,7 @@
            </font>
           </property>
           <property name="text">
-           <string>Single Payment</string>
+           <string>Regular Payment</string>
           </property>
          </widget>
         </item>
@@ -489,7 +489,7 @@
            </font>
           </property>
           <property name="text">
-           <string>Multiple Payment</string>
+           <string>Advanced Payment</string>
           </property>
          </widget>
         </item>
