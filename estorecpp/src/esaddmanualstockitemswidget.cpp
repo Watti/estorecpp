@@ -30,7 +30,8 @@ ESAddManualStockItems::ESAddManualStockItems(QWidget *parent /*= 0*/)
 
 	QObject::connect(ui.tableWidget, SIGNAL(cellClicked(int, int)), this, SLOT(slotItemSelected(int, int)));
 	QObject::connect(ui.addToStockBtn, SIGNAL(clicked()), this, SLOT(slotAddToStock()));
-
+	QObject::connect(ui.searchTextBox, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
+	QObject::connect(ui.categoryComboBox, SIGNAL(activated(QString)), this, SLOT(slotSearch()));
 	if (!ES::DbConnection::instance()->open())
 	{
 		QMessageBox mbox;
@@ -76,12 +77,12 @@ void ESAddManualStockItems::slotSearch()
 
 	if (!text.isEmpty())
 	{
-		q.append("AND (item.item_code LIKE '%");
+		q.append("AND (item_category.itemcategory_code LIKE '%");
 		q.append(text);
-		q.append("%' OR item.item_name LIKE '%");
-		q.append(text);
-		q.append("%' OR item.description LIKE '%");
-		q.append(text);
+// 		q.append("%' OR item.item_name LIKE '%");
+// 		q.append(text);
+// 		q.append("%' OR item.description LIKE '%");
+// 		q.append(text);
 		q.append("%') ");
 	}
 	if (!selectedCategory.isEmpty() && selectedCategory != DEFAULT_DB_COMBO_VALUE)
@@ -90,7 +91,10 @@ void ESAddManualStockItems::slotSearch()
 		q.append(selectedCategory);
 		q.append("' ");
 	}
-
+	if (text.isEmpty())
+	{
+		q.append(" LIMIT 25");
+	}
 	QSqlQuery query;
 	if (!query.exec(q))
 	{
