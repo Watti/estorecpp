@@ -407,15 +407,6 @@
     <ClCompile Include="GeneratedFiles\Release\moc_tabletextwidget.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
-    <ClCompile Include="src\esfooter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_esfooter.cpp">
-      <Filter>Generated Files\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_esfooter.cpp">
-      <Filter>Generated Files\Release</Filter>
-    </ClCompile>
     <ClCompile Include="GeneratedFiles\qrc_test.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
@@ -637,12 +628,6 @@
     <CustomBuild Include="includes\entities\tabletextwidget.h">
       <Filter>Header Files\enities</Filter>
     </CustomBuild>
-    <CustomBuild Include="footer.ui">
-      <Filter>Form Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="includes\esfooter.h">
-      <Filter>Header Files</Filter>
-    </CustomBuild>
     <CustomBuild Include="test.qrc">
       <Filter>Resource Files</Filter>
     </CustomBuild>
@@ -765,9 +750,6 @@
     <ClInclude Include="GeneratedFiles\ui_multiplepayment.h">
       <Filter>Generated Files</Filter>
     </ClInclude>
-    <ClInclude Include="GeneratedFiles\ui_footer.h">
-      <Filter>Generated Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="icons\manage_item_categories.png">
@@ -792,9 +774,6 @@
       <Filter>Icons</Filter>
     </Image>
     <Image Include="icons\usb.png">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="icons\powered by.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

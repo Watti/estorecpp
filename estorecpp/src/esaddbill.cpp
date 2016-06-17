@@ -104,9 +104,13 @@ ESAddBill::ESAddBill(QWidget *parent)
 		mbox.exec();
 	}
 
+	ui.billIdLabel->setText("###");
 	ui.billedByLabel->setText(ES::Session::getInstance()->getUser()->getName());
 	ui.branchLabel->setText(ES::Session::getInstance()->getBranchName());
-	ui.billIdLabel->setText("###");
+	if (ES::Session::getInstance()->isBillStarted())
+	{
+		ui.billIdLabel->setText(ES::Session::getInstance()->getBillId());
+	}
 
 	// TODO: prompt code should be added
 	checkAndContinuePendingBill();

@@ -206,7 +206,9 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	mmgr->addMenuActionMapping("Reports", "Sales");
 	mmgr->addMenuActionMapping("Reports", "Stocks");
 
-	mmgr->disableAll();
+	//mmgr->disableAll();
+	QString perms = "";
+	ES::MenuManager::instance()->reload(perms);
 
 	slotLogin();
 
@@ -359,8 +361,11 @@ void ESMainWindow::slotProfile()
 
 void ESMainWindow::slotLogout()
 {
-	//check for pending bills
-	checkForPendingBills();
+	ES::Session::getInstance()->invalidate();
+
+	ESLoginWidget* loginWidget = new ESLoginWidget(this);
+	this->setCentralWidget(loginWidget);
+	loginWidget->show();
 }
 
 void ESMainWindow::slotManageUsers()
@@ -378,18 +383,11 @@ void ESMainWindow::reloadMenus()
 void ESMainWindow::closeEvent(QCloseEvent *event)
 {
 	//check for pending bills
-	checkForPendingBills();
+	ES::Session::getInstance()->invalidate();
 
 	event->accept();
 }
 
-void ESMainWindow::checkForPendingBills()
-{
-	if (ES::Session::getInstance()->isBillStarted())
-	{
-		
-	}
-}
 
 void ESMainWindow::slotShowCalculator()
 {	

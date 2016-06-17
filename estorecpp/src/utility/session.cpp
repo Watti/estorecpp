@@ -1,5 +1,6 @@
 #include "utility/session.h"
 #include <crtdbg.h>
+#include "utility/esmenumanager.h"
 
 namespace ES
 {
@@ -77,6 +78,15 @@ namespace ES
 	void Session::setBranchName(const QString& val)
 	{
 		m_branchName = val;
+	}
+
+	void Session::invalidate()
+	{
+		QString perms = "";
+		ES::MenuManager::instance()->reload(perms);
+
+		delete m_user;
+		m_user = NULL;
 	}
 
 }
