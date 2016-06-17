@@ -397,9 +397,9 @@ void ESMultiplePayment::slotCalculateInterest()
 		}
 	}
 
-	double amount = ui.netAmountLbl->text().toDouble();
-	double newAmount = amount*(100 + interest) / 100;
-	ui.totalBillLbl->setText(QString::number(newAmount, 'f', 2));
+	double netAmount = ui.netAmountLbl->text().toDouble();
+	double newAmount = newAmount + netAmount * (interest / 100);
+	ui.netAmountLbl->setText(QString::number(newAmount, 'f', 2));
 
 }
 
