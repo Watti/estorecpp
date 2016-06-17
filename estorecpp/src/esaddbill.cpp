@@ -15,13 +15,38 @@
 
 namespace
 {
-	QString convertToPriceFormat(QString text)
+	QString convertToPriceFormat(QString text, QString iCode)
 	{
-		double val = text.toDouble();
-		return QString::number(val, 'f', 2);
+		QString retVal("0");
+ 		bool isValid = false;
+ 		double reducedPrice = text.toDouble(&isValid);
+	
+		if (isValid)
+		{
+			QString qryStr("SELECT item_id FROM item WHERE deleted = 0 AND item_code = '"+iCode+"'");
+			QSqlQuery itemQuery(qryStr);
+			if (itemQuery.next())
+			{
+				QString itemId = itemQuery.value("item_id").toString();
+				QString stockQryStr("SELECT selling_price FROM stock WHERE item_id = '" + itemId+"'");
+				QSqlQuery queryStock(stockQryStr);
+				if (queryStock.next())
+				{
+					double sellingPrice = queryStock.value("selling_price").toDouble();
+					if (sellingPrice > reducedPrice)
+					{
+						//TODO error message has to be shown
+						reducedPrice = sellingPrice;
+					}
+
+				}
+			}
+		}
+		return QString::number(reducedPrice, 'f', 2);
+
 	}
 
-	QString convertToQuantityFormat(QString text)
+	QString convertToQuantityFormat(QString text, QString itemCode)
 	{
 // 		double val = text.toDouble();
 // 		return QString::number(val, 'f', 3);

@@ -41,7 +41,8 @@ void TableTextWidget::keyPressEvent(QKeyEvent* evt)
 
 void TableTextWidget::slotFinish()
 {
-	QString str = (m_formatterFunc) ? m_formatterFunc(text()) : text();
+	QString itemCode = m_table->item(m_row, 0)->text();
+	QString str = (m_formatterFunc) ? m_formatterFunc(text(), itemCode) : text();
 
 	QTableWidgetItem* priceItem = new QTableWidgetItem(str);
 	priceItem->setTextAlignment(Qt::AlignRight);

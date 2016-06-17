@@ -12,7 +12,7 @@ class TableTextWidget : public QLineEdit
 	Q_OBJECT
 
 public:
-	typedef QString(*TextFormatterFunc)(QString);
+	typedef QString(*TextFormatterFunc)(QString, QString);
 
 	TableTextWidget(QTableWidget* table, int row, int col, QWidget* parent = 0);
 	~TableTextWidget();

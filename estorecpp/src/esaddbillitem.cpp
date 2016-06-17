@@ -11,7 +11,7 @@
 
 namespace
 {
-	QString convertToQuantityFormat(QString text)
+	QString convertToQuantityFormat(QString text, QString)
 	{
 // 		double val = text.toDouble();
 // 		return QString::number(val, 'f', 3);
