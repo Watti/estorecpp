@@ -76,6 +76,7 @@ ESMultiplePayment::ESMultiplePayment(QWidget *parent /*= 0*/) : QWidget(parent)
 
 	QObject::connect(ui.cashText, SIGNAL(textChanged(QString)), this, SLOT(slotCalculateBalance()));
 	QObject::connect(ui.addBtn, SIGNAL(clicked()), this, SLOT(slotAdd()));
+	QObject::connect(ui.okBtn, SIGNAL(clicked()), this, SLOT(slotOk()));
 
 	new QShortcut(QKeySequence(Qt::Key_Escape), this, SLOT(close()));
 	setMinimumWidth(900);
@@ -371,4 +372,12 @@ void ESMultiplePayment::slotRemove(int row)
 	
 }
 
+void ESMultiplePayment::slotOk()
+{
+	int rowCount = ui.tableWidget->rowCount();
+	for (int i = 0; i < rowCount; ++i)
+	{
+		QTableWidgetItem* item = ui.tableWidget->item(i, 7);
+	}
+}
 

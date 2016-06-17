@@ -22,6 +22,7 @@ public:
 	void slotCalculateBalance();
 	void slotAdd();
 	void slotRemove(int row);
+	void slotOk();
 
 private:
 	bool validate();

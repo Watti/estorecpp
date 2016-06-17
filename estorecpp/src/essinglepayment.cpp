@@ -23,6 +23,9 @@ ESSinglePayment::ESSinglePayment(ESAddBill* addBill, QWidget *parent /*= 0*/) : 
 	ui.txt2->hide();
 	ui.dateEdit->hide();
 
+	ui.label_4->hide();
+	ui.lineEdit->hide();
+
 	ui.paymentType->setText("Cash :  ");
 
 	ui.cashBtn->setIcon(QIcon("icons/cash_payment1.png"));
@@ -79,7 +82,7 @@ void ESSinglePayment::slotSearch()
 void ESSinglePayment::slotCalculateBalance()
 {
 	bool isValid = false;
-	double cash = 0, cardAmount = 0;
+	double cash = 0;
 	if (!ui.cashText->text().isEmpty())
 	{
 		cash = ui.cashText->text().toDouble(&isValid);
@@ -94,26 +97,9 @@ void ESSinglePayment::slotCalculateBalance()
 		}
 	}
 
-	//if (ui.paymentMethodCombo->currentText() == "LOYALTY CARD" || ui.paymentMethodCombo->currentText() == "CREDIT CARD")
-	{
-		/*if (!ui.cardAmountText->text().isEmpty())
-		{
-		cardAmount = ui.cardAmountText->text().toDouble(&isValid);
-
-		if (!isValid)
-		{
-		QMessageBox mbox;
-		mbox.setIcon(QMessageBox::Warning);
-		mbox.setText(QString("Invalid input - Card Amount"));
-		mbox.exec();
-		ui.cardAmountText->clear();
-		return;
-		}
-		}*/
-	}
 	double amount = ui.totalBillLbl->text().toDouble();
 
-	ui.balanceLbl->setText(QString::number(cash - (amount - cardAmount), 'f', 2));
+	ui.balanceLbl->setText(QString::number(cash - amount, 'f', 2));
 
 	if (ui.cashText->text().isEmpty())
 	{
@@ -297,6 +283,9 @@ void ESSinglePayment::slotPaymentMethodSelected()
 		ui.chequeBtn->setChecked(false);
 		ui.creditCardBtn->setChecked(false);
 		ui.loyalityCardBtn->setChecked(false);
+
+		ui.label_4->show();
+		ui.lineEdit->show();
 	}
 	else if (ui.chequeBtn == sender())
 	{
@@ -319,6 +308,9 @@ void ESSinglePayment::slotPaymentMethodSelected()
 		ui.loyalityCardBtn->setChecked(false);
 
 		ui.paymentType->setText("Amount :  ");
+
+		ui.label_4->show();
+		ui.lineEdit->show();
 	}
 	else if (ui.creditCardBtn == sender())
 	{
@@ -339,6 +331,9 @@ void ESSinglePayment::slotPaymentMethodSelected()
 		ui.chequeBtn->setChecked(false);
 		ui.creditBtn->setChecked(false);
 		ui.loyalityCardBtn->setChecked(false);
+
+		ui.label_4->show();
+		ui.lineEdit->show();
 	}
 	else if (ui.loyalityCardBtn == sender())
 	{
@@ -359,6 +354,9 @@ void ESSinglePayment::slotPaymentMethodSelected()
 		ui.chequeBtn->setChecked(false);
 		ui.creditCardBtn->setChecked(false);
 		ui.creditBtn->setChecked(false);
+
+		ui.label_4->show();
+		ui.lineEdit->show();
 	}
 	else if (ui.cashBtn == sender())
 	{
@@ -378,6 +376,9 @@ void ESSinglePayment::slotPaymentMethodSelected()
 		ui.chequeBtn->setChecked(false);
 		ui.creditCardBtn->setChecked(false);
 		ui.loyalityCardBtn->setChecked(false);
+
+		ui.label_4->hide();
+		ui.lineEdit->hide();
 	}
 
 	//resize(400, 1);
