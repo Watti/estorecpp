@@ -416,6 +416,9 @@
     <ClCompile Include="GeneratedFiles\Release\moc_esfooter.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
+    <ClCompile Include="GeneratedFiles\qrc_test.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="esmainwindow.ui">
@@ -640,6 +643,9 @@
     <CustomBuild Include="includes\esfooter.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
+    <CustomBuild Include="test.qrc">
+      <Filter>Resource Files</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="includes\utility\esdbconnection.h">
@@ -784,6 +790,12 @@
     </Image>
     <Image Include="icons\all_bills.png">
       <Filter>Icons</Filter>
+    </Image>
+    <Image Include="icons\usb.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="icons\powered by.png">
+      <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
 </Project>

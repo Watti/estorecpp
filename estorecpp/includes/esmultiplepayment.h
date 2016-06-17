@@ -3,13 +3,14 @@
 
 #include "ui_multiplepayment.h"
 #include <QtGui>
+#include "esaddbill.h"
 
 class ESMultiplePayment : public QWidget
 {
 	Q_OBJECT
 
 public:
-	ESMultiplePayment(QWidget *parent = 0);
+	ESMultiplePayment(ESAddBill* addBill, QWidget *parent = 0);
 
 	~ESMultiplePayment();
 
@@ -22,14 +23,18 @@ public:
 	void slotCalculateBalance();
 	void slotAdd();
 	void slotRemove(int row);
-	void slotOk();
+	void slotFinalizeBill();
 
 private:
 	bool validate();
+	void finishBill(double netAmount, int billId);
+	void printBill(int billId, float total);
+
 	Ui::MultiplePaymentWidget ui;
 	QString m_customerId;
 	QString m_paymentType;
 	QSignalMapper* m_removeButtonSignalMapper;
+	ESAddBill* m_addBill;
 
 };
 

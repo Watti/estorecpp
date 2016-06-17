@@ -1,9 +1,11 @@
 #include "esmultiplepayment.h"
-#include "QMessageBox"
-#include "QShortcut"
+#include <QMessageBox>
+#include <QShortcut>
+#include <QSqlQuery>
 #include <string>
+#include "utility\session.h"
 
-ESMultiplePayment::ESMultiplePayment(QWidget *parent /*= 0*/) : QWidget(parent)
+ESMultiplePayment::ESMultiplePayment(ESAddBill* addBill, QWidget *parent /*= 0*/) : QWidget(parent), m_addBill(addBill)
 {
 	m_customerId = "-1";
 	ui.setupUi(this);
@@ -76,7 +78,7 @@ ESMultiplePayment::ESMultiplePayment(QWidget *parent /*= 0*/) : QWidget(parent)
 
 	QObject::connect(ui.cashText, SIGNAL(textChanged(QString)), this, SLOT(slotCalculateBalance()));
 	QObject::connect(ui.addBtn, SIGNAL(clicked()), this, SLOT(slotAdd()));
-	QObject::connect(ui.okBtn, SIGNAL(clicked()), this, SLOT(slotOk()));
+	QObject::connect(ui.okBtn, SIGNAL(clicked()), this, SLOT(slotFinalizeBill()));
 
 	new QShortcut(QKeySequence(Qt::Key_Escape), this, SLOT(close()));
 	setMinimumWidth(900);
@@ -372,12 +374,266 @@ void ESMultiplePayment::slotRemove(int row)
 	
 }
 
-void ESMultiplePayment::slotOk()
+void ESMultiplePayment::slotFinalizeBill()
 {
+	// 	headerLabels.append("Payment Type");
+	// 	headerLabels.append("Amount");
+	// 	headerLabels.append("Interest");
+	// 	headerLabels.append("Due Date");
+	// 	headerLabels.append("Number");
+	// 	headerLabels.append("Bank");
+	// 	headerLabels.append("Actions");
+	QString billIdStr = ES::Session::getInstance()->getBillId();
+	int billId = billIdStr.toInt();
+	double totalNetAmount = 0;
+	{
+		int rowCount = ui.tableWidget->rowCount();
+		for (int i = 0; i < rowCount; ++i)
+		{
+			totalNetAmount += ui.tableWidget->item(i, 1)->text().toDouble();
+		}
+	}
+
 	int rowCount = ui.tableWidget->rowCount();
 	for (int i = 0; i < rowCount; ++i)
 	{
-		QTableWidgetItem* item = ui.tableWidget->item(i, 7);
+		double amount = ui.tableWidget->item(i, 1)->text().toDouble();
+		
+		QTableWidgetItem* paymentTypeItem = ui.tableWidget->item(i, 0);
+		if (paymentTypeItem)
+		{
+			if (paymentTypeItem->text() == "CASH")
+			{
+				QSqlQuery query;
+				query.prepare("INSERT INTO payment (bill_id, payment_type, total_amount) VALUES (?, 'CASH', ?)");
+				query.addBindValue(billId);
+				query.addBindValue(totalNetAmount);
+				if (query.exec())
+				{
+					int lastInsertedId = query.lastInsertId().toInt();
+					QSqlQuery q;
+					q.prepare("INSERT INTO cash (payment_id, amount) VALUES (?, ?)");
+					q.addBindValue(lastInsertedId);
+					q.addBindValue(amount);
+					if (!q.exec())
+					{
+						QMessageBox mbox;
+						mbox.setIcon(QMessageBox::Critical);
+						mbox.setText(QString("Failed"));
+						mbox.exec();
+					}
+				}
+				else
+				{
+					QMessageBox mbox;
+					mbox.setIcon(QMessageBox::Critical);
+					mbox.setText(QString("Failed"));
+					mbox.exec();
+				}
+			}
+			else if (paymentTypeItem->text() == "CREDIT")
+			{
+				QSqlQuery query;
+				query.prepare("INSERT INTO payment (bill_id, payment_type, total_amount) VALUES (?, 'CREDIT', ?)");
+				query.addBindValue(billIdStr);
+				query.addBindValue(totalNetAmount);
+				if (query.exec())
+				{
+					int lastInsertedId = query.lastInsertId().toInt();
+					QSqlQuery q;
+					q.prepare("INSERT INTO credit (payment_id, amount, due_date) VALUES (?, ?, ?)");
+					q.addBindValue(lastInsertedId);
+					q.addBindValue(amount);
+					q.addBindValue(ui.tableWidget->item(i, 3)->text());
+					if (!q.exec())
+					{
+						QMessageBox mbox;
+						mbox.setIcon(QMessageBox::Critical);
+						mbox.setText(QString("Failed"));
+						mbox.exec();
+					}
+				}
+				else
+				{
+					QMessageBox mbox;
+					mbox.setIcon(QMessageBox::Critical);
+					mbox.setText(QString("Failed"));
+					mbox.exec();
+				}
+			}
+			else if (paymentTypeItem->text() == "CHEQUE")
+			{
+				QSqlQuery query;
+				query.prepare("INSERT INTO payment (bill_id, payment_type, total_amount) VALUES (?, 'CHEQUE', ?)");
+				query.addBindValue(billIdStr);
+				query.addBindValue(totalNetAmount);
+				if (query.exec())
+				{
+					int lastInsertedId = query.lastInsertId().toInt();
+					QSqlQuery q;
+					q.prepare("INSERT INTO cheque (payment_id, amount, cheque_number, bank, due_date) VALUES (?, ?, ?, ?, ?)");
+					q.addBindValue(lastInsertedId);
+					q.addBindValue(amount);
+					q.addBindValue(ui.tableWidget->item(i, 4)->text());
+					q.addBindValue(ui.tableWidget->item(i, 5)->text());
+					q.addBindValue(ui.tableWidget->item(i, 3)->text());
+					if (!q.exec())
+					{
+						QMessageBox mbox;
+						mbox.setIcon(QMessageBox::Critical);
+						mbox.setText(QString("Failed"));
+						mbox.exec();
+					}
+				}
+				else
+				{
+					QMessageBox mbox;
+					mbox.setIcon(QMessageBox::Critical);
+					mbox.setText(QString("Failed"));
+					mbox.exec();
+				}
+			}
+			else if (paymentTypeItem->text() == "CARD")
+			{
+				QSqlQuery query;
+				query.prepare("INSERT INTO payment (bill_id, payment_type, total_amount) VALUES (?, 'CARD', ?)");
+				query.addBindValue(billIdStr);
+				query.addBindValue(totalNetAmount);
+				if (query.exec())
+				{
+					int lastInsertedId = query.lastInsertId().toInt();
+					QSqlQuery q;
+					q.prepare("INSERT INTO card (payment_id, amount, card_no, interest) VALUES (?, ?, ?, ?)");
+					q.addBindValue(lastInsertedId);
+					q.addBindValue(amount);
+					q.addBindValue(ui.tableWidget->item(i, 4)->text());
+					q.addBindValue(ui.tableWidget->item(i, 2)->text());
+					if (!q.exec())
+					{
+						QMessageBox mbox;
+						mbox.setIcon(QMessageBox::Critical);
+						mbox.setText(QString("Failed"));
+						mbox.exec();
+					}
+				}
+				else
+				{
+					QMessageBox mbox;
+					mbox.setIcon(QMessageBox::Critical);
+					mbox.setText(QString("Failed"));
+					mbox.exec();
+				}
+			}
+			else if (paymentTypeItem->text() == "LOYALTY")
+			{
+				QSqlQuery query;
+				query.prepare("INSERT INTO payment (bill_id, payment_type, total_amount) VALUES (?, 'LOYALTY', ?)");
+				query.addBindValue(billIdStr);
+				query.addBindValue(totalNetAmount);
+				if (query.exec())
+				{
+					int lastInsertedId = query.lastInsertId().toInt();
+					QSqlQuery q;
+					q.prepare("INSERT INTO loyalty (payment_id, amount, card_no, interest) VALUES (?, ?, ?, ?)");
+					q.addBindValue(lastInsertedId);
+					q.addBindValue(amount);
+					q.addBindValue(ui.tableWidget->item(i, 4)->text());
+					q.addBindValue(ui.tableWidget->item(i, 2)->text());
+					if (!q.exec())
+					{
+						QMessageBox mbox;
+						mbox.setIcon(QMessageBox::Critical);
+						mbox.setText(QString("Failed"));
+						mbox.exec();
+					}
+				}
+				else
+				{
+					QMessageBox mbox;
+					mbox.setIcon(QMessageBox::Critical);
+					mbox.setText(QString("Failed"));
+					mbox.exec();
+				}
+			}
+		}
+	}
+
+	finishBill(totalNetAmount, billId);
+}
+
+void ESMultiplePayment::finishBill(double netAmount, int billId)
+{
+	QSqlQuery qq;
+	qq.prepare("UPDATE bill SET amount = ?, customer_id = ?, status = 1 WHERE bill_id = ?");
+	qq.addBindValue(netAmount);
+	qq.addBindValue(m_customerId);
+	qq.addBindValue(billId);
+	if (!qq.exec())
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Critical);
+		mbox.setText(QString("Failed"));
+		mbox.exec();
+	}
+	else
+	{
+		// Update stock quantity
+		QSqlQuery saleQuantityQuery;
+		saleQuantityQuery.prepare("SELECT * FROM sale WHERE bill_id = ?");
+		saleQuantityQuery.addBindValue(billId);
+		if (saleQuantityQuery.exec())
+		{
+			while (saleQuantityQuery.next())
+			{
+				QString stockId = saleQuantityQuery.value("stock_id").toString();
+				double quantity = saleQuantityQuery.value("quantity").toDouble();
+
+				QSqlQuery q("SELECT * FROM stock WHERE stock_id = " + stockId);
+				if (q.next())
+				{
+					double stockQuantity = q.value("qty").toDouble();
+					double remainingQty = stockQuantity - quantity;
+					QSqlQuery stockUpdateQuery;
+					stockUpdateQuery.prepare("UPDATE stock SET qty = ? WHERE stock_id = ?");
+					stockUpdateQuery.addBindValue(remainingQty);
+					stockUpdateQuery.addBindValue(stockId);
+					stockUpdateQuery.exec();
+
+					// stock quantity has been updated, match the update of the stock quantity 
+					// with the PO items in stock_purchase_order_item for profit calculation
+					// if multiple records are present first one will be updated
+					double qty = quantity;
+					QSqlQuery qq("SELECT * FROM stock_purchase_order_item WHERE stock_id = " + stockId);
+					while (qq.next())
+					{
+						QString id = qq.value("stock_po_item_id").toString();
+						double currentQty = qq.value("remaining_qty").toDouble();
+						if (qty <= currentQty)
+						{
+							QSqlQuery qqq("UPDATE stock_purchase_order_item SET remaining_qty = " +
+								QString::number(currentQty - qty, 'f', 2) + " WHERE stock_po_item_id = " + id);
+							break;
+						}
+						else
+						{
+							QSqlQuery qqq("UPDATE stock_purchase_order_item SET remaining_qty = 0 WHERE stock_po_item_id = " + id);
+							qty -= currentQty;
+						}
+					}
+				}
+
+			}
+		}
+
+		m_addBill->resetBill();
+
+		if (ui.doPrintCB->isChecked())
+		{
+			printBill(billId, netAmount);
+		}
 	}
 }
 
+void ESMultiplePayment::printBill(int billId, float total)
+{
+}
