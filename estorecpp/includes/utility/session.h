@@ -23,6 +23,7 @@ namespace ES
 		void setBackupPath(const QString& val);
 		QString getBranchName() const;
 		void setBranchName(const QString& val);
+		void invalidate();
 	private:
 		Session();
 		static Session* m_session;

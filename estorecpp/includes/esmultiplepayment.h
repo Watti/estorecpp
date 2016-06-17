@@ -23,6 +23,7 @@ public:
 	void slotAdd();
 	void slotRemove(int row);
 	void slotOk();
+	void slotCalculateInterest();
 
 private:
 	bool validate();

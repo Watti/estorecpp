@@ -35,8 +35,8 @@ void ESLoginWidget::slotLogin()
 	}
 	else
 	{
-		QString uName = "indunil";//ui.usernameText->text();
-		QString pWord = "123";/*ui.passwordText->text();*/
+		QString uName = ui.usernameText->text();
+		QString pWord = ui.passwordText->text();
 		QString encryptedPWrod = QString(QCryptographicHash::hash((pWord.toStdString().c_str()), QCryptographicHash::Md5).toHex());
 		QSqlQuery query("SELECT * FROM user WHERE username = '" + uName + "' AND password = '" + encryptedPWrod + "'");
 
@@ -45,11 +45,13 @@ void ESLoginWidget::slotLogin()
 			QString displayName = query.value(5).toString();
 			QString typeId = query.value(3).toString();
 			QSqlQuery query1("SELECT * FROM usertype WHERE usertype_id = " + typeId);
+			QString perms = "";
 			while (query1.next())
 			{
-				QString userType = query1.value(1).toString();
+				QString userType = query1.value("usertype_name").toString();
 				ES::User* user = new ES::User;
-				user->setId(query.value(0).toInt());
+				user->setId(query.value("usertype_id").toInt());
+				perms = query1.value("permission").toString();
 				user->setName(displayName);
 				if (userType.compare(QString("DEV")))
 				{
@@ -75,11 +77,11 @@ void ESLoginWidget::slotLogin()
 				session->setUser(user);
 
 				// for testing 
-				QString perms = "Stock,Items,Billing,Orders,Customers,Reports,Cash Balance,System,Business, \
-						Help, User, Manage Stock Items, Manage Items, Manage Item Categories, Return Items, \
-						Orders, Manage Order Items, Manage Suppliers, Manage Customers, View History, \
-						Add Bill, Current Bills, Configure, Show Status, General, Sales, Stocks, Settings, \
-						Backup & Restore, Offers, Gift Vouchers, Profile, Logout, Manage Users";
+// 				QString perms = "Stock,Items,Billing,Orders,Customers,Reports,Cash Balance,System,Business, \
+// 						Help, User, Manage Stock Items, Manage Items, Manage Item Categories, Return Items, \
+// 						Orders, Manage Order Items, Manage Suppliers, Manage Customers, View History, \
+// 						Add Bill, Current Bills, Configure, Show Status, General, Sales, Stocks, Settings, \
+// 						Backup & Restore, Offers, Gift Vouchers, Profile, Logout, Manage Users";
 				ES::MenuManager::instance()->reload(perms);
 
 				this->hide();

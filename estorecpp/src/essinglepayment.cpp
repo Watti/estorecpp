@@ -66,6 +66,7 @@ ESSinglePayment::ESSinglePayment(ESAddBill* addBill, QWidget *parent /*= 0*/) : 
 	new QShortcut(QKeySequence(Qt::Key_Escape), this, SLOT(close()));
 	//resize(400, 1);
 	adjustSize();
+	ui.dateEdit->setDate(QDate::currentDate());
 }
 
 ESSinglePayment::~ESSinglePayment()

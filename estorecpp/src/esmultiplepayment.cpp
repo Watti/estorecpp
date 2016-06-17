@@ -75,6 +75,7 @@ ESMultiplePayment::ESMultiplePayment(QWidget *parent /*= 0*/) : QWidget(parent)
 	QObject::connect(m_removeButtonSignalMapper, SIGNAL(mapped(int)), this, SLOT(slotRemove(int)));
 
 	QObject::connect(ui.cashText, SIGNAL(textChanged(QString)), this, SLOT(slotCalculateBalance()));
+	QObject::connect(ui.interestTxt, SIGNAL(textChanged(QString)), this, SLOT(slotCalculateInterest()));
 	QObject::connect(ui.addBtn, SIGNAL(clicked()), this, SLOT(slotAdd()));
 	QObject::connect(ui.okBtn, SIGNAL(clicked()), this, SLOT(slotOk()));
 
@@ -83,6 +84,7 @@ ESMultiplePayment::ESMultiplePayment(QWidget *parent /*= 0*/) : QWidget(parent)
 	setMinimumHeight(550);
 	//resize(900, 1);
 	adjustSize();
+	ui.dateEdit->setDate(QDate::currentDate());
 }
 
 ESMultiplePayment::~ESMultiplePayment()
@@ -126,11 +128,6 @@ void ESMultiplePayment::slotCalculateBalance()
 
 	double amount = ui.netAmountLbl->text().toDouble();
 	ui.balanceLbl->setText(QString::number(cash - amount, 'f', 2));
-
-	if (ui.cashText->text().isEmpty())
-	{
-		ui.balanceLbl->setText("0.00");
-	}
 }
 
 
@@ -379,5 +376,30 @@ void ESMultiplePayment::slotOk()
 	{
 		QTableWidgetItem* item = ui.tableWidget->item(i, 7);
 	}
+}
+
+void ESMultiplePayment::slotCalculateInterest()
+{
+	bool isValid = false;
+	double interest = 0.0;
+	QString interstStr = ui.interestTxt->text();
+	if (!interstStr.isEmpty())
+	{
+		interest = ui.interestTxt->text().toDouble(&isValid);
+		if (!isValid)
+		{
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Warning);
+			mbox.setText(QString("Invalid input - Interest"));
+			mbox.exec();
+			ui.cashText->clear();
+			return;
+		}
+	}
+
+	double amount = ui.netAmountLbl->text().toDouble();
+	double newAmount = amount*(100 + interest) / 100;
+	ui.totalBillLbl->setText(QString::number(newAmount, 'f', 2));
+
 }
 
