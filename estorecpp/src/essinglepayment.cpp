@@ -114,7 +114,7 @@ void ESSinglePayment::slotFinalizeBill()
 		return;
 
 	QString billIdStr = ES::Session::getInstance()->getBillId();
-	QString netAmountStr = ui.totalBillLbl->text();
+	QString netAmountStr = ui.netAmountLbl->text();
 	QString paymentType = "CASH";// ui.paymentMethodCombo->currentText();
 	bool isValid = false;
 
