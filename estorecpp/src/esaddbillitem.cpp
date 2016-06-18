@@ -161,11 +161,11 @@ void ESAddBillItem::addToBill(QString stockId)
 {
 	QString billId = ES::Session::getInstance()->getBillId();
 	QString lastInsertedID;
-	QSqlQuery queryStock("SELECT discount, selling_price FROM stock WHERE stock_id = " + stockId + " AND deleted = 0");
+	QSqlQuery queryStock("SELECT discount, retail_price FROM stock WHERE stock_id = " + stockId + " AND deleted = 0");
 	if (queryStock.next())
 	{
 		QString discount = queryStock.value("discount").toString();
-		QString itemPrice = queryStock.value("selling_price").toString();
+		QString itemPrice = queryStock.value("retail_price").toString();
 		QString q = "INSERT INTO sale (stock_id, bill_id, discount, item_price) VALUES(" + stockId + ", " + 
 			billId + ", " + discount + ", " + itemPrice + ")";
 		QSqlQuery query;
@@ -197,7 +197,7 @@ void ESAddBillItem::addToBill(QString stockId)
 		double itemPrice = queryBillTable.value("item_price").toDouble();
 		double quantity = queryBillTable.value("quantity").toDouble();
 
-		QSqlQuery queryItem("SELECT item.*, stock.selling_price, stock.discount FROM item JOIN stock ON item.item_id = stock.item_id WHERE stock.stock_id = " + stockId);
+		QSqlQuery queryItem("SELECT item.*, stock.retail_price, stock.discount FROM item JOIN stock ON item.item_id = stock.item_id WHERE stock.stock_id = " + stockId);
 		if (queryItem.first())
 		{
 			m_cart->getUI().tableWidget->setItem(row, 0, new QTableWidgetItem(queryItem.value("item_code").toString()));
