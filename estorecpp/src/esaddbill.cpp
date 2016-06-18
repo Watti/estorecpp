@@ -566,9 +566,19 @@ void ESAddBill::slotSellingPriceUpdated(QString txt, int row, int col)
 	{
 		QString saleId = item->text();
 		double itemPrice = txt.toDouble();
-		QSqlQuery saleQtyQuery("SELECT quantity FROM sale WHERE sale_id = " + saleId + " AND deleted = 0");
+		QSqlQuery saleQtyQuery("SELECT quantity, stock_id FROM sale WHERE sale_id = " + saleId + " AND deleted = 0");
 		if (saleQtyQuery.next())
 		{
+			QString stockId = saleQtyQuery.value("stock_id").toString();
+			QSqlQuery q("SELECT selling_price FROM stock WHERE stock_id = " + stockId);
+			if (q.next())
+			{
+				double stockPrice = q.value("selling_price").toDouble();
+				if (itemPrice < stockPrice)
+				{
+					itemPrice = stockPrice;
+				}
+			}
 			double qty = saleQtyQuery.value("quantity").toDouble();
 			double total = qty * itemPrice;
 			QSqlQuery updateQuery;
