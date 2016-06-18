@@ -582,6 +582,8 @@ void ESAddBill::slotSellingPriceUpdated(QString txt, int row, int col)
 			totalItem->setTextAlignment(Qt::AlignRight);
 			totalItem->setText(QString::number(total, 'f', 2));
 			ui.tableWidget->setItem(row, 5, totalItem);
+
+			calculateAndDisplayTotal();
 		}
 	}
 }
