@@ -418,6 +418,7 @@ void ESAddBill::slotCellDoubleClicked(int row, int col)
 		textWidget->setTextFormatterFunc(convertToPriceFormat);
 		textWidget->setText(price);
 		textWidget->selectAll();
+		QObject::connect(textWidget, SIGNAL(notifyEnterPressed(QString, int, int)), this, SLOT(slotSellingPriceUpdated(QString, int, int)));
 		ui.tableWidget->setCellWidget(row, col, textWidget);
 	}
 }
@@ -554,6 +555,33 @@ void ESAddBill::populateTable(QSqlQuery &queryBillTable)
 			ui.tableWidget->setCellWidget(row, 6, base);
 			base->show();
 			ui.tableWidget->setItem(row, 7, new QTableWidgetItem(saleId));
+		}
+	}
+}
+
+void ESAddBill::slotSellingPriceUpdated(QString txt, int row, int col)
+{
+	QTableWidgetItem* item = ui.tableWidget->item(row, 7);
+	if (item)
+	{
+		QString saleId = item->text();
+		double itemPrice = txt.toDouble();
+		QSqlQuery saleQtyQuery("SELECT quantity FROM sale WHERE sale_id = " + saleId + " AND deleted = 0");
+		if (saleQtyQuery.next())
+		{
+			double qty = saleQtyQuery.value("quantity").toDouble();
+			double total = qty * itemPrice;
+			QSqlQuery updateQuery;
+			updateQuery.prepare("UPDATE sale SET item_price = ?, total = ? WHERE sale_id = ?");
+			updateQuery.addBindValue(itemPrice);
+			updateQuery.addBindValue(total);
+			updateQuery.addBindValue(saleId);
+			updateQuery.exec();
+
+			QTableWidgetItem* totalItem = new QTableWidgetItem();
+			totalItem->setTextAlignment(Qt::AlignRight);
+			totalItem->setText(QString::number(total, 'f', 2));
+			ui.tableWidget->setItem(row, 5, totalItem);
 		}
 	}
 }

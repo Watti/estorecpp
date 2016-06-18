@@ -29,6 +29,7 @@ public:
 	void slotCellDoubleClicked(int row, int col);
 
 	void slotQuantityCellUpdated(QString txt, int row, int col);
+	void slotSellingPriceUpdated(QString txt, int row, int col);
 
 	void resetBill();
 	void proceedPendingBill(QString billId);
