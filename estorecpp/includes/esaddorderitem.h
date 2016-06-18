@@ -8,8 +8,6 @@
 
 class AddOrderItem : public QWidget
 {
-	Q_OBJECT
-
 public:
 	AddOrderItem(QWidget *parent = 0);
 	~AddOrderItem();

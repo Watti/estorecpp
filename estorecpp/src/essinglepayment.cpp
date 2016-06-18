@@ -577,10 +577,10 @@ void ESSinglePayment::printBill(int billId, float total)
 	QString billIdStr("Bill No : " + QString::number(billId));
 
 	KDReports::TextElement titleElement("HIRUNA MARKETING (PVT) LTD");
-	titleElement.setPointSize(15);
+	titleElement.setPointSize(14);
 	titleElement.setBold(true);
 	report.addElement(titleElement, Qt::AlignHCenter);
-	KDReports::TextElement addressElement("Godagama, Panagoda");
+	KDReports::TextElement addressElement("No.374, High level Road, Meegoda");
 	addressElement.setPointSize(11);
 	addressElement.setBold(false);
 	report.addElement(addressElement, Qt::AlignHCenter);
@@ -609,7 +609,7 @@ void ESSinglePayment::printBill(int billId, float total)
 		timeCell.addElement(t, Qt::AlignRight);
 	}
 
-	report.addVerticalSpacing(10);
+	report.addVerticalSpacing(9);
 
 	report.addElement(infoTableElement);
 
@@ -633,30 +633,30 @@ void ESSinglePayment::printBill(int billId, float total)
 	KDReports::Cell& cIName = tableElement.cell(0, 1);
 	KDReports::TextElement tEItem("Item");
 	tEItem.setBold(true);
-	tEItem.setPointSize(12);
+	tEItem.setPointSize(11);
 	cIName.addElement(tEItem);
 
 	KDReports::Cell& cPrice = tableElement.cell(0, 2);
 	KDReports::TextElement tEPrice("Unit Price");
-	tEPrice.setPointSize(12);
+	tEPrice.setPointSize(11);
 	tEPrice.setBold(true);
 	cPrice.addElement(tEPrice);
 
 	KDReports::Cell& cDiscount = tableElement.cell(0, 3);
 	KDReports::TextElement tEDiscount("Discount");
-	tEDiscount.setPointSize(12);
+	tEDiscount.setPointSize(11);
 	tEDiscount.setBold(true);
 	cDiscount.addElement(tEDiscount);
 
 	KDReports::Cell& cQty = tableElement.cell(0, 4);
 	KDReports::TextElement tEQty("Qty");
-	tEQty.setPointSize(12);
+	tEQty.setPointSize(11);
 	tEQty.setBold(true);
 	cQty.addElement(tEQty);
 
 	KDReports::Cell& cTotal = tableElement.cell(0, 5);
 	KDReports::TextElement tETotal("Sub Total");
-	tETotal.setPointSize(12);
+	tETotal.setPointSize(11);
 	tETotal.setBold(true);
 	cTotal.addElement(tETotal);
 
@@ -699,13 +699,13 @@ void ESSinglePayment::printBill(int billId, float total)
 
 	KDReports::Cell& totalTextC = tableElement.cell(row, 4);
 	KDReports::TextElement totalTxt("Total ");
-	totalTxt.setPointSize(12);
+	totalTxt.setPointSize(11);
 	totalTxt.setBold(true);
 	totalTextC.addElement(totalTxt);
 
 	KDReports::Cell& totalCell = tableElement.cell(row, 5);
 	KDReports::TextElement totalValue(QString::number(total, 'f', 2));
-	totalValue.setPointSize(12);
+	totalValue.setPointSize(11);
 	totalValue.setBold(true);
 	totalCell.addElement(totalValue);
 
@@ -713,13 +713,13 @@ void ESSinglePayment::printBill(int billId, float total)
 	row++;
 	KDReports::Cell& countText = tableElement.cell(row, 4);
 	KDReports::TextElement noOfItemsTxt("No of Items ");
-	noOfItemsTxt.setPointSize(12);
+	noOfItemsTxt.setPointSize(11);
 	noOfItemsTxt.setBold(true);
 	countText.addElement(noOfItemsTxt);
 
 	KDReports::Cell& countItemCell = tableElement.cell(row, 5);
 	KDReports::TextElement itemCountValue(QString::number(noOfItems));
-	itemCountValue.setPointSize(12);
+	itemCountValue.setPointSize(11);
 	itemCountValue.setBold(true);
 	countItemCell.addElement(itemCountValue);
 	//
@@ -729,13 +729,13 @@ void ESSinglePayment::printBill(int billId, float total)
 
 	KDReports::Cell& pcsText = tableElement.cell(row, 4);
 	KDReports::TextElement noOfPcsTxt("No of Pieces ");
-	noOfPcsTxt.setPointSize(12);
+	noOfPcsTxt.setPointSize(11);
 	noOfPcsTxt.setBold(true);
 	pcsText.addElement(noOfPcsTxt);
 
 	KDReports::Cell& pcsItemCell = tableElement.cell(row, 5);
 	KDReports::TextElement itemPcsValue(QString::number(noOfPcs));
-	itemPcsValue.setPointSize(12);
+	itemPcsValue.setPointSize(11);
 	itemPcsValue.setBold(true);
 	pcsItemCell.addElement(itemPcsValue);
 	//
@@ -767,7 +767,7 @@ void ESSinglePayment::printRow(KDReports::TableElement& tableElement, int row, i
 {
 	KDReports::Cell& cell = tableElement.cell(row, col);
 	KDReports::TextElement te(elementStr);
-	te.setPointSize(12);
+	te.setPointSize(10);
 	cell.addElement(te);
 }
 
