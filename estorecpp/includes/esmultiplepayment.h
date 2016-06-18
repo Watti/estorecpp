@@ -6,6 +6,7 @@
 #include "esaddbill.h"
 #include "KDReportsTableElement.h"
 #include "QPrinter"
+#include "KDReportsReport.h"
 
 class ESMultiplePayment : public QWidget
 {
@@ -39,6 +40,8 @@ private:
 	QString m_paymentType;
 	QSignalMapper* m_removeButtonSignalMapper;
 	ESAddBill* m_addBill;
+
+	//KDReports::Report report;
 
 };
 

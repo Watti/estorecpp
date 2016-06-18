@@ -11,6 +11,8 @@
 #include "KDReportsTableElement.h"
 #include "QDateTime"
 #include "KDReportsReport.h"
+#include "QPrintPreviewDialog"
+#include "utility\esmainwindowholder.h"
 
 ESMultiplePayment::ESMultiplePayment(ESAddBill* addBill, QWidget *parent /*= 0*/) : QWidget(parent), m_addBill(addBill)
 {
@@ -679,17 +681,33 @@ void ESMultiplePayment::printBill(int billId, float total)
 	addressElement.setBold(false);
 	report.addElement(addressElement, Qt::AlignHCenter);
 
+	KDReports::TableElement infoTableElement;
+	infoTableElement.setHeaderRowCount(2);
+	infoTableElement.setHeaderColumnCount(2);
+	infoTableElement.setBorder(0);
+	infoTableElement.setWidth(100, KDReports::Percent);
+
+	{
+		KDReports::Cell& billIdCell = infoTableElement.cell(0, 0);
+		KDReports::TextElement t(billIdStr);
+		billIdCell.addElement(t, Qt::AlignLeft);
+	}{
+		KDReports::Cell& userNameCell = infoTableElement.cell(1, 0);
+		KDReports::TextElement t("Cashier : " + userName);
+		userNameCell.addElement(t, Qt::AlignLeft);
+	}{
+		KDReports::Cell& dateCell = infoTableElement.cell(0, 1);
+		KDReports::TextElement t(dateStr);
+		dateCell.addElement(t, Qt::AlignRight);
+	}{
+		KDReports::Cell& timeCell = infoTableElement.cell(1, 1);
+		KDReports::TextElement t(timeStr);
+		timeCell.addElement(t, Qt::AlignRight);
+	}
+
 	report.addVerticalSpacing(10);
 
-	KDReports::TextElement billIdElem(billIdStr);
-	report.addElement(billIdElem, Qt::AlignLeft);
-	KDReports::TextElement userNameElement("Cashier : " + userName);
-	report.addElement(userNameElement, Qt::AlignLeft);
-
-	KDReports::TextElement date(dateStr);
-	report.addElement(date, Qt::AlignRight);
-	KDReports::TextElement time(timeStr);
-	report.addElement(time, Qt::AlignRight);
+	report.addElement(infoTableElement);
 
 
 	QString querySaleStr("SELECT * FROM sale WHERE bill_id = " + QString::number(billId) + " AND deleted = 0");
@@ -828,11 +846,11 @@ void ESMultiplePayment::printBill(int billId, float total)
 	printer.setFullPage(false);
 	printer.setOrientation(QPrinter::Portrait);
 
-	//  		QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
-	//  		QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
-	//  		dialog->setWindowTitle(tr("Print Document"));
-	//  		ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
-	//  		dialog->exec();
+	  		//QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
+	  		//QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
+	  		//dialog->setWindowTitle(tr("Print Document"));
+	  		//ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
+	  		//dialog->exec();
 
 	report.print(&printer);
 }
