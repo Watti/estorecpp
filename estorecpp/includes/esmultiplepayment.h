@@ -4,6 +4,8 @@
 #include "ui_multiplepayment.h"
 #include <QtGui>
 #include "esaddbill.h"
+#include "KDReportsTableElement.h"
+#include "QPrinter"
 
 class ESMultiplePayment : public QWidget
 {
@@ -24,12 +26,13 @@ public:
 	void slotAdd();
 	void slotRemove(int row);
 	void slotFinalizeBill();
+	void slotPrint(QPrinter* printer);
 
 private:
 	bool validate();
 	void finishBill(double netAmount, int billId);
 	void printBill(int billId, float total);
-
+	void printRow(KDReports::TableElement& tableElement, int row, int col, QString elementStr);
 	Ui::MultiplePaymentWidget ui;
 	QString m_customerId;
 	QString m_paymentType;
