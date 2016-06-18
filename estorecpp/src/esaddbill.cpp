@@ -363,6 +363,7 @@ void ESAddBill::resetBill()
 	ui.noOfItemLabel->setText("0");
 	ui.netAmountLabel->setText("0.00");
 	ui.billIdLabel->setText("###");
+	ui.grossAmountLabel->setText("0.00");
 	//ui.paymentMethodComboBox->setCurrentIndex(0);
 }
 

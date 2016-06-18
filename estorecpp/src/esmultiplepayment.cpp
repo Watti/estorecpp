@@ -86,12 +86,14 @@ ESMultiplePayment::ESMultiplePayment(ESAddBill* addBill, QWidget *parent /*= 0*/
 	QObject::connect(ui.cashText, SIGNAL(textChanged(QString)), this, SLOT(slotCalculateBalance()));
 	QObject::connect(ui.addBtn, SIGNAL(clicked()), this, SLOT(slotAdd()));
 	QObject::connect(ui.okBtn, SIGNAL(clicked()), this, SLOT(slotFinalizeBill()));
+	QObject::connect(ui.interestTxt, SIGNAL(textChanged(QString)), this, SLOT(slotInterestChanged()));
 
 	new QShortcut(QKeySequence(Qt::Key_Escape), this, SLOT(close()));
 	setMinimumWidth(900);
 	setMinimumHeight(550);
 	//resize(900, 1);
 	adjustSize();
+	ui.dateEdit->setDate(QDate::currentDate());
 }
 
 ESMultiplePayment::~ESMultiplePayment()
@@ -847,4 +849,14 @@ void ESMultiplePayment::slotPrint(QPrinter* printer)
 {
 	//report.print(printer);
 	this->close();
+}
+
+void ESMultiplePayment::slotInterestChanged()
+{
+	double interest = ui.interestTxt->text().toDouble();
+	double netAmout = ui.netAmountLbl->text().toDouble();
+
+	double totalBill = netAmout + netAmout * (interest / 100.0);
+
+	ui.netAmountLbl->setText(QString::number(totalBill, 'f', 2));
 }

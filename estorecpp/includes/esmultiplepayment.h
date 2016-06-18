@@ -27,6 +27,7 @@ public:
 	void slotRemove(int row);
 	void slotFinalizeBill();
 	void slotPrint(QPrinter* printer);
+	void slotInterestChanged();
 
 private:
 	bool validate();
