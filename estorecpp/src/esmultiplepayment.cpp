@@ -141,12 +141,12 @@ void ESMultiplePayment::slotPaymentMethodSelected()
 	if (ui.creditBtn == sender())
 	{
 		ui.lbl1->hide();
-		ui.lbl2->show(); // bank
+		ui.lbl2->hide(); // bank
 		ui.interestLbl->show();
 		ui.dateLbl->show(); // due date
 
 		ui.txt1->hide();
-		ui.txt2->show();
+		ui.txt2->hide();
 		ui.interestTxt->show();
 		ui.dateEdit->show();
 
