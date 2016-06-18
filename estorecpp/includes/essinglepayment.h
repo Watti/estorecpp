@@ -36,6 +36,7 @@ private:
 	void handleCreditPayment(int billId, double netAmount);
 	void handleCashPayment(int billId, double netAmount);
 	void handleCreditCardPayment(int billId, double netAmount);
+	void handleLoyaltyPayment(int billId, double netAmount);
 	void finishBill(double netAmount, int billId);
 	void printRow(KDReports::TableElement& tableElement, int row, int col, QString elementStr);
 	void printBill(int billId, float total);

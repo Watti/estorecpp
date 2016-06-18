@@ -137,7 +137,7 @@ void ESPayment::slotSinglePayment()
 
 void ESPayment::slotMultiplePayment()
 {
-	ESMultiplePayment* multiplePayment = new ESMultiplePayment(0);
+	ESMultiplePayment* multiplePayment = new ESMultiplePayment(m_addBill, 0);
 	multiplePayment->setWindowState(Qt::WindowActive);
 	multiplePayment->setWindowModality(Qt::ApplicationModal);
 	multiplePayment->setAttribute(Qt::WA_DeleteOnClose);

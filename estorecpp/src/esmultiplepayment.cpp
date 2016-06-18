@@ -141,10 +141,12 @@ void ESMultiplePayment::slotPaymentMethodSelected()
 	if (ui.creditBtn == sender())
 	{
 		ui.lbl1->hide();
+		ui.lbl2->show(); // bank
 		ui.interestLbl->show();
 		ui.dateLbl->show(); // due date
 
 		ui.txt1->hide();
+		ui.txt2->show();
 		ui.interestTxt->show();
 		ui.dateEdit->show();
 
@@ -632,6 +634,7 @@ void ESMultiplePayment::finishBill(double netAmount, int billId)
 			printBill(billId, netAmount);
 		}
 	}
+	this->close();
 }
 
 void ESMultiplePayment::printBill(int billId, float total)
