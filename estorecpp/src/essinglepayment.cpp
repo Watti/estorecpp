@@ -575,7 +575,16 @@ void ESSinglePayment::printBill(int billId, float total)
 	QString timeStr = "Time : ";
 	timeStr.append(QDateTime::currentDateTime().toString("hh : mm"));
 	QString billIdStr("Bill No : " + QString::number(billId));
+	/*
+	PUJITHA ENTERPRISES (PVT) LTD
+	No. 154, Kurugala, Padukka
+	Phone : 0774784430/0774784437
+	email :rapprasanna4@gmail.com
 
+
+	HIRUNA MARKETING (PVT) LTD
+	No.374, High level Road, Meegoda
+	*/
 	KDReports::TextElement titleElement("HIRUNA MARKETING (PVT) LTD");
 	titleElement.setPointSize(14);
 	titleElement.setBold(true);

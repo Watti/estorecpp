@@ -31,7 +31,7 @@ namespace ES
 			m_db.setHostName("localhost");
 			m_db.setDatabaseName("goldfish");
 			m_db.setUserName("root");
-			m_db.setPassword("123");
+			m_db.setPassword("123");//progex@2016
 
 			if (!m_db.open())
 			{
