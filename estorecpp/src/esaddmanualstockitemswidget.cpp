@@ -131,6 +131,7 @@ void ESAddManualStockItems::slotItemSelected(int row, int col)
 	ui.discount->setText("0");
 	ui.sellingPrice->setText("0");
 	ui.qty->setText("0");
+	ui.purchasingPrice->setText("0");
 
 	QTableWidgetItem* idCell = ui.tableWidget->item(row, 0);
 	if (!idCell)
@@ -145,12 +146,24 @@ void ESAddManualStockItems::slotItemSelected(int row, int col)
 
 	//QSqlQuery queryStock("SELECT * FROM stock WHERE deleted = 0 AND item_id = " + itemId);
 	QSqlQuery queryStock("SELECT * FROM stock WHERE item_id = " + itemId);
+	QString stockId = "";
+	bool success = false;
 	if (queryStock.next())
 	{
+		success = true;
 		ui.minQty->setText(queryStock.value("min_qty").toString());
 		ui.discount->setText(queryStock.value("discount").toString());
 		ui.sellingPrice->setText(queryStock.value("selling_price").toString());
 		ui.qty->setText(queryStock.value("qty").toString());
+		stockId = queryStock.value("stock_id").toString();
+	}
+	if (success)
+	{
+		QSqlQuery qStockPO("SELECT purchasing_price FROM stock_purchase_order_item WHERE purchaseorder_id = -1 AND item_id = "+ itemId +" AND stock_id = "+stockId);
+		if (qStockPO.next())
+		{
+			ui.purchasingPrice->setText(qStockPO.value("purchasing_price").toString());
+		}
 	}
 	ui.itemIdText->setText(itemId);
 }
@@ -258,17 +271,19 @@ void ESAddManualStockItems::slotAddToStock()
 	userIdStr.setNum(userId);
 	bool success = true;
 	QSqlQuery itemStock("SELECT * FROM stock WHERE item_id = " + itemId);
+
+	QString stockId = "-1";
 	if (itemStock.next())
 	{
 		//item is already available in the stock
-		QString stockId = itemStock.value("stock_id").toString();
+		stockId = itemStock.value("stock_id").toString();
 		QString currentSellingPrice = itemStock.value("selling_price").toString();
 
 		//currentQty += itemStock.value("qty").toDouble();
 
 		QString qtyStr;
 		qtyStr.setNum(currentQty);
-		QString q("UPDATE stock SET deleted = 0, qty = " + qtyStr + " , selling_price = "+ newSellingPrice + " , discount = "
+		QString q("UPDATE stock SET  qty = " + qtyStr + " , selling_price = "+ newSellingPrice + " , discount = "
 			+ discount + " , min_qty =  " + ui.minQty->text() +" WHERE stock_id = " + stockId);
 		QSqlQuery query;
 		if (!query.exec(q))
@@ -283,6 +298,24 @@ void ESAddManualStockItems::slotAddToStock()
 			logError.append(q);
 			LOG(ERROR) << logError.toLatin1().data();
 		}
+		if (success)
+		{
+			QString qUpdateStockPOStr("UPDATE stock_purchase_order_item SET  purchasing_price = " + purchasingPriceStr + 
+				" WHERE purchaseorder_id = -1 AND stock_id = " + stockId +" AND item_id = "+itemId);
+			QSqlQuery updateStockPOQuery;
+			if (!updateStockPOQuery.exec(qUpdateStockPOStr))
+			{
+				success = false;
+				QMessageBox mbox;
+				mbox.setIcon(QMessageBox::Critical);
+				mbox.setText(QString("Something goes wrong: update purchasing price failed"));
+				mbox.exec();
+
+				QString logError("[ESAddManualStockItems::slotAddToStock] stock_purchase_order_item update has been failed query = ");
+				logError.append(q);
+				LOG(ERROR) << logError.toLatin1().data();
+			}
+		}
 	}
 	else
 	{
@@ -293,6 +326,7 @@ void ESAddManualStockItems::slotAddToStock()
 		QSqlQuery query;
 		if (!query.exec(q))
 		{
+			stockId = query.lastInsertId().toString();
 			success = false;
 			QMessageBox mbox;
 			mbox.setIcon(QMessageBox::Critical);
@@ -303,18 +337,33 @@ void ESAddManualStockItems::slotAddToStock()
 			
 			LOG(ERROR) << logError.toLatin1().data();
 		}
-	}
-	if (success)
-	{
-		QMessageBox mbox;
-		mbox.setIcon(QMessageBox::Information);
-		mbox.setText(QString("Item has been added to the stock"));
-		mbox.exec();
-		ui.minQty->setText("");
-		ui.discount->setText("");
-		ui.sellingPrice->setText("");
-		ui.qty->setText("");
-		ui.itemCode->setText("");
+
+		if (success)
+		{
+			QString qStockPOStr("INSERT INTO stock_purchase_order_item (purchaseorder_id, item_id, selling_price, purchasing_price, stock_id) VALUES (-1, " +
+				itemId + ", " + newSellingPrice + ", " + purchasingPriceStr + ", " + stockId + ")");
+			QSqlQuery queryStockPO;
+			if (queryStockPO.exec(qStockPOStr))
+			{
+				QMessageBox mbox;
+				mbox.setIcon(QMessageBox::Information);
+				mbox.setText(QString("Item has been added to the stock"));
+				mbox.exec();
+				ui.minQty->setText("");
+				ui.discount->setText("");
+				ui.sellingPrice->setText("");
+				ui.qty->setText("");
+				ui.itemCode->setText("");
+				ui.purchasingPrice->setText("");
+			}
+			else
+			{
+				QMessageBox mbox;
+				mbox.setIcon(QMessageBox::Warning);
+				mbox.setText(QString("Purchasing price update error!"));
+				mbox.exec();
+			}
+		}
 	}
 
 }
