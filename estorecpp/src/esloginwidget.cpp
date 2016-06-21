@@ -87,6 +87,13 @@ void ESLoginWidget::slotLogin()
 				this->hide();
 			}
 		}
+		else
+		{
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Critical);
+			mbox.setText(QString("Authentication failed"));
+			mbox.exec();
+		}
 	}
 }
 
