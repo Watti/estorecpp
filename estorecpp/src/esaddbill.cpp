@@ -12,6 +12,7 @@
 #include "utility/utility.h"
 #include "espaymentwidget.h"
 #include "entities/tabletextwidget.h"
+#include "esauthentication.h"
 
 namespace
 {
@@ -37,6 +38,14 @@ namespace
 					{
 						//TODO error message has to be shown
 						reducedPrice = sellingPrice;
+
+// 						QMessageBox mbox;
+// 						mbox.setIcon(QMessageBox::Critical);
+// 						mbox.setText(QString("Price cannot be lower than the stock price"));
+// 						mbox.exec();
+
+						ESAuthentication* auth = new ESAuthentication(0);
+						auth->show();
 					}
 
 				}

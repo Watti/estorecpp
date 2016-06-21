@@ -41,6 +41,7 @@ void TableTextWidget::keyPressEvent(QKeyEvent* evt)
 
 void TableTextWidget::slotFinish()
 {
+	blockSignals(true);
 	QString itemCode = m_table->item(m_row, 0)->text();
 	QString str = (m_formatterFunc) ? m_formatterFunc(text(), itemCode) : text();
 
@@ -49,7 +50,8 @@ void TableTextWidget::slotFinish()
 	m_table->setCellWidget(m_row, m_col, NULL);
 	m_table->setItem(m_row, m_col, priceItem);
 	m_table->setFocus();
-	
+	blockSignals(false);
+
 	emit notifyEnterPressed(text(), m_row, m_col);
 }
 
