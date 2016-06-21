@@ -143,7 +143,8 @@ void ESAddManualStockItems::slotItemSelected(int row, int col)
 		ui.itemCode->setText(queryItem.value("item_code").toString());
 	}
 
-	QSqlQuery queryStock("SELECT * FROM stock WHERE deleted = 0 AND item_id = " + itemId);
+	//QSqlQuery queryStock("SELECT * FROM stock WHERE deleted = 0 AND item_id = " + itemId);
+	QSqlQuery queryStock("SELECT * FROM stock WHERE item_id = " + itemId);
 	if (queryStock.next())
 	{
 		ui.minQty->setText(queryStock.value("min_qty").toString());
@@ -232,6 +233,25 @@ void ESAddManualStockItems::slotAddToStock()
 		mbox.setText(QString("Invalid input - Min Quantity"));
 		mbox.exec();
 	}
+	QString purchasingPriceStr = ui.purchasingPrice->text();
+
+	if (purchasingPriceStr == nullptr || purchasingPriceStr.isEmpty())
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Warning);
+		mbox.setText(QString("Purchasing price cannot be empty"));
+		mbox.exec();
+		return;
+	}
+	isValid = false;
+	purchasingPriceStr.toDouble(&isValid);
+	if (!isValid)
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Warning);
+		mbox.setText(QString("Invalid input - Purchasing Price"));
+		mbox.exec();
+	}
 
 	int userId = ES::Session::getInstance()->getUser()->getId();
 	QString userIdStr;
@@ -249,7 +269,7 @@ void ESAddManualStockItems::slotAddToStock()
 		QString qtyStr;
 		qtyStr.setNum(currentQty);
 		QString q("UPDATE stock SET deleted = 0, qty = " + qtyStr + " , selling_price = "+ newSellingPrice + " , discount = "
-			+ discount + " , min_qty =  " + ui.minQty->text() + " WHERE stock_id = " + stockId);
+			+ discount + " , min_qty =  " + ui.minQty->text() +" WHERE stock_id = " + stockId);
 		QSqlQuery query;
 		if (!query.exec(q))
 		{

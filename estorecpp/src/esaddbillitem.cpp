@@ -72,7 +72,7 @@ void ESAddBillItem::slotSearch()
 
 	QString q;
 	//q.append("SELECT stock.stock_id, item.item_code, item.item_name, item.item_image, stock.selling_price FROM item JOIN stock ON item.item_id = stock.item_id WHERE stock.deleted = 0 ");
-	q.append("SELECT stock.stock_id, item.item_code, item.item_name, item.item_image, item.itemcategory_id, item_category.itemcategory_code , stock.selling_price FROM item JOIN stock ON item.item_id = stock.item_id  JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id WHERE stock.deleted = 0");
+	q.append("SELECT stock.stock_id, item.item_code, item.item_name, item.item_image, item.itemcategory_id, item_category.itemcategory_code , stock.selling_price FROM item JOIN stock ON item.item_id = stock.item_id  JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id");
 	if (!searchText.isEmpty())
 	{
 		//q.append(" AND (item.item_code LIKE '%" + searchText + "%' OR item_category.itemcategory_code LIKE '%" + searchText + "%')");
@@ -161,7 +161,7 @@ void ESAddBillItem::addToBill(QString stockId)
 {
 	QString billId = ES::Session::getInstance()->getBillId();
 	QString lastInsertedID;
-	QSqlQuery queryStock("SELECT discount, selling_price FROM stock WHERE stock_id = " + stockId + " AND deleted = 0");
+	QSqlQuery queryStock("SELECT discount, selling_price FROM stock WHERE stock_id = " + stockId);
 	if (queryStock.next())
 	{
 		QString discount = queryStock.value("discount").toString();

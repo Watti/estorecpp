@@ -93,8 +93,8 @@ AddOrderItem::AddOrderItem(QWidget *parent/* = 0*/)
 
 		while (queryCategory.next())
 		{
-			catId = queryCategory.value(0).toInt();
-			ui.categoryComboBox->addItem(queryCategory.value(1).toString() + " / " + queryCategory.value("itemcategory_name").toString(), catId);
+			catId = queryCategory.value("itemcategory_id").toInt();
+			ui.categoryComboBox->addItem(queryCategory.value("itemcategory_id").toString() + " / " + queryCategory.value("itemcategory_name").toString(), catId);
 		}
 
 		// Fill suppliers

@@ -89,12 +89,13 @@ void ESManageStockItems::slotSearch()
 	QString q, qRecordCountStr;
 	q.append("SELECT * FROM stock JOIN item ON stock.item_id = item.item_id ");
 	q.append("JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id ");
-	q.append("WHERE item.deleted = 0 AND stock.deleted = 0");
-
+	q.append("WHERE item.deleted = 0");
+	//q.append("WHERE item.deleted = 0 AND stock.deleted = 0");
 
 	qRecordCountStr.append("SELECT COUNT(*) as c FROM stock JOIN item ON stock.item_id = item.item_id ");
 	qRecordCountStr.append("JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id ");
-	qRecordCountStr.append("WHERE item.deleted = 0 AND stock.deleted = 0");
+	qRecordCountStr.append("WHERE item.deleted = 0 ");
+	//qRecordCountStr.append("WHERE item.deleted = 0 AND stock.deleted = 0");
 
 
 	if (!text.isEmpty())
@@ -261,7 +262,8 @@ void ESManageStockItems::slotRemove(QString stockId)
 {
 	if (ES::Utility::verifyUsingMessageBox(this, "EStore", "Do you really want to remove this?"))
 	{
-		QString str("UPDATE stock SET deleted = 1 WHERE stock_id = " + stockId);
+		//QString str("UPDATE stock SET deleted = 1 WHERE stock_id = " + stockId);
+		QString str("DELETE FROM stock WHERE stock_id = " + stockId);
 		QSqlQuery q;
 		if (q.exec(str))
 		{
