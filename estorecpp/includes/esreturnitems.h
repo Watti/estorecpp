@@ -15,6 +15,8 @@ public:
 	void slotAddReturnedItem();
 
 private:
+	void printReturnItemInfo();
+
 	Ui::ReturnItems ui;
 
 };

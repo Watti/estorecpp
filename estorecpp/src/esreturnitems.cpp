@@ -4,7 +4,11 @@
 #include "QMessageBox"
 #include "utility\esdbconnection.h"
 #include "easylogging++.h"
-#include "..\includes\utility\session.h"
+#include "utility\session.h"
+#include "KDReportsTextElement.h"
+#include "KDReportsTableElement.h"
+#include "KDReportsCell.h"
+#include "KDReportsReport.h"
 
 ESReturnItems::ESReturnItems(QWidget *parent /*= 0*/) : QWidget(parent)
 {
@@ -19,18 +23,7 @@ ESReturnItems::ESReturnItems(QWidget *parent /*= 0*/) : QWidget(parent)
 		mbox.exec();
 	}
 
-// 	QSqlQuery queryCategory("SELECT * FROM item_category WHERE deleted = 0");
-// 	QString catCode = DEFAULT_DB_COMBO_VALUE;
-// 	int catId = -1;
-// 
-// 	ui.itemCategoryComboBox->addItem(catCode, catId);
-// 
-// 	while (queryCategory.next())
-// 	{
-// 		catId = queryCategory.value(0).toInt();
-// 		ui.itemCategoryComboBox->addItem(queryCategory.value(1).toString() + " / " + queryCategory.value("itemcategory_name").toString(), catId);
-// 	}
-	ui.qtyText->setText("1");
+	ui.qtyText->setText("1.0");
 }
 
 ESReturnItems::~ESReturnItems()
@@ -132,7 +125,10 @@ void ESReturnItems::slotAddReturnedItem()
 					LOG(ERROR) << "Failed to insert in to return table. query = " << q.toLatin1().data();
 				}
 				//TODO print the bill
-				
+				if (ui.doPrintCB->isChecked())
+				{
+					printReturnItemInfo();
+				}
 
 			}
 			
@@ -147,4 +143,44 @@ void ESReturnItems::slotAddReturnedItem()
 		}
 	}
 	this->close();
+}
+
+
+void ESReturnItems::printReturnItemInfo()
+{
+	KDReports::Report report;
+
+	KDReports::TextElement titleElement("PUJITHA ENTERPRISES (PVT) LTD");
+	titleElement.setPointSize(14);
+	titleElement.setBold(true);
+	report.addElement(titleElement, Qt::AlignHCenter);
+
+	KDReports::TextElement addressElement("No. 154, Kurugala, Padukka.");
+	addressElement.setPointSize(10);
+	addressElement.setBold(false);
+	report.addElement(addressElement, Qt::AlignHCenter);
+
+	KDReports::TextElement telElement("Phone : 077-4784430 / 077-4784437");
+	telElement.setPointSize(10);
+	telElement.setBold(false);
+	report.addElement(telElement, Qt::AlignHCenter);
+
+	KDReports::TextElement emailElement("email : rapprasanna4@gmail.com");
+	emailElement.setPointSize(10);
+	emailElement.setBold(false);
+	report.addElement(emailElement, Qt::AlignHCenter);
+	
+	QPrinter printer;
+	printer.setPaperSize(QPrinter::A4);
+
+	printer.setFullPage(false);
+	printer.setOrientation(QPrinter::Portrait);
+
+	// 	  		QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
+	// 	  		QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
+	// 	  		dialog->setWindowTitle(tr("Print Document"));
+	// 	  		ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
+	// 	  		dialog->exec();
+
+	report.print(&printer);
 }
