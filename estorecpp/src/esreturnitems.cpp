@@ -10,7 +10,6 @@ ESReturnItems::ESReturnItems(QWidget *parent /*= 0*/) : QWidget(parent)
 {
 	ui.setupUi(this);
 	QObject::connect(ui.addButton, SIGNAL(clicked()), this, SLOT(slotAddReturnedItem()));
-	QObject::connect(ui.cancelBtn, SIGNAL(clicked()), this, SLOT(slotCancel()));
 
 	if (!ES::DbConnection::instance()->open())
 	{
@@ -147,10 +146,5 @@ void ESReturnItems::slotAddReturnedItem()
 			return;
 		}
 	}
-	this->close();
-}
-
-void ESReturnItems::slotCancel()
-{
 	this->close();
 }

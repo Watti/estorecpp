@@ -13,7 +13,6 @@ public:
 
 	public slots:
 	void slotAddReturnedItem();
-	void slotCancel();
 
 private:
 	Ui::ReturnItems ui;
