@@ -31,6 +31,7 @@ ESMultiplePayment::ESMultiplePayment(ESAddBill* addBill, QWidget *parent /*= 0*/
 	ui.txt2->hide();
 	ui.dateEdit->hide();
 	ui.interestTxt->hide();
+	ui.interestPercentageCB->hide();
 
 	ui.paymentType->setText("Cash :  ");
 	m_paymentType = "CASH";
@@ -161,6 +162,7 @@ void ESMultiplePayment::slotPaymentMethodSelected()
 		ui.txt1->hide();
 		ui.txt2->hide();
 		ui.interestTxt->show();
+		ui.interestPercentageCB->show();
 		ui.dateEdit->show();
 
 		ui.paymentType->setText("Amount :  ");
@@ -182,6 +184,7 @@ void ESMultiplePayment::slotPaymentMethodSelected()
 		ui.txt2->show();
 		ui.dateEdit->show();
 		ui.interestTxt->show();
+		ui.interestPercentageCB->show();
 
 		ui.lbl1->setText("Cheque No. :  ");
 		ui.lbl2->setText("Bank :  ");
@@ -206,6 +209,7 @@ void ESMultiplePayment::slotPaymentMethodSelected()
 		ui.txt1->show();
 		ui.txt2->hide();
 		ui.interestTxt->show();
+		ui.interestPercentageCB->show();
 		ui.dateEdit->hide();
 
 		ui.lbl1->setText("Card No. :  ");
@@ -231,6 +235,7 @@ void ESMultiplePayment::slotPaymentMethodSelected()
 		ui.txt2->hide();
 		ui.dateEdit->hide();
 		ui.interestTxt->show();
+		ui.interestPercentageCB->show();
 
 		ui.lbl1->setText("Card No. :  ");
 		ui.txt1->setText("");
@@ -255,6 +260,7 @@ void ESMultiplePayment::slotPaymentMethodSelected()
 		ui.txt2->hide();
 		ui.dateEdit->hide();
 		ui.interestTxt->hide();
+		ui.interestPercentageCB->hide();
 
 		ui.paymentType->setText("Cash :  ");
 
