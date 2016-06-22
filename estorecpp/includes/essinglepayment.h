@@ -27,6 +27,8 @@ public:
 	void slotFinalizeBill();
 	void slotInterestChanged();
 	void slotPrint(QPrinter* printer);
+	float getInitialNetAmount() const;
+	void setInitialNetAmount(float val);
 
 protected:
 	void keyPressEvent(QKeyEvent * event);
@@ -46,7 +48,9 @@ private:
 	Ui::SinglePaymentWidget ui;
 	QString m_customerId;
 	ESAddBill* m_addBill;
-	
+	float m_initialNetAmount;
+	QString m_paymentMethod;
+
 	//KDReports::Report report;
 
 };

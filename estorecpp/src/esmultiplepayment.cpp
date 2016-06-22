@@ -505,9 +505,10 @@ void ESMultiplePayment::slotFinalizeBill()
 				{
 					int lastInsertedId = query.lastInsertId().toInt();
 					QSqlQuery q;
-					q.prepare("INSERT INTO credit (payment_id, amount, due_date) VALUES (?, ?, ?)");
+					q.prepare("INSERT INTO credit (payment_id, amount, interest, due_date) VALUES (?, ?, ?, ?)");
 					q.addBindValue(lastInsertedId);
 					q.addBindValue(amount);
+					q.addBindValue(ui.tableWidget->item(i, 2)->text());//percentage is directly stored
 					q.addBindValue(ui.tableWidget->item(i, 4)->text());
 					if (!q.exec())
 					{
@@ -535,9 +536,10 @@ void ESMultiplePayment::slotFinalizeBill()
 				{
 					int lastInsertedId = query.lastInsertId().toInt();
 					QSqlQuery q;
-					q.prepare("INSERT INTO cheque (payment_id, amount, cheque_number, bank, due_date) VALUES (?, ?, ?, ?, ?)");
+					q.prepare("INSERT INTO cheque (payment_id, amount, interest, cheque_number, bank, due_date) VALUES (?, ?, ?, ?, ?, ?)");
 					q.addBindValue(lastInsertedId);
 					q.addBindValue(amount);
+					q.addBindValue(ui.tableWidget->item(i, 2)->text());
 					q.addBindValue(ui.tableWidget->item(i, 5)->text());
 					q.addBindValue(ui.tableWidget->item(i, 6)->text());
 					q.addBindValue(ui.tableWidget->item(i, 4)->text());
@@ -938,6 +940,16 @@ void ESMultiplePayment::slotPrint(QPrinter* printer)
 {
 	//report.print(printer);
 	this->close();
+}
+
+float ESMultiplePayment::getInitialNetAmount() const
+{
+	return m_initialNetAmount;
+}
+
+void ESMultiplePayment::setInitialNetAmount(float val)
+{
+	m_initialNetAmount = val;
 }
 
 // void ESMultiplePayment::slotInterestChanged()

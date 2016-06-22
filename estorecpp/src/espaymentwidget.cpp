@@ -128,6 +128,7 @@ void ESPayment::slotSinglePayment()
 
 	singlePayment->getUI().netAmountLbl->setText(m_netAmount);
 	singlePayment->getUI().totalBillLbl->setText(m_netAmount);
+	singlePayment->setInitialNetAmount(m_netAmount.toFloat());
 	singlePayment->getUI().noOfItemsLbl->setText(m_noOfItems);
 	singlePayment->getUI().balanceLbl->setText("0.00");
 
@@ -150,6 +151,7 @@ void ESPayment::slotMultiplePayment()
 
 	multiplePayment->getUI().netAmountLbl->setText(m_netAmount);
 	multiplePayment->getUI().totalBillLbl->setText(m_netAmount);
+	multiplePayment->setInitialNetAmount(m_netAmount.toFloat());
 	multiplePayment->getUI().noOfItemsLbl->setText(m_noOfItems);
 	multiplePayment->getUI().balanceLbl->setText("0.00");
 
