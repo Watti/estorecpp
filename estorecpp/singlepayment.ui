@@ -514,7 +514,7 @@
           </font>
          </property>
          <property name="text">
-          <string>Interest %</string>
+          <string>Interest :</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -522,13 +522,29 @@
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="lineEdit">
-         <property name="font">
-          <font>
-           <pointsize>14</pointsize>
-          </font>
-         </property>
-        </widget>
+        <layout class="QHBoxLayout" name="horizontalLayout_7">
+         <item>
+          <widget class="QLineEdit" name="lineEdit">
+           <property name="font">
+            <font>
+             <pointsize>14</pointsize>
+            </font>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="interestPercentageCB">
+           <property name="font">
+            <font>
+             <pointsize>12</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>%</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
       </layout>
      </item>
@@ -1477,7 +1493,6 @@
   <tabstop>cashText</tabstop>
   <tabstop>discountText</tabstop>
   <tabstop>percentageCB</tabstop>
-  <tabstop>lineEdit</tabstop>
   <tabstop>txt1</tabstop>
   <tabstop>txt2</tabstop>
   <tabstop>dateEdit</tabstop>

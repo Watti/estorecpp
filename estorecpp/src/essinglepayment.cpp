@@ -25,6 +25,7 @@ ESSinglePayment::ESSinglePayment(ESAddBill* addBill, QWidget *parent /*= 0*/) : 
 
 	ui.label_4->hide();
 	ui.lineEdit->hide();
+	ui.interestPercentageCB->hide();
 
 	ui.paymentType->setText("Cash :  ");
 
@@ -368,6 +369,7 @@ void ESSinglePayment::slotPaymentMethodSelected()
 		ui.label_4->show();
 		ui.lineEdit->show();
 		ui.lineEdit->setText("0");//interest
+		ui.interestPercentageCB->show();
 	}
 	else if (ui.chequeBtn == sender())
 	{
@@ -396,6 +398,7 @@ void ESSinglePayment::slotPaymentMethodSelected()
 		ui.label_4->show();
 		ui.lineEdit->show();
 		ui.lineEdit->setText("0");//interest
+		ui.interestPercentageCB->show();
 	}
 	else if (ui.creditCardBtn == sender())
 	{
@@ -422,6 +425,7 @@ void ESSinglePayment::slotPaymentMethodSelected()
 		ui.label_4->show();
 		ui.lineEdit->show();
 		ui.lineEdit->setText("0");//interest
+		ui.interestPercentageCB->show();
 	}
 	else if (ui.loyalityCardBtn == sender())
 	{
@@ -448,6 +452,7 @@ void ESSinglePayment::slotPaymentMethodSelected()
 		ui.label_4->show();
 		ui.lineEdit->show();
 		ui.lineEdit->setText("0");//interest
+		ui.interestPercentageCB->show();
 	}
 	else if (ui.cashBtn == sender())
 	{
@@ -472,6 +477,7 @@ void ESSinglePayment::slotPaymentMethodSelected()
 
 		ui.label_4->hide();
 		ui.lineEdit->hide();
+		ui.interestPercentageCB->hide();
 	}
 
 	//resize(400, 1);
