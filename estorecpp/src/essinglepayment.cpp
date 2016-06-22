@@ -67,6 +67,7 @@ ESSinglePayment::ESSinglePayment(ESAddBill* addBill, QWidget *parent /*= 0*/) : 
 	//resize(400, 1);
 	adjustSize();
 	ui.dateEdit->setDate(QDate::currentDate());
+	m_paymentMethod = "CASH";
 }
 
 ESSinglePayment::~ESSinglePayment()
@@ -115,7 +116,7 @@ void ESSinglePayment::slotFinalizeBill()
 
 	QString billIdStr = ES::Session::getInstance()->getBillId();
 	QString netAmountStr = ui.netAmountLbl->text();
-	QString paymentType = "CASH";// ui.paymentMethodCombo->currentText();
+	//QString paymentType = "CASH";// ui.paymentMethodCombo->currentText();
 	bool isValid = false;
 
 	double netAmount = netAmountStr.toDouble(&isValid);
@@ -129,23 +130,23 @@ void ESSinglePayment::slotFinalizeBill()
 		return;
 	}
 
-	if (paymentType == "CASH")
+	if (m_paymentMethod == "CASH")
 	{
 		handleCashPayment(billId, netAmount);
 	}
-	else if (paymentType == "CREDIT")
+	else if (m_paymentMethod == "CREDIT")
 	{
 		handleCreditPayment(billId, netAmount);
 	}
-	else if (paymentType == "CHEQUE")
+	else if (m_paymentMethod == "CHEQUE")
 	{
 		handleChequePayment(billId, netAmount);
 	}
-	else if (paymentType == "CREDIT CARD")
+	else if (m_paymentMethod == "CARD")
 	{
 		handleCreditCardPayment(billId, netAmount);
 	}
-	else if (paymentType == "LOYALITY CARD")
+	else if (m_paymentMethod == "LOYALITY")
 	{
 		handleLoyaltyPayment(billId, netAmount);
 	}
@@ -197,7 +198,7 @@ void ESSinglePayment::handleCreditPayment(int billId, double netAmount)
 	QSqlQuery query;
 	query.prepare("INSERT INTO payment (bill_id, total_amount, payment_type) VALUES (?, ?, 'CREDIT')");
 	query.addBindValue(billId);
-	query.addBindValue(netAmount);
+	query.addBindValue(QString::number(m_initialNetAmount));
 	if (query.exec())
 	{
 		int lastInsertedId = query.lastInsertId().toInt();
@@ -233,7 +234,7 @@ void ESSinglePayment::handleChequePayment(int billId, double netAmount)
 	QSqlQuery query;
 	query.prepare("INSERT INTO payment (bill_id, total_amount, payment_type) VALUES (?, ?, 'CHEQUE')");
 	query.addBindValue(billId);
-	query.addBindValue(netAmount);
+	query.addBindValue(QString::number(m_initialNetAmount));
 	if (query.exec())
 	{
 		int lastInsertedId = query.lastInsertId().toInt();
@@ -272,7 +273,7 @@ void ESSinglePayment::handleCreditCardPayment(int billId, double netAmount)
 	QSqlQuery query;
 	query.prepare("INSERT INTO payment (bill_id, total_amount, payment_type) VALUES (?, ?, 'CARD')");
 	query.addBindValue(billId);
-	query.addBindValue(netAmount);
+	query.addBindValue(QString::number(m_initialNetAmount));
 	if (query.exec())
 	{
 		int lastInsertedId = query.lastInsertId().toInt();
@@ -309,7 +310,7 @@ void ESSinglePayment::handleLoyaltyPayment(int billId, double netAmount)
 	QSqlQuery query;
 	query.prepare("INSERT INTO payment (bill_id, total_amount, payment_type) VALUES (?, ?, 'LOYALTY')");
 	query.addBindValue(billId);
-	query.addBindValue(netAmount);
+	query.addBindValue(QString::number(m_initialNetAmount));
 	if (query.exec())
 	{
 		int lastInsertedId = query.lastInsertId().toInt();
@@ -344,15 +345,17 @@ void ESSinglePayment::slotPaymentMethodSelected()
 {
 	if (ui.creditBtn == sender())
 	{
+		m_paymentMethod = "CREDIT";
 		ui.lbl1->hide();
 		//ui.lbl2->show(); // interest
 		ui.dateLbl->show(); // due date
 		ui.label_6->hide();
 		ui.balanceLbl->hide();
-
+		ui.netAmountLbl->setText(QString::number(m_initialNetAmount, 'f', 2));
 		ui.txt1->hide();
 		//ui.txt2->show();
 		ui.dateEdit->show();
+		
 
 		//ui.lbl2->setText("Interest % :  ");
 		ui.paymentType->setText("Amount :  ");
@@ -364,14 +367,17 @@ void ESSinglePayment::slotPaymentMethodSelected()
 
 		ui.label_4->show();
 		ui.lineEdit->show();
+		ui.lineEdit->setText("0");//interest
 	}
 	else if (ui.chequeBtn == sender())
 	{
+		m_paymentMethod = "CHEQUE";
 		ui.lbl1->show(); // cheque no
 		ui.lbl2->show(); // bank
 		ui.dateLbl->show(); // due date
 		ui.label_6->hide();
 		ui.balanceLbl->hide();
+		ui.netAmountLbl->setText(QString::number(m_initialNetAmount, 'f', 2));
 
 		ui.txt1->show();
 		ui.txt2->show();
@@ -379,7 +385,7 @@ void ESSinglePayment::slotPaymentMethodSelected()
 
 		ui.lbl1->setText("Cheque No. :  ");
 		ui.lbl2->setText("Bank :  ");
-
+		
 		ui.cashBtn->setChecked(false);
 		ui.creditBtn->setChecked(false);
 		ui.creditCardBtn->setChecked(false);
@@ -389,9 +395,11 @@ void ESSinglePayment::slotPaymentMethodSelected()
 
 		ui.label_4->show();
 		ui.lineEdit->show();
+		ui.lineEdit->setText("0");//interest
 	}
 	else if (ui.creditCardBtn == sender())
 	{
+		m_paymentMethod = "CARD";
 		ui.lbl1->show(); // card no
 		ui.lbl2->hide();
 		ui.dateLbl->hide();
@@ -401,6 +409,7 @@ void ESSinglePayment::slotPaymentMethodSelected()
 		ui.txt1->show();
 		ui.txt2->hide();
 		ui.dateEdit->hide();
+		ui.netAmountLbl->setText(QString::number(m_initialNetAmount, 'f', 2));
 
 		ui.lbl1->setText("Card No. :  ");
 		ui.paymentType->setText("Amount :  ");
@@ -412,14 +421,17 @@ void ESSinglePayment::slotPaymentMethodSelected()
 
 		ui.label_4->show();
 		ui.lineEdit->show();
+		ui.lineEdit->setText("0");//interest
 	}
 	else if (ui.loyalityCardBtn == sender())
 	{
+		m_paymentMethod = "LOYALTY";
 		ui.lbl1->show(); // card no
 		ui.lbl2->hide();
 		ui.dateLbl->hide();
 		ui.label_6->hide();
 		ui.balanceLbl->hide();
+		ui.netAmountLbl->setText(QString::number(m_initialNetAmount, 'f', 2));
 
 		ui.txt1->show();
 		ui.txt2->hide();
@@ -435,9 +447,11 @@ void ESSinglePayment::slotPaymentMethodSelected()
 
 		ui.label_4->show();
 		ui.lineEdit->show();
+		ui.lineEdit->setText("0");//interest
 	}
 	else if (ui.cashBtn == sender())
 	{
+		m_paymentMethod = "CASH";
 		ui.lbl1->hide();
 		ui.lbl2->hide();
 		ui.dateLbl->hide();
@@ -447,6 +461,7 @@ void ESSinglePayment::slotPaymentMethodSelected()
 		ui.txt1->hide();
 		ui.txt2->hide();
 		ui.dateEdit->hide();
+		ui.netAmountLbl->setText(QString::number(m_initialNetAmount, 'f', 2));
 
 		ui.paymentType->setText("Cash :  ");
 
@@ -804,4 +819,14 @@ void ESSinglePayment::keyPressEvent(QKeyEvent * event)
 	default:
 		QWidget::keyPressEvent(event);
 	}
+}
+
+float ESSinglePayment::getInitialNetAmount() const
+{
+	return m_initialNetAmount;
+}
+
+void ESSinglePayment::setInitialNetAmount(float val)
+{
+	m_initialNetAmount = val;
 }

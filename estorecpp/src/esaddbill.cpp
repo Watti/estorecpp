@@ -444,6 +444,7 @@ void ESAddBill::checkAndContinuePendingBill()
 		{
 			//There is a pending bill
 			QString billId = pendingBillQry.value("bill_id").toString();
+			QSqlQuery updateDate("UPDATE bill SET date = NOW() WHERE bill_id = " + billId);
 			ui.billIdLabel->setText(billId);
 
 			ES::Session::getInstance()->startBill();

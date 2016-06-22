@@ -33,8 +33,9 @@ void AddStockItem::slotAddStockItem()
 		QString qtyStr = ui.qty->text();
 		QString minQtyStr = ui.minQty->text();
 		QString priceStr = ui.itemPrice->text();
+		QString purchasingPrice = ui.purchasingPrice->text();
 
-		if (!qtyStr.isEmpty() && !minQtyStr.isEmpty() && !priceStr.isEmpty())
+		if (!qtyStr.isEmpty() && !minQtyStr.isEmpty() && !priceStr.isEmpty() && !purchasingPrice.isEmpty())
 		{
 			bool isValid = false;
 			double quantity = qtyStr.toDouble(&isValid);
@@ -68,6 +69,15 @@ void AddStockItem::slotAddStockItem()
 					return;
 				}
 				isValid = false;
+				purchasingPrice.toDouble(&isValid);
+				if (!isValid)
+				{
+					QMessageBox mbox;
+					mbox.setIcon(QMessageBox::Warning);
+					mbox.setText(QString("Invalid input - Purchasing price"));
+					mbox.exec();
+					return;
+				}
 				discount.toDouble(&isValid);
 				if (!isValid)
 				{
@@ -110,6 +120,18 @@ void AddStockItem::slotAddStockItem()
 							mbox.setText(QString("insertion error :: cannot reduce this quantity from the main stock order"));
 							mbox.exec();
 						}
+
+						QString qUpdateStockPOStr("UPDATE stock_purchase_order_item SET  purchasing_price = " + purchasingPrice +
+							" WHERE purchaseorder_id = -1 AND stock_id = " + m_stockId + " AND item_id = " + itemId);
+						QSqlQuery updateStockPOQuery;
+						if (!updateStockPOQuery.exec(qUpdateStockPOStr))
+						{
+							QMessageBox mbox;
+							mbox.setIcon(QMessageBox::Critical);
+							mbox.setText(QString("Purchasing price update error !"));
+							mbox.exec();
+						}
+
 						ESManageStockItems* manageStock = new ESManageStockItems();
 						ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(manageStock);
 						this->close();

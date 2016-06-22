@@ -28,7 +28,9 @@ public:
 	void slotRemove(int row);
 	void slotFinalizeBill();
 	void slotPrint(QPrinter* printer);
-	void slotInterestChanged();
+	float getInitialNetAmount() const;
+	void setInitialNetAmount(float val);
+	//void slotInterestChanged();
 
 private:
 	bool validate();
@@ -40,7 +42,7 @@ private:
 	QString m_paymentType;
 	QSignalMapper* m_removeButtonSignalMapper;
 	ESAddBill* m_addBill;
-
+	float m_initialNetAmount;
 	//KDReports::Report report;
 
 };

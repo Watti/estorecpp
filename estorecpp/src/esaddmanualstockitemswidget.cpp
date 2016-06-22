@@ -326,7 +326,6 @@ void ESAddManualStockItems::slotAddToStock()
 		QSqlQuery query;
 		if (!query.exec(q))
 		{
-			stockId = query.lastInsertId().toString();
 			success = false;
 			QMessageBox mbox;
 			mbox.setIcon(QMessageBox::Critical);
@@ -338,6 +337,7 @@ void ESAddManualStockItems::slotAddToStock()
 			LOG(ERROR) << logError.toLatin1().data();
 		}
 
+		stockId = query.lastInsertId().toString();
 		if (success)
 		{
 			QString qStockPOStr("INSERT INTO stock_purchase_order_item (purchaseorder_id, item_id, selling_price, purchasing_price, stock_id) VALUES (-1, " +
