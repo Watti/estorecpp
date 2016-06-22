@@ -16,15 +16,17 @@
 
 namespace
 {
-	QString convertToPriceFormat(QString text, QString iCode)
+	QString convertToPriceFormat(QString text, int row, int col, QTableWidget* table)
 	{
 		QString retVal("0");
  		bool isValid = false;
  		double reducedPrice = text.toDouble(&isValid);
+
+		QTableWidgetItem* item = table->item(row, 0);
 	
-		if (isValid)
+		if (isValid && item)
 		{
-			QString qryStr("SELECT item_id FROM item WHERE deleted = 0 AND item_code = '"+iCode+"'");
+			QString qryStr("SELECT item_id FROM item WHERE deleted = 0 AND item_code = '"+ item->text() +"'");
 			QSqlQuery itemQuery(qryStr);
 			if (itemQuery.next())
 			{
@@ -36,16 +38,26 @@ namespace
 					double sellingPrice = queryStock.value("selling_price").toDouble();
 					if (sellingPrice > reducedPrice)
 					{
-						//TODO error message has to be shown
-						reducedPrice = sellingPrice;
+						if (ES::Session::getInstance()->isLowerPriceBlocked())
+						{
+							reducedPrice = sellingPrice;
 
-// 						QMessageBox mbox;
-// 						mbox.setIcon(QMessageBox::Critical);
-// 						mbox.setText(QString("Price cannot be lower than the stock price"));
-// 						mbox.exec();
+							QMessageBox mbox;
+							mbox.setIcon(QMessageBox::Critical);
+							mbox.setText(QString("Price cannot be lower than the stock price"));
+							mbox.exec();
+						}
+						else
+						{
+							bool success = false;
+							ESAuthentication* auth = new ESAuthentication("MANAGER", success, 0);
+							auth->exec();
 
-						ESAuthentication* auth = new ESAuthentication(0);
-						auth->show();
+							if (!success)
+							{
+								reducedPrice = sellingPrice;
+							}
+						}						
 					}
 
 				}
@@ -55,7 +67,7 @@ namespace
 
 	}
 
-	QString convertToQuantityFormat(QString text, QString itemCode)
+	QString convertToQuantityFormat(QString text, int row, int col, QTableWidget* table)
 	{
 // 		double val = text.toDouble();
 // 		return QString::number(val, 'f', 3);

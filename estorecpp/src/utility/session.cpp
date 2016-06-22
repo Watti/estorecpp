@@ -20,7 +20,7 @@ namespace ES
 		return m_session;
 	}
 
-	Session::Session() : m_user(NULL), m_billStarted(false)
+	Session::Session() : m_user(NULL), m_billStarted(false), m_lowerPriceBlocked(true)
 	{
 
 	}
@@ -87,6 +87,16 @@ namespace ES
 
 		delete m_user;
 		m_user = NULL;
+	}
+
+	void Session::setLowerPriceBlocked(bool blocked)
+	{
+		m_lowerPriceBlocked = blocked;
+	}
+	
+	bool Session::isLowerPriceBlocked() const
+	{
+		return m_lowerPriceBlocked;
 	}
 
 }

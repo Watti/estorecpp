@@ -41,6 +41,21 @@ void readSettings()
 			dumpPath = dumpPath.substr(1, dumpPath.size() - 2);
 			ES::Session::getInstance()->setBackupPath(QString::fromUtf8(dumpPath.data(), dumpPath.size()));
 		}
+		else if (val.compare("PRICE_CHANGE_ACTION") == 0)
+		{
+			std::string dumpPath;
+			std::getline(is, dumpPath, '-');
+			dumpPath = dumpPath.substr(1, dumpPath.size() - 2);
+			QString action = QString::fromUtf8(dumpPath.data(), dumpPath.size());
+			if (action == "block")
+			{
+				ES::Session::getInstance()->setLowerPriceBlocked(true);
+			}
+			else
+			{
+				ES::Session::getInstance()->setLowerPriceBlocked(false);
+			}
+		}
 
 	}
 	if (!infile.eof())

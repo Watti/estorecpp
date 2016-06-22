@@ -24,6 +24,9 @@ namespace ES
 		QString getBranchName() const;
 		void setBranchName(const QString& val);
 		void invalidate();
+		void setLowerPriceBlocked(bool blocked);
+		bool isLowerPriceBlocked() const;
+
 	private:
 		Session();
 		static Session* m_session;
@@ -32,6 +35,8 @@ namespace ES
 		QString m_billId;
 		QString m_dumpPath;
 		QString m_branchName;
+		bool m_lowerPriceBlocked;
+
 	};
 
 }

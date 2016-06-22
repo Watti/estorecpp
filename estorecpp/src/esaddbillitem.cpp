@@ -11,7 +11,7 @@
 
 namespace
 {
-	QString convertToQuantityFormat(QString text, QString)
+	QString convertToQuantityFormat(QString text, int row, int col, QTableWidget* table)
 	{
 // 		double val = text.toDouble();
 // 		return QString::number(val, 'f', 3);

@@ -1,9 +1,12 @@
 #include "esauthentication.h"
 #include "QSqlQuery"
 
-ESAuthentication::ESAuthentication(QDialog *parent /*= 0*/) : QDialog(parent)
+ESAuthentication::ESAuthentication(QString userType, bool& success, QDialog *parent /*= 0*/) 
+: QDialog(parent), m_success(success)
 {
 	ui.setupUi(this);
+
+	m_userType = userType;
 
 	QObject::connect(ui.cancel, SIGNAL(clicked()), this, SLOT(close()));
 	QObject::connect(ui.ok, SIGNAL(clicked()), this, SLOT(slotAuthenticate()));
@@ -26,8 +29,21 @@ void ESAuthentication::slotAuthenticate()
 	authQuery.addBindValue(encryptedPWrod);
 	if (authQuery.exec())
 	{
-
+		if (authQuery.next())
+		{
+			QString usertype_id = authQuery.value("usertype_id").toString();
+			QSqlQuery q("SELECT usertype_name FROM usertype WHERE usertype_id = " + usertype_id);
+			if (q.next())
+			{
+				QString type = q.value("usertype_name").toString();
+				if (type == m_userType)
+				{
+					m_success = true;
+				}
+			}
+		}		
 	}
+	close();
 }
 
 void ESAuthentication::keyPressEvent(QKeyEvent * event)
