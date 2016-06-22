@@ -81,7 +81,7 @@ void ESCashBalanceStatus::displayStatus()
 			ui.tableWidget->setItem(row, 2, amountWidget);
 		}
 	}
-	QSqlQuery billQueary("SELECT SUM(amount) as totalAmount, user_id FROM payment as p JOIN bill as b ON p.bill_id = b.bill_id WHERE b.status = 1 AND p.payment_type = 'CASH' AND b.deleted = 0 AND b.user_id = "+QString::number(userId)+" AND b.date >= CURDATE() - INTERVAL 1 DAY");
+	QSqlQuery billQueary("SELECT SUM(total_amount) as totalAmount, user_id FROM payment as p JOIN bill as b ON p.bill_id = b.bill_id WHERE b.status = 1 AND p.payment_type = 'CASH' AND b.deleted = 0 AND b.user_id = "+QString::number(userId)+" AND b.date >= CURDATE() - INTERVAL 1 DAY");
 	while (billQueary.next())
 	{
 		float totalCashSales = billQueary.value("totalAmount").toFloat();

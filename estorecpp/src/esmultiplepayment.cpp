@@ -64,6 +64,7 @@ ESMultiplePayment::ESMultiplePayment(ESAddBill* addBill, QWidget *parent /*= 0*/
 	headerLabels.append("Payment Type");
 	headerLabels.append("Amount");
 	headerLabels.append("Interest");
+	headerLabels.append("Payment");
 	headerLabels.append("Due Date");
 	headerLabels.append("Number");
 	headerLabels.append("Bank");
@@ -76,7 +77,7 @@ ESMultiplePayment::ESMultiplePayment(ESAddBill* addBill, QWidget *parent /*= 0*/
 	ui.tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	ui.tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
 	ui.tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
-	ui.tableWidget->hideColumn(7);
+	ui.tableWidget->hideColumn(8);
 
 	QObject::connect(ui.cashBtn, SIGNAL(clicked()), this, SLOT(slotPaymentMethodSelected()));
 	QObject::connect(ui.creditBtn, SIGNAL(clicked()), this, SLOT(slotPaymentMethodSelected()));
@@ -88,7 +89,7 @@ ESMultiplePayment::ESMultiplePayment(ESAddBill* addBill, QWidget *parent /*= 0*/
 	QObject::connect(ui.cashText, SIGNAL(textChanged(QString)), this, SLOT(slotCalculateBalance()));
 	QObject::connect(ui.addBtn, SIGNAL(clicked()), this, SLOT(slotAdd()));
 	QObject::connect(ui.okBtn, SIGNAL(clicked()), this, SLOT(slotFinalizeBill()));
-	QObject::connect(ui.interestTxt, SIGNAL(textChanged(QString)), this, SLOT(slotInterestChanged()));
+	//QObject::connect(ui.interestTxt, SIGNAL(textChanged(QString)), this, SLOT(slotInterestChanged()));
 
 	new QShortcut(QKeySequence(Qt::Key_Escape), this, SLOT(close()));
 	setMinimumWidth(900);
@@ -96,6 +97,7 @@ ESMultiplePayment::ESMultiplePayment(ESAddBill* addBill, QWidget *parent /*= 0*/
 	//resize(900, 1);
 	adjustSize();
 	ui.dateEdit->setDate(QDate::currentDate());
+	ui.okBtn->setDisabled(true);
 }
 
 ESMultiplePayment::~ESMultiplePayment()
@@ -183,6 +185,8 @@ void ESMultiplePayment::slotPaymentMethodSelected()
 
 		ui.lbl1->setText("Cheque No. :  ");
 		ui.lbl2->setText("Bank :  ");
+		ui.txt1->setText("");
+		ui.txt2->setText("");
 
 		ui.cashBtn->setChecked(false);
 		ui.creditBtn->setChecked(false);
@@ -205,6 +209,7 @@ void ESMultiplePayment::slotPaymentMethodSelected()
 		ui.dateEdit->hide();
 
 		ui.lbl1->setText("Card No. :  ");
+		ui.txt1->setText("");
 		//ui.lbl2->setText("Interest % :  ");
 		ui.paymentType->setText("Amount :  ");
 
@@ -228,7 +233,9 @@ void ESMultiplePayment::slotPaymentMethodSelected()
 		ui.interestTxt->show();
 
 		ui.lbl1->setText("Card No. :  ");
+		ui.txt1->setText("");
 		ui.paymentType->setText("Amount :  ");
+
 
 		ui.cashBtn->setChecked(false);
 		ui.chequeBtn->setChecked(false);
@@ -257,15 +264,13 @@ void ESMultiplePayment::slotPaymentMethodSelected()
 		ui.loyalityCardBtn->setChecked(false);
 		m_paymentType = "CASH";
 	}
-
+	ui.interestTxt->setText("0");
 	//resize(900, 1);
 	adjustSize();
 }
 
 void ESMultiplePayment::slotAdd()
 {
-	int row = ui.tableWidget->rowCount();
-	ui.tableWidget->insertRow(row);
 // 
 // 	headerLabels.append("Payment Type");
 // 	headerLabels.append("Amount");
@@ -289,11 +294,27 @@ void ESMultiplePayment::slotAdd()
 		{
 			QMessageBox mbox;
 			mbox.setIcon(QMessageBox::Warning);
-			mbox.setText(QString("Invalid input - Cash"));
+			mbox.setText(QString("Invalid input - Amount"));
 			mbox.exec();
 			ui.cashText->clear();
 			return;
 		}
+		if (amountPaid <= 0)
+		{
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Warning);
+			mbox.setText(QString("Invalid input - Amount"));
+			mbox.exec();
+			return;
+		}
+	}
+	else
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Warning);
+		mbox.setText(QString("Invalid input - Amount"));
+		mbox.exec();
+		return;
 	}
 
 	double netAmount = ui.netAmountLbl->text().toDouble();
@@ -309,43 +330,68 @@ void ESMultiplePayment::slotAdd()
 		ui.netAmountLbl->setText("0.00");
 		ui.addBtn->setDisabled(true);
 		amountPaid = netAmount;
+		ui.okBtn->setEnabled(true);
 	}
 
+	int row = ui.tableWidget->rowCount();
+	ui.tableWidget->insertRow(row);
 	if (m_paymentType == "CASH")
 	{
 		ui.tableWidget->setItem(row, 0, new QTableWidgetItem(m_paymentType));
 		ui.tableWidget->setItem(row, 1, new QTableWidgetItem(QString::number(amountPaid, 'f', 2)));
 		ui.tableWidget->setItem(row, 2, new QTableWidgetItem("-/-"));
-		ui.tableWidget->setItem(row, 3, new QTableWidgetItem("-/-"));
+		ui.tableWidget->setItem(row, 3, new QTableWidgetItem(QString::number(amountPaid, 'f', 2)));
 		ui.tableWidget->setItem(row, 4, new QTableWidgetItem("-/-"));
 		ui.tableWidget->setItem(row, 5, new QTableWidgetItem("-/-"));
+		ui.tableWidget->setItem(row, 6, new QTableWidgetItem("-/-"));
 	}
 	else if (m_paymentType == "CREDIT")
 	{
-		ui.tableWidget->setItem(row, 0, new QTableWidgetItem(m_paymentType));
-		ui.tableWidget->setItem(row, 1, new QTableWidgetItem(QString::number(amountPaid, 'f', 2)));
-		ui.tableWidget->setItem(row, 2, new QTableWidgetItem(ui.interestTxt->text()));
-		ui.tableWidget->setItem(row, 3, new QTableWidgetItem(ui.dateEdit->text()));
-		ui.tableWidget->setItem(row, 4, new QTableWidgetItem("-/-"));
-		ui.tableWidget->setItem(row, 5, new QTableWidgetItem("-/-"));
+		isValid = false;
+		double interest = ui.interestTxt->text().toDouble(&isValid);
+		if (isValid)
+		{
+			double amountWithInterest = amountPaid * (interest / 100) + amountPaid;
+			ui.tableWidget->setItem(row, 0, new QTableWidgetItem(m_paymentType));
+			ui.tableWidget->setItem(row, 1, new QTableWidgetItem(QString::number(amountPaid, 'f', 2)));
+			ui.tableWidget->setItem(row, 2, new QTableWidgetItem(ui.interestTxt->text()));
+			ui.tableWidget->setItem(row, 3, new QTableWidgetItem(QString::number(amountWithInterest, 'f', 2)));
+			ui.tableWidget->setItem(row, 4, new QTableWidgetItem(ui.dateEdit->text()));
+			ui.tableWidget->setItem(row, 5, new QTableWidgetItem("-/-"));
+			ui.tableWidget->setItem(row, 6, new QTableWidgetItem("-/-"));
+		}
 	}
 	else if (m_paymentType == "CHEQUE")
 	{
-		ui.tableWidget->setItem(row, 0, new QTableWidgetItem(m_paymentType));
-		ui.tableWidget->setItem(row, 1, new QTableWidgetItem(QString::number(amountPaid, 'f', 2)));
-		ui.tableWidget->setItem(row, 2, new QTableWidgetItem(ui.interestTxt->text()));
-		ui.tableWidget->setItem(row, 3, new QTableWidgetItem(ui.dateEdit->text()));
-		ui.tableWidget->setItem(row, 4, new QTableWidgetItem(ui.txt1->text()));
-		ui.tableWidget->setItem(row, 5, new QTableWidgetItem(ui.txt2->text()));
+		isValid = false;
+		double interest = ui.interestTxt->text().toDouble(&isValid);
+		if (isValid)
+		{
+			double amountWithInterest = amountPaid * (interest / 100) + amountPaid;
+			ui.tableWidget->setItem(row, 0, new QTableWidgetItem(m_paymentType));
+			ui.tableWidget->setItem(row, 1, new QTableWidgetItem(QString::number(amountPaid, 'f', 2)));
+			ui.tableWidget->setItem(row, 2, new QTableWidgetItem(ui.interestTxt->text()));
+			ui.tableWidget->setItem(row, 3, new QTableWidgetItem(QString::number(amountWithInterest, 'f', 2)));
+			ui.tableWidget->setItem(row, 4, new QTableWidgetItem(ui.dateEdit->text()));
+			ui.tableWidget->setItem(row, 5, new QTableWidgetItem(ui.txt1->text()));
+			ui.tableWidget->setItem(row, 6, new QTableWidgetItem(ui.txt2->text()));
+		}
 	}
 	else if (m_paymentType == "CARD")
 	{
-		ui.tableWidget->setItem(row, 0, new QTableWidgetItem(m_paymentType));
-		ui.tableWidget->setItem(row, 1, new QTableWidgetItem(QString::number(amountPaid, 'f', 2)));
-		ui.tableWidget->setItem(row, 2, new QTableWidgetItem(ui.interestTxt->text()));
-		ui.tableWidget->setItem(row, 3, new QTableWidgetItem("-/-"));
-		ui.tableWidget->setItem(row, 4, new QTableWidgetItem(ui.txt1->text()));
-		ui.tableWidget->setItem(row, 5, new QTableWidgetItem("-/-"));
+		isValid = false;
+		double interest = ui.interestTxt->text().toDouble(&isValid);
+		if (isValid)
+		{
+			double amountWithInterest = amountPaid * (interest / 100) + amountPaid;
+			ui.tableWidget->setItem(row, 0, new QTableWidgetItem(m_paymentType));
+			ui.tableWidget->setItem(row, 1, new QTableWidgetItem(QString::number(amountPaid, 'f', 2)));
+			ui.tableWidget->setItem(row, 2, new QTableWidgetItem(ui.interestTxt->text()));
+			ui.tableWidget->setItem(row, 3, new QTableWidgetItem(QString::number(amountWithInterest, 'f', 2)));
+			ui.tableWidget->setItem(row, 4, new QTableWidgetItem("-/-"));
+			ui.tableWidget->setItem(row, 5, new QTableWidgetItem(ui.txt1->text()));
+			ui.tableWidget->setItem(row, 6, new QTableWidgetItem("-/-"));
+		}
 	}
 	else if (m_paymentType == "LOYALTY")
 	{
@@ -355,11 +401,13 @@ void ESMultiplePayment::slotAdd()
 		ui.tableWidget->setItem(row, 3, new QTableWidgetItem("-/-"));
 		ui.tableWidget->setItem(row, 4, new QTableWidgetItem(ui.txt1->text()));
 		ui.tableWidget->setItem(row, 5, new QTableWidgetItem("-/-"));
+		ui.tableWidget->setItem(row, 6, new QTableWidgetItem("-/-"));
 	}
-	
+	ui.cashText->setText(ui.netAmountLbl->text());
+	ui.interestTxt->setText("0");
 	m_removeButtonSignalMapper->setMapping(removeBtn, row);
 	QObject::connect(removeBtn, SIGNAL(clicked()), m_removeButtonSignalMapper, SLOT(map()));
-	ui.tableWidget->setCellWidget(row, 6, removeBtn);
+	ui.tableWidget->setCellWidget(row, 7, removeBtn);
 	ui.tableWidget->setItem(row, 7, new QTableWidgetItem(QString::number(row)));
 }
 
@@ -375,9 +423,12 @@ void ESMultiplePayment::slotRemove(int row)
 			QTableWidgetItem* amountItem = ui.tableWidget->item(i, 1);
 			double amountPaid = amountItem->text().toDouble();
 			double netAmount = ui.netAmountLbl->text().toDouble();
-
+			//double interest = ui.tableWidget->item(i, 2)->text().toDouble();
+			//amountPaid = (amountPaid - (amountPaid*interest) / 100);
 			ui.netAmountLbl->setText(QString::number((amountPaid + netAmount), 'f', 2));
+			ui.cashText->setText(QString::number((amountPaid + netAmount), 'f', 2));
 			ui.addBtn->setEnabled(true);
+			ui.okBtn->setDisabled(true);
 
 			ui.tableWidget->removeRow(i);
 			ui.cashText->setFocus();
@@ -420,7 +471,7 @@ void ESMultiplePayment::slotFinalizeBill()
 				QSqlQuery query;
 				query.prepare("INSERT INTO payment (bill_id, payment_type, total_amount) VALUES (?, 'CASH', ?)");
 				query.addBindValue(billId);
-				query.addBindValue(totalNetAmount);
+				query.addBindValue(amount);
 				if (query.exec())
 				{
 					int lastInsertedId = query.lastInsertId().toInt();
@@ -449,7 +500,7 @@ void ESMultiplePayment::slotFinalizeBill()
 				QSqlQuery query;
 				query.prepare("INSERT INTO payment (bill_id, payment_type, total_amount) VALUES (?, 'CREDIT', ?)");
 				query.addBindValue(billIdStr);
-				query.addBindValue(totalNetAmount);
+				query.addBindValue(amount);
 				if (query.exec())
 				{
 					int lastInsertedId = query.lastInsertId().toInt();
@@ -457,7 +508,7 @@ void ESMultiplePayment::slotFinalizeBill()
 					q.prepare("INSERT INTO credit (payment_id, amount, due_date) VALUES (?, ?, ?)");
 					q.addBindValue(lastInsertedId);
 					q.addBindValue(amount);
-					q.addBindValue(ui.tableWidget->item(i, 3)->text());
+					q.addBindValue(ui.tableWidget->item(i, 4)->text());
 					if (!q.exec())
 					{
 						QMessageBox mbox;
@@ -479,7 +530,7 @@ void ESMultiplePayment::slotFinalizeBill()
 				QSqlQuery query;
 				query.prepare("INSERT INTO payment (bill_id, payment_type, total_amount) VALUES (?, 'CHEQUE', ?)");
 				query.addBindValue(billIdStr);
-				query.addBindValue(totalNetAmount);
+				query.addBindValue(amount);
 				if (query.exec())
 				{
 					int lastInsertedId = query.lastInsertId().toInt();
@@ -487,9 +538,9 @@ void ESMultiplePayment::slotFinalizeBill()
 					q.prepare("INSERT INTO cheque (payment_id, amount, cheque_number, bank, due_date) VALUES (?, ?, ?, ?, ?)");
 					q.addBindValue(lastInsertedId);
 					q.addBindValue(amount);
-					q.addBindValue(ui.tableWidget->item(i, 4)->text());
 					q.addBindValue(ui.tableWidget->item(i, 5)->text());
-					q.addBindValue(ui.tableWidget->item(i, 3)->text());
+					q.addBindValue(ui.tableWidget->item(i, 6)->text());
+					q.addBindValue(ui.tableWidget->item(i, 4)->text());
 					if (!q.exec())
 					{
 						QMessageBox mbox;
@@ -511,7 +562,7 @@ void ESMultiplePayment::slotFinalizeBill()
 				QSqlQuery query;
 				query.prepare("INSERT INTO payment (bill_id, payment_type, total_amount) VALUES (?, 'CARD', ?)");
 				query.addBindValue(billIdStr);
-				query.addBindValue(totalNetAmount);
+				query.addBindValue(amount);
 				if (query.exec())
 				{
 					int lastInsertedId = query.lastInsertId().toInt();
@@ -519,7 +570,7 @@ void ESMultiplePayment::slotFinalizeBill()
 					q.prepare("INSERT INTO card (payment_id, amount, card_no, interest) VALUES (?, ?, ?, ?)");
 					q.addBindValue(lastInsertedId);
 					q.addBindValue(amount);
-					q.addBindValue(ui.tableWidget->item(i, 4)->text());
+					q.addBindValue(ui.tableWidget->item(i, 5)->text());
 					q.addBindValue(ui.tableWidget->item(i, 2)->text());
 					if (!q.exec())
 					{
@@ -542,7 +593,7 @@ void ESMultiplePayment::slotFinalizeBill()
 				QSqlQuery query;
 				query.prepare("INSERT INTO payment (bill_id, payment_type, total_amount) VALUES (?, 'LOYALTY', ?)");
 				query.addBindValue(billIdStr);
-				query.addBindValue(totalNetAmount);
+				query.addBindValue(amount);
 				if (query.exec())
 				{
 					int lastInsertedId = query.lastInsertId().toInt();
@@ -550,7 +601,7 @@ void ESMultiplePayment::slotFinalizeBill()
 					q.prepare("INSERT INTO loyalty (payment_id, amount, card_no, interest) VALUES (?, ?, ?, ?)");
 					q.addBindValue(lastInsertedId);
 					q.addBindValue(amount);
-					q.addBindValue(ui.tableWidget->item(i, 4)->text());
+					q.addBindValue(ui.tableWidget->item(i, 5)->text());
 					q.addBindValue(ui.tableWidget->item(i, 2)->text());
 					if (!q.exec())
 					{
@@ -889,12 +940,22 @@ void ESMultiplePayment::slotPrint(QPrinter* printer)
 	this->close();
 }
 
-void ESMultiplePayment::slotInterestChanged()
-{
-	double interest = ui.interestTxt->text().toDouble();
-	double netAmout = ui.netAmountLbl->text().toDouble();
-
-	double totalBill = netAmout + netAmout * (interest / 100.0);
-
-	ui.netAmountLbl->setText(QString::number(totalBill, 'f', 2));
-}
+// void ESMultiplePayment::slotInterestChanged()
+// {
+// 	bool valid = false;
+// 	double interest = ui.interestTxt->text().toDouble(&valid);
+// 	if (!valid)
+// 	{
+// 		return;
+// 	}
+// 	double netAmout = ui.netAmountLbl->text().toDouble();
+// 	valid = false;
+// 	double payingAmount = ui.cashText->text().toDouble(&valid);
+// 	if (!valid || payingAmount <= 0)
+// 	{
+// 		return;
+// 	}
+// 	double totalBill = netAmout - payingAmount;
+// 	//payingAmount * (interest / 100.0)
+// 	ui.netAmountLbl->setText(QString::number(totalBill, 'f', 2));
+// }
