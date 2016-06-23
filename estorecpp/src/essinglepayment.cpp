@@ -59,10 +59,11 @@ ESSinglePayment::ESSinglePayment(ESAddBill* addBill, QWidget *parent /*= 0*/) : 
 	QObject::connect(ui.chequeBtn, SIGNAL(clicked()), this, SLOT(slotPaymentMethodSelected()));
 	QObject::connect(ui.creditCardBtn, SIGNAL(clicked()), this, SLOT(slotPaymentMethodSelected()));
 	QObject::connect(ui.loyalityCardBtn, SIGNAL(clicked()), this, SLOT(slotPaymentMethodSelected()));
-	
-	QObject::connect(ui.cashText, SIGNAL(textChanged(QString)), this, SLOT(slotCalculateBalance())); 
+
+	QObject::connect(ui.cashText, SIGNAL(textChanged(QString)), this, SLOT(slotCalculateBalance()));
 	QObject::connect(ui.lineEdit, SIGNAL(textChanged(QString)), this, SLOT(slotInterestChanged()));
 	QObject::connect(ui.okBtn, SIGNAL(clicked()), this, SLOT(slotFinalizeBill()));
+	//QObject::connect(ui.discountText, SIGNAL(textChanged(QString)), this, SLOT(slotDiscountPercentage()));
 
 	new QShortcut(QKeySequence(Qt::Key_Escape), this, SLOT(close()));
 	//resize(400, 1);
@@ -124,7 +125,7 @@ void ESSinglePayment::slotFinalizeBill()
 	if (!isValid || netAmount < 0)
 	{
 		return;
-	}		
+	}
 	int billId = billIdStr.toInt(&isValid);
 	if (!isValid)
 	{
@@ -165,14 +166,14 @@ void ESSinglePayment::handleCashPayment(int billId, double netAmount)
 	QSqlQuery query;
 	query.prepare("INSERT INTO payment (bill_id, total_amount, payment_type) VALUES (?, ?, 'CASH')");
 	query.addBindValue(billId);
-	query.addBindValue(netAmount);
+	query.addBindValue(QString::number(m_initialNetAmount));
 	if (query.exec())
 	{
 		int lastInsertedId = query.lastInsertId().toInt();
 		QSqlQuery q;
 		q.prepare("INSERT INTO cash (payment_id, amount) VALUES (?, ?)");
 		q.addBindValue(lastInsertedId);
-		q.addBindValue(netAmount);
+		q.addBindValue(QString::number(m_initialNetAmount));
 		if (!q.exec())
 		{
 			QMessageBox mbox;
@@ -206,7 +207,7 @@ void ESSinglePayment::handleCreditPayment(int billId, double netAmount)
 		QSqlQuery q;
 		q.prepare("INSERT INTO credit (payment_id, amount, interest, due_date) VALUES (?, ?, ?, ?)");
 		q.addBindValue(lastInsertedId);
-		q.addBindValue(netAmount);
+		q.addBindValue(QString::number(m_initialNetAmount));
 		q.addBindValue(ui.lineEdit->text());
 		q.addBindValue(ui.dateEdit->text());
 		if (!q.exec())
@@ -242,7 +243,7 @@ void ESSinglePayment::handleChequePayment(int billId, double netAmount)
 		QSqlQuery q;
 		q.prepare("INSERT INTO cheque (payment_id, amount, interest, cheque_number, bank, due_date) VALUES (?, ?, ?, ?, ?, ?)");
 		q.addBindValue(lastInsertedId);
-		q.addBindValue(netAmount);
+		q.addBindValue(QString::number(m_initialNetAmount));
 		q.addBindValue(ui.lineEdit->text());
 		q.addBindValue(ui.txt1->text());
 		q.addBindValue(ui.txt2->text());
@@ -281,7 +282,7 @@ void ESSinglePayment::handleCreditCardPayment(int billId, double netAmount)
 		QSqlQuery q;
 		q.prepare("INSERT INTO card (payment_id, amount, interest, card_no) VALUES (?, ?, ?, ?)");
 		q.addBindValue(lastInsertedId);
-		q.addBindValue(netAmount);
+		q.addBindValue(QString::number(m_initialNetAmount));
 		q.addBindValue(ui.lineEdit->text());
 		q.addBindValue(ui.txt1->text());
 		if (!q.exec())
@@ -318,7 +319,7 @@ void ESSinglePayment::handleLoyaltyPayment(int billId, double netAmount)
 		QSqlQuery q;
 		q.prepare("INSERT INTO loyalty (payment_id, amount, interest, card_no) VALUES (?, ?, ?, ?)");
 		q.addBindValue(lastInsertedId);
-		q.addBindValue(netAmount);
+		q.addBindValue(QString::number(m_initialNetAmount));
 		q.addBindValue(ui.lineEdit->text());
 		q.addBindValue(ui.txt1->text());
 		if (!q.exec())
@@ -356,7 +357,7 @@ void ESSinglePayment::slotPaymentMethodSelected()
 		ui.txt1->hide();
 		//ui.txt2->show();
 		ui.dateEdit->show();
-		
+
 
 		//ui.lbl2->setText("Interest % :  ");
 		ui.paymentType->setText("Amount :  ");
@@ -387,7 +388,7 @@ void ESSinglePayment::slotPaymentMethodSelected()
 
 		ui.lbl1->setText("Cheque No. :  ");
 		ui.lbl2->setText("Bank :  ");
-		
+
 		ui.cashBtn->setChecked(false);
 		ui.creditBtn->setChecked(false);
 		ui.creditCardBtn->setChecked(false);
@@ -493,7 +494,7 @@ void ESSinglePayment::finishBill(double netAmount, int billId)
 {
 	QSqlQuery qq;
 	qq.prepare("UPDATE bill SET amount = ?, customer_id = ?, status = 1 WHERE bill_id = ?");
-	qq.addBindValue(netAmount);
+	qq.addBindValue(QString::number(m_initialNetAmount));
 	qq.addBindValue(m_customerId);
 	qq.addBindValue(billId);
 	if (!qq.exec())
@@ -515,7 +516,7 @@ void ESSinglePayment::finishBill(double netAmount, int billId)
 			{
 				QString stockId = saleQuantityQuery.value("stock_id").toString();
 				double quantity = saleQuantityQuery.value("quantity").toDouble();
-				
+
 				QSqlQuery q("SELECT * FROM stock WHERE stock_id = " + stockId);
 				if (q.next())
 				{
@@ -538,7 +539,7 @@ void ESSinglePayment::finishBill(double netAmount, int billId)
 						double currentQty = qq.value("remaining_qty").toDouble();
 						if (qty <= currentQty)
 						{
-							QSqlQuery qqq("UPDATE stock_purchase_order_item SET remaining_qty = " + 
+							QSqlQuery qqq("UPDATE stock_purchase_order_item SET remaining_qty = " +
 								QString::number(currentQty - qty, 'f', 2) + " WHERE stock_po_item_id = " + id);
 							break;
 						}
@@ -549,7 +550,7 @@ void ESSinglePayment::finishBill(double netAmount, int billId)
 						}
 					}
 				}
-				
+
 			}
 		}
 
@@ -789,11 +790,11 @@ void ESSinglePayment::printBill(int billId, float total)
 	printer.setFullPage(false);
 	printer.setOrientation(QPrinter::Portrait);
 
-// 	  		QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
-// 	  		QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
-// 	  		dialog->setWindowTitle(tr("Print Document"));
-// 	  		ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
-// 	  		dialog->exec();
+	// 	  		QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
+	// 	  		QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
+	// 	  		dialog->setWindowTitle(tr("Print Document"));
+	// 	  		ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
+	// 	  		dialog->exec();
 
 	report.print(&printer);
 }
@@ -819,8 +820,8 @@ void ESSinglePayment::keyPressEvent(QKeyEvent * event)
 	case Qt::Key_Return:
 	case Qt::Key_Enter:
 	{
-		slotFinalizeBill();
-		break;
+						  slotFinalizeBill();
+						  break;
 	}
 	default:
 		QWidget::keyPressEvent(event);
@@ -835,4 +836,33 @@ float ESSinglePayment::getInitialNetAmount() const
 void ESSinglePayment::setInitialNetAmount(float val)
 {
 	m_initialNetAmount = val;
+}
+
+void ESSinglePayment::slotDiscountPercentage()
+{
+	QString discountStr = ui.discountText->text();
+	double discount = 0;
+	if (!discountStr.isEmpty())
+	{
+		bool valid = false;
+		discount = discountStr.toDouble(&valid);
+		if (!valid)
+		{
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Warning);
+			mbox.setText(QString("Discount should be a number"));
+			mbox.exec();
+			return;
+		}
+	}
+	double netAmount = ui.netAmountLbl->text().toDouble();
+	if (ui.percentageCB->isChecked())
+	{
+		netAmount = netAmount - (netAmount * discount / 100);
+	}
+	else
+	{
+		netAmount = netAmount - discount;
+	}
+	ui.netAmountLbl->setText(QString::number(netAmount, 'f', 2));
 }
