@@ -7,7 +7,9 @@
 #include "KDReportsTextElement.h"
 #include "KDReportsTableElement.h"
 #include "KDReportsCell.h"
+#include "KDReportsHtmlElement.h"
 #include "QShortcut"
+#include "KDReportsHeader.h"
 
 ESSinglePayment::ESSinglePayment(ESAddBill* addBill, QWidget *parent /*= 0*/) : QWidget(parent), m_addBill(addBill)
 {
@@ -590,7 +592,7 @@ void ESSinglePayment::printBill(int billId, float total)
 		}
 	}
 
-	KDReports::Report report;
+	//KDReports::Report report;
 
 	QString dateStr = "Date : ";
 	dateStr.append(QDateTime::currentDateTime().toString("yyyy-MM-dd"));
@@ -632,27 +634,29 @@ void ESSinglePayment::printBill(int billId, float total)
 	infoTableElement.setHeaderColumnCount(2);
 	infoTableElement.setBorder(0);
 	infoTableElement.setWidth(100, KDReports::Percent);
-
+	
 	{
 		KDReports::Cell& billIdCell = infoTableElement.cell(0, 0);
 		KDReports::TextElement t(billIdStr);
+		t.setPointSize(10);
 		billIdCell.addElement(t, Qt::AlignLeft);
 	}{
 		KDReports::Cell& userNameCell = infoTableElement.cell(1, 0);
 		KDReports::TextElement t("Cashier : " + userName);
+		t.setPointSize(10);
 		userNameCell.addElement(t, Qt::AlignLeft);
 	}{
 		KDReports::Cell& dateCell = infoTableElement.cell(0, 1);
 		KDReports::TextElement t(dateStr);
+		t.setPointSize(10);
 		dateCell.addElement(t, Qt::AlignRight);
 	}{
 		KDReports::Cell& timeCell = infoTableElement.cell(1, 1);
 		KDReports::TextElement t(timeStr);
+		t.setPointSize(10);
 		timeCell.addElement(t, Qt::AlignRight);
 	}
-
-	report.addVerticalSpacing(9);
-
+	
 	report.addElement(infoTableElement);
 
 	QString querySaleStr("SELECT * FROM sale WHERE bill_id = " + QString::number(billId) + " AND deleted = 0");
@@ -661,48 +665,52 @@ void ESSinglePayment::printBill(int billId, float total)
 	//columns (item_code, Description, UnitPrice, Discount, Qty, Sub Total)
 
 	KDReports::TableElement tableElement;
-	tableElement.setHeaderRowCount(5);
+	//tableElement.setHeaderRowCount(5);
 	tableElement.setHeaderColumnCount(6);
 	tableElement.setBorder(0);
 	tableElement.setWidth(100, KDReports::Percent);
 
 	KDReports::Cell& cICode = tableElement.cell(0, 0);
 	KDReports::TextElement tICode("Item Code");
-	tICode.setPointSize(12);
+	tICode.setPointSize(11);
 	tICode.setBold(true);
-	cICode.addElement(tICode);
+	cICode.addElement(tICode, Qt::AlignLeft);
 
 	KDReports::Cell& cIName = tableElement.cell(0, 1);
 	KDReports::TextElement tEItem("Item");
 	tEItem.setBold(true);
 	tEItem.setPointSize(11);
-	cIName.addElement(tEItem);
+	cIName.addElement(tEItem, Qt::AlignLeft);
 
 	KDReports::Cell& cPrice = tableElement.cell(0, 2);
 	KDReports::TextElement tEPrice("Unit Price");
 	tEPrice.setPointSize(11);
 	tEPrice.setBold(true);
-	cPrice.addElement(tEPrice);
+	cPrice.addElement(tEPrice, Qt::AlignRight);
 
 	KDReports::Cell& cDiscount = tableElement.cell(0, 3);
 	KDReports::TextElement tEDiscount("Discount");
 	tEDiscount.setPointSize(11);
 	tEDiscount.setBold(true);
-	cDiscount.addElement(tEDiscount);
+	cDiscount.addElement(tEDiscount, Qt::AlignRight);
 
 	KDReports::Cell& cQty = tableElement.cell(0, 4);
 	KDReports::TextElement tEQty("Qty");
 	tEQty.setPointSize(11);
 	tEQty.setBold(true);
-	cQty.addElement(tEQty);
+	cQty.addElement(tEQty, Qt::AlignRight);
 
 	KDReports::Cell& cTotal = tableElement.cell(0, 5);
 	KDReports::TextElement tETotal("Sub Total");
 	tETotal.setPointSize(11);
 	tETotal.setBold(true);
-	cTotal.addElement(tETotal);
+	cTotal.addElement(tETotal, Qt::AlignRight);
 
-	report.addVerticalSpacing(6);
+//	report.addVerticalSpacing(6);
+	KDReports::HtmlElement htmlElem;
+	QString htm("<div><hr/></div>");
+	htmlElem.setHtml(htm);
+	report.addElement(htmlElem);
 
 	int row = 1;
 	int noOfPcs = 0, noOfItems = 0;
@@ -724,65 +732,119 @@ void ESSinglePayment::printBill(int billId, float total)
 		if (queryItem.next())
 		{
 			itemName = queryItem.value("item_name").toString();
-			unitPrice = queryItem.value("selling_price").toString();
+			unitPrice = QString::number(queryItem.value("selling_price").toDouble(), 'f', 2);
 			itemCode = queryItem.value("item_code").toString();
 		}
 		//columns (item_code, Description, UnitPrice, Discount, Qty, Sub Total)
 		printRow(tableElement, row, 0, itemCode);
 		printRow(tableElement, row, 1, itemName);
-		printRow(tableElement, row, 2, unitPrice);
-		printRow(tableElement, row, 3, discount);
-		printRow(tableElement, row, 4, qty);
-		printRow(tableElement, row, 5, subTotal);
+		printRow(tableElement, row, 2, unitPrice, Qt::AlignRight);
+		printRow(tableElement, row, 3, discount, Qt::AlignRight);
+		printRow(tableElement, row, 4, qty, Qt::AlignRight);
+		printRow(tableElement, row, 5, subTotal, Qt::AlignRight);
 		row++;
 	}
 
-	report.addVerticalSpacing(5);
+	//report.addVerticalSpacing(5);
+	KDReports::Cell& emptyCell = tableElement.cell(row, 0);
+	emptyCell.setColumnSpan(6);
+	row++;
 
-	KDReports::Cell& totalTextC = tableElement.cell(row, 4);
+	KDReports::Cell& totalTextC = tableElement.cell(row, 0);
+	totalTextC.setColumnSpan(5);
 	KDReports::TextElement totalTxt("Total ");
 	totalTxt.setPointSize(11);
 	totalTxt.setBold(true);
-	totalTextC.addElement(totalTxt);
+	totalTextC.addElement(totalTxt, Qt::AlignRight);
 
 	KDReports::Cell& totalCell = tableElement.cell(row, 5);
 	KDReports::TextElement totalValue(QString::number(total, 'f', 2));
 	totalValue.setPointSize(11);
 	totalValue.setBold(true);
-	totalCell.addElement(totalValue);
+	totalCell.addElement(totalValue, Qt::AlignRight);
 
 	//
 	row++;
-	KDReports::Cell& countText = tableElement.cell(row, 4);
-	KDReports::TextElement noOfItemsTxt("No of Items ");
+	KDReports::Cell& countText = tableElement.cell(row, 0);
+	countText.setColumnSpan(5);
+	KDReports::TextElement noOfItemsTxt("# of Items ");
 	noOfItemsTxt.setPointSize(11);
 	noOfItemsTxt.setBold(true);
-	countText.addElement(noOfItemsTxt);
+	countText.addElement(noOfItemsTxt, Qt::AlignRight);
 
 	KDReports::Cell& countItemCell = tableElement.cell(row, 5);
 	KDReports::TextElement itemCountValue(QString::number(noOfItems));
 	itemCountValue.setPointSize(11);
 	itemCountValue.setBold(true);
-	countItemCell.addElement(itemCountValue);
-	//
+	countItemCell.addElement(itemCountValue, Qt::AlignRight);
 
 	//
 	row++;
-
-	KDReports::Cell& pcsText = tableElement.cell(row, 4);
-	KDReports::TextElement noOfPcsTxt("No of Pieces ");
+	KDReports::Cell& pcsText = tableElement.cell(row, 0);
+	pcsText.setColumnSpan(5);
+	KDReports::TextElement noOfPcsTxt("# of Pieces ");
 	noOfPcsTxt.setPointSize(11);
 	noOfPcsTxt.setBold(true);
-	pcsText.addElement(noOfPcsTxt);
+	pcsText.addElement(noOfPcsTxt, Qt::AlignRight);
 
 	KDReports::Cell& pcsItemCell = tableElement.cell(row, 5);
 	KDReports::TextElement itemPcsValue(QString::number(noOfPcs));
 	itemPcsValue.setPointSize(11);
 	itemPcsValue.setBold(true);
-	pcsItemCell.addElement(itemPcsValue);
+	pcsItemCell.addElement(itemPcsValue, Qt::AlignRight);
 	//
-
 	report.addElement(tableElement);
+
+	report.addVerticalSpacing(5);
+
+	// customer info	
+	if (m_customerId == "-1")
+	{
+		QString customer = "Customer Info : N/A";
+
+		KDReports::TextElement customerInfo(customer);
+		customerInfo.setPointSize(11);
+		report.addElement(customerInfo, Qt::AlignLeft);
+	}
+	else
+	{
+		KDReports::TableElement customerInfoTable;
+		customerInfoTable.setBorder(0);
+
+		QSqlQuery q("SELECT * FROM customer WHERE customer_id = " + m_customerId);
+		if (q.next())
+		{
+			{
+				KDReports::Cell& cell = customerInfoTable.cell(0, 0);
+				KDReports::TextElement t("Customer Info : ");
+				t.setPointSize(10);
+				cell.addElement(t, Qt::AlignLeft);
+			}{
+			KDReports::Cell& cell = customerInfoTable.cell(0, 1);
+				KDReports::TextElement t(q.value("name").toString());
+				t.setPointSize(10);
+				cell.addElement(t, Qt::AlignLeft);
+			}
+			{
+				KDReports::Cell& cell = customerInfoTable.cell(1, 0);
+				KDReports::TextElement t("");
+				t.setPointSize(10);
+				cell.addElement(t, Qt::AlignLeft);
+			}{
+				KDReports::Cell& cell = customerInfoTable.cell(1, 1);
+				KDReports::TextElement t(q.value("address").toString());
+				t.setPointSize(10);
+				cell.addElement(t, Qt::AlignLeft);
+			}
+		}
+		report.addElement(customerInfoTable, Qt::AlignLeft);
+	}
+
+	KDReports::Footer& foter = report.footer();
+	KDReports::TextElement info("Powered by PROGEX Technologies.");
+	KDReports::TextElement web("www.progextech.com");
+	foter.addElement(info, Qt::AlignCenter);
+	foter.addElement(web, Qt::AlignCenter);
 
 	QPrinter printer;
 	printer.setPaperSize(QPrinter::A4);
@@ -790,27 +852,27 @@ void ESSinglePayment::printBill(int billId, float total)
 	printer.setFullPage(false);
 	printer.setOrientation(QPrinter::Portrait);
 
-	// 	  		QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
-	// 	  		QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
-	// 	  		dialog->setWindowTitle(tr("Print Document"));
-	// 	  		ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
-	// 	  		dialog->exec();
+	 	  		QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
+	 	  		QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
+	 	  		dialog->setWindowTitle(tr("Print Document"));
+	 	  		ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
+	 	  		dialog->exec();
 
-	report.print(&printer);
+	//report.print(&printer);
 }
 
 void ESSinglePayment::slotPrint(QPrinter* printer)
 {
-	//report.print(printer);
+	report.print(printer);
 	this->close();
 }
 
-void ESSinglePayment::printRow(KDReports::TableElement& tableElement, int row, int col, QString elementStr)
+void ESSinglePayment::printRow(KDReports::TableElement& tableElement, int row, int col, QString elementStr, Qt::AlignmentFlag alignment)
 {
 	KDReports::Cell& cell = tableElement.cell(row, col);
 	KDReports::TextElement te(elementStr);
 	te.setPointSize(10);
-	cell.addElement(te);
+	cell.addElement(te, alignment);
 }
 
 void ESSinglePayment::keyPressEvent(QKeyEvent * event)

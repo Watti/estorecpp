@@ -41,7 +41,8 @@ private:
 	void handleCreditCardPayment(int billId, double netAmount);
 	void handleLoyaltyPayment(int billId, double netAmount);
 	void finishBill(double netAmount, int billId);
-	void printRow(KDReports::TableElement& tableElement, int row, int col, QString elementStr);
+	void printRow(KDReports::TableElement& tableElement, int row, int col, 
+		QString elementStr, Qt::AlignmentFlag alignment = Qt::AlignLeft);
 	void printBill(int billId, float total);
 
 	bool validate();
@@ -52,7 +53,7 @@ private:
 	float m_initialNetAmount;
 	QString m_paymentMethod;
 
-	//KDReports::Report report;
+	KDReports::Report report;
 
 };
 
