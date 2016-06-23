@@ -36,6 +36,9 @@ namespace
 					double sellingPrice = queryStock.value("selling_price").toDouble();
 					if (sellingPrice > reducedPrice)
 					{
+						//ESAuthentication* auth = new ESAuthentication(0);
+						//auth->show();
+
 						//TODO error message has to be shown
 						reducedPrice = sellingPrice;
 
@@ -44,8 +47,6 @@ namespace
 // 						mbox.setText(QString("Price cannot be lower than the stock price"));
 // 						mbox.exec();
 
-						ESAuthentication* auth = new ESAuthentication(0);
-						auth->show();
 					}
 
 				}

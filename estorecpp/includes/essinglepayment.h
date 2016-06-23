@@ -29,6 +29,7 @@ public:
 	void slotPrint(QPrinter* printer);
 	float getInitialNetAmount() const;
 	void setInitialNetAmount(float val);
+	void slotDiscountPercentage();
 
 protected:
 	void keyPressEvent(QKeyEvent * event);
