@@ -11,6 +11,7 @@
 #include "KDReportsHtmlElement.h"
 #include "QShortcut"
 #include "KDReportsHeader.h"
+#include "QMainWindow"
 
 ESSinglePayment::ESSinglePayment(ESAddBill* addBill, QWidget *parent /*= 0*/) : QWidget(parent), m_addBill(addBill)
 {

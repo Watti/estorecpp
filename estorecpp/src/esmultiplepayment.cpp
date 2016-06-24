@@ -635,7 +635,7 @@ void ESMultiplePayment::slotFinalizeBill()
 		}
 	}
 
-	finishBill(payingAmount, billId);
+	finishBill(totalNetAmount, billId);
 }
 
 void ESMultiplePayment::finishBill(double netAmount, int billId)
@@ -947,6 +947,7 @@ void ESMultiplePayment::printBill(int billId, float total)
 
 	QSqlQuery queryPaymentType("SELECT * FROM payment WHERE bill_id = " + QString::number(billId));
 	QString paymentTypes = "";
+	float totalPayingAmount = 0;
 	while (queryPaymentType.next())
 	{
 		//paymentTypes.append(queryPaymentType.value("payment_type").toString());
@@ -960,6 +961,7 @@ void ESMultiplePayment::printBill(int billId, float total)
 				float interest = queryCard.value("interest").toFloat();
 				float amount = queryCard.value("amount").toFloat();
 				amount = amount + (amount * interest) / 100;
+				totalPayingAmount += amount;
 				KDReports::TextElement paymentTE(paymentType + " : " + QString::number(amount, 'f', 2));
 				paymentTE.setPointSize(11);
 				report.addElement(paymentTE, Qt::AlignLeft);
@@ -973,6 +975,7 @@ void ESMultiplePayment::printBill(int billId, float total)
 				float interest = query.value("interest").toFloat();
 				float amount = query.value("amount").toFloat();
 				amount = amount + (amount * interest) / 100;
+				totalPayingAmount += amount;
 				KDReports::TextElement paymentTE(paymentType + " : " + QString::number(amount, 'f', 2));
 				paymentTE.setPointSize(11);
 				report.addElement(paymentTE, Qt::AlignLeft);
@@ -986,6 +989,7 @@ void ESMultiplePayment::printBill(int billId, float total)
 				float interest = query.value("interest").toFloat();
 				float amount = query.value("amount").toFloat();
 				amount = amount + (amount * interest) / 100;
+				totalPayingAmount += amount;
 				KDReports::TextElement paymentTE(paymentType + " : " + QString::number(amount, 'f', 2));
 				paymentTE.setPointSize(11);
 				report.addElement(paymentTE, Qt::AlignLeft);
@@ -997,6 +1001,7 @@ void ESMultiplePayment::printBill(int billId, float total)
 			if (query.next())
 			{
 				float amount = query.value("amount").toFloat();
+				totalPayingAmount += amount;
 				KDReports::TextElement paymentTE(paymentType + " : " + QString::number(amount, 'f', 2));
 				paymentTE.setPointSize(11);
 				report.addElement(paymentTE, Qt::AlignLeft);
