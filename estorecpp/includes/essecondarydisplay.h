@@ -14,6 +14,9 @@ public:
 
 	Ui::SecondaryDisplayWidget& getUI() { return ui; }
 
+	void startBill();
+	void endBill();
+
 	public slots:
 	void slotSearch();
 

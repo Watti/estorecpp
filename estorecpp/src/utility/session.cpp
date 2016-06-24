@@ -1,6 +1,8 @@
 #include "utility/session.h"
 #include <crtdbg.h>
 #include "utility/esmenumanager.h"
+#include "utility/esmainwindowholder.h"
+#include "essecondarydisplay.h"
 
 namespace ES
 {
@@ -38,6 +40,8 @@ namespace ES
 	void Session::startBill()
 	{
 		m_billStarted = true;
+
+		ES::MainWindowHolder::instance()->getSecondaryDisplay()->startBill();
 	}
 
 	bool Session::isBillStarted() const
@@ -48,6 +52,7 @@ namespace ES
 	void Session::endBill()
 	{
 		m_billStarted = false;
+		ES::MainWindowHolder::instance()->getSecondaryDisplay()->endBill();
 	}
 
 	QString Session::getBillId() const
