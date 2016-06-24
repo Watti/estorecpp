@@ -22,6 +22,10 @@ ESSecondaryDisplay::ESSecondaryDisplay(QWidget *parent /*= 0*/) : QWidget(parent
 	ui.tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
 	ui.tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
 	//ui.tableWidget->hideColumn(7);
+
+	ui.grossAmountLbl->setText("0.00");
+	ui.netAmountLbl->setText("0.00");
+	ui.onOfItemsLbl->setText("0.00");
 }
 
 ESSecondaryDisplay::~ESSecondaryDisplay()
@@ -84,5 +88,12 @@ void ESSecondaryDisplay::update()
 		itemTotal->setTextAlignment(Qt::AlignRight);
 		ui.tableWidget->setItem(row, 3, itemTotal);
 	}
+}
+
+void ESSecondaryDisplay::setBillInfo(QString gross, QString net, QString items)
+{
+	ui.grossAmountLbl->setText(gross);
+	ui.netAmountLbl->setText(net);
+	ui.onOfItemsLbl->setText(items);
 }
 

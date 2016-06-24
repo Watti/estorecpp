@@ -17,6 +17,7 @@ public:
 	void startBill();
 	void endBill();
 	void update();
+	void setBillInfo(QString gross, QString net, QString items);
 
 	public slots:
 	void slotSearch();

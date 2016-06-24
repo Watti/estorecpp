@@ -321,6 +321,11 @@ void ESAddBill::calculateAndDisplayTotal()
 	ui.netAmountLabel->setText(QString::number(netAmount, 'f', 2));
 	ui.grossAmountLabel->setText(QString::number(grossAmount, 'f', 2));
 	ui.noOfItemLabel->setText(QString::number(noOfItems));
+
+	ES::MainWindowHolder::instance()->getSecondaryDisplay()->setBillInfo(
+		QString::number(netAmount, 'f', 2),
+		QString::number(grossAmount, 'f', 2),
+		QString::number(noOfItems));
 }
 
 void ESAddBill::slotCommit()
