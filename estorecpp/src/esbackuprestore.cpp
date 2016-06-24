@@ -242,32 +242,33 @@ void BackupThread::run()
 
 	QString q("SELECT auto_backup FROM backup_status");
 	QSqlQuery queryBackup(q);
-	if (queryBackup.next())
+	//if (queryBackup.next())
 	{
-		int autoBackup = queryBackup.value("auto_backup").toInt();
+		int autoBackup = 1;//queryBackup.value("auto_backup").toInt();
 		if (autoBackup != 0)
 		{
-			while (true){
-				QString q("SELECT * FROM backup_status");
-				QSqlQuery query(q);
-				if (query.next())
+			//while (true)
+			{
+				//QString q("SELECT * FROM backup_status");
+				//QSqlQuery query(q);
+				//if (query.next())
 				{
-					int type = query.value("backup_type").toInt();
-					int repeat = query.value("repeating_value").toInt();
-					QDate lastBakupDate = query.value("last_backup_date").toDate();
-					QDate currentDate(QDate::currentDate());
+					int type = 1;//query.value("backup_type").toInt();
+// 					int repeat = query.value("repeating_value").toInt();
+// 					QDate lastBakupDate = query.value("last_backup_date").toDate();
+// 					QDate currentDate(QDate::currentDate());
 
 					switch (type)
 					{
 					case 1:
 					{
-							  if (abs(currentDate.day() - lastBakupDate.day()) >= repeat)
+							  //if (abs(currentDate.day() - lastBakupDate.day()) >= repeat)
 							  {
 								  QString bkpPath = ES::Session::getInstance()->getBackupPath();
 								  QString timeStanmp = QDateTime::currentDateTime().toString("yyyy-MM-dd");
 								  QString bakupFileName = "DBBackupFile-" + timeStanmp + ".sql";
 
-								  QString cmd = QString("mysqldump.exe --log-error backup.log -u%1 -p%2 goldfish").arg("root", "123");
+								  QString cmd = QString("mysqldump.exe --log-error backup.log -u%1 -p%2 goldfish bill card cash cheque credit payment petty_cash sale supplier purchase_order stock_purchase_order_item return_item supplier_item item item_category stock customer ").arg("root", "123");
 								  QString bckpPath = bkpPath + "\\" + bakupFileName;
 								  QProcess *poc = new QProcess(this);
 
@@ -275,22 +276,22 @@ void BackupThread::run()
 								  poc->start(cmd);
 								  poc->waitForFinished(-1);
 
-								  QString qStr = "UPDATE backup_status SET last_backup_date = '" + currentDate.toString("yyyy-MM-dd") + "'";
-								  QSqlQuery queryUpdate;
-								  if (!queryUpdate.exec(qStr))
-								  {
-									  LOG(ERROR) << "ESBackupRestore::slotUpdateBackupSchedule : " << qStr.toLatin1().data();
-								  }
+// 								  QString qStr = "UPDATE backup_status SET last_backup_date = '" + currentDate.toString("yyyy-MM-dd") + "'";
+// 								  QSqlQuery queryUpdate;
+// 								  if (!queryUpdate.exec(qStr))
+// 								  {
+// 									  LOG(ERROR) << "ESBackupRestore::slotUpdateBackupSchedule : " << qStr.toLatin1().data();
+// 								  }
 							  }
 					}
 						break;
 					case 2:
 					{
-							  int dl = lastBakupDate.month();
-							  int dc = currentDate.month();
-							  int t = abs(currentDate.month() - lastBakupDate.month());
-							  int noOfWeeks = lastBakupDate.daysTo(currentDate) / 7;
-							  if (noOfWeeks >= repeat)
+// 							  int dl = lastBakupDate.month();
+// 							  int dc = currentDate.month();
+// 							  int t = abs(currentDate.month() - lastBakupDate.month());
+// 							  int noOfWeeks = lastBakupDate.daysTo(currentDate) / 7;
+// 							  if (noOfWeeks >= repeat)
 							  {
 								  QString bkpPath = ES::Session::getInstance()->getBackupPath();
 								  QString timeStanmp = QDateTime::currentDateTime().toString("yyyy-MM-dd");
@@ -304,18 +305,18 @@ void BackupThread::run()
 								  poc->start(cmd);
 								  poc->waitForFinished(-1);
 
-								  QString qStr = "UPDATE backup_status SET last_backup_date = '" + currentDate.toString("yyyy-MM-dd") + "'";
-								  QSqlQuery queryUpdate;
-								  if (!queryUpdate.exec(qStr))
-								  {
-									  LOG(ERROR) << "ESBackupRestore::slotUpdateBackupSchedule : " << qStr.toLatin1().data();
-								  }
+// 								  QString qStr = "UPDATE backup_status SET last_backup_date = '" + currentDate.toString("yyyy-MM-dd") + "'";
+// 								  QSqlQuery queryUpdate;
+// 								  if (!queryUpdate.exec(qStr))
+// 								  {
+// 									  LOG(ERROR) << "ESBackupRestore::slotUpdateBackupSchedule : " << qStr.toLatin1().data();
+// 								  }
 							  }
 					}
 						break;
 					case 3:
 					{
-							  if (abs(currentDate.month() - lastBakupDate.month()) >= repeat)
+							 // if (abs(currentDate.month() - lastBakupDate.month()) >= repeat)
 							  {
 								  QString bkpPath = ES::Session::getInstance()->getBackupPath();
 								  QString timeStanmp = QDateTime::currentDateTime().toString("yyyy-MM-dd");
@@ -329,12 +330,12 @@ void BackupThread::run()
 								  poc->start(cmd);
 								  poc->waitForFinished(-1);
 
-								  QString qStr = "UPDATE backup_status SET last_backup_date = '" + currentDate.toString("yyyy-MM-dd") + "'";
-								  QSqlQuery queryUpdate;
-								  if (!queryUpdate.exec(qStr))
-								  {
-									  LOG(ERROR) << "ESBackupRestore::slotUpdateBackupSchedule : " << qStr.toLatin1().data();
-								  }
+// 								  QString qStr = "UPDATE backup_status SET last_backup_date = '" + currentDate.toString("yyyy-MM-dd") + "'";
+// 								  QSqlQuery queryUpdate;
+// 								  if (!queryUpdate.exec(qStr))
+// 								  {
+// 									  LOG(ERROR) << "ESBackupRestore::slotUpdateBackupSchedule : " << qStr.toLatin1().data();
+// 								  }
 							  }
 					}
 						break;
@@ -342,7 +343,7 @@ void BackupThread::run()
 						break;
 					}
 				}
-				Sleep(1000000);
+				//Sleep(1000000);
 			}
 		}
 	}

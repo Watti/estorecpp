@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
 	w.showMaximized();
 	LOG(INFO) << "Initializing the system...";
 	ES::MainWindowHolder::instance()->setMainWindow(&w);
-// 	BackupThread b;
-// 	b.start();
+ 	BackupThread b;
+ 	b.start();
 	return a.exec();
 }
