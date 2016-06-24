@@ -746,9 +746,16 @@ void ESSinglePayment::printBill(int billId, float total)
 	}
 
 	//report.addVerticalSpacing(5);
-	KDReports::Cell& emptyCell = tableElement.cell(row, 0);
-	emptyCell.setColumnSpan(6);
-	row++;
+	{
+		KDReports::Cell& emptyCell = tableElement.cell(row, 0);
+		KDReports::HtmlElement htmlElem;
+		QString html("<div><hr/></div>");
+		htmlElem.setHtml(html);
+		emptyCell.setColumnSpan(6);
+		emptyCell.addElement(htmlElem);
+		row++;
+	}
+	
 
 	KDReports::Cell& totalTextC = tableElement.cell(row, 0);
 	totalTextC.setColumnSpan(5);
@@ -797,6 +804,12 @@ void ESSinglePayment::printBill(int billId, float total)
 
 	report.addVerticalSpacing(5);
 
+	KDReports::TextElement customerInfo("Payment Type : " + m_paymentMethod);
+	customerInfo.setPointSize(11);
+	report.addElement(customerInfo, Qt::AlignLeft);
+
+	report.addVerticalSpacing(1);
+
 	// customer info	
 	if (m_customerId == "-1")
 	{
@@ -808,41 +821,22 @@ void ESSinglePayment::printBill(int billId, float total)
 	}
 	else
 	{
-		KDReports::TableElement customerInfoTable;
-		customerInfoTable.setBorder(0);
-
+		QString customer = "Customer Info : ";
 		QSqlQuery q("SELECT * FROM customer WHERE customer_id = " + m_customerId);
 		if (q.next())
 		{
-			{
-				KDReports::Cell& cell = customerInfoTable.cell(0, 0);
-				KDReports::TextElement t("Customer Info : ");
-				t.setPointSize(10);
-				cell.addElement(t, Qt::AlignLeft);
-			}{
-			KDReports::Cell& cell = customerInfoTable.cell(0, 1);
-				KDReports::TextElement t(q.value("name").toString());
-				t.setPointSize(10);
-				cell.addElement(t, Qt::AlignLeft);
-			}
-			{
-				KDReports::Cell& cell = customerInfoTable.cell(1, 0);
-				KDReports::TextElement t("");
-				t.setPointSize(10);
-				cell.addElement(t, Qt::AlignLeft);
-			}{
-				KDReports::Cell& cell = customerInfoTable.cell(1, 1);
-				KDReports::TextElement t(q.value("address").toString());
-				t.setPointSize(10);
-				cell.addElement(t, Qt::AlignLeft);
-			}
+			customer.append(q.value("customer_id").toString());
+			customer.append(" / ");
+			customer.append(q.value("name").toString());
 		}
-		report.addElement(customerInfoTable, Qt::AlignLeft);
+		KDReports::TextElement customerInfo(customer);
+		customerInfo.setPointSize(11);
+		report.addElement(customerInfo, Qt::AlignLeft);
 	}
 
 	KDReports::Footer& foter = report.footer();
 	KDReports::TextElement info("Powered by PROGEX Technologies.");
-	KDReports::TextElement web("www.progextech.com");
+	KDReports::TextElement web("www.progextech.com  T.P.: 072-6430268/071-1308531");
 	foter.addElement(info, Qt::AlignCenter);
 	foter.addElement(web, Qt::AlignCenter);
 

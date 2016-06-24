@@ -12,6 +12,7 @@
 #include <string>
 #include "utility/session.h"
 #include "esbackuprestore.h"
+#include "QDesktopWidget"
 
 INITIALIZE_EASYLOGGINGPP
 
@@ -72,10 +73,25 @@ int main(int argc, char *argv[])
 	readSettings();
 
 	ESMainWindow w;
+
+	QRect screenres = QApplication::desktop()->screenGeometry(0/*screenNumber*/);
+	w.move(QPoint(screenres.x(), screenres.y()));
+	w.resize(screenres.width(), screenres.height());
 	w.showMaximized();
+
+	QWidget w2;
+	QRect screenres2 = QApplication::desktop()->screenGeometry(1/*screenNumber*/);
+	w2.move(QPoint(screenres2.x(), screenres2.y()));
+	w2.resize(screenres2.width(), screenres2.height());
+	w2.showMaximized();
+
+	//w.showMaximized();
 	LOG(INFO) << "Initializing the system...";
 	ES::MainWindowHolder::instance()->setMainWindow(&w);
  	BackupThread b;
  	b.start();
+
+	
+
 	return a.exec();
 }
