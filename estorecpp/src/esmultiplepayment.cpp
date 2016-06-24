@@ -13,6 +13,7 @@
 #include "KDReportsReport.h"
 #include "QPrintPreviewDialog"
 #include "utility\esmainwindowholder.h"
+#include "esmainwindow.h"
 #include "KDReportsHeader.h"
 #include "KDReportsHtmlElement.h"
 #include "qnamespace.h"
