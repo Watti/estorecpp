@@ -228,7 +228,6 @@ void ESAddBill::keyPressEvent(QKeyEvent* evt)
 		textWidget->selectAll();
 		ui.tableWidget->setCellWidget(row, 3, textWidget);
 		textWidget->setFocus();
-		ES::MainWindowHolder::instance()->getSecondaryDisplay()->update();
 		break;
 	}
 	case Qt::Key_Up:
@@ -524,6 +523,7 @@ void ESAddBill::slotQuantityCellUpdated(QString txt, int row, int col)
 		}
 	}
 
+	ES::MainWindowHolder::instance()->getSecondaryDisplay()->update();
 }
 
 void ESAddBill::populateTable(QSqlQuery &queryBillTable)
