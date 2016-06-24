@@ -36,14 +36,15 @@ private:
 	bool validate();
 	void finishBill(double netAmount, int billId);
 	void printBill(int billId, float total);
-	void printRow(KDReports::TableElement& tableElement, int row, int col, QString elementStr);
+	void printRow(KDReports::TableElement& tableElement, int row, int col,
+		QString elementStr, Qt::AlignmentFlag alignment = Qt::AlignLeft);
 	Ui::MultiplePaymentWidget ui;
 	QString m_customerId;
 	QString m_paymentType;
 	QSignalMapper* m_removeButtonSignalMapper;
 	ESAddBill* m_addBill;
 	float m_initialNetAmount;
-	//KDReports::Report report;
+	KDReports::Report report;
 
 };
 
