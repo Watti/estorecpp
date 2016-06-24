@@ -411,6 +411,8 @@ void ESAddBill::slotRemoveItem(QString saleId)
 
 		populateTable(queryBillTable);
 		calculateAndDisplayTotal();
+
+		ES::MainWindowHolder::instance()->getSecondaryDisplay()->update();
 	}
 }
 

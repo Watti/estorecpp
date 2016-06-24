@@ -56,7 +56,7 @@ void ESSecondaryDisplay::update()
 
 	QString billId = ES::Session::getInstance()->getBillId();
 
-	QSqlQuery q("SELECT * FROM sale WHERE bill_id = " + billId);
+	QSqlQuery q("SELECT * FROM sale WHERE bill_id = " + billId + " AND deleted = 0");
 	while (q.next())
 	{
 		int row = ui.tableWidget->rowCount();
