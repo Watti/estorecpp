@@ -44,10 +44,16 @@ void ESSecondaryDisplay::endBill()
 {
 	ui.baseWidget->hide();
 	ui.thankYouLabel->show();
+	ui.tableWidget->clearContents();
 }
 
 void ESSecondaryDisplay::update()
 {
+	while (ui.tableWidget->rowCount() > 0)
+	{
+		ui.tableWidget->removeRow(0);
+	}
+
 	QString billId = ES::Session::getInstance()->getBillId();
 
 	QSqlQuery q("SELECT * FROM sale WHERE bill_id = " + billId);
