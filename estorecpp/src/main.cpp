@@ -3,6 +3,7 @@
 #include "utility/session.h"
 #include "easylogging++.h"
 #include <QtWidgets/QApplication>
+#include <QDesktopWidget>
 #include <QDebug>
 #include <KDReportsReport.h>
 #include <KDReportsTextElement.h>
@@ -12,7 +13,7 @@
 #include <string>
 #include "utility/session.h"
 #include "esbackuprestore.h"
-#include "QDesktopWidget"
+#include "essecondarydisplay.h"
 
 INITIALIZE_EASYLOGGINGPP
 
@@ -72,26 +73,20 @@ int main(int argc, char *argv[])
 
 	readSettings();
 
-	ESMainWindow w;
+	ESMainWindow mainWindow;
 
-	QRect screenres = QApplication::desktop()->screenGeometry(0/*screenNumber*/);
-	w.move(QPoint(screenres.x(), screenres.y()));
-	w.resize(screenres.width(), screenres.height());
-	w.showMaximized();
+	QRect rect1 = QApplication::desktop()->screenGeometry(0);
+	mainWindow.move(QPoint(rect1.x(), rect1.y()));
+	mainWindow.resize(rect1.width(), rect1.height());
+	mainWindow.showMaximized();
 
-	QWidget w2;
-	QRect screenres2 = QApplication::desktop()->screenGeometry(1/*screenNumber*/);
-	w2.move(QPoint(screenres2.x(), screenres2.y()));
-	w2.resize(screenres2.width(), screenres2.height());
-	w2.showMaximized();
-
-	//w.showMaximized();
 	LOG(INFO) << "Initializing the system...";
-	ES::MainWindowHolder::instance()->setMainWindow(&w);
+
+	ES::MainWindowHolder::instance()->setMainWindow(&mainWindow);
+	ES::MainWindowHolder::instance()->openSecondaryDisplay();
+
  	BackupThread b;
  	b.start();
-
-	
 
 	return a.exec();
 }

@@ -1,5 +1,6 @@
 #include "esaddorderitem.h"
 #include "esmanageorderitems.h"
+#include "esmainwindow.h"
 #include "utility/esmainwindowholder.h"
 #include "utility/esdbconnection.h"
 #include <QMessageBox>
@@ -7,6 +8,7 @@
 #include "utility/session.h"
 #include "utility/utility.h"
 #include "entities/SaleLineEdit.h"
+#include "esmainwindow.h"
 #include <KDReportsTextElement.h>
 #include <QPrintPreviewDialog>
 #include <set>

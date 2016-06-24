@@ -25,6 +25,7 @@ public:
 	void slotSuspend();
 	void slotCancel();
 	void slotRemoveItem(QString);
+	void slotOpenDisplay();
 
 	void slotCellDoubleClicked(int row, int col);
 

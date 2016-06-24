@@ -1,5 +1,6 @@
 #include "esmanageitems.h"
 #include "esadditem.h"
+#include "esmainwindow.h"
 #include "utility/esmainwindowholder.h"
 #include "utility/esdbconnection.h"
 #include <QMessageBox>

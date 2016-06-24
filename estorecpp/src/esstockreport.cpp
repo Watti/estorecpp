@@ -10,6 +10,7 @@
 #include "qlogging.h"
 #include <QTextEdit>
 #include "utility/esmainwindowholder.h"
+#include "esmainwindow.h"
 
 ESStockReport::ESStockReport(QWidget *parent /*= 0*/) : QWidget(parent)
 {

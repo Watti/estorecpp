@@ -6,6 +6,7 @@
 #include "utility/utility.h"
 #include "esaddorderitem.h"
 #include "esordercheckin.h"
+#include "esmainwindow.h"
 
 ESManageOrderItems::ESManageOrderItems(QWidget *parent/* = 0*/) : 
 m_startingLimit(0), m_pageOffset(15), m_nextCounter(0), m_maxNextCount(0)

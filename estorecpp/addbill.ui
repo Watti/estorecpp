@@ -106,6 +106,18 @@
        </property>
       </spacer>
      </item>
+     <item>
+      <widget class="QPushButton" name="secondaryDisplay">
+       <property name="font">
+        <font>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string> Open Display </string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>

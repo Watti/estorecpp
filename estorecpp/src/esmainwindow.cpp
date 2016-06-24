@@ -26,6 +26,8 @@
 #include "esreminders.h"
 #include "esaddcustomer.h"
 #include "escustomerinfo.h"
+#include "utility/esmainwindowholder.h"
+#include "essecondarydisplay.h"
 
 ESMainWindow::ESMainWindow(QWidget *parent)
 : QMainWindow(parent)
@@ -384,6 +386,7 @@ void ESMainWindow::closeEvent(QCloseEvent *event)
 {
 	//check for pending bills
 	ES::Session::getInstance()->invalidate();
+	ES::MainWindowHolder::instance()->getSecondaryDisplay()->close();
 
 	event->accept();
 }

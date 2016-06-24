@@ -5,6 +5,7 @@
 #include "utility/utility.h"
 #include "esmanageitems.h"
 #include "utility/esmainwindowholder.h"
+#include "esmainwindow.h"
 #include <QFileDialog>
 
 

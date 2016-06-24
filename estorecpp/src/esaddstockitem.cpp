@@ -4,7 +4,7 @@
 #include <QPushButton>
 #include "esmanagestockitems.h"
 #include "utility/esmainwindowholder.h"
-
+#include "esmainwindow.h"
 
 AddStockItem::AddStockItem(QWidget *parent /*= 0*/)
 : QWidget(parent), m_existingQuantityInMainStock(0), m_update(false), m_existingQuantityInStock(0)

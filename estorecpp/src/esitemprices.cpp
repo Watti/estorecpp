@@ -4,7 +4,7 @@
 #include "utility/esdbconnection.h"
 #include <QMessageBox>
 #include <QPushButton>
-
+#include "esmainwindow.h"
 
 ESItemPrices::ESItemPrices(QWidget *parent /*= 0*/)
 : QWidget(parent)

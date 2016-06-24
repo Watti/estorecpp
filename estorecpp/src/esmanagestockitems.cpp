@@ -6,7 +6,7 @@
 #include <QPushButton>
 #include "utility/utility.h"
 #include "esaddmanualstockitemswidget.h"
-
+#include "esmainwindow.h"
 
 ESManageStockItems::ESManageStockItems(QWidget *parent /*= 0*/)
 : QWidget(parent), m_startingLimit(0), m_pageOffset(15), m_nextCounter(0), m_maxNextCount(0)

@@ -4,6 +4,7 @@
 #include <QMessageBox>
 #include "QPushButton"
 #include "esaddbill.h"
+#include "esmainwindow.h"
 
 ESCurrentBills::ESCurrentBills(QWidget *parent)
 : QWidget(parent)

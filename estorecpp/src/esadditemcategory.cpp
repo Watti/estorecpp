@@ -4,7 +4,7 @@
 #include <QPushButton>
 #include "esitemcategories.h"
 #include "utility/esmainwindowholder.h"
-
+#include "esmainwindow.h"
 
 AddItemCategory::AddItemCategory(QWidget *parent /*= 0*/)
 : QWidget(parent), m_isUpdate(false)

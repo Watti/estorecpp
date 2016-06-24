@@ -5,7 +5,7 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include "utility/utility.h"
-
+#include "esmainwindow.h"
 
 ESItemCategories::ESItemCategories(QWidget *parent /*= 0*/)
 : QWidget(parent)

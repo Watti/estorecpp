@@ -1,6 +1,7 @@
 #include "essinglepayment.h"
 #include <QMessageBox>
 #include "utility\session.h"
+#include "esmainwindow.h"
 #include "QSqlQuery"
 #include "QPrintPreviewDialog"
 #include "utility\esmainwindowholder.h"

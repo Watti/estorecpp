@@ -13,6 +13,7 @@
 #include "espaymentwidget.h"
 #include "entities/tabletextwidget.h"
 #include "esauthentication.h"
+#include "utility/esmainwindowholder.h"
 
 namespace
 {
@@ -116,6 +117,7 @@ ESAddBill::ESAddBill(QWidget *parent)
 	QObject::connect(ui.newBillButton, SIGNAL(clicked()), this, SLOT(slotStartNewBill()));
 	QObject::connect(ui.addItemButton, SIGNAL(clicked()), this, SLOT(slotShowAddItem()));
 	QObject::connect(m_removeButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotRemoveItem(QString)));
+	QObject::connect(ui.secondaryDisplay, SIGNAL(clicked()), this, SLOT(slotOpenDisplay()));
 
 	if (!ES::DbConnection::instance()->open())
 	{
@@ -619,4 +621,9 @@ void ESAddBill::slotSellingPriceUpdated(QString txt, int row, int col)
 			calculateAndDisplayTotal();
 		}
 	}
+}
+
+void ESAddBill::slotOpenDisplay()
+{
+	ES::MainWindowHolder::instance()->openSecondaryDisplay();
 }

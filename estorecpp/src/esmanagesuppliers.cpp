@@ -2,6 +2,7 @@
 #include "esmanagesupplieritem.h"
 #include "utility/esdbconnection.h"
 #include "utility/esmainwindowholder.h"
+#include "esmainwindow.h"
 #include <QMessageBox>
 #include <QSignalMapper>
 #include "utility/utility.h"

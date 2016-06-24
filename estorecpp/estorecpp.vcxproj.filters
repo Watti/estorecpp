@@ -419,6 +419,15 @@
     <ClCompile Include="GeneratedFiles\Release\moc_esauthentication.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
+    <ClCompile Include="src\essecondarydisplay.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_essecondarydisplay.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_essecondarydisplay.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="esmainwindow.ui">
@@ -646,6 +655,12 @@
     <CustomBuild Include="includes\esauthentication.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
+    <CustomBuild Include="secondarydisplaywidget.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="includes\essecondarydisplay.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="includes\utility\esdbconnection.h">
@@ -766,6 +781,9 @@
       <Filter>Generated Files</Filter>
     </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_authentication.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GeneratedFiles\ui_secondarydisplaywidget.h">
       <Filter>Generated Files</Filter>
     </ClInclude>
   </ItemGroup>
