@@ -16,6 +16,7 @@ public:
 
 	void startBill();
 	void endBill();
+	void update();
 
 	public slots:
 	void slotSearch();

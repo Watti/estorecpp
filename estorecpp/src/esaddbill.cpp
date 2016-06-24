@@ -14,6 +14,7 @@
 #include "entities/tabletextwidget.h"
 #include "esauthentication.h"
 #include "utility/esmainwindowholder.h"
+#include "essecondarydisplay.h"
 
 namespace
 {
@@ -137,6 +138,7 @@ ESAddBill::ESAddBill(QWidget *parent)
 
 	// TODO: prompt code should be added
 	checkAndContinuePendingBill();
+	ES::MainWindowHolder::instance()->getSecondaryDisplay()->update();
 
 }
 
@@ -226,6 +228,7 @@ void ESAddBill::keyPressEvent(QKeyEvent* evt)
 		textWidget->selectAll();
 		ui.tableWidget->setCellWidget(row, 3, textWidget);
 		textWidget->setFocus();
+		ES::MainWindowHolder::instance()->getSecondaryDisplay()->update();
 		break;
 	}
 	case Qt::Key_Up:

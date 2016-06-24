@@ -8,6 +8,8 @@
 #include "QWidget"
 #include "utility\utility.h"
 #include "entities\tabletextwidget.h"
+#include "utility\esmainwindowholder.h"
+#include "essecondarydisplay.h"
 
 namespace
 {
@@ -252,6 +254,8 @@ void ESAddBillItem::addToBill(QString stockId)
 		m_cart->getUI().tableWidget->setFocus();
 		textWidget->setFocus();
 	}
+
+	ES::MainWindowHolder::instance()->getSecondaryDisplay()->update();
 
 	close();
 }
