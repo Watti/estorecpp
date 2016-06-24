@@ -610,25 +610,25 @@ void ESSinglePayment::printBill(int billId, float total)
 	HIRUNA MARKETING (PVT) LTD
 	No.374, High level Road, Meegoda
 	*/
-	KDReports::TextElement titleElement("PUJITHA ENTERPRISES (PVT) LTD");
+	KDReports::TextElement titleElement("HIRUNA MARKETING (PVT) LTD");
 	titleElement.setPointSize(14);
 	titleElement.setBold(true);
 	report.addElement(titleElement, Qt::AlignHCenter);
 
-	KDReports::TextElement addressElement("No. 154, Kurugala, Padukka.");
+	KDReports::TextElement addressElement("No.374, High level Road, Meegoda.");
 	addressElement.setPointSize(10);
 	addressElement.setBold(false);
 	report.addElement(addressElement, Qt::AlignHCenter);
 
-	KDReports::TextElement telElement("Phone : 077-4784430 / 077-4784437");
-	telElement.setPointSize(10);
-	telElement.setBold(false);
-	report.addElement(telElement, Qt::AlignHCenter);
-
-	KDReports::TextElement emailElement("email : rapprasanna4@gmail.com");
-	emailElement.setPointSize(10);
-	emailElement.setBold(false);
-	report.addElement(emailElement, Qt::AlignHCenter);
+// 	KDReports::TextElement telElement("Phone : 077-4784430 / 077-4784437");
+// 	telElement.setPointSize(10);
+// 	telElement.setBold(false);
+// 	report.addElement(telElement, Qt::AlignHCenter);
+// 
+// 	KDReports::TextElement emailElement("email : rapprasanna4@gmail.com");
+// 	emailElement.setPointSize(10);
+// 	emailElement.setBold(false);
+// 	report.addElement(emailElement, Qt::AlignHCenter);
 
 	KDReports::TableElement infoTableElement;
 	infoTableElement.setHeaderRowCount(2);
