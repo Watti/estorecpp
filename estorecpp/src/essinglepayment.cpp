@@ -594,7 +594,71 @@ void ESSinglePayment::printBill(int billId, float total)
 		}
 	}
 
-	//KDReports::Report report;
+	QString payamentStr;
+	QSqlQuery queryPaymentType("SELECT * FROM payment WHERE bill_id = " + QString::number(billId));
+	QString paymentTypes = "";
+	float totalPayingAmount = 0;
+	while (queryPaymentType.next())
+	{
+		//paymentTypes.append(queryPaymentType.value("payment_type").toString());
+		QString paymentType = queryPaymentType.value("payment_type").toString();
+		QString paymentId = queryPaymentType.value("payment_id").toString();
+		if (paymentType == "CARD")
+		{
+			QSqlQuery queryCard("SELECT * FROM card WHERE payment_id = " + paymentId);
+			if (queryCard.next())
+			{
+				float interest = queryCard.value("interest").toFloat();
+				float amount = queryCard.value("amount").toFloat();
+				total = amount;
+				amount = amount + (amount * interest) / 100;
+				totalPayingAmount += amount;
+				payamentStr.append(paymentType + "(" + QString::number(total, 'f', 2) + " +" + QString::number(interest, 'f', 2) + "%): " + QString::number(amount, 'f', 2));
+			}
+		}
+		else if (paymentType == "CHEQUE")
+		{
+			QSqlQuery query("SELECT * FROM cheque WHERE payment_id = " + paymentId);
+			if (query.next())
+			{
+				float interest = query.value("interest").toFloat();
+				float amount = query.value("amount").toFloat();
+				total = amount;
+				amount = amount + (amount * interest) / 100;
+				totalPayingAmount += amount;
+				payamentStr.append(paymentType + "(" + QString::number(total, 'f', 2) + " +" + QString::number(interest, 'f', 2) + "%): " + QString::number(amount, 'f', 2));
+			}
+		}
+		else if (paymentType == "CREDIT")
+		{
+			QSqlQuery query("SELECT * FROM credit WHERE payment_id = " + paymentId);
+			if (query.next())
+			{
+				float interest = query.value("interest").toFloat();
+				float amount = query.value("amount").toFloat();
+				total = amount;
+				amount = amount + (amount * interest) / 100;
+				totalPayingAmount += amount;
+				payamentStr.append(paymentType + "(" + QString::number(total, 'f', 2) + " +" + QString::number(interest, 'f', 2) + "%): " + QString::number(amount, 'f', 2));
+			}
+		}
+		else if (paymentType == "CASH")
+		{
+			QSqlQuery query("SELECT * FROM cash WHERE payment_id = " + paymentId);
+			if (query.next())
+			{
+				float amount = query.value("amount").toFloat();
+				total = amount;
+				totalPayingAmount += amount;
+				payamentStr.append(paymentType + " : " + QString::number(amount, 'f', 2));
+			}
+		}
+		else if (paymentType == "LOYALTY")
+		{
+		}
+	}
+
+	KDReports::Report report;
 
 	QString dateStr = "Date : ";
 	dateStr.append(QDateTime::currentDateTime().toString("yyyy-MM-dd"));
@@ -703,7 +767,7 @@ void ESSinglePayment::printBill(int billId, float total)
 	cQty.addElement(tEQty, Qt::AlignRight);
 
 	KDReports::Cell& cTotal = tableElement.cell(0, 5);
-	KDReports::TextElement tETotal("Sub Total");
+	KDReports::TextElement tETotal("Line Total");
 	tETotal.setPointSize(11);
 	tETotal.setBold(true);
 	cTotal.addElement(tETotal, Qt::AlignRight);
@@ -761,7 +825,7 @@ void ESSinglePayment::printBill(int billId, float total)
 
 	KDReports::Cell& totalTextC = tableElement.cell(row, 0);
 	totalTextC.setColumnSpan(5);
-	KDReports::TextElement totalTxt("Total ");
+	KDReports::TextElement totalTxt("Sub Total ");
 	totalTxt.setPointSize(11);
 	totalTxt.setBold(true);
 	totalTextC.addElement(totalTxt, Qt::AlignRight);
@@ -772,6 +836,19 @@ void ESSinglePayment::printBill(int billId, float total)
 	totalValue.setBold(true);
 	totalCell.addElement(totalValue, Qt::AlignRight);
 
+	row++;
+	KDReports::Cell& payableTextC = tableElement.cell(row, 0);
+	payableTextC.setColumnSpan(5);
+	KDReports::TextElement payableTxt("Total ");
+	payableTxt.setPointSize(11);
+	payableTxt.setBold(true);
+	payableTextC.addElement(payableTxt, Qt::AlignRight);
+
+	KDReports::Cell& payableCell = tableElement.cell(row, 5);
+	KDReports::TextElement payableValue(QString::number(totalPayingAmount, 'f', 2));
+	payableValue.setPointSize(11);
+	payableValue.setBold(true);
+	payableCell.addElement(payableValue, Qt::AlignRight);
 	//
 	row++;
 	KDReports::Cell& countText = tableElement.cell(row, 0);
@@ -806,7 +883,7 @@ void ESSinglePayment::printBill(int billId, float total)
 
 	report.addVerticalSpacing(5);
 
-	KDReports::TextElement customerInfo("Payment Type : " + m_paymentMethod);
+	KDReports::TextElement customerInfo("Payment Info : " + payamentStr);
 	customerInfo.setPointSize(11);
 	report.addElement(customerInfo, Qt::AlignLeft);
 
@@ -815,7 +892,7 @@ void ESSinglePayment::printBill(int billId, float total)
 	// customer info	
 	if (m_customerId == "-1")
 	{
-		QString customer = "Customer Info : N/A";
+		QString customer = "Bill To : N/A";
 
 		KDReports::TextElement customerInfo(customer);
 		customerInfo.setPointSize(11);
@@ -823,7 +900,7 @@ void ESSinglePayment::printBill(int billId, float total)
 	}
 	else
 	{
-		QString customer = "Customer Info : ";
+		QString customer = "Bill To : ";
 		QSqlQuery q("SELECT * FROM customer WHERE customer_id = " + m_customerId);
 		if (q.next())
 		{
@@ -848,18 +925,18 @@ void ESSinglePayment::printBill(int billId, float total)
 	printer.setFullPage(false);
 	printer.setOrientation(QPrinter::Portrait);
 
-	 	  		QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
-	 	  		QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
-	 	  		dialog->setWindowTitle(tr("Print Document"));
-	 	  		ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
-	 	  		dialog->exec();
+// 	 	  		QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
+// 	 	  		QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
+// 	 	  		dialog->setWindowTitle(tr("Print Document"));
+// 	 	  		ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
+// 	 	  		dialog->exec();
 
-	//report.print(&printer);
+	report.print(&printer);
 }
 
 void ESSinglePayment::slotPrint(QPrinter* printer)
 {
-	report.print(printer);
+	//report.print(printer);
 	this->close();
 }
 

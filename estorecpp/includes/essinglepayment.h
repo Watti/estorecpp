@@ -53,7 +53,7 @@ private:
 	float m_initialNetAmount;
 	QString m_paymentMethod;
 
-	KDReports::Report report;
+	//KDReports::Report report;
 
 };
 

@@ -44,7 +44,7 @@ private:
 	QSignalMapper* m_removeButtonSignalMapper;
 	ESAddBill* m_addBill;
 	float m_initialNetAmount;
-	KDReports::Report report;
+	//KDReports::Report report;
 
 };
 
