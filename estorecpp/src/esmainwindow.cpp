@@ -107,7 +107,7 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 
 	QLabel* logoLabel = new QLabel(ui.mainToolBar);
 	logoLabel->setMinimumWidth(90);
-	logoLabel->setPixmap(QPixmap("icons/logo2.png"));
+	logoLabel->setPixmap(QPixmap("icons/progex_s.png"));
 
 	ui.mainToolBar->addWidget(logoLabel);
 	ui.mainToolBar->addAction(ui.actionManageStockItems);
