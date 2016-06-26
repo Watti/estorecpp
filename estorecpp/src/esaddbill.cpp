@@ -458,7 +458,9 @@ void ESAddBill::slotCellDoubleClicked(int row, int col)
 
 void ESAddBill::checkAndContinuePendingBill()
 {
-	QString pendingBill = "SELECT * FROM bill WHERE deleted = 0 AND status = 2";
+	int userId = ES::Session::getInstance()->getUser()->getId();
+	QString pendingBill = "SELECT * FROM bill WHERE deleted = 0 AND status = 2 AND user_id = ";
+	pendingBill.append(userId);
 	QSqlQuery pendingBillQry(pendingBill);
 	if (pendingBillQry.next()/*ES::Session::getInstance()->isBillStarted()*/)
 	{

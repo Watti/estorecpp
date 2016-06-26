@@ -12,7 +12,8 @@
 AddItem::AddItem(QWidget *parent /*= 0*/)
 : QWidget(parent), m_isUpdate(false)
 {
-	ui.setupUi(this);
+	ui.setupUi(this); //searchLineEdit
+	QObject::connect(ui.searchLineEdit, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
 	QObject::connect(ui.addButton, SIGNAL(clicked()), this, SLOT(slotAddItem()));
 	QObject::connect(ui.openImage, SIGNAL(clicked()), this, SLOT(slotAddImage()));
 	QObject::connect(ui.tableWidget, SIGNAL(cellPressed(int, int)), this, SLOT(slotCategorySelected(int, int)));
@@ -39,7 +40,7 @@ AddItem::AddItem(QWidget *parent /*= 0*/)
 		mbox.exec();
 	}
 
-	QSqlQuery queryCategory("SELECT * FROM item_category WHERE deleted = 0");
+	QSqlQuery queryCategory("SELECT * FROM item_category WHERE deleted = 0 LIMIT 25");
 	QString catCode = DEFAULT_DB_COMBO_VALUE;
 	
 	int row = 0;
@@ -150,4 +151,29 @@ void AddItem::slotCategorySelected(int row, int col)
 void AddItem::setItemCategoryId(QString categoryId)
 {
 	m_categoryId = categoryId;
+}
+
+void AddItem::slotSearch()
+{
+	while (ui.tableWidget->rowCount() > 0)
+	{
+		ui.tableWidget->removeRow(0);
+	}
+	QString searchText = ui.searchLineEdit->text();  
+	QSqlQuery queryCategory("SELECT * FROM item_category WHERE deleted = 0 AND itemcategory_code LIKE '%" + searchText + "%' LIMIT 25");
+	QString catCode = DEFAULT_DB_COMBO_VALUE;
+
+	int row = 0;
+	while (queryCategory.next())
+	{
+		row = ui.tableWidget->rowCount();
+		ui.tableWidget->insertRow(row);
+
+		ui.tableWidget->setItem(row, 0, new QTableWidgetItem(queryCategory.value("itemcategory_id").toString()));
+		ui.tableWidget->setItem(row, 1, new QTableWidgetItem(queryCategory.value("itemcategory_code").toString()));
+		ui.tableWidget->setItem(row, 2, new QTableWidgetItem(queryCategory.value("itemcategory_name").toString()));
+		ui.tableWidget->setItem(row, 3, new QTableWidgetItem(queryCategory.value("description").toString()));
+
+		row++;
+	}
 }

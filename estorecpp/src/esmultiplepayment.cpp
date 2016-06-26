@@ -281,14 +281,14 @@ void ESMultiplePayment::slotPaymentMethodSelected()
 
 void ESMultiplePayment::slotAdd()
 {
-// 
-// 	headerLabels.append("Payment Type");
-// 	headerLabels.append("Amount");
-// 	headerLabels.append("Interest");
-// 	headerLabels.append("Due Date");
-// 	headerLabels.append("Number");
-// 	headerLabels.append("Bank");
-// 	headerLabels.append("Actions");
+	// 
+	// 	headerLabels.append("Payment Type");
+	// 	headerLabels.append("Amount");
+	// 	headerLabels.append("Interest");
+	// 	headerLabels.append("Due Date");
+	// 	headerLabels.append("Number");
+	// 	headerLabels.append("Bank");
+	// 	headerLabels.append("Actions");
 
 	QPushButton* removeBtn = new QPushButton(ui.tableWidget);
 	removeBtn->setIcon(QIcon("icons/delete.png"));
@@ -445,7 +445,7 @@ void ESMultiplePayment::slotRemove(int row)
 			break;
 		}
 	}
-	
+
 }
 
 void ESMultiplePayment::slotFinalizeBill()
@@ -473,7 +473,7 @@ void ESMultiplePayment::slotFinalizeBill()
 	for (int i = 0; i < rowCount; ++i)
 	{
 		double amount = ui.tableWidget->item(i, 1)->text().toDouble();
-		
+
 		QTableWidgetItem* paymentTypeItem = ui.tableWidget->item(i, 0);
 		if (paymentTypeItem)
 		{
@@ -756,10 +756,10 @@ void ESMultiplePayment::printBill(int billId, float total)
 	addressElement.setBold(false);
 	report.addElement(addressElement, Qt::AlignHCenter);
 
-	// 	KDReports::TextElement telElement("Phone : 077-4784430 / 077-4784437");
-	// 	telElement.setPointSize(10);
-	// 	telElement.setBold(false);
-	// 	report.addElement(telElement, Qt::AlignHCenter);
+	KDReports::TextElement telElement("Phone : 011-2750485");
+	telElement.setPointSize(10);
+	telElement.setBold(false);
+	report.addElement(telElement, Qt::AlignHCenter);
 
 	// 	KDReports::TextElement emailElement("email : rapprasanna4@gmail.com");
 	// 	emailElement.setPointSize(10);
@@ -812,7 +812,7 @@ void ESMultiplePayment::printBill(int billId, float total)
 		//paymentTypes.append(queryPaymentType.value("payment_type").toString());
 		QString paymentType = queryPaymentType.value("payment_type").toString();
 		QString paymentId = queryPaymentType.value("payment_id").toString();
-		
+
 		if (paymentType == "CARD")
 		{
 			QSqlQuery queryCard("SELECT * FROM card WHERE payment_id = " + paymentId);
@@ -1066,11 +1066,15 @@ void ESMultiplePayment::printBill(int billId, float total)
 		report.addElement(customerInfo, Qt::AlignLeft);
 	}
 
-	KDReports::Footer& foter = report.footer();
-	KDReports::TextElement info("Powered by PROGEX Technologies.");
+// 	KDReports::Footer& foter = report.footer();
+// 	KDReports::TextElement info("Powered by PROGEX Technologies.");
+// 	KDReports::TextElement web("www.progextech.com  T.P.: 072-6430268/071-1308531");
+// 	foter.addElement(info, Qt::AlignCenter);
+// 	foter.addElement(web, Qt::AlignCenter);
+	KDReports::TextElement poweredBy("Powered by PROGEX Technologies.");
 	KDReports::TextElement web("www.progextech.com  T.P.: 072-6430268/071-1308531");
-	foter.addElement(info, Qt::AlignCenter);
-	foter.addElement(web, Qt::AlignCenter);
+	report.addElement(poweredBy, Qt::AlignCenter);
+	report.addElement(web, Qt::AlignCenter);
 
 	QPrinter printer;
 	printer.setPaperSize(QPrinter::A4);
@@ -1078,11 +1082,11 @@ void ESMultiplePayment::printBill(int billId, float total)
 	printer.setFullPage(false);
 	printer.setOrientation(QPrinter::Portrait);
 
-// 	QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
-// 	QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
-// 	dialog->setWindowTitle(tr("Print Document"));
-// 	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
-// 	dialog->exec();
+	// 	QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
+	// 	QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
+	// 	dialog->setWindowTitle(tr("Print Document"));
+	// 	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
+	// 	dialog->exec();
 
 	report.print(&printer);
 }

@@ -85,8 +85,8 @@ int main(int argc, char *argv[])
 	ES::MainWindowHolder::instance()->setMainWindow(&mainWindow);
 	ES::MainWindowHolder::instance()->openSecondaryDisplay();
 
- 	BackupThread b;
- 	b.start();
+//  	BackupThread b;
+//  	b.start();
 
 	return a.exec();
 }

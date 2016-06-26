@@ -25,6 +25,7 @@ public:
 	void slotAddItem();
 	void slotCategorySelected(int row, int col);
 	void slotAddImage();
+	void slotSearch();
 
 private:
 	Ui::AddItemWidget ui;

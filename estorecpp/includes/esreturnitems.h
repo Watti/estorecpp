@@ -1,6 +1,8 @@
 #ifndef ESRETURNITEMWIDGET_H
 #define ESRETURNITEMWIDGET_H
 #include "ui_ReturnItems.h"
+#include "QPrinter"
+#include "KDReportsReport.h"
 
 class ESReturnItems : public QWidget
 {
@@ -13,12 +15,12 @@ public:
 
 	public slots:
 	void slotAddReturnedItem();
-
+	void slotPrint(QPrinter* printer);
 private:
 	void printReturnItemInfo();
 
 	Ui::ReturnItems ui;
-
+	//KDReports::Report report;
 };
 
 #endif
