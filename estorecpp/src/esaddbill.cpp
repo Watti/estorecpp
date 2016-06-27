@@ -140,6 +140,8 @@ ESAddBill::ESAddBill(QWidget *parent)
 	checkAndContinuePendingBill();
 	ES::MainWindowHolder::instance()->getSecondaryDisplay()->update();
 
+	ui.calButton->hide();
+
 }
 
 ESAddBill::~ESAddBill()
@@ -314,7 +316,7 @@ void ESAddBill::calculateAndDisplayTotal()
 	{
 		double subTot = queryAllSales.value("total").toDouble();
 		double discount = queryAllSales.value("discount").toDouble();
-		grossAmount += ((subTot * 100) / (100 - discount));
+		grossAmount += (subTot * (100.0 - discount)/ 100.0) ;
 		netAmount += subTot;
 		noOfItems++;
 	}
