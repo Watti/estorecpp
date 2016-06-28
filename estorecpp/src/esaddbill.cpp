@@ -346,7 +346,7 @@ void ESAddBill::slotCommit()
 		payment->setNoOfItems(ui.noOfItemLabel->text());
 		//payment->getUI().balanceLbl->setText("0.00");
 
-		QSize sz = payment->size();
+		QSize sz = payment->size(); 
 		QPoint screen = QApplication::desktop()->screen()->rect().center();
 		payment->move(screen.x() - sz.width() / 2, screen.y() - sz.height() / 2);
 	}

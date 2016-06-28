@@ -28,6 +28,7 @@
 #include "escustomerinfo.h"
 #include "utility/esmainwindowholder.h"
 #include "essecondarydisplay.h"
+#include "salesummaryreport.h"
 
 ESMainWindow::ESMainWindow(QWidget *parent)
 : QMainWindow(parent)
@@ -311,9 +312,9 @@ void ESMainWindow::slotSalesReports()
 // 	this->setCentralWidget(salesReport);
 // 	salesReport->show();
 
-// 	ESSalesReport* salesReport = new ESSalesReport(this);
-// 	this->setCentralWidget(salesReport);
-// 	salesReport->show();
+	ESSalesSummary* salesReport = new ESSalesSummary(this);
+ 	this->setCentralWidget(salesReport);
+ 	salesReport->show();
 }
 
 void ESMainWindow::slotStocksReports()
