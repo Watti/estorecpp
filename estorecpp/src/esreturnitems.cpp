@@ -151,14 +151,14 @@ void ESReturnItems::slotAddReturnedItem()
 
 void ESReturnItems::printReturnItemInfo()
 {
-	KDReports::Report report;
+	//KDReports::Report report;
 
-	KDReports::TextElement titleElement("HIRUNA MARKETING (PVT) LTD");
+	KDReports::TextElement titleElement("PUJITHA ENTERPRISES (PVT) LTD");
 	titleElement.setPointSize(14);
 	titleElement.setBold(true);
 	report.addElement(titleElement, Qt::AlignHCenter);
 
-	KDReports::TextElement addressElement("No.374, High level Road, Meegoda");
+	KDReports::TextElement addressElement("No. 154, Kurugala, Padukka.");
 	addressElement.setPointSize(10);
 	addressElement.setBold(false);
 	report.addElement(addressElement, Qt::AlignHCenter);
@@ -241,17 +241,17 @@ void ESReturnItems::printReturnItemInfo()
 	printer.setFullPage(false);
 	printer.setOrientation(QPrinter::Portrait);
 
-// 	QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
-// 	QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
-// 	dialog->setWindowTitle(tr("Print Document"));
-// 	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
-// 	dialog->exec();
+	QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
+	QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
+	dialog->setWindowTitle(tr("Print Document"));
+	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
+	dialog->exec();
 
-	report.print(&printer);
+	//report.print(&printer);
 }
 
 void ESReturnItems::slotPrint(QPrinter* printer)
 {
-	//report.print(printer);
+	report.print(printer);
 	this->close();
 }

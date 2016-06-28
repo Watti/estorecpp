@@ -14,7 +14,8 @@ namespace ES
 			DEV,
 			MANAGER,
 			STORE_KEEPER,
-			CASHIER
+			CASHIER,
+			SENIOR_MANAGER
 		};
 		User();
 		~User();

@@ -20,7 +20,7 @@ private:
 	void printReturnItemInfo();
 
 	Ui::ReturnItems ui;
-	//KDReports::Report report;
+	KDReports::Report report;
 };
 
 #endif

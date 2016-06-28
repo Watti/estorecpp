@@ -42,32 +42,37 @@ void ESLoginWidget::slotLogin()
 
 		if (query.next())
 		{
-			QString displayName = query.value(5).toString();
-			QString typeId = query.value(3).toString();
+			QString displayName = query.value("display_name").toString();
+			QString typeId = query.value("usertype_id").toString();
 			QSqlQuery query1("SELECT * FROM usertype WHERE usertype_id = " + typeId);
 			QString perms = "";
 			while (query1.next())
 			{
 				QString userType = query1.value("usertype_name").toString();
 				ES::User* user = new ES::User;
-				user->setId(query.value("usertype_id").toInt());
+				user->setId(query.value("user_id").toInt());
 				perms = query1.value("permission").toString();
 				user->setName(displayName);
-				if (userType.compare(QString("DEV")))
+				if (QString::compare(userType, "DEV") == 0)
 				{
 					user->setType(ES::User::DEV);
 				}
-				else if (	userType.compare(QString("MANAGER")))
+				else if (QString::compare(userType, "MANAGER") == 0)
 				{
 					user->setType(ES::User::MANAGER);
 				}
-				else if (userType.compare(QString("STORE KEEPER")))
+				else if (QString::compare(userType, "STORE KEEPER") == 0)
 				{
 					user->setType(ES::User::STORE_KEEPER);
 				}
-				else if (userType.compare(QString("CASHIER")))
+				else if (QString::compare(userType, "CASHIER") == 0)
 				{
 					user->setType(ES::User::CASHIER);
+				}
+				else if (QString::compare(userType, "SENIOR MANAGER") == 0)
+				{
+
+					user->setType(ES::User::SENIOR_MANAGER);
 				}
 				else
 				{

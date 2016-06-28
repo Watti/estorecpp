@@ -5,13 +5,18 @@
 #include "QPushButton"
 #include "esaddbill.h"
 #include "esmainwindow.h"
+#include "utility/session.h"
+#include "entities/user.h"
+#include "utility/utility.h"
 
 ESCurrentBills::ESCurrentBills(QWidget *parent)
 : QWidget(parent)
 {
 	ui.setupUi(this);
 	m_proceedButtonSignalMapper = new QSignalMapper(this);
+	m_voidBillButtonSignalMapper = new QSignalMapper(this);
 	QObject::connect(m_proceedButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotProceed(QString)));
+	QObject::connect(m_voidBillButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotVoidBill(QString)));
 
 	ui.startDate->setDisplayFormat("yyyy-MM-dd");
 	ui.endDate->setDisplayFormat("yyyy-MM-dd");
@@ -86,7 +91,7 @@ void ESCurrentBills::slotSearch()
 	endDate.setTime(QTime(23,59, 59));
 
 	int row = 0;
-	QSqlQuery allBillQuery("SELECT * FROM bill WHERE deleted = 0");
+	QSqlQuery allBillQuery("SELECT * FROM bill WHERE deleted = 0 AND DATE(date) = DATE(CURDATE())");
 	while (allBillQuery.next())
 	{		
 		if (selectedUser > 0)
@@ -124,6 +129,24 @@ void ESCurrentBills::slotSearch()
 			tableItem->setTextAlignment(Qt::AlignHCenter);
 			tableItem->setBackgroundColor(rowColor);
 			ui.tableWidget->setItem(row, 4, tableItem);
+
+			ES::User::UserType uType = ES::Session::getInstance()->getUser()->getType();
+			if (uType == ES::User::SENIOR_MANAGER || uType == ES::User::DEV || uType == ES::User::MANAGER)
+			{
+				QWidget* base = new QWidget(ui.tableWidget);
+				QPushButton* voidBtn = new QPushButton("Cancel", base);
+				voidBtn->setMaximumWidth(100);
+				m_voidBillButtonSignalMapper->setMapping(voidBtn, billId);
+				QObject::connect(voidBtn, SIGNAL(clicked()), m_voidBillButtonSignalMapper, SLOT(map()));
+
+				QHBoxLayout *layout = new QHBoxLayout;
+				layout->setContentsMargins(0, 0, 0, 0);
+				layout->addWidget(voidBtn);
+				layout->insertStretch(2);
+				base->setLayout(layout);
+				ui.tableWidget->setCellWidget(row, 5, base);
+				base->show();
+			}
 		}
 			break;
 		case 2:
@@ -209,4 +232,39 @@ void ESCurrentBills::slotProceed(QString billId)
 	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(addBill);
 	addBill->proceedPendingBill(billId);
 	addBill->show();
+}
+
+void ESCurrentBills::slotVoidBill(QString billId)
+{
+	if (ES::Utility::verifyUsingMessageBox(this, "ProgexPOS", "Do you really want to cancel this?"))
+	{
+		QString billQryStr = "SELECT * FROM bill WHERE bill_id  = " + billId;
+		QSqlQuery BillQry(billQryStr);
+		if (BillQry.next())
+		{
+			QString queryUpdateStr("UPDATE bill set status = 3 WHERE bill_id = " + billId);
+			QSqlQuery query(queryUpdateStr);
+
+			QString saleQryStr("SELECT * FROM sale WHERE deleted = 0 AND bill_id = " + billId);
+			QSqlQuery querySale(saleQryStr);
+			while (querySale.next())
+			{
+				QString stockId = querySale.value("stock_id").toString();
+				double qty = querySale.value("quantity").toDouble();
+
+
+				QString stockQryStr("SELECT * FROM stock WHERE stock_id = " + stockId);
+				QSqlQuery queryStock(stockQryStr);
+				if (queryStock.next())
+				{
+					double currentQty = queryStock.value("qty").toDouble();
+					double newQty = currentQty + qty;
+
+					QSqlQuery updateStock("UPDATE stock set qty = " + QString::number(newQty) + " WHERE stock_id = " + stockId);
+				}
+			}
+		}
+		slotSearch();
+	}
+	
 }

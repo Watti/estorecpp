@@ -16,10 +16,12 @@ public:
 	public slots:
 	void slotSearch();
 	void slotProceed(QString);
+	void slotVoidBill(QString);
 
 private:
 	Ui::CurrentBills ui;
 	QSignalMapper* m_proceedButtonSignalMapper;
+	QSignalMapper* m_voidBillButtonSignalMapper;
 
 };
 

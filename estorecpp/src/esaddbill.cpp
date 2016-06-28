@@ -141,7 +141,7 @@ ESAddBill::ESAddBill(QWidget *parent)
 	ES::MainWindowHolder::instance()->getSecondaryDisplay()->update();
 
 	ui.calButton->hide();
-
+	ui.secondaryDisplay->hide();
 }
 
 ESAddBill::~ESAddBill()
