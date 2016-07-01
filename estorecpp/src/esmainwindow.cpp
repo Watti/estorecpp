@@ -147,7 +147,7 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	ui.actionViewCustomerHistory->setIcon(QIcon("icons/customer_history.png"));
 	ui.mainToolBar->addAction(ui.actionViewCustomerHistory);
 	mmgr->addAction("Customer Outstanding", ui.actionCustomerOutstanding);
-	ui.actionCustomerOutstanding->setIcon(QIcon("icons/customer_history.png"));
+	ui.actionCustomerOutstanding->setIcon(QIcon("icons/customer_outstanding.png"));
 	ui.mainToolBar->addAction(ui.actionCustomerOutstanding);
 	mmgr->addSeparator(ui.mainToolBar->addSeparator());
 
