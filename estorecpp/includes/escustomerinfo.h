@@ -17,9 +17,11 @@ public:
 	public slots:
 	void slotSearch();
 	void slotCustomerSelected(int row, int col);
+	void slotPopulateCustomerHistory();
 
 private:
 	Ui::CustomerInfomationWidget ui;
+	QString m_selectedCustomerId;
 
 };
 
