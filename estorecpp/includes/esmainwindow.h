@@ -40,6 +40,7 @@ public slots:
 	void slotShowCalculator();
 	void slotAddCustomer();
 	void slotViewCustomerHistory();
+	void slotViewCustomerOutstanding();
 	void slotManageUsers();
 
 protected:

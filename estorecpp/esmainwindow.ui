@@ -171,6 +171,7 @@
     </property>
     <addaction name="actionManageCustomers"/>
     <addaction name="actionViewCustomerHistory"/>
+    <addaction name="actionCustomerOutstanding"/>
    </widget>
    <addaction name="menuStock"/>
    <addaction name="menuItems"/>
@@ -292,10 +293,13 @@
     <string>View History</string>
    </property>
   </action>
+  <action name="actionCustomerOutstanding">
+   <property name="text">
+    <string>Customer Outstanding</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources>
-  <include location="esmainwindow.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

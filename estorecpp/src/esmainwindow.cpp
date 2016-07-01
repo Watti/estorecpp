@@ -29,6 +29,7 @@
 #include "utility/esmainwindowholder.h"
 #include "essecondarydisplay.h"
 #include "essalesummaryreport.h"
+#include "escutomeroutstanding.h"
 
 ESMainWindow::ESMainWindow(QWidget *parent)
 : QMainWindow(parent)
@@ -78,6 +79,7 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	QObject::connect(m_actionManageUsers, SIGNAL(triggered()), this, SLOT(slotManageUsers()));
 	QObject::connect(ui.actionManageCustomers, SIGNAL(triggered()), this, SLOT(slotAddCustomer()));
 	QObject::connect(ui.actionViewCustomerHistory, SIGNAL(triggered()), this, SLOT(slotViewCustomerHistory()));
+	QObject::connect(ui.actionCustomerOutstanding, SIGNAL(triggered()), this, SLOT(slotViewCustomerOutstanding()));
 
 	new QShortcut(QKeySequence(Qt::Key_F9), this, SLOT(slotShowCalculator()));
 
@@ -144,6 +146,9 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	mmgr->addAction("View History", ui.actionViewCustomerHistory);
 	ui.actionViewCustomerHistory->setIcon(QIcon("icons/customer_history.png"));
 	ui.mainToolBar->addAction(ui.actionViewCustomerHistory);
+	mmgr->addAction("Customer Outstanding", ui.actionCustomerOutstanding);
+	ui.actionCustomerOutstanding->setIcon(QIcon("icons/customer_history.png"));
+	ui.mainToolBar->addAction(ui.actionCustomerOutstanding);
 	mmgr->addSeparator(ui.mainToolBar->addSeparator());
 
 	mmgr->addAction("Add Bill", ui.actionAddBill);
@@ -197,6 +202,7 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	mmgr->addMenuActionMapping("Orders", "Manage Suppliers");
 	mmgr->addMenuActionMapping("Customers", "Manage Customers");
 	mmgr->addMenuActionMapping("Customers", "View History");
+	mmgr->addMenuActionMapping("Customers", "Customer Outstanding");
 	mmgr->addMenuActionMapping("Billing", "Add Bill");
 	mmgr->addMenuActionMapping("Billing", "Current Bills");
 	mmgr->addMenuActionMapping("Cash Balance", "Configure");
@@ -410,6 +416,13 @@ void ESMainWindow::slotViewCustomerHistory()
 	ESCustomerInfo* customerInfo = new ESCustomerInfo(this);
 	this->setCentralWidget(customerInfo);
 	customerInfo->show();
+}
+
+void ESMainWindow::slotViewCustomerOutstanding()
+{
+	ESCustomerOutstanding* customerOutstanding = new ESCustomerOutstanding(this);
+	this->setCentralWidget(customerOutstanding);
+	customerOutstanding->show();
 }
 
 
