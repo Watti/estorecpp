@@ -428,14 +428,14 @@
     <ClCompile Include="GeneratedFiles\Release\moc_essecondarydisplay.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
-    <ClCompile Include="src\salesummaryreport.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_salesummaryreport.cpp">
+    <ClCompile Include="GeneratedFiles\Debug\moc_essalesummaryreport.cpp">
       <Filter>Generated Files\Debug</Filter>
     </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_salesummaryreport.cpp">
+    <ClCompile Include="GeneratedFiles\Release\moc_essalesummaryreport.cpp">
       <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="src\essalesummaryreport.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -670,11 +670,11 @@
     <CustomBuild Include="includes\essecondarydisplay.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="includes\salesummaryreport.h">
-      <Filter>Header Files</Filter>
-    </CustomBuild>
     <CustomBuild Include="salesummary.ui">
       <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="includes\essalesummaryreport.h">
+      <Filter>Header Files</Filter>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>

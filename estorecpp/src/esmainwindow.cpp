@@ -28,7 +28,7 @@
 #include "escustomerinfo.h"
 #include "utility/esmainwindowholder.h"
 #include "essecondarydisplay.h"
-#include "salesummaryreport.h"
+#include "essalesummaryreport.h"
 
 ESMainWindow::ESMainWindow(QWidget *parent)
 : QMainWindow(parent)

@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
 	LOG(INFO) << "Initializing the system...";
 
 	ES::MainWindowHolder::instance()->setMainWindow(&mainWindow);
-	ES::MainWindowHolder::instance()->openSecondaryDisplay();
+	//ES::MainWindowHolder::instance()->openSecondaryDisplay();
 
 //  	BackupThread b;
 //  	b.start();
