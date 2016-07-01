@@ -39,6 +39,7 @@ QWidget(parent), m_addBill(addBill)
 	QObject::connect(ui.multiplePaymentButton, SIGNAL(clicked()), this, SLOT(slotMultiplePayment()));
 
 	slotSearch();
+	ui.showHistoryButton->setEnabled(false);
 }
 
 ESPayment::~ESPayment()
@@ -82,6 +83,7 @@ void ESPayment::slotSearch()
 void ESPayment::slotCustomerSeleced(int row, int col)
 {
 	m_customerId = ui.customers->item(row, 0)->text();
+	ui.showHistoryButton->setEnabled(true);
 
 	QSqlQuery query;
 	query.prepare("SELECT * FROM customer WHERE customer_id = ?");

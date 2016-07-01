@@ -41,7 +41,7 @@ ESCustomerInfo::ESCustomerInfo(QWidget *parent /*= 0*/) : QWidget(parent)
 	QObject::connect(ui.showFullHistory, SIGNAL(stateChanged(int)), this, SLOT(slotPopulateCustomerHistory()));
 
 	ui.commentsLbl->setWordWrap(true);
-	m_selectedCustomerId = "";
+	m_selectedCustomerId = "-1";
 	
 }
 
