@@ -49,42 +49,50 @@ ESSalesSummary::ESSalesSummary(QWidget *parent /*= 0*/) : QWidget(parent)
 
 	QObject::connect(ui.generateButton, SIGNAL(clicked()), this, SLOT(slotGenerate()));
 
-// 	while (ui.tableWidgetByUser->rowCount() > 0)
-// 	{
-// 		ui.tableWidgetByUser->removeRow(0);
-// 	}
 	ui.datelbl->setText(QDate::currentDate().toString("yyyy-MM-dd"));
 //bill.date >= CURDATE() - INTERVAL 1 DAY 
-	QSqlQuery totalSalesQry("SELECT SUM(amount) as total, payment_type FROM payment JOIN bill ON payment.bill_id = bill.bill_id WHERE bill.deleted = 0 AND bill.status = 1 Group By payment.payment_type");
+	QSqlQuery totalSalesQry("SELECT SUM(amount) as total, payment_type FROM payment JOIN bill ON payment.bill_id = bill.bill_id WHERE bill.deleted = 0 AND bill.status = 1 AND  DATE(bill.date) = CURDATE() Group By payment.payment_type");
+	
+	while (ui.tableWidgetTotal->rowCount() > 0)
+	{
+		ui.tableWidgetTotal->removeRow(0);
+	}
+
 	int row = ui.tableWidgetTotal->rowCount();
-	int col = 0;
-	while (totalSalesQry.next())
+	ui.tableWidgetTotal->insertRow(row);
+	ui.tableWidgetTotal->setVerticalHeaderItem(row, new QTableWidgetItem("Total"));
+
+	if (totalSalesQry.next())
 	{
 		QString paymentType = totalSalesQry.value("payment_type").toString();
 		double tot = totalSalesQry.value("total").toDouble();
 		QTableWidgetItem* itemSum = new QTableWidgetItem(QString::number(tot,'f', 2));
 		if (paymentType == "CASH")
 		{
-			ui.tableWidgetTotal->setItem(0, 0, itemSum);
+			ui.tableWidgetTotal->setItem(row, 0, itemSum);
 		}
 		if (paymentType == "CREDIT")
 		{
-			ui.tableWidgetTotal->setItem(0, 1, itemSum);
+			ui.tableWidgetTotal->setItem(row, 1, itemSum);
 		}
 		if (paymentType == "CHEQUE")
 		{
-			ui.tableWidgetTotal->setItem(0, 2, itemSum);
+			ui.tableWidgetTotal->setItem(row, 2, itemSum);
 		}
-		if (paymentType == "CREDIT CARD")
+		if (paymentType == "CARD")
 		{
-			ui.tableWidgetTotal->setItem(0, 3, itemSum);
+			ui.tableWidgetTotal->setItem(row, 3, itemSum);
 		}
 		if (paymentType == "LOYALTY")
 		{
-			ui.tableWidgetTotal->setItem(0, 4, itemSum);
+			ui.tableWidgetTotal->setItem(row, 4, itemSum);
 		}
 	}
 
+	while (ui.tableWidgetByUser->rowCount() > 0)
+	{
+		ui.tableWidgetByUser->removeRow(0);
+	}
 	QSqlQuery userQry("SELECT * FROM user WHERE active = 1");
 	while (userQry.next())
 	{
@@ -93,33 +101,37 @@ ESSalesSummary::ESSalesSummary(QWidget *parent /*= 0*/) : QWidget(parent)
 
 		row = ui.tableWidgetByUser->rowCount();
 		ui.tableWidgetByUser->insertRow(row);
+
 		QTableWidgetItem* nameItem = new QTableWidgetItem(uName);
-		ui.tableWidgetByUser->setItem(row, 0, nameItem);
-		QSqlQuery userSalesQry("SELECT SUM(amount) as total, payment_type FROM payment JOIN bill ON payment.bill_id = bill.bill_id WHERE bill.deleted = 0 AND bill.status = 1 AND bill.user_id = "+uId+"  Group By payment.payment_type");
+		ui.tableWidgetByUser->setVerticalHeaderItem(row, nameItem);
+
+		QSqlQuery userSalesQry("SELECT SUM(amount) as total, payment_type FROM payment JOIN bill ON payment.bill_id = bill.bill_id WHERE bill.deleted = 0 AND bill.status = 1 AND DATE(bill.date) = CURDATE() AND bill.user_id = "+uId+"  Group By payment.payment_type");
 		while (userSalesQry.next())
 		{
 			QString paymentType = userSalesQry.value("payment_type").toString();
-			double tot = totalSalesQry.value("total").toDouble();
+			double tot = userSalesQry.value("total").toDouble();
 			QTableWidgetItem* itemSum = new QTableWidgetItem(QString::number(tot, 'f', 2));
+			itemSum->setTextAlignment(Qt::AlignRight);
+
 			if (paymentType == "CASH")
+			{
+				ui.tableWidgetByUser->setItem(row, 0, itemSum);
+			}
+			else if (paymentType == "CREDIT")
 			{
 				ui.tableWidgetByUser->setItem(row, 1, itemSum);
 			}
-			if (paymentType == "CREDIT")
+			else if (paymentType == "CHEQUE")
 			{
 				ui.tableWidgetByUser->setItem(row, 2, itemSum);
 			}
-			if (paymentType == "CHEQUE")
+			else if (paymentType == "CARD")
 			{
 				ui.tableWidgetByUser->setItem(row, 3, itemSum);
 			}
-			if (paymentType == "CREDIT CARD")
+			else if (paymentType == "LOYALTY")
 			{
 				ui.tableWidgetByUser->setItem(row, 4, itemSum);
-			}
-			if (paymentType == "LOYALTY")
-			{
-				ui.tableWidgetByUser->setItem(row, 5, itemSum);
 			}
 		}
 	}

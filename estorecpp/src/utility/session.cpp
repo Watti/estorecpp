@@ -22,7 +22,7 @@ namespace ES
 		return m_session;
 	}
 
-	Session::Session() : m_user(NULL), m_billStarted(false), m_lowerPriceBlocked(true)
+	Session::Session() : m_user(NULL), m_billStarted(false), m_lowerPriceBlocked(true), m_serverIP("192.168.1.6"), m_billItemFontSize(11), m_billEmail("")
 	{
 
 	}
@@ -102,6 +102,66 @@ namespace ES
 	bool Session::isLowerPriceBlocked() const
 	{
 		return m_lowerPriceBlocked;
+	}
+
+	QString Session::getServerIP() const
+	{
+		return m_serverIP;
+	}
+
+	void Session::setServerIP(QString val)
+	{
+		m_serverIP = val;
+	}
+
+	QString Session::getBillTitle() const
+	{
+		return m_billTitle;
+	}
+
+	void Session::setBillTitle(QString val)
+	{
+		m_billTitle = val;
+	}
+
+	QString Session::getBillAddress() const
+	{
+		return m_billAddress;
+	}
+
+	void Session::setBillAddress(QString val)
+	{
+		m_billAddress = val;
+	}
+
+	QString Session::getBillPhone() const
+	{
+		return m_billPhone;
+	}
+
+	void Session::setBillPhone(QString val)
+	{
+		m_billPhone = val;
+	}
+
+	int Session::getBillItemFontSize() const
+	{
+		return m_billItemFontSize;
+	}
+
+	void Session::setBillItemFontSize(int val)
+	{
+		m_billItemFontSize = val;
+	}
+
+	QString Session::getBillEmail() const
+	{
+		return m_billEmail;
+	}
+
+	void Session::setBillEmail(QString val)
+	{
+		m_billEmail = val;
 	}
 
 }

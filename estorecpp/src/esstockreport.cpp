@@ -36,8 +36,8 @@ ESStockReport::ESStockReport(QWidget *parent /*= 0*/) : QWidget(parent)
 	{
 		ui.tableWidget->removeRow(0);
 	}
-
-	QSqlQuery q("SELECT stock.qty, stock.min_qty, item.item_code FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 ");
+	QString maxRows = ui.maxRows->text();
+	QSqlQuery q("SELECT stock.qty, stock.min_qty, item.item_code FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 LIMIT " + maxRows);
 	while (q.next())
 	{
 		int row = ui.tableWidget->rowCount();
@@ -149,7 +149,9 @@ void ESStockReport::slotGenerate()
 
 		int row = 0;
 		bool headerPrinted = false;
-		QSqlQuery q("SELECT stock.qty, stock.min_qty, item.item_code, item.item_name FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 ");
+
+		QString maxRows = ui.maxRows->text();
+		QSqlQuery q("SELECT stock.qty, stock.min_qty, item.item_code, item.item_name FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 LIMIT "+maxRows);
 		while (q.next())
 		{
 			if (!headerPrinted)

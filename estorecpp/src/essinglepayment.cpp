@@ -675,25 +675,29 @@ void ESSinglePayment::printBill(int billId, float total)
 	HIRUNA MARKETING (PVT) LTD
 	No.374, High level Road, Meegoda
 	*/
-	KDReports::TextElement titleElement("PUJITHA ENTERPRISES (PVT) LTD");
+	QString titleStr = ES::Session::getInstance()->getBillTitle();
+	KDReports::TextElement titleElement(titleStr);
 	titleElement.setPointSize(14);
 	titleElement.setBold(true);
 	report.addElement(titleElement, Qt::AlignHCenter);
 
-	KDReports::TextElement addressElement("No. 154, Kurugala, Padukka.");
+	QString addressStr = ES::Session::getInstance()->getBillAddress();
+	KDReports::TextElement addressElement(addressStr);
 	addressElement.setPointSize(10);
 	addressElement.setBold(false);
 	report.addElement(addressElement, Qt::AlignHCenter);
 
-	KDReports::TextElement telElement("Phone :  077-4784430 / 077-4784437");
+
+	QString phoneStr = ES::Session::getInstance()->getBillPhone();
+	KDReports::TextElement telElement(phoneStr);
 	telElement.setPointSize(10);
 	telElement.setBold(false);
 	report.addElement(telElement, Qt::AlignHCenter);
 
-	KDReports::TextElement emailElement("email : rapprasanna4@gmail.com");
-	emailElement.setPointSize(10);
-	emailElement.setBold(false);
-	report.addElement(emailElement, Qt::AlignHCenter);
+	// 	KDReports::TextElement emailElement("email : rapprasanna4@gmail.com");
+	// 	emailElement.setPointSize(10);
+	// 	emailElement.setBold(false);
+	// 	report.addElement(emailElement, Qt::AlignHCenter);
 
 	KDReports::TableElement infoTableElement;
 	infoTableElement.setHeaderRowCount(2);
@@ -913,6 +917,13 @@ void ESSinglePayment::printBill(int billId, float total)
 		report.addElement(customerInfo, Qt::AlignLeft);
 	}
 
+	report.addVerticalSpacing(5);
+
+	KDReports::TextElement customerInfo2("Thank You!");
+	customerInfo2.setPointSize(11);
+	report.addElement(customerInfo2, Qt::AlignCenter);
+
+	report.addVerticalSpacing(5);
 // 	KDReports::Footer& foter = report.footer();
 // 	KDReports::TextElement info("Powered by PROGEX Technologies.");
 // 	KDReports::TextElement web("www.progextech.com  T.P.: 072-6430268/071-1308531");
@@ -948,7 +959,7 @@ void ESSinglePayment::printRow(KDReports::TableElement& tableElement, int row, i
 {
 	KDReports::Cell& cell = tableElement.cell(row, col);
 	KDReports::TextElement te(elementStr);
-	te.setPointSize(10);
+	te.setPointSize(ES::Session::getInstance()->getBillItemFontSize());
 	cell.addElement(te, alignment);
 }
 

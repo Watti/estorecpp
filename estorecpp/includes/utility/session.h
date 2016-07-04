@@ -26,7 +26,18 @@ namespace ES
 		void invalidate();
 		void setLowerPriceBlocked(bool blocked);
 		bool isLowerPriceBlocked() const;
-
+		QString getServerIP() const;
+		void setServerIP(QString val);
+		QString getBillTitle() const;
+		void setBillTitle(QString val);
+		QString getBillAddress() const;
+		void setBillAddress(QString val);
+		QString getBillPhone() const;
+		void setBillPhone(QString val);
+		int getBillItemFontSize() const;
+		void setBillItemFontSize(int val);
+		QString getBillEmail() const;
+		void setBillEmail(QString val);
 	private:
 		Session();
 		static Session* m_session;
@@ -35,8 +46,13 @@ namespace ES
 		QString m_billId;
 		QString m_dumpPath;
 		QString m_branchName;
+		QString m_serverIP;
 		bool m_lowerPriceBlocked;
-
+		QString m_billTitle;
+		QString m_billAddress;
+		QString m_billPhone;
+		int m_billItemFontSize;
+		QString m_billEmail;
 	};
 
 }

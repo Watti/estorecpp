@@ -151,17 +151,26 @@ void ESReturnItems::slotAddReturnedItem()
 
 void ESReturnItems::printReturnItemInfo()
 {
-	//KDReports::Report report;
+	KDReports::Report report;
 
-	KDReports::TextElement titleElement("PUJITHA ENTERPRISES (PVT) LTD");
+	QString titleStr = ES::Session::getInstance()->getBillTitle();
+	KDReports::TextElement titleElement(titleStr);
 	titleElement.setPointSize(14);
 	titleElement.setBold(true);
 	report.addElement(titleElement, Qt::AlignHCenter);
 
-	KDReports::TextElement addressElement("No. 154, Kurugala, Padukka.");
+	QString addressStr = ES::Session::getInstance()->getBillAddress();
+	KDReports::TextElement addressElement(addressStr);
 	addressElement.setPointSize(10);
 	addressElement.setBold(false);
 	report.addElement(addressElement, Qt::AlignHCenter);
+
+
+	QString phoneStr = ES::Session::getInstance()->getBillPhone();
+	KDReports::TextElement telElement(phoneStr);
+	telElement.setPointSize(10);
+	telElement.setBold(false);
+	report.addElement(telElement, Qt::AlignHCenter);
 
 	QString dateStr = "Date : ";
 	dateStr.append(QDateTime::currentDateTime().toString("yyyy-MM-dd"));
@@ -208,28 +217,28 @@ void ESReturnItems::printReturnItemInfo()
 
 	{// Item Code
 		KDReports::TextElement telElement("Item Code : " + ui.itemCode->text());
-		telElement.setPointSize(10);
+		telElement.setPointSize(12);
 		telElement.setBold(false);
 		report.addElement(telElement, Qt::AlignLeft);
 	}{// Item Name
 		KDReports::TextElement telElement("Item Name : " + ui.itemName->text());
-		telElement.setPointSize(10);
+		telElement.setPointSize(12);
 		telElement.setBold(false);
 		report.addElement(telElement, Qt::AlignLeft);
 	}{// Quantity
 		KDReports::TextElement telElement("Quantity : " + ui.qtyText->text());
-		telElement.setPointSize(10);
+		telElement.setPointSize(12);
 		telElement.setBold(false);
 		report.addElement(telElement, Qt::AlignLeft);
 	}{// Remarks
 		KDReports::TextElement telElement("Remarks : " + ui.remarks->toPlainText());
-		telElement.setPointSize(10);
+		telElement.setPointSize(12);
 		telElement.setBold(false);
 		report.addElement(telElement, Qt::AlignLeft);
 	}{// Item Price
 		QString itemp = "-" + QString::number(ui.itemPrice->text().toDouble(), 'f', 2);
 		KDReports::TextElement telElement("Item Price : " + itemp);
-		telElement.setPointSize(10);
+		telElement.setPointSize(12);
 		telElement.setBold(true);
 		report.addElement(telElement, Qt::AlignLeft);
 	}
@@ -241,17 +250,17 @@ void ESReturnItems::printReturnItemInfo()
 	printer.setFullPage(false);
 	printer.setOrientation(QPrinter::Portrait);
 
-	QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
-	QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
-	dialog->setWindowTitle(tr("Print Document"));
-	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
-	dialog->exec();
+// 	QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
+// 	QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
+// 	dialog->setWindowTitle(tr("Print Document"));
+// 	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
+// 	dialog->exec();
 
-	//report.print(&printer);
+	report.print(&printer);
 }
 
 void ESReturnItems::slotPrint(QPrinter* printer)
 {
-	report.print(printer);
+	//report.print(printer);
 	this->close();
 }

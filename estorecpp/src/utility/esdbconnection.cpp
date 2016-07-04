@@ -1,4 +1,5 @@
 #include "utility/esdbconnection.h"
+#include "utility/session.h"
 
 namespace ES
 {
@@ -28,10 +29,11 @@ namespace ES
 		if (!m_isOpen)
 		{
 			m_db = QSqlDatabase::addDatabase("QMYSQL");
-			m_db.setHostName("localhost");//192.168.1.6
+			QString server = ES::Session::getInstance()->getServerIP();
+			m_db.setHostName(server);//192.168.1.6
 			m_db.setDatabaseName("goldfish");
-			m_db.setUserName("root");//prog
-			m_db.setPassword("123");//progex@2016
+			m_db.setUserName("prog");//prog
+			m_db.setPassword("progex@2016");//progex@2016
 
 			if (!m_db.open())
 			{

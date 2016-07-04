@@ -17,6 +17,8 @@
 
 INITIALIZE_EASYLOGGINGPP
 
+#define SECOND_DISPLAY 0
+
 void readSettings()
 {
 	std::ifstream infile("resources\\settings.res");
@@ -35,6 +37,13 @@ void readSettings()
 			std::getline(is, branch, '-');
 			branch = branch.substr(1, branch.size() - 2);
 			ES::Session::getInstance()->setBranchName(QString::fromUtf8(branch.data(), branch.size()));
+		}
+		if (val.compare("SERVER") == 0)
+		{
+			std::string server;
+			std::getline(is, server, '-');
+			server = server.substr(1, server.size() - 2);
+			ES::Session::getInstance()->setServerIP(QString::fromUtf8(server.data(), server.size()));
 		}
 		else if (val.compare("BACKUP_FOLDER") == 0)
 		{
@@ -83,8 +92,30 @@ int main(int argc, char *argv[])
 	LOG(INFO) << "Initializing the system...";
 
 	ES::MainWindowHolder::instance()->setMainWindow(&mainWindow);
-	//ES::MainWindowHolder::instance()->openSecondaryDisplay();
 
+	
+		
+	
+		 
+
+
+				
+
+#if SECOND_DISPLAY
+	ES::MainWindowHolder::instance()->openSecondaryDisplay();
+	ES::Session::getInstance()->setBillItemFontSize(12);
+	ES::Session::getInstance()->setBillTitle("HIRUNA MARKETING(PVT) LTD");
+	ES::Session::getInstance()->setBillAddress("No.374, High level Road, Meegoda");
+	ES::Session::getInstance()->setBillPhone("Phone : 011-2750485");
+
+#else
+ES::MainWindowHolder::instance()->openSecondaryDisplay();
+ES::Session::getInstance()->setBillItemFontSize(12);
+ES::Session::getInstance()->setBillTitle("PUJITHA ENTERPRISES (PVT) LTD");
+ES::Session::getInstance()->setBillAddress("No. 154, Kurugala, Padukka");
+ES::Session::getInstance()->setBillPhone("Phone :  077-4784430 / 077-4784437");
+ES::Session::getInstance()->setBillEmail("email : rapprasanna4@gmail.com");
+#endif
 //  	BackupThread b;
 //  	b.start();
 
