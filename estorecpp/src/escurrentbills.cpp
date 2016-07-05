@@ -140,28 +140,29 @@ void ESCurrentBills::slotSearch()
 			ui.tableWidget->setItem(row, 4, tableItem);
 
 			QWidget* base = new QWidget(ui.tableWidget);
-			QPushButton* reprintBtn = new QPushButton("Reprint", base);
-			reprintBtn->setMaximumWidth(100);
-			m_reprintBillButtonSignalMapper->setMapping(reprintBtn, billId);
-			QObject::connect(reprintBtn, SIGNAL(clicked()), m_reprintBillButtonSignalMapper, SLOT(map()));
-
+			QHBoxLayout *layout = new QHBoxLayout;
+			layout->setContentsMargins(0, 0, 0, 0);
+			
 			ES::User::UserType uType = ES::Session::getInstance()->getUser()->getType();
 			if (uType == ES::User::SENIOR_MANAGER || uType == ES::User::DEV || uType == ES::User::MANAGER)
 			{
-				QWidget* base = new QWidget(ui.tableWidget);
 				QPushButton* voidBtn = new QPushButton("Cancel", base);
 				voidBtn->setMaximumWidth(100);
 				m_voidBillButtonSignalMapper->setMapping(voidBtn, billId);
 				QObject::connect(voidBtn, SIGNAL(clicked()), m_voidBillButtonSignalMapper, SLOT(map()));
-
-				QHBoxLayout *layout = new QHBoxLayout;
-				layout->setContentsMargins(0, 0, 0, 0);
 				layout->addWidget(voidBtn);
-				layout->insertStretch(2);
-				base->setLayout(layout);
-				ui.tableWidget->setCellWidget(row, 5, base);
-				base->show();
 			}
+
+ 			QPushButton* reprintBtn = new QPushButton("Reprint", base);
+ 			reprintBtn->setMaximumWidth(100);
+ 			m_reprintBillButtonSignalMapper->setMapping(reprintBtn, billId);
+ 			QObject::connect(reprintBtn, SIGNAL(clicked()), m_reprintBillButtonSignalMapper, SLOT(map()));
+ 			layout->addWidget(reprintBtn);
+						
+			layout->insertStretch(2);
+			base->setLayout(layout);
+			ui.tableWidget->setCellWidget(row, 5, base);
+			base->show();
 		}
 			break;
 		case 2:
