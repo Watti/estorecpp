@@ -14,6 +14,8 @@ public:
 	Ui::ReturnItems& getUI();
 
 	public slots:
+	void slotSelect();
+
 	void slotAddReturnedItem();
 	void slotPrint(QPrinter* printer);
 private:

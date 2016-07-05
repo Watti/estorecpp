@@ -19,7 +19,8 @@
 ESReturnItems::ESReturnItems(QWidget *parent /*= 0*/) : QWidget(parent)
 {
 	ui.setupUi(this);
-	QObject::connect(ui.addButton, SIGNAL(clicked()), this, SLOT(slotAddReturnedItem()));
+
+	QObject::connect(ui.selectBtn, SIGNAL(clicked()), this, SLOT(slotSelect()));
 
 	if (!ES::DbConnection::instance()->open())
 	{
@@ -29,7 +30,21 @@ ESReturnItems::ESReturnItems(QWidget *parent /*= 0*/) : QWidget(parent)
 		mbox.exec();
 	}
 
-	ui.qtyText->setText("1.0");
+	QStringList headerLabels;
+	headerLabels.append("Item Code");
+	headerLabels.append("Item Name");
+	headerLabels.append("Quantity");
+	headerLabels.append("Billed Price");
+	headerLabels.append("Paid Price");
+	headerLabels.append("Date");
+	headerLabels.append("Actions");
+
+	ui.tableWidget->setHorizontalHeaderLabels(headerLabels);
+	ui.tableWidget->horizontalHeader()->setStretchLastSection(true);
+	ui.tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+	ui.tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	ui.tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
+	ui.tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
 }
 
 ESReturnItems::~ESReturnItems()
@@ -44,7 +59,7 @@ Ui::ReturnItems& ESReturnItems::getUI()
 
 void ESReturnItems::slotAddReturnedItem()
 {
-	QString iName = ui.itemName->text();
+/*	QString iName = ui.itemName->text();
 	QString iCode = ui.itemCode->text();
 	QString remarks = ui.remarks->toPlainText();
 	//QString catId = ui.itemCategoryComboBox->itemData(ui.itemCategoryComboBox->currentIndex()).toString();
@@ -52,7 +67,7 @@ void ESReturnItems::slotAddReturnedItem()
 	QString qty = ui.qtyText->text();
 
 	if (iCode == nullptr || iCode.isEmpty() ||
-		qty == nullptr || qty.isEmpty() ||/* catId == "-1" ||*/ iPrice == nullptr || iPrice.isEmpty())
+		qty == nullptr || qty.isEmpty() || iPrice == nullptr || iPrice.isEmpty())
 	{
 		QMessageBox mbox;
 		mbox.setIcon(QMessageBox::Warning);
@@ -145,13 +160,13 @@ void ESReturnItems::slotAddReturnedItem()
 		mbox.exec();
 		return;
 	}
-	this->close();
+	this->close();*/
 }
 
 
 void ESReturnItems::printReturnItemInfo()
 {
-	KDReports::Report report;
+/*	KDReports::Report report;
 
 	QString titleStr = ES::Session::getInstance()->getBillTitle();
 	KDReports::TextElement titleElement(titleStr);
@@ -263,10 +278,53 @@ void ESReturnItems::printReturnItemInfo()
 // 	dialog->exec();
 
 	report.print(&printer);
+	*/
 }
 
 void ESReturnItems::slotPrint(QPrinter* printer)
 {
 	//report.print(printer);
 	this->close();
+}
+
+void ESReturnItems::slotSelect()
+{
+	QString itemCode = ui.itemCode->text();
+	QString billId = ui.billId->text();
+
+	int itemId = -1;
+	QString itemName = "-1";
+	QSqlQuery q("SELECT item_id, item_name FROM item WHERE item_code = '" + itemCode + "'");
+	if (q.next())
+	{
+		itemId = q.value("item_id").toInt();
+		itemName = q.value("item_name").toString();
+	}
+	else
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Critical);
+		mbox.setText(QString("Invalid Item Code"));
+		mbox.exec();
+		return;
+	}
+
+	QSqlQuery q2("SELECT stock_id FROM stock WHERE item_id = " + QString::number(itemId));
+	if (q2.next())
+	{
+		QString str("SELECT * FROM sale b JOIN stock s ON b.stock_id = s.stock_id AND s.stock_id = ");
+		str.append(q2.value("stock_id").toString());
+		str.append(" WHERE b.bill_id = ");
+		str.append(billId);
+
+		QSqlQuery q3(str);
+		if (q3.next())
+		{
+			int row = ui.tableWidget->rowCount();
+			ui.tableWidget->insertRow(row);
+			ui.tableWidget->setItem(row, 0, new QTableWidgetItem(itemCode));
+			ui.tableWidget->setItem(row, 1, new QTableWidgetItem(itemName));
+		}
+	}
+
 }

@@ -34,9 +34,9 @@ ESSalesSummary::ESSalesSummary(QWidget *parent /*= 0*/) : QWidget(parent)
 	ui.tableWidgetByUser->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	ui.tableWidgetByUser->setSelectionBehavior(QAbstractItemView::SelectRows);
 	ui.tableWidgetByUser->setSelectionMode(QAbstractItemView::SingleSelection);
-	ui.tableWidgetByUser->setFont(font);
+	//ui.tableWidgetByUser->setFont(font);
 
-	ui.tableWidgetByUser->verticalHeader()->setFont(font);
+	//ui.tableWidgetByUser->verticalHeader()->setFont(font);
 	ui.tableWidgetByUser->verticalHeader()->setMinimumWidth(200);
 
 	//////////////////////////////////////////////////////////////////////////
@@ -54,9 +54,9 @@ ESSalesSummary::ESSalesSummary(QWidget *parent /*= 0*/) : QWidget(parent)
 	ui.tableWidgetTotal->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	ui.tableWidgetTotal->setSelectionBehavior(QAbstractItemView::SelectRows);
 	ui.tableWidgetTotal->setSelectionMode(QAbstractItemView::SingleSelection);
-	ui.tableWidgetTotal->setFont(font);
+	//ui.tableWidgetTotal->setFont(font);
 
-	ui.tableWidgetTotal->verticalHeader()->setFont(font);
+	//ui.tableWidgetTotal->verticalHeader()->setFont(font);
 	ui.tableWidgetTotal->verticalHeader()->setMinimumWidth(200);
 
 	QObject::connect(ui.generateButton, SIGNAL(clicked()), this, SLOT(slotGenerate()));
@@ -79,6 +79,8 @@ ESSalesSummary::ESSalesSummary(QWidget *parent /*= 0*/) : QWidget(parent)
 		QString paymentType = totalSalesQry.value("payment_type").toString();
 		double tot = totalSalesQry.value("total").toDouble();
 		QTableWidgetItem* itemSum = new QTableWidgetItem(QString::number(tot,'f', 2));
+		itemSum->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+
 		if (paymentType == "CASH")
 		{
 			ui.tableWidgetTotal->setItem(row, 0, itemSum);
@@ -123,7 +125,7 @@ ESSalesSummary::ESSalesSummary(QWidget *parent /*= 0*/) : QWidget(parent)
 			QString paymentType = userSalesQry.value("payment_type").toString();
 			double tot = userSalesQry.value("total").toDouble();
 			QTableWidgetItem* itemTotal = new QTableWidgetItem(QString::number(tot, 'f', 2));
-			itemTotal->setTextAlignment(Qt::AlignRight);
+			itemTotal->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
 
 			if (paymentType == "CASH")
 			{
