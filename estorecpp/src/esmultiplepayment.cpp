@@ -765,11 +765,14 @@ void ESMultiplePayment::printBill(int billId, float total)
 	telElement.setBold(false);
 	report.addElement(telElement, Qt::AlignHCenter);
 
-	QString emailStr = ES::Session::getInstance()->getBillPhone();
-	KDReports::TextElement emailElement(emailStr);
-	emailElement.setPointSize(10);
-	emailElement.setBold(false);
-	report.addElement(emailElement, Qt::AlignHCenter);
+	QString emailStr = ES::Session::getInstance()->getBillEmail();
+	if (emailStr != "")
+	{
+		KDReports::TextElement emailElement(emailStr);
+		emailElement.setPointSize(10);
+		emailElement.setBold(false);
+		report.addElement(emailElement, Qt::AlignHCenter);
+	}
 
 	KDReports::TableElement infoTableElement;
 	infoTableElement.setHeaderRowCount(2);
@@ -1077,17 +1080,17 @@ void ESMultiplePayment::printBill(int billId, float total)
 	customerInfo.setPointSize(11);
 	report.addElement(customerInfo, Qt::AlignCenter);
 
-	report.addVerticalSpacing(5);
+//	report.addVerticalSpacing(5);
 
 // 	KDReports::Footer& foter = report.footer();
 // 	KDReports::TextElement info("Powered by PROGEX Technologies.");
 // 	KDReports::TextElement web("www.progextech.com  T.P.: 072-6430268/071-1308531");
 // 	foter.addElement(info, Qt::AlignCenter);
 // 	foter.addElement(web, Qt::AlignCenter);
-	KDReports::TextElement poweredBy("Powered by PROGEX Technologies.");
-	KDReports::TextElement web("www.progextech.com  T.P.: 072-6430268/071-1308531");
-	report.addElement(poweredBy, Qt::AlignCenter);
-	report.addElement(web, Qt::AlignCenter);
+// 	KDReports::TextElement poweredBy("Powered by PROGEX Technologies.");
+// 	KDReports::TextElement web("www.progextech.com  T.P.: 072-6430268/071-1308531");
+// 	report.addElement(poweredBy, Qt::AlignCenter);
+// 	report.addElement(web, Qt::AlignCenter);
 
 	QPrinter printer;
 	printer.setPaperSize(QPrinter::A4);

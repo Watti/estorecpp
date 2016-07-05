@@ -5,6 +5,8 @@
 #include <QPrinter>
 #include <KDReportsReport.h>
 #include "ui_salesummary.h"
+#include "KDReportsTableElement.h"
+#include "qnamespace.h"
 
 class ESSalesSummary : public QWidget
 {
@@ -22,7 +24,10 @@ public:
 
 private:
 	Ui::SaleSummary ui;
-	KDReports::Report report;
+
+	void printRow(KDReports::TableElement& tableElement, int row, int col,
+		QString elementStr, Qt::AlignmentFlag alignment = Qt::AlignLeft);
+	//KDReports::Report report;
 
 };
 

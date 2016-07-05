@@ -221,10 +221,16 @@ void ESReturnItems::printReturnItemInfo()
 		telElement.setBold(false);
 		report.addElement(telElement, Qt::AlignLeft);
 	}{// Item Name
-		KDReports::TextElement telElement("Item Name : " + ui.itemName->text());
-		telElement.setPointSize(12);
-		telElement.setBold(false);
-		report.addElement(telElement, Qt::AlignLeft);
+		QString itemCode = ui.itemCode->text();
+		QSqlQuery queryItem("SELECT item_name FROM item WHERE deleted = 0 AND item_code = '" + ui.itemCode->text()+"'");
+		if (queryItem.next())
+		{
+			QString itemName = queryItem.value("item_name").toString();
+			KDReports::TextElement telElement("Item Name : " + queryItem.value("item_name").toString());
+			telElement.setPointSize(12);
+			telElement.setBold(false);
+			report.addElement(telElement, Qt::AlignLeft);
+		}
 	}{// Quantity
 		KDReports::TextElement telElement("Quantity : " + ui.qtyText->text());
 		telElement.setPointSize(12);

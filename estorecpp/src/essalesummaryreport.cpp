@@ -1,5 +1,17 @@
 #include "essalesummaryreport.h"
 #include "QSqlQuery"
+#include "KDReportsTextElement.h"
+#include "utility\session.h"
+#include "KDReportsHtmlElement.h"
+#include "KDReportsTableElement.h"
+#include "KDReportsCell.h"
+#include "QPrintPreviewDialog"
+#include "QPrinter"
+#include "utility\esmainwindowholder.h"
+#include "QMainWindow"
+#include "QObject"
+#include "entities\SaleLineEdit.h"
+#include "esmainwindow.h"
 
 ESSalesSummary::ESSalesSummary(QWidget *parent /*= 0*/) : QWidget(parent)
 {
@@ -62,7 +74,7 @@ ESSalesSummary::ESSalesSummary(QWidget *parent /*= 0*/) : QWidget(parent)
 	ui.tableWidgetTotal->insertRow(row);
 	ui.tableWidgetTotal->setVerticalHeaderItem(row, new QTableWidgetItem("Total"));
 
-	if (totalSalesQry.next())
+	while(totalSalesQry.next())
 	{
 		QString paymentType = totalSalesQry.value("payment_type").toString();
 		double tot = totalSalesQry.value("total").toDouble();
@@ -93,7 +105,7 @@ ESSalesSummary::ESSalesSummary(QWidget *parent /*= 0*/) : QWidget(parent)
 	{
 		ui.tableWidgetByUser->removeRow(0);
 	}
-	QSqlQuery userQry("SELECT * FROM user WHERE active = 1");
+	QSqlQuery userQry("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE usertype.usertype_name <> 'DEV'  AND user.active = 1");
 	while (userQry.next())
 	{
 		QString uId = userQry.value("user_id").toString();
@@ -110,28 +122,28 @@ ESSalesSummary::ESSalesSummary(QWidget *parent /*= 0*/) : QWidget(parent)
 		{
 			QString paymentType = userSalesQry.value("payment_type").toString();
 			double tot = userSalesQry.value("total").toDouble();
-			QTableWidgetItem* itemSum = new QTableWidgetItem(QString::number(tot, 'f', 2));
-			itemSum->setTextAlignment(Qt::AlignRight);
+			QTableWidgetItem* itemTotal = new QTableWidgetItem(QString::number(tot, 'f', 2));
+			itemTotal->setTextAlignment(Qt::AlignRight);
 
 			if (paymentType == "CASH")
 			{
-				ui.tableWidgetByUser->setItem(row, 0, itemSum);
+				ui.tableWidgetByUser->setItem(row, 0, itemTotal);
 			}
 			else if (paymentType == "CREDIT")
 			{
-				ui.tableWidgetByUser->setItem(row, 1, itemSum);
+				ui.tableWidgetByUser->setItem(row, 1, itemTotal);
 			}
 			else if (paymentType == "CHEQUE")
 			{
-				ui.tableWidgetByUser->setItem(row, 2, itemSum);
+				ui.tableWidgetByUser->setItem(row, 2, itemTotal);
 			}
 			else if (paymentType == "CARD")
 			{
-				ui.tableWidgetByUser->setItem(row, 3, itemSum);
+				ui.tableWidgetByUser->setItem(row, 3, itemTotal);
 			}
 			else if (paymentType == "LOYALTY")
 			{
-				ui.tableWidgetByUser->setItem(row, 4, itemSum);
+				ui.tableWidgetByUser->setItem(row, 4, itemTotal);
 			}
 		}
 	}
@@ -139,15 +151,131 @@ ESSalesSummary::ESSalesSummary(QWidget *parent /*= 0*/) : QWidget(parent)
 
 void ESSalesSummary::slotPrint(QPrinter* printer)
 {
-	report.print(printer);
+	//report.print(printer);
+	this->close();
 }
 
 void ESSalesSummary::slotGenerate()
 {
+	bool print = ui.checkBox->isChecked();
+	if (print)
+	{
+		KDReports::Report report;
 
+		KDReports::TextElement titleElement("SALES SUMMARY");
+		titleElement.setPointSize(13);
+		titleElement.setBold(true);
+		report.addElement(titleElement, Qt::AlignHCenter);
+
+		
+		QString dateStr = "Date : ";
+		dateStr.append(QDateTime::currentDateTime().toString("yyyy-MM-dd"));
+		
+
+		KDReports::TableElement infoTableElement;
+		infoTableElement.setHeaderRowCount(2);
+		infoTableElement.setHeaderColumnCount(2);
+		infoTableElement.setBorder(0);
+		infoTableElement.setWidth(100, KDReports::Percent);
+
+		{
+			KDReports::Cell& dateCell = infoTableElement.cell(0, 1);
+			KDReports::TextElement t(dateStr);
+			t.setPointSize(10);
+			dateCell.addElement(t, Qt::AlignRight);
+		}
+
+		report.addElement(infoTableElement);
+		report.addVerticalSpacing(5);
+
+		KDReports::HtmlElement htmlElem1;
+		QString htm1("<div><hr/></div>");
+		htmlElem1.setHtml(htm1);
+		report.addElement(htmlElem1);
+
+		KDReports::TableElement tableElement;
+		//tableElement.setHeaderRowCount(5);
+		tableElement.setHeaderColumnCount(2);
+		tableElement.setBorder(1);
+		tableElement.setWidth(100, KDReports::Percent);
+
+		KDReports::Cell& cellPType = tableElement.cell(0, 0);
+		KDReports::TextElement tEPType("Payment Type");
+		tEPType.setPointSize(11);
+		tEPType.setBold(true);
+		cellPType.addElement(tEPType, Qt::AlignCenter);
+
+		KDReports::Cell& cTotal = tableElement.cell(0, 1);
+		KDReports::TextElement tETotal("Total");
+		tETotal.setBold(true);
+		tETotal.setPointSize(11);
+		cTotal.addElement(tETotal, Qt::AlignCenter);
+
+		QSqlQuery totalSalesQry("SELECT SUM(amount) as total, payment_type FROM payment JOIN bill ON payment.bill_id = bill.bill_id WHERE bill.deleted = 0 AND bill.status = 1 AND  DATE(bill.date) = CURDATE() Group By payment.payment_type");
+		int row = 1;
+		while (totalSalesQry.next())
+		{
+			QString paymentType = totalSalesQry.value("payment_type").toString();
+			double tot = totalSalesQry.value("total").toDouble();
+			QString totalStr = QString::number(tot, 'f', 2);
+			if (paymentType == "CASH")
+			{
+				printRow(tableElement, row, 0, "CASH");
+				printRow(tableElement, row, 1, totalStr);
+				row++;
+			}
+			if (paymentType == "CREDIT")
+			{
+				printRow(tableElement, row, 0, "CREDIT");
+				printRow(tableElement, row, 1, totalStr);
+				row++;
+			}
+			if (paymentType == "CHEQUE")
+			{
+				printRow(tableElement, row, 0, "CHEQUE");
+				printRow(tableElement, row, 1, totalStr);
+				row++;
+			}
+			if (paymentType == "CARD")
+			{
+				printRow(tableElement, row, 0, "CARD");
+				printRow(tableElement, row, 1, totalStr);
+				row++;
+			}
+			if (paymentType == "LOYALTY")
+			{
+				printRow(tableElement, row, 0, "LOYALTY");
+				printRow(tableElement, row, 1, totalStr);
+				row++;
+			}
+		}
+		report.addElement(tableElement);
+
+		QPrinter printer;
+		printer.setPaperSize(QPrinter::A4);
+
+		printer.setFullPage(false);
+		printer.setOrientation(QPrinter::Portrait);
+
+// 			QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
+// 			QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
+// 			dialog->setWindowTitle(tr("Print Document"));
+// 			ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
+// 			dialog->exec();
+
+		report.print(&printer);
+	}
 }
 
 ESSalesSummary::~ESSalesSummary()
 {
 
+}
+
+void ESSalesSummary::printRow(KDReports::TableElement& tableElement, int row, int col, QString elementStr, Qt::AlignmentFlag alignment /*= Qt::AlignLeft*/)
+{
+	KDReports::Cell& cell = tableElement.cell(row, col);
+	KDReports::TextElement te(elementStr);
+	te.setPointSize(ES::Session::getInstance()->getBillItemFontSize());
+	cell.addElement(te, alignment);
 }
