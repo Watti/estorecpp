@@ -62,9 +62,7 @@ ESSalesSummary::ESSalesSummary(QWidget *parent /*= 0*/) : QWidget(parent)
 	QObject::connect(ui.generateButton, SIGNAL(clicked()), this, SLOT(slotGenerate()));
 
 	ui.datelbl->setText(QDate::currentDate().toString("yyyy-MM-dd"));
-//bill.date >= CURDATE() - INTERVAL 1 DAY 
-	QSqlQuery totalSalesQry("SELECT SUM(amount) as total, payment_type FROM payment JOIN bill ON payment.bill_id = bill.bill_id WHERE bill.deleted = 0 AND bill.status = 1 AND  DATE(bill.date) = CURDATE() Group By payment.payment_type");
-	
+
 	while (ui.tableWidgetTotal->rowCount() > 0)
 	{
 		ui.tableWidgetTotal->removeRow(0);
@@ -73,85 +71,175 @@ ESSalesSummary::ESSalesSummary(QWidget *parent /*= 0*/) : QWidget(parent)
 	int row = ui.tableWidgetTotal->rowCount();
 	ui.tableWidgetTotal->insertRow(row);
 	ui.tableWidgetTotal->setVerticalHeaderItem(row, new QTableWidgetItem("Total"));
-
-	while(totalSalesQry.next())
+	double cashSales = 0, creditSales = 0, chequeSales = 0, cardSales = 0;
+	QSqlQuery totalBillQry("SELECT* FROM bill WHERE deleted = 0 AND status = 1 AND  DATE(date) = CURDATE()");
+	while (totalBillQry.next())
 	{
-		QString paymentType = totalSalesQry.value("payment_type").toString();
-		double tot = totalSalesQry.value("total").toDouble();
-		QTableWidgetItem* itemSum = new QTableWidgetItem(QString::number(tot,'f', 2));
-		if (paymentType == "CASH")
+		QSqlQuery queryUserType("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE user.user_id = " + totalBillQry.value("user_id").toString() + " AND usertype.usertype_name <> 'DEV'");
+		if (queryUserType.next())
 		{
-			ui.tableWidgetTotal->setItem(row, 0, itemSum);
-		}
-		if (paymentType == "CREDIT")
-		{
-			ui.tableWidgetTotal->setItem(row, 1, itemSum);
-		}
-		if (paymentType == "CHEQUE")
-		{
-			ui.tableWidgetTotal->setItem(row, 2, itemSum);
-		}
-		if (paymentType == "CARD")
-		{
-			ui.tableWidgetTotal->setItem(row, 3, itemSum);
-		}
-		if (paymentType == "LOYALTY")
-		{
-			ui.tableWidgetTotal->setItem(row, 4, itemSum);
+			QSqlQuery paymentQry("SELECT * FROM payment WHERE valid = 1 AND bill_id = " + totalBillQry.value("bill_id").toString());
+			while (paymentQry.next())
+			{
+				QString paymentType = paymentQry.value("payment_type").toString();
+				QString paymentId = paymentQry.value("payment_id").toString();
+				double tot = paymentQry.value("total_amount").toDouble();
+				if (paymentType == "CASH")
+				{
+					cashSales += tot;
+				}
+				else if (paymentType == "CREDIT")
+				{
+					QSqlQuery creditSaleQry("SELECT * FROM credit WHERE payment_id = " + paymentId);
+					while (creditSaleQry.next())
+					{
+						double amount = creditSaleQry.value("amount").toDouble();
+						double interest = creditSaleQry.value("interest").toDouble();
+						amount = (amount * (100 + interest) / 100);
+						creditSales += amount;
+					}
+				}
+				else if (paymentType == "CHEQUE")
+				{
+					QSqlQuery chequeSaleQry("SELECT * FROM cheque WHERE payment_id = " + paymentId);
+					while (chequeSaleQry.next())
+					{
+						double amount = chequeSaleQry.value("amount").toDouble();
+						double interest = chequeSaleQry.value("interest").toDouble();
+						amount = (amount * (100 + interest) / 100);
+						chequeSales += amount;
+					}
+				}
+				else if (paymentType == "CARD")
+				{
+					QSqlQuery cardSaleQry("SELECT * FROM card WHERE payment_id = " + paymentId);
+					while (cardSaleQry.next())
+					{
+						double amount = cardSaleQry.value("amount").toDouble();
+						double interest = cardSaleQry.value("interest").toDouble();
+						amount = (amount * (100 + interest) / 100);
+						cardSales += amount;
+					}
+				}
+				else if (paymentType == "LOYALTY")
+				{
+				}
+			}
 		}
 	}
+	QTableWidgetItem* cashSalesWidget = new QTableWidgetItem(QString::number(cashSales, 'f', 2));
+	cashSalesWidget->setTextAlignment(Qt::AlignRight);
+	ui.tableWidgetTotal->setItem(row, 0, cashSalesWidget);
+
+	QTableWidgetItem* creditSalesWidget = new QTableWidgetItem(QString::number(creditSales, 'f', 2));
+	creditSalesWidget->setTextAlignment(Qt::AlignRight);
+	ui.tableWidgetTotal->setItem(row, 1, creditSalesWidget);
+
+	QTableWidgetItem* chequeSalesWidget = new QTableWidgetItem(QString::number(chequeSales, 'f', 2));
+	chequeSalesWidget->setTextAlignment(Qt::AlignRight);
+	ui.tableWidgetTotal->setItem(row, 2, chequeSalesWidget);
+
+	QTableWidgetItem* cardSalesWidget = new QTableWidgetItem(QString::number(cardSales, 'f', 2));
+	cardSalesWidget->setTextAlignment(Qt::AlignRight);
+	ui.tableWidgetTotal->setItem(row, 3, cardSalesWidget);
 
 	while (ui.tableWidgetByUser->rowCount() > 0)
 	{
 		ui.tableWidgetByUser->removeRow(0);
 	}
-	QSqlQuery userQry("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE usertype.usertype_name <> 'DEV'  AND user.active = 1");
+	//QSqlQuery userQry("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE usertype.usertype_name <> 'DEV'  AND user.active = 1");
+
+	QSqlQuery userQry("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE user.active = 1");
 	while (userQry.next())
 	{
 		QString uId = userQry.value("user_id").toString();
 		QString uName = userQry.value("display_name").toString();
-
-		row = ui.tableWidgetByUser->rowCount();
-		ui.tableWidgetByUser->insertRow(row);
-
-		QTableWidgetItem* nameItem = new QTableWidgetItem(uName);
-		ui.tableWidgetByUser->setVerticalHeaderItem(row, nameItem);
-
-		QSqlQuery userSalesQry("SELECT SUM(amount) as total, payment_type FROM payment JOIN bill ON payment.bill_id = bill.bill_id WHERE bill.deleted = 0 AND bill.status = 1 AND DATE(bill.date) = CURDATE() AND bill.user_id = "+uId+"  Group By payment.payment_type");
-		while (userSalesQry.next())
+		QSqlQuery queryUserType("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE user.user_id = " + uId + " AND usertype.usertype_name <> 'DEV'");
+		if (queryUserType.next())
 		{
-			QString paymentType = userSalesQry.value("payment_type").toString();
-			double tot = userSalesQry.value("total").toDouble();
-			QTableWidgetItem* itemTotal = new QTableWidgetItem(QString::number(tot, 'f', 2));
-			itemTotal->setTextAlignment(Qt::AlignRight);
+			cashSales = 0, creditSales = 0, chequeSales = 0, cardSales = 0;
 
-			if (paymentType == "CASH")
+			row = ui.tableWidgetByUser->rowCount();
+			ui.tableWidgetByUser->insertRow(row);
+
+			QTableWidgetItem* nameItem = new QTableWidgetItem(uName);
+			ui.tableWidgetByUser->setVerticalHeaderItem(row, nameItem);
+
+			//QSqlQuery userSalesQry("SELECT SUM(amount) as total, payment_type FROM payment JOIN bill ON payment.bill_id = bill.bill_id WHERE bill.deleted = 0 AND bill.status = 1 AND DATE(bill.date) = CURDATE() AND bill.user_id = "+uId+"  Group By payment.payment_type");
+			QSqlQuery userBillQry("SELECT * FROM bill WHERE status = 1 AND DATE(bill.date) = CURDATE() AND bill.user_id = " + uId);
+			while (userBillQry.next())
 			{
-				ui.tableWidgetByUser->setItem(row, 0, itemTotal);
+				QSqlQuery paymentQry("SELECT * FROM payment WHERE valid = 1 AND bill_id = " + userBillQry.value("bill_id").toString());
+				while (paymentQry.next())
+				{
+					QString paymentType = paymentQry.value("payment_type").toString();
+					QString paymentId = paymentQry.value("payment_id").toString();
+					double tot = paymentQry.value("total_amount").toDouble();
+
+					if (paymentType == "CASH")
+					{
+						cashSales += tot;
+					}
+					else if (paymentType == "CREDIT")
+					{
+						QSqlQuery creditSaleQry("SELECT * FROM credit WHERE payment_id = " + paymentId);
+						while (creditSaleQry.next())
+						{
+							double amount = creditSaleQry.value("amount").toDouble();
+							double interest = creditSaleQry.value("interest").toDouble();
+							amount = (amount * (100 + interest) / 100);
+							creditSales += amount;
+						}
+					}
+					else if (paymentType == "CHEQUE")
+					{
+						QSqlQuery chequeSaleQry("SELECT * FROM cheque WHERE payment_id = " + paymentId);
+						while (chequeSaleQry.next())
+						{
+							double amount = chequeSaleQry.value("amount").toDouble();
+							double interest = chequeSaleQry.value("interest").toDouble();
+							amount = (amount * (100 + interest) / 100);
+							chequeSales += amount;
+						}
+					}
+					else if (paymentType == "CARD")
+					{
+						QSqlQuery cardSaleQry("SELECT * FROM card WHERE payment_id = " + paymentId);
+						while (cardSaleQry.next())
+						{
+							double amount = cardSaleQry.value("amount").toDouble();
+							double interest = cardSaleQry.value("interest").toDouble();
+							amount = (amount * (100 + interest) / 100);
+							cardSales += amount;
+						}
+					}
+					else if (paymentType == "LOYALTY")
+					{
+					}
+				}
 			}
-			else if (paymentType == "CREDIT")
-			{
-				ui.tableWidgetByUser->setItem(row, 1, itemTotal);
-			}
-			else if (paymentType == "CHEQUE")
-			{
-				ui.tableWidgetByUser->setItem(row, 2, itemTotal);
-			}
-			else if (paymentType == "CARD")
-			{
-				ui.tableWidgetByUser->setItem(row, 3, itemTotal);
-			}
-			else if (paymentType == "LOYALTY")
-			{
-				ui.tableWidgetByUser->setItem(row, 4, itemTotal);
-			}
+			cashSalesWidget = new QTableWidgetItem(QString::number(cashSales, 'f', 2));
+			cashSalesWidget->setTextAlignment(Qt::AlignRight);
+			ui.tableWidgetByUser->setItem(row, 0, cashSalesWidget);
+
+			creditSalesWidget = new QTableWidgetItem(QString::number(creditSales, 'f', 2));
+			creditSalesWidget->setTextAlignment(Qt::AlignRight);
+			ui.tableWidgetByUser->setItem(row, 1, creditSalesWidget);
+
+			chequeSalesWidget = new QTableWidgetItem(QString::number(chequeSales, 'f', 2));
+			chequeSalesWidget->setTextAlignment(Qt::AlignRight);
+			ui.tableWidgetByUser->setItem(row, 2, chequeSalesWidget);
+
+			cardSalesWidget = new QTableWidgetItem(QString::number(cardSales, 'f', 2));
+			cardSalesWidget->setTextAlignment(Qt::AlignRight);
+			ui.tableWidgetByUser->setItem(row, 3, cardSalesWidget);
 		}
 	}
 }
 
 void ESSalesSummary::slotPrint(QPrinter* printer)
 {
-	//report.print(printer);
+	report.print(printer);
 	this->close();
 }
 
@@ -160,17 +248,17 @@ void ESSalesSummary::slotGenerate()
 	bool print = ui.checkBox->isChecked();
 	if (print)
 	{
-		KDReports::Report report;
+		//KDReports::Report report;
 
 		KDReports::TextElement titleElement("SALES SUMMARY");
 		titleElement.setPointSize(13);
 		titleElement.setBold(true);
 		report.addElement(titleElement, Qt::AlignHCenter);
 
-		
+
 		QString dateStr = "Date : ";
 		dateStr.append(QDateTime::currentDateTime().toString("yyyy-MM-dd"));
-		
+
 
 		KDReports::TableElement infoTableElement;
 		infoTableElement.setHeaderRowCount(2);
@@ -187,12 +275,7 @@ void ESSalesSummary::slotGenerate()
 
 		report.addElement(infoTableElement);
 		report.addVerticalSpacing(5);
-
-		KDReports::HtmlElement htmlElem1;
-		QString htm1("<div><hr/></div>");
-		htmlElem1.setHtml(htm1);
-		report.addElement(htmlElem1);
-
+		
 		KDReports::TableElement tableElement;
 		//tableElement.setHeaderRowCount(5);
 		tableElement.setHeaderColumnCount(2);
@@ -211,44 +294,72 @@ void ESSalesSummary::slotGenerate()
 		tETotal.setPointSize(11);
 		cTotal.addElement(tETotal, Qt::AlignCenter);
 
-		QSqlQuery totalSalesQry("SELECT SUM(amount) as total, payment_type FROM payment JOIN bill ON payment.bill_id = bill.bill_id WHERE bill.deleted = 0 AND bill.status = 1 AND  DATE(bill.date) = CURDATE() Group By payment.payment_type");
 		int row = 1;
-		while (totalSalesQry.next())
+		double cashSales = 0, creditSales = 0, chequeSales = 0, cardSales = 0;
+		QSqlQuery totalBillQry("SELECT* FROM bill WHERE deleted = 0 AND status = 1 AND  DATE(date) = CURDATE()");
+		while (totalBillQry.next())
 		{
-			QString paymentType = totalSalesQry.value("payment_type").toString();
-			double tot = totalSalesQry.value("total").toDouble();
-			QString totalStr = QString::number(tot, 'f', 2);
-			if (paymentType == "CASH")
+			QSqlQuery queryUserType("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE user.user_id = " + totalBillQry.value("user_id").toString() + " AND usertype.usertype_name <> 'DEV'");
+			if (queryUserType.next())
 			{
-				printRow(tableElement, row, 0, "CASH");
-				printRow(tableElement, row, 1, totalStr);
-				row++;
-			}
-			if (paymentType == "CREDIT")
-			{
-				printRow(tableElement, row, 0, "CREDIT");
-				printRow(tableElement, row, 1, totalStr);
-				row++;
-			}
-			if (paymentType == "CHEQUE")
-			{
-				printRow(tableElement, row, 0, "CHEQUE");
-				printRow(tableElement, row, 1, totalStr);
-				row++;
-			}
-			if (paymentType == "CARD")
-			{
-				printRow(tableElement, row, 0, "CARD");
-				printRow(tableElement, row, 1, totalStr);
-				row++;
-			}
-			if (paymentType == "LOYALTY")
-			{
-				printRow(tableElement, row, 0, "LOYALTY");
-				printRow(tableElement, row, 1, totalStr);
-				row++;
+				QSqlQuery paymentQry("SELECT * FROM payment WHERE valid = 1 AND bill_id = " + totalBillQry.value("bill_id").toString());
+				while (paymentQry.next())
+				{
+					QString paymentType = paymentQry.value("payment_type").toString();
+					QString paymentId = paymentQry.value("payment_id").toString();
+					double tot = paymentQry.value("total_amount").toDouble();
+					if (paymentType == "CASH")
+					{
+						cashSales += tot;
+					}
+					else if (paymentType == "CREDIT")
+					{
+						QSqlQuery creditSaleQry("SELECT * FROM credit WHERE payment_id = " + paymentId);
+						while (creditSaleQry.next())
+						{
+							double amount = creditSaleQry.value("amount").toDouble();
+							double interest = creditSaleQry.value("interest").toDouble();
+							amount = (amount * (100 + interest) / 100);
+							creditSales += amount;
+						}
+					}
+					else if (paymentType == "CHEQUE")
+					{
+						QSqlQuery chequeSaleQry("SELECT * FROM cheque WHERE payment_id = " + paymentId);
+						while (chequeSaleQry.next())
+						{
+							double amount = chequeSaleQry.value("amount").toDouble();
+							double interest = chequeSaleQry.value("interest").toDouble();
+							amount = (amount * (100 + interest) / 100);
+							chequeSales += amount;
+						}
+					}
+					else if (paymentType == "CARD")
+					{
+						QSqlQuery cardSaleQry("SELECT * FROM card WHERE payment_id = " + paymentId);
+						while (cardSaleQry.next())
+						{
+							double amount = cardSaleQry.value("amount").toDouble();
+							double interest = cardSaleQry.value("interest").toDouble();
+							amount = (amount * (100 + interest) / 100);
+							cardSales += amount;
+						}
+					}
+					else if (paymentType == "LOYALTY")
+					{
+					}
+				}
 			}
 		}
+		printRow(tableElement, row, 0, "CASH");
+		printRow(tableElement, row++, 1, QString::number(cashSales, 'f', 2));
+		printRow(tableElement, row, 0, "CREDIT");
+		printRow(tableElement, row++, 1, QString::number(creditSales, 'f', 2));
+		printRow(tableElement, row, 0, "CHEQUE");
+		printRow(tableElement, row++, 1, QString::number(chequeSales, 'f', 2));
+		printRow(tableElement, row, 0, "CARD");
+		printRow(tableElement, row++, 1, QString::number(cardSales, 'f', 2));
+
 		report.addElement(tableElement);
 
 		QPrinter printer;
@@ -257,13 +368,13 @@ void ESSalesSummary::slotGenerate()
 		printer.setFullPage(false);
 		printer.setOrientation(QPrinter::Portrait);
 
-// 			QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
-// 			QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
-// 			dialog->setWindowTitle(tr("Print Document"));
-// 			ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
-// 			dialog->exec();
+		 			QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
+		 			QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
+		 			dialog->setWindowTitle(tr("Print Document"));
+		 			ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
+					dialog->exec();
 
-		report.print(&printer);
+		//report.print(&printer);
 	}
 }
 

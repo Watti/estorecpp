@@ -635,7 +635,7 @@ void ESMultiplePayment::slotFinalizeBill()
 		}
 	}
 
-	finishBill(totalNetAmount, billId);
+	finishBill(payingAmount, billId);
 }
 
 void ESMultiplePayment::finishBill(double netAmount, int billId)
