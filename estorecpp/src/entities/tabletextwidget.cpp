@@ -45,7 +45,7 @@ void TableTextWidget::slotFinish()
 	QString str = (m_formatterFunc) ? m_formatterFunc(text(), m_row, m_col, m_table) : text();
 
 	QTableWidgetItem* priceItem = new QTableWidgetItem(str);
-	priceItem->setTextAlignment(Qt::AlignRight);
+	priceItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
 	m_table->setCellWidget(m_row, m_col, NULL);
 	m_table->setItem(m_row, m_col, priceItem);
 	m_table->setFocus();

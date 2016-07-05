@@ -15,6 +15,14 @@
 #include "utility\esmainwindowholder.h"
 #include "QMainWindow"
 #include "esmainwindow.h"
+#include "entities\tabletextwidget.h"
+
+QString convertToQuantityFormat(QString text, int row, int col, QTableWidget* table)
+{
+	// 		double val = text.toDouble();
+	// 		return QString::number(val, 'f', 3);
+	return text;
+}
 
 ESReturnItems::ESReturnItems(QWidget *parent /*= 0*/) : QWidget(parent)
 {
@@ -325,6 +333,26 @@ void ESReturnItems::slotSelect()
 			ui.tableWidget->insertRow(row);
 			ui.tableWidget->setItem(row, 0, new QTableWidgetItem(itemCode));
 			ui.tableWidget->setItem(row, 1, new QTableWidgetItem(itemName));
+
+			QTableWidgetItem* qtyItem = new QTableWidgetItem("1");
+			qtyItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+			ui.tableWidget->setItem(row, 2, qtyItem);
+			
+			double itemPrice = q3.value("item_price").toDouble();
+			QTableWidgetItem* itemPriceItem = new QTableWidgetItem(QString::number(itemPrice, 'f', 2));
+			itemPriceItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+			ui.tableWidget->setItem(row, 3, itemPriceItem);
+
+			double discount = q3.value("discount").toDouble();
+			double paidPrice = itemPrice - (itemPrice * discount / 100.0);
+			QTableWidgetItem* paidPriceItem = new QTableWidgetItem(QString::number(paidPrice, 'f', 2));
+			paidPriceItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+			ui.tableWidget->setItem(row, 4, paidPriceItem);
+
+			QDate d = q3.value("date").toDate();
+			QTableWidgetItem* dateItem = new QTableWidgetItem(d.toString("yyyy-MM-dd"));
+			dateItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+			ui.tableWidget->setItem(row, 5, dateItem);
 		}
 	}
 
@@ -332,5 +360,21 @@ void ESReturnItems::slotSelect()
 
 void ESReturnItems::slotItemDoubleClicked(int row, int col)
 {
+	if (col == 2) /* Quantity */
+	{
+		QString quantity = "";
+		QTableWidgetItem* item = ui.tableWidget->item(row, 2);
+		if (item)
+		{
+			quantity = item->text();
+		}
 
+		TableTextWidget* textWidget = new TableTextWidget(ui.tableWidget, row, 2, ui.tableWidget);
+		QObject::connect(textWidget, SIGNAL(notifyEnterPressed(QString, int, int)), this, SLOT(slotQuantityCellUpdated(QString, int, int)));
+		textWidget->setTextFormatterFunc(convertToQuantityFormat);
+		textWidget->setText(quantity);
+		textWidget->selectAll();
+		ui.tableWidget->setCellWidget(row, 2, textWidget);
+		textWidget->setFocus();
+	}
 }
