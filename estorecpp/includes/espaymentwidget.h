@@ -23,6 +23,8 @@ public:
 	void slotCustomerSeleced(int,int);
 	void slotSinglePayment();
 	void slotMultiplePayment();
+	QString getTotalAmount() const;
+	void setTotalAmount(QString val);
 	
 private:
 
@@ -35,6 +37,7 @@ private:
 		m_comments;
 
 	QString m_netAmount;
+	QString m_totalAmount;
 	QString m_noOfItems;
 
 };
