@@ -498,7 +498,7 @@ void ESSinglePayment::finishBill(double netAmount, int billId)
 {
 	QSqlQuery qq;
 	qq.prepare("UPDATE bill SET amount = ?, customer_id = ?, status = 1 WHERE bill_id = ?");
-	qq.addBindValue(QString::number(m_initialNetAmount));
+	qq.addBindValue(QString::number(netAmount));
 	qq.addBindValue(m_customerId);
 	qq.addBindValue(billId);
 	if (!qq.exec())

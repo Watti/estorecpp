@@ -15,6 +15,7 @@ public:
 
 	public slots:
 	void slotSelect();
+	void slotItemDoubleClicked(int row, int col);
 
 	void slotAddReturnedItem();
 	void slotPrint(QPrinter* printer);

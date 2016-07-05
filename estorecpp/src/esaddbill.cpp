@@ -320,8 +320,8 @@ void ESAddBill::calculateAndDisplayTotal()
 	{
 		double subTot = queryAllSales.value("total").toDouble();
 		double discount = queryAllSales.value("discount").toDouble();
-		grossAmount += (subTot * (100.0 - discount)/ 100.0) ;
-		netAmount += subTot;
+		netAmount += (subTot * (100.0 - discount)/ 100.0) ;
+		grossAmount += subTot;
 		noOfItems++;
 	}
 	ui.netAmountLabel->setText(QString::number(netAmount, 'f', 2));
@@ -348,6 +348,7 @@ void ESAddBill::slotCommit()
 
 		payment->setNetAmount(QString::number(ui.netAmountLabel->text().toDouble(), 'f', 2));
 		payment->setNoOfItems(ui.noOfItemLabel->text());
+		payment->setTotalAmount(QString::number(ui.grossAmountLabel->text().toDouble(), 'f', 2));
 		//payment->getUI().balanceLbl->setText("0.00");
 
 		QSize sz = payment->size(); 
@@ -530,10 +531,11 @@ void ESAddBill::slotQuantityCellUpdated(QString txt, int row, int col)
 			double discount = query.value("discount").toDouble();;
 			double subTotal = sellingPrice * quantity * ((100 - discount) / 100.f);
 
+			double grossTotal = sellingPrice * quantity;
 			QString st = QString::number(subTotal, 'f', 2);
 			ui.tableWidget->item(row, 5)->setText(st);
 
-			QSqlQuery q("UPDATE sale SET quantity = " + txt + ", total = " + st + " WHERE sale_id = " + saleId);
+			QSqlQuery q("UPDATE sale SET quantity = " + txt + ", total = " + QString::number(grossTotal) + " WHERE sale_id = " + saleId);
 			calculateAndDisplayTotal();
 		}
 	}

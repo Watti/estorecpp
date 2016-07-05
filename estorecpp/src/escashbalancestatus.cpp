@@ -81,31 +81,39 @@ void ESCashBalanceStatus::displayStatus()
 			ui.tableWidget->setItem(row, 2, amountWidget);
 		}
 	}
-	QSqlQuery billQueary("SELECT SUM(total_amount) as totalAmount, user_id FROM payment as p JOIN bill as b ON p.bill_id = b.bill_id WHERE b.status = 1 AND p.payment_type = 'CASH' AND b.deleted = 0 AND b.user_id = "+QString::number(userId)+" AND DATE(b.date) = CURDATE()");
-	while (billQueary.next())
+	
+	QSqlQuery userBillQry("SELECT * FROM bill WHERE status = 1 AND DATE(bill.date) = CURDATE() AND bill.user_id = " + QString::number(userId));
+	double cashSales = 0;
+	while (userBillQry.next())
 	{
-		float totalCashSales = billQueary.value("totalAmount").toFloat();
-		if (totalCashSales > 0)
+		QSqlQuery paymentQry("SELECT * FROM payment WHERE valid = 1 AND bill_id = " + userBillQry.value("bill_id").toString());
+		while (paymentQry.next())
 		{
-			row = ui.tableWidget->rowCount();
-			ui.tableWidget->insertRow(row);
-			handOver += totalCashSales;
-			QString userId = billQueary.value("user_id").toString();
-			QString paymentMethod = billQueary.value(1).toString();
-			QSqlQuery paymentQuery("SELECT type FROM payment WHERE type_id = " + paymentMethod);
-			QTableWidgetItem* tWidget = new QTableWidgetItem("(+)");
-			tWidget->setBackgroundColor(green);
-			ui.tableWidget->setItem(row, 0, tWidget);
+			QString paymentType = paymentQry.value("payment_type").toString();
+			QString paymentId = paymentQry.value("payment_id").toString();
+			double tot = paymentQry.value("total_amount").toDouble();
 
-			QTableWidgetItem* descWidget = new QTableWidgetItem("Total Sales");
-			descWidget->setBackgroundColor(green);
-			ui.tableWidget->setItem(row, 1, descWidget);
-
-			QTableWidgetItem* amountWidget = new QTableWidgetItem(QString::number(totalCashSales, 'f', 2));
-			amountWidget->setBackgroundColor(green);
-			ui.tableWidget->setItem(row, 2, amountWidget);
+			if (paymentType == "CASH")
+			{
+				cashSales += tot;
+			}
 		}
 	}
+
+	row = ui.tableWidget->rowCount();
+	ui.tableWidget->insertRow(row);
+	handOver += cashSales;
+	QTableWidgetItem* tWidget = new QTableWidgetItem("(+)");
+	tWidget->setBackgroundColor(green);
+	ui.tableWidget->setItem(row, 0, tWidget);
+
+	QTableWidgetItem* descWidget = new QTableWidgetItem("Total Sales");
+	descWidget->setBackgroundColor(green);
+	ui.tableWidget->setItem(row, 1, descWidget);
+
+	QTableWidgetItem* amountWidget = new QTableWidgetItem(QString::number(cashSales, 'f', 2));
+	amountWidget->setBackgroundColor(green);
+	ui.tableWidget->setItem(row, 2, amountWidget);
 
 	//Expenses
 	QString pCashQStr("SELECT amount, remarks, type FROM petty_cash WHERE DATE(date) = CURDATE() AND user_id = " + QString::number(userId));

@@ -27,7 +27,7 @@ private:
 
 	void printRow(KDReports::TableElement& tableElement, int row, int col,
 		QString elementStr, Qt::AlignmentFlag alignment = Qt::AlignLeft);
-	//KDReports::Report report;
+	KDReports::Report report;
 
 };
 

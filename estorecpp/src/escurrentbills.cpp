@@ -219,10 +219,10 @@ void ESCurrentBills::slotSearch()
 		ui.tableWidget->setItem(row, 1, tableItem);
 
 
-		QSqlQuery qSales("SELECT SUM(total) as GTot FROM sale WHERE bill_id = " + billId);
-		if (qSales.next())
+		//QSqlQuery qSales("SELECT * FROM payment WHERE bill_id = " + billId);
+		//if (qSales.next())
 		{
-			tableItem = new QTableWidgetItem(QString::number(qSales.value("GTot").toFloat(), 'f', 2));
+			tableItem = new QTableWidgetItem(QString::number(allBillQuery.value("amount").toDouble(), 'f', 2));
 			tableItem->setTextAlignment(Qt::AlignRight);
 			tableItem->setBackgroundColor(rowColor);
 			ui.tableWidget->setItem(row, 2, tableItem);
@@ -339,11 +339,14 @@ void ESCurrentBills::slotReprint(QString billIdStr)
 		telElement.setBold(false);
 		report.addElement(telElement, Qt::AlignHCenter);
 
-		QString emailStr = ES::Session::getInstance()->getBillPhone();
-		KDReports::TextElement emailElement(emailStr);
-		emailElement.setPointSize(10);
-		emailElement.setBold(false);
-		report.addElement(emailElement, Qt::AlignHCenter);
+		QString emailStr = ES::Session::getInstance()->getBillEmail();
+		if (emailStr != "")
+		{
+			KDReports::TextElement emailElement(emailStr);
+			emailElement.setPointSize(10);
+			emailElement.setBold(false);
+			report.addElement(emailElement, Qt::AlignHCenter);
+		}
 
 		KDReports::TableElement infoTableElement;
 		infoTableElement.setHeaderRowCount(2);
@@ -658,10 +661,10 @@ void ESCurrentBills::slotReprint(QString billIdStr)
 		// 	KDReports::TextElement web("www.progextech.com  T.P.: 072-6430268/071-1308531");
 		// 	foter.addElement(info, Qt::AlignCenter);
 		// 	foter.addElement(web, Qt::AlignCenter);
-		KDReports::TextElement poweredBy("Powered by PROGEX Technologies.");
-		KDReports::TextElement web("www.progextech.com  T.P.: 072-6430268/071-1308531");
-		report.addElement(poweredBy, Qt::AlignCenter);
-		report.addElement(web, Qt::AlignCenter);
+// 		KDReports::TextElement poweredBy("Powered by PROGEX Technologies.");
+// 		KDReports::TextElement web("www.progextech.com  T.P.: 072-6430268/071-1308531");
+// 		report.addElement(poweredBy, Qt::AlignCenter);
+// 		report.addElement(web, Qt::AlignCenter);
 
 		QPrinter printer;
 		printer.setPaperSize(QPrinter::A4);

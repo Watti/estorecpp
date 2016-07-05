@@ -21,6 +21,7 @@ ESReturnItems::ESReturnItems(QWidget *parent /*= 0*/) : QWidget(parent)
 	ui.setupUi(this);
 
 	QObject::connect(ui.selectBtn, SIGNAL(clicked()), this, SLOT(slotSelect()));
+	QObject::connect(ui.tableWidget, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(slotItemDoubleClicked(int, int)));
 
 	if (!ES::DbConnection::instance()->open())
 	{
@@ -326,5 +327,10 @@ void ESReturnItems::slotSelect()
 			ui.tableWidget->setItem(row, 1, new QTableWidgetItem(itemName));
 		}
 	}
+
+}
+
+void ESReturnItems::slotItemDoubleClicked(int row, int col)
+{
 
 }
