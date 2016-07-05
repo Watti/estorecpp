@@ -320,8 +320,8 @@ void ESAddBill::calculateAndDisplayTotal()
 	{
 		double subTot = queryAllSales.value("total").toDouble();
 		double discount = queryAllSales.value("discount").toDouble();
-		grossAmount += (subTot * (100.0 - discount)/ 100.0) ;
-		netAmount += subTot;
+		netAmount += (subTot * (100.0 - discount)/ 100.0) ;
+		grossAmount += subTot;
 		noOfItems++;
 	}
 	ui.netAmountLabel->setText(QString::number(netAmount, 'f', 2));
