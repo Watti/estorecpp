@@ -4,6 +4,8 @@
 #include <QStandardItemModel>
 #include <QtGui>
 #include "QSignalMapper"
+#include "KDReportsTableElement.h"
+#include "KDReportsReport.h"
 
 class ESCurrentBills : public QWidget
 {
@@ -17,11 +19,15 @@ public:
 	void slotSearch();
 	void slotProceed(QString);
 	void slotVoidBill(QString);
-
+	void slotReprint(QString);
 private:
+	void printRow(KDReports::TableElement& tableElement, int row, int col, 
+		QString elementStr, Qt::AlignmentFlag alignment = Qt::AlignLeft);
+
 	Ui::CurrentBills ui;
 	QSignalMapper* m_proceedButtonSignalMapper;
 	QSignalMapper* m_voidBillButtonSignalMapper;
+	QSignalMapper* m_reprintBillButtonSignalMapper;
 
 };
 
