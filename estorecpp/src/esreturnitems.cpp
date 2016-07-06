@@ -28,8 +28,14 @@ ESReturnItems::ESReturnItems(QWidget *parent /*= 0*/) : QWidget(parent)
 {
 	ui.setupUi(this);
 
+	m_removeButtonSignalMapper = new QSignalMapper(this);
+	m_idGenerator = 0;
+	m_billId = -1;
+
 	QObject::connect(ui.selectBtn, SIGNAL(clicked()), this, SLOT(slotSelect()));
+	QObject::connect(ui.printBtn, SIGNAL(clicked()), this, SLOT(slotPrintReturnBill()));
 	QObject::connect(ui.tableWidget, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(slotItemDoubleClicked(int, int)));
+	QObject::connect(m_removeButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotRemove(QString)));
 
 	if (!ES::DbConnection::instance()->open())
 	{
@@ -47,6 +53,7 @@ ESReturnItems::ESReturnItems(QWidget *parent /*= 0*/) : QWidget(parent)
 	headerLabels.append("Paid Price");
 	headerLabels.append("Date");
 	headerLabels.append("Actions");
+	headerLabels.append("rowID");
 
 	ui.tableWidget->setHorizontalHeaderLabels(headerLabels);
 	ui.tableWidget->horizontalHeader()->setStretchLastSection(true);
@@ -54,6 +61,7 @@ ESReturnItems::ESReturnItems(QWidget *parent /*= 0*/) : QWidget(parent)
 	ui.tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	ui.tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
 	ui.tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+	ui.tableWidget->hideColumn(7);
 }
 
 ESReturnItems::~ESReturnItems()
@@ -292,14 +300,106 @@ void ESReturnItems::printReturnItemInfo()
 
 void ESReturnItems::slotPrint(QPrinter* printer)
 {
-	//report.print(printer);
+	report.print(printer);
 	this->close();
+}
+
+void ESReturnItems::slotPrintReturnBill()
+{
+	QString billedUser = "Billed Cashier : ";
+	QSqlQuery q("SELECT display_name FROM user JOIN bill ON user.user_id = bill.user_id WHERE bill.bill_id = " + QString::number(m_billId));
+	if (q.next())
+	{
+		billedUser.append(q.value("display_name").toString());
+	}
+	QString titleStr = "Return Bill";
+	KDReports::TextElement titleElement(titleStr);
+	titleElement.setPointSize(14);
+	titleElement.setBold(true);
+	report.addElement(titleElement, Qt::AlignHCenter);
+
+	QString billIdStr = "Bill ID : ";
+	billIdStr.append(QString::number(m_billId));
+	KDReports::TextElement addressElement(billIdStr);
+	addressElement.setPointSize(11);
+	addressElement.setBold(false);
+	report.addElement(addressElement, Qt::AlignLeft);
+
+	QString dateStr = "Date : ";
+	dateStr.append(QDateTime::currentDateTime().toString("yyyy-MM-dd"));
+	QString timeStr = "Time : ";
+	timeStr.append(QDateTime::currentDateTime().toString("hh : mm"));
+
+	KDReports::TableElement infoTableElement;
+	infoTableElement.setHeaderRowCount(2);
+	infoTableElement.setHeaderColumnCount(2);
+	infoTableElement.setBorder(0);
+	infoTableElement.setWidth(100, KDReports::Percent);
+	{
+		KDReports::Cell& userNameCell = infoTableElement.cell(0, 0);
+		KDReports::TextElement t("Cashier : " + ES::Session::getInstance()->getUser()->getName());
+		t.setPointSize(10);
+		userNameCell.addElement(t, Qt::AlignLeft);
+	}{
+		KDReports::Cell& userNameCell = infoTableElement.cell(1, 0);
+		KDReports::TextElement t(billedUser);
+		t.setPointSize(10);
+		userNameCell.addElement(t, Qt::AlignLeft);
+	}{
+		KDReports::Cell& dateCell = infoTableElement.cell(0, 1);
+		KDReports::TextElement t(dateStr);
+		t.setPointSize(10);
+		dateCell.addElement(t, Qt::AlignRight);
+	}{
+		KDReports::Cell& timeCell = infoTableElement.cell(1, 1);
+		KDReports::TextElement t(timeStr);
+		t.setPointSize(10);
+		timeCell.addElement(t, Qt::AlignRight);
+	}
+	report.addElement(infoTableElement);
+
+	report.addVerticalSpacing(1);
+	KDReports::HtmlElement htmlElem1;
+	QString htm1("<div><hr/></div>");
+	htmlElem1.setHtml(htm1);
+	report.addElement(htmlElem1);
+	report.addVerticalSpacing(1);
+	
+	QPrinter printer;
+	printer.setPaperSize(QPrinter::A4);
+
+	printer.setFullPage(false);
+	printer.setOrientation(QPrinter::Portrait);
+
+	 	QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
+	 	QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
+	 	dialog->setWindowTitle(tr("Print Document"));
+	 	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
+	 	dialog->exec();
+
+	//report.print(&printer);
 }
 
 void ESReturnItems::slotSelect()
 {
 	QString itemCode = ui.itemCode->text();
 	QString billId = ui.billId->text();
+
+	if (m_billId == -1)
+	{
+		m_billId = billId.toInt();
+	}
+	else
+	{
+		if (m_billId != billId.toInt())
+		{
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Critical);
+			mbox.setText(QString("A Return bill cannot have multiple bills. Please use separate return bill for this"));
+			mbox.exec();
+			return;
+		}
+	}
 
 	int itemId = -1;
 	QString itemName = "-1";
@@ -353,6 +453,28 @@ void ESReturnItems::slotSelect()
 			QTableWidgetItem* dateItem = new QTableWidgetItem(d.toString("yyyy-MM-dd"));
 			dateItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
 			ui.tableWidget->setItem(row, 5, dateItem);
+
+			QWidget* base = new QWidget(ui.tableWidget);
+
+			QPushButton* removeBtn = new QPushButton(base);
+			removeBtn->setIcon(QIcon("icons/delete.png"));
+			removeBtn->setIconSize(QSize(24, 24));
+			removeBtn->setMaximumWidth(100);
+
+			int rowId = m_idGenerator++;
+
+			m_removeButtonSignalMapper->setMapping(removeBtn, QString::number(rowId));
+			QObject::connect(removeBtn, SIGNAL(clicked()), m_removeButtonSignalMapper, SLOT(map()));
+
+			QHBoxLayout *layout = new QHBoxLayout;
+			layout->setContentsMargins(0, 0, 0, 0);
+			layout->addWidget(removeBtn);
+			layout->insertStretch(2);
+			base->setLayout(layout);
+			ui.tableWidget->setCellWidget(row, 6, base);
+			base->show();
+
+			ui.tableWidget->setItem(row, 7, new QTableWidgetItem(QString::number(rowId)));
 		}
 	}
 
@@ -376,5 +498,21 @@ void ESReturnItems::slotItemDoubleClicked(int row, int col)
 		textWidget->selectAll();
 		ui.tableWidget->setCellWidget(row, 2, textWidget);
 		textWidget->setFocus();
+	}
+}
+
+void ESReturnItems::slotRemove(QString rowId)
+{
+	for (int i = 0; i < ui.tableWidget->rowCount(); ++i)
+	{
+		QTableWidgetItem* item = ui.tableWidget->item(i, 7);
+		if (item)
+		{
+			if (item->text() == rowId)
+			{
+				ui.tableWidget->removeRow(i);
+				break;
+			}
+		}
 	}
 }
