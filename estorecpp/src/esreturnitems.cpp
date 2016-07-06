@@ -358,12 +358,52 @@ void ESReturnItems::slotPrintReturnBill()
 	}
 	report.addElement(infoTableElement);
 
-	report.addVerticalSpacing(1);
+	//report.addVerticalSpacing(1);
 	KDReports::HtmlElement htmlElem1;
 	QString htm1("<div><hr/></div>");
 	htmlElem1.setHtml(htm1);
 	report.addElement(htmlElem1);
+	//report.addVerticalSpacing(1);
+
+	//////////////////////////////////////////////////////////////////////////
+	KDReports::TableElement dataTableElement;
+	dataTableElement.setHeaderRowCount(2);
+	dataTableElement.setHeaderColumnCount(5);
+	dataTableElement.setBorder(0);
+	dataTableElement.setWidth(100, KDReports::Percent);
+	for (int i = 0; i < ui.tableWidget->rowCount(); ++i)
+	{
+		{
+			KDReports::Cell& cell = dataTableElement.cell(i, 0);
+			KDReports::TextElement t(ui.tableWidget->item(i, 0)->text());
+			t.setPointSize(10);
+			cell.addElement(t, Qt::AlignLeft);
+		}{
+		KDReports::Cell& cell = dataTableElement.cell(i, 1);
+			KDReports::TextElement t(ui.tableWidget->item(i, 1)->text());
+			t.setPointSize(10);
+			cell.addElement(t, Qt::AlignLeft);
+		}{
+			KDReports::Cell& cell = dataTableElement.cell(i, 2);
+			KDReports::TextElement t(ui.tableWidget->item(i, 2)->text());
+			t.setPointSize(10);
+			cell.addElement(t, Qt::AlignRight);
+		}{
+			KDReports::Cell& cell = dataTableElement.cell(i, 3);
+			KDReports::TextElement t(ui.tableWidget->item(i, 3)->text());
+			t.setPointSize(10);
+			cell.addElement(t, Qt::AlignRight);
+		}{
+			KDReports::Cell& cell = dataTableElement.cell(i, 4);
+			KDReports::TextElement t(ui.tableWidget->item(i, 4)->text());
+			t.setPointSize(10);
+			cell.addElement(t, Qt::AlignRight);
+		}
+	}
+	report.addElement(dataTableElement);
+	report.addElement(htmlElem1);
 	report.addVerticalSpacing(1);
+	//////////////////////////////////////////////////////////////////////////
 	
 	QPrinter printer;
 	printer.setPaperSize(QPrinter::A4);
@@ -421,10 +461,11 @@ void ESReturnItems::slotSelect()
 	QSqlQuery q2("SELECT stock_id FROM stock WHERE item_id = " + QString::number(itemId));
 	if (q2.next())
 	{
-		QString str("SELECT * FROM sale b JOIN stock s ON b.stock_id = s.stock_id AND s.stock_id = ");
+		QString str("SELECT b.* FROM sale b JOIN stock s ON b.stock_id = s.stock_id AND s.stock_id = ");
 		str.append(q2.value("stock_id").toString());
 		str.append(" WHERE b.bill_id = ");
 		str.append(billId);
+		str.append(" AND b.deleted = 0");
 
 		QSqlQuery q3(str);
 		if (q3.next())

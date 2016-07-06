@@ -15,6 +15,7 @@
 #include "KDReportsTableElement.h"
 #include "KDReportsHeader.h"
 #include "KDReportsHtmlElement.h"
+#include "QPrintPreviewDialog"
 
 ESCurrentBills::ESCurrentBills(QWidget *parent)
 : QWidget(parent)
@@ -285,10 +286,16 @@ void ESCurrentBills::slotVoidBill(QString billId)
 	
 }
 
+void ESCurrentBills::slotPrint(QPrinter* printer)
+{
+	report.print(printer);
+	//this->close();
+}
+
 void ESCurrentBills::slotReprint(QString billIdStr)
 {
 	int billId = billIdStr.toInt();
-	QSqlQuery q("SELECT * FROM bill WHERE bill_id = " + billId);
+	QSqlQuery q("SELECT * FROM bill WHERE bill_id = " + billIdStr);
 
 	QString userName = "";
 	QString customerId = q.value("customer_id").toString();
@@ -303,7 +310,7 @@ void ESCurrentBills::slotReprint(QString billIdStr)
 
 	if (q.next())
 	{
-		KDReports::Report report;
+		//KDReports::Report report;
 
 		QString dateStr = "Date : ";
 		dateStr.append(QDateTime::currentDateTime().toString("yyyy-MM-dd"));
@@ -402,6 +409,7 @@ void ESCurrentBills::slotReprint(QString billIdStr)
 				{
 					float interest = queryCard.value("interest").toFloat();
 					float amount = queryCard.value("amount").toFloat();
+					//total += amount;
 					float netAmount = amount;
 					amount = amount + (amount * interest) / 100;
 					totalPayingAmount += amount;
@@ -415,6 +423,7 @@ void ESCurrentBills::slotReprint(QString billIdStr)
 				{
 					float interest = query.value("interest").toFloat();
 					float amount = query.value("amount").toFloat();
+					//total += amount;
 					float netAmount = amount;
 					amount = amount + (amount * interest) / 100;
 					totalPayingAmount += amount;
@@ -428,6 +437,7 @@ void ESCurrentBills::slotReprint(QString billIdStr)
 				{
 					float interest = query.value("interest").toFloat();
 					float amount = query.value("amount").toFloat();
+					//total += amount;
 					float netAmount = amount;
 					amount = amount + (amount * interest) / 100;
 					totalPayingAmount += amount;
@@ -440,6 +450,7 @@ void ESCurrentBills::slotReprint(QString billIdStr)
 				if (query.next())
 				{
 					float amount = query.value("amount").toFloat();
+					//total += amount;
 					totalPayingAmount += amount;
 					srtList.append(paymentType + " : " + QString::number(amount, 'f', 2));
 				}
@@ -506,7 +517,9 @@ void ESCurrentBills::slotReprint(QString billIdStr)
 			QString qty = querySale.value("quantity").toString();
 			noOfPcs += qty.toInt();
 			noOfItems++;
-			QString subTotal = QString::number(querySale.value("total").toDouble(), 'f', 2);
+			//QString subTotal = QString::number(querySale.value("total").toDouble(), 'f', 2);
+			double subTotal = (querySale.value("total").toDouble() *(100 - querySale.value("discount").toDouble()) / 100);
+			QString subTotalStr = QString::number(subTotal, 'f', 2);
 			QString itemName = "";
 			QString unitPrice = "";
 			QString itemCode = "";
@@ -526,7 +539,7 @@ void ESCurrentBills::slotReprint(QString billIdStr)
 			printRow(tableElement, row, 2, unitPrice, Qt::AlignRight);
 			printRow(tableElement, row, 3, discount, Qt::AlignRight);
 			printRow(tableElement, row, 4, qty, Qt::AlignRight);
-			printRow(tableElement, row, 5, subTotal, Qt::AlignRight);
+			printRow(tableElement, row, 5, subTotalStr, Qt::AlignRight);
 			row++;
 		}
 
@@ -672,13 +685,13 @@ void ESCurrentBills::slotReprint(QString billIdStr)
 		printer.setFullPage(false);
 		printer.setOrientation(QPrinter::Portrait);
 
-		// 	QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
-		// 	QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
-		// 	dialog->setWindowTitle(tr("Print Document"));
-		// 	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
-		// 	dialog->exec();
+		 	QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
+		 	QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
+		 	dialog->setWindowTitle(tr("Print Document"));
+		 	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
+		 	dialog->exec();
 
-		report.print(&printer);
+		//report.print(&printer);
 	}
 }
 

@@ -20,6 +20,8 @@ public:
 	void slotProceed(QString);
 	void slotVoidBill(QString);
 	void slotReprint(QString);
+	void slotPrint(QPrinter* printer);
+
 private:
 	void printRow(KDReports::TableElement& tableElement, int row, int col, 
 		QString elementStr, Qt::AlignmentFlag alignment = Qt::AlignLeft);
@@ -28,6 +30,7 @@ private:
 	QSignalMapper* m_proceedButtonSignalMapper;
 	QSignalMapper* m_voidBillButtonSignalMapper;
 	QSignalMapper* m_reprintBillButtonSignalMapper;
+	KDReports::Report report;
 
 };
 

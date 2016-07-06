@@ -17,7 +17,7 @@
 
 INITIALIZE_EASYLOGGINGPP
 
-#define SECOND_DISPLAY 0
+#define SECOND_DISPLAY 1
 
 void readSettings()
 {
