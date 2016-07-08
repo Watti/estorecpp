@@ -533,7 +533,7 @@ void ESAddBill::slotQuantityCellUpdated(QString txt, int row, int col)
 
 			double grossTotal = sellingPrice * quantity;
 			QString st = QString::number(subTotal, 'f', 2);
-			ui.tableWidget->item(row, col)->setText(st);
+			ui.tableWidget->item(row, 5)->setText(st);
 
 			QSqlQuery q("UPDATE sale SET quantity = " + txt + ", total = " + QString::number(grossTotal) + " WHERE sale_id = " + saleId);
 			calculateAndDisplayTotal();

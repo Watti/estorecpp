@@ -30,6 +30,7 @@ private:
 	int m_idGenerator;
 	KDReports::Report report;
 	int m_billId;
+	double m_total;
 };
 
 #endif
