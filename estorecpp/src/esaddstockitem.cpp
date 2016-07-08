@@ -5,6 +5,7 @@
 #include "esmanagestockitems.h"
 #include "utility/esmainwindowholder.h"
 #include "esmainwindow.h"
+#include "utility/utility.h"
 
 AddStockItem::AddStockItem(QWidget *parent /*= 0*/)
 : QWidget(parent), m_existingQuantityInMainStock(0), m_update(false), m_existingQuantityInStock(0)
@@ -46,8 +47,15 @@ void AddStockItem::slotAddStockItem()
 				mbox.setText(QString("Invalid input - Quantity"));
 				mbox.exec();
 			}
-			if (quantity >= 0 && quantity >= m_existingQuantityInMainStock)
+			if (quantity >= 0)
 			{
+				if ( quantity < m_existingQuantityInMainStock)
+				{
+					if (!ES::Utility::verifyUsingMessageBox(this, "EStore", "Do you really want to reduce the stock quantity?"))
+					{
+						return;
+					}
+				}
 				double minQty = qtyStr.toDouble(&isValid);
 				if (!isValid)
 				{
@@ -92,7 +100,7 @@ void AddStockItem::slotAddStockItem()
 					QString q;
 					if (isUpdate())
 					{
-						q = "UPDATE stock SET qty = '" + qtyStr + "', min_qty = '" + minQtyStr + "' ,selling_price = '"+price+"', discount ='"+discount+"' WHERE stock_id = " + m_stockId;
+						q = "UPDATE stock SET qty = '" + qtyStr + "', min_qty = '" + minQtyStr + "' ,selling_price = '"+price+"', discount ='"+discount+"', purchasing_price = '"+purchasingPrice+"' WHERE stock_id = " + m_stockId;
 					}
 // 					else
 // 					{
@@ -150,7 +158,7 @@ void AddStockItem::slotAddStockItem()
 			{
 				QMessageBox mbox;
 				mbox.setIcon(QMessageBox::Warning);
-				mbox.setText(QString("Inserted quantity is lesser the existing quantity or invalid quantity"));
+				mbox.setText(QString("Invalid Quantity"));
 				mbox.exec();
 			}
 		}
@@ -158,7 +166,7 @@ void AddStockItem::slotAddStockItem()
 		{
 			QMessageBox mbox;
 			mbox.setIcon(QMessageBox::Warning);
-			mbox.setText(QString("Fields are Empty"));
+			mbox.setText(QString("Some fields are empty"));
 			mbox.exec();
 		}
 	}

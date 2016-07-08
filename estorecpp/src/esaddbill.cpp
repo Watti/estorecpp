@@ -269,13 +269,14 @@ void ESAddBill::slotReturnPressed(QString saleId, int row)
 			le->setReadOnly(true);
 			double quantity = le->text().toDouble();
 
+			QString requestedQtyStr = le->text();
 			QSqlQuery query("SELECT stock.selling_price, stock.discount, stock.qty FROM stock JOIN sale ON stock.stock_id = sale.stock_id WHERE sale.deleted = 0 AND sale.sale_id = " + saleId);
 			if (query.first())
 			{
-				if (!le->text().isNull() && !le->text().isEmpty())
+				if (!requestedQtyStr.isNull() && !requestedQtyStr.isEmpty())
 				{
 					bool valid = false;
-					double requestedQty = le->text().toDouble(&valid);
+					double requestedQty = requestedQtyStr.toDouble(&valid);
 					if (!valid)
 					{
 						QMessageBox mbox;
@@ -291,6 +292,8 @@ void ESAddBill::slotReturnPressed(QString saleId, int row)
 						mbox.setIcon(QMessageBox::Critical);
 						mbox.setText(QString("Low stock"));
 						mbox.exec();
+						requestedQty = currentQty;
+						requestedQtyStr = QString::number(requestedQty);//cannot add more than the available stock
 						return;
 					}
 				}
@@ -302,7 +305,7 @@ void ESAddBill::slotReturnPressed(QString saleId, int row)
 				QString st = QString::number(subTotal, 'f', 2);
 				ui.tableWidget->item(row, 5)->setText(st);
 
-				QSqlQuery q("UPDATE sale SET quantity = " + le->text() + ", total = " + st + " WHERE sale_id = " + saleId);
+				QSqlQuery q("UPDATE sale SET quantity = " + requestedQtyStr + ", total = " + st + " WHERE sale_id = " + saleId);
 				calculateAndDisplayTotal();
 			}
 		}
@@ -523,6 +526,8 @@ void ESAddBill::slotQuantityCellUpdated(QString txt, int row, int col)
 					mbox.setIcon(QMessageBox::Critical);
 					mbox.setText(QString("Low stock"));
 					mbox.exec();
+					txt = QString::number(currentQty);
+					ui.tableWidget->item(row, 3)->setText(txt);
 					return;
 				}
 			}
@@ -533,7 +538,7 @@ void ESAddBill::slotQuantityCellUpdated(QString txt, int row, int col)
 
 			double grossTotal = sellingPrice * quantity;
 			QString st = QString::number(subTotal, 'f', 2);
-			ui.tableWidget->item(row, 5)->setText(st);
+			ui.tableWidget->item(row, col)->setText(st);
 
 			QSqlQuery q("UPDATE sale SET quantity = " + txt + ", total = " + QString::number(grossTotal) + " WHERE sale_id = " + saleId);
 			calculateAndDisplayTotal();
