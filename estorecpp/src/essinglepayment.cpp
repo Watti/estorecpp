@@ -939,7 +939,7 @@ void ESSinglePayment::printBill(int billId, float total)
 // 	report.addElement(web, Qt::AlignCenter);
 
 	QPrinter printer;
-	printer.setPaperSize(QPrinter::A4);
+	printer.setPaperSize(QPrinter::Custom);
 
 	printer.setFullPage(false);
 	printer.setOrientation(QPrinter::Portrait);

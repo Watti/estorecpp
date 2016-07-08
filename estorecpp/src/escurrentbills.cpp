@@ -16,6 +16,7 @@
 #include "KDReportsHeader.h"
 #include "KDReportsHtmlElement.h"
 #include "QPrintPreviewDialog"
+#include "QString"
 
 ESCurrentBills::ESCurrentBills(QWidget *parent)
 : QWidget(parent)
@@ -101,7 +102,7 @@ void ESCurrentBills::slotSearch()
 	endDate.setTime(QTime(23,59, 59));
 
 	int row = 0;
-	QSqlQuery allBillQuery("SELECT * FROM bill WHERE deleted = 0 AND DATE(date) = DATE(CURDATE())");
+	QSqlQuery allBillQuery("SELECT * FROM bill WHERE deleted = 0");
 	while (allBillQuery.next())
 	{		
 		if (selectedUser > 0)
@@ -533,6 +534,7 @@ void ESCurrentBills::slotReprint(QString billIdStr)
 				unitPrice = QString::number(queryItem.value("selling_price").toDouble(), 'f', 2);
 				itemCode = queryItem.value("item_code").toString();
 			}
+			total += qty.toDouble() * unitPrice.toDouble()* (100-discount.toDouble())/100;
 			//columns (item_code, Description, UnitPrice, Discount, Qty, Sub Total)
 			printRow(tableElement, row, 0, itemCode);
 			printRow(tableElement, row, 1, itemName);
