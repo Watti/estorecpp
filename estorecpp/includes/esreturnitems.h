@@ -19,6 +19,7 @@ public:
 	void slotItemDoubleClicked(int row, int col);
 	void slotRemove(QString itemCode);
 	void slotPrintReturnBill();
+	void slotQuantityCellUpdated(QString, int, int);
 
 	void slotAddReturnedItem();
 	void slotPrint(QPrinter* printer);

@@ -34,7 +34,7 @@ ESReturnItems::ESReturnItems(QWidget *parent /*= 0*/) : QWidget(parent), m_total
 
 	QObject::connect(ui.selectBtn, SIGNAL(clicked()), this, SLOT(slotSelect()));
 	QObject::connect(ui.printBtn, SIGNAL(clicked()), this, SLOT(slotPrintReturnBill()));
-	QObject::connect(ui.tableWidget, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(slotItemDoubleClicked(int, int)));
+	QObject::connect(ui.tableWidget, SIGNAL(cellClicked(int, int)), this, SLOT(slotItemDoubleClicked(int, int)));
 	QObject::connect(m_removeButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotRemove(QString)));
 
 	if (!ES::DbConnection::instance()->open())
@@ -51,9 +51,11 @@ ESReturnItems::ESReturnItems(QWidget *parent /*= 0*/) : QWidget(parent), m_total
 	headerLabels.append("Quantity");
 	headerLabels.append("Billed Price");
 	headerLabels.append("Paid Price");
+	headerLabels.append("Return Price");
 	headerLabels.append("Date");
 	headerLabels.append("Actions");
 	headerLabels.append("rowID");
+	headerLabels.append("billQty");
 
 	ui.tableWidget->setHorizontalHeaderLabels(headerLabels);
 	ui.tableWidget->horizontalHeader()->setStretchLastSection(true);
@@ -61,7 +63,8 @@ ESReturnItems::ESReturnItems(QWidget *parent /*= 0*/) : QWidget(parent), m_total
 	ui.tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	ui.tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
 	ui.tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
-	ui.tableWidget->hideColumn(7);
+	ui.tableWidget->hideColumn(8);
+	ui.tableWidget->hideColumn(9);
 }
 
 ESReturnItems::~ESReturnItems()
@@ -500,7 +503,8 @@ void ESReturnItems::slotSelect()
 			ui.tableWidget->setItem(row, 0, new QTableWidgetItem(itemCode));
 			ui.tableWidget->setItem(row, 1, new QTableWidgetItem(itemName));
 
-			QTableWidgetItem* qtyItem = new QTableWidgetItem("1");
+			double quantity = q3.value("quantity").toDouble();
+			QTableWidgetItem* qtyItem = new QTableWidgetItem(QString::number(quantity));
 			qtyItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
 			ui.tableWidget->setItem(row, 2, qtyItem);
 
@@ -515,10 +519,15 @@ void ESReturnItems::slotSelect()
 			paidPriceItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
 			ui.tableWidget->setItem(row, 4, paidPriceItem);
 
+			double returnPrice = paidPrice * quantity;
+			QTableWidgetItem* retPriceItem = new QTableWidgetItem(QString::number(returnPrice, 'f', 2));
+			retPriceItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+			ui.tableWidget->setItem(row, 5, retPriceItem);
+
 			QDate d = q3.value("date").toDate();
 			QTableWidgetItem* dateItem = new QTableWidgetItem(d.toString("yyyy-MM-dd"));
 			dateItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-			ui.tableWidget->setItem(row, 5, dateItem);
+			ui.tableWidget->setItem(row, 6, dateItem);
 
 			QWidget* base = new QWidget(ui.tableWidget);
 
@@ -537,10 +546,11 @@ void ESReturnItems::slotSelect()
 			layout->addWidget(removeBtn);
 			layout->insertStretch(2);
 			base->setLayout(layout);
-			ui.tableWidget->setCellWidget(row, 6, base);
+			ui.tableWidget->setCellWidget(row, 7, base);
 			base->show();
 
-			ui.tableWidget->setItem(row, 7, new QTableWidgetItem(QString::number(rowId)));
+			ui.tableWidget->setItem(row, 8, new QTableWidgetItem(QString::number(rowId)));
+			ui.tableWidget->setItem(row, 9, new QTableWidgetItem(QString::number(quantity)));
 		}
 	}
 
@@ -581,4 +591,33 @@ void ESReturnItems::slotRemove(QString rowId)
 			}
 		}
 	}
+}
+
+void ESReturnItems::slotQuantityCellUpdated(QString qtyStr, int row, int col)
+{
+	QTableWidgetItem* billQtyItem = ui.tableWidget->item(row, 9);
+	double billQty = billQtyItem->text().toDouble();
+	double qty = qtyStr.toDouble();
+
+	if (billQty < qty)
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Critical);
+		mbox.setText(QString("Quantity is larger than billed quantity"));
+		mbox.exec();
+
+		// reset & return
+		QTableWidgetItem* retPriceItem = new QTableWidgetItem(QString::number(billQty));
+		retPriceItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+		ui.tableWidget->setItem(row, col, retPriceItem);
+		return;
+	}
+
+	QTableWidgetItem* paidPriceItem = ui.tableWidget->item(row, 4);
+	double paidPrice = paidPriceItem->text().toDouble();
+
+	double returnPrice = paidPrice * qty;
+	QTableWidgetItem* retPriceItem = new QTableWidgetItem(QString::number(returnPrice, 'f', 2));
+	retPriceItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+	ui.tableWidget->setItem(row, 5, retPriceItem);
 }
