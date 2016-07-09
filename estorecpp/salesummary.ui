@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>556</width>
-    <height>485</height>
+    <height>400</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -42,14 +42,44 @@
       </spacer>
      </item>
      <item>
-      <widget class="QLabel" name="datelbl">
+      <widget class="QLabel" name="label_3">
        <property name="font">
         <font>
-         <pointsize>12</pointsize>
+         <pointsize>9</pointsize>
         </font>
        </property>
        <property name="text">
-        <string>pp</string>
+        <string>From  :</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QDateEdit" name="fromDate">
+       <property name="font">
+        <font>
+         <pointsize>9</pointsize>
+        </font>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_4">
+       <property name="font">
+        <font>
+         <pointsize>9</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>To : </string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QDateEdit" name="toDate">
+       <property name="font">
+        <font>
+         <pointsize>9</pointsize>
+        </font>
        </property>
       </widget>
      </item>
