@@ -438,6 +438,29 @@ void ESReturnItems::slotPrintReturnBill()
 	report.addVerticalSpacing(1);
 	//////////////////////////////////////////////////////////////////////////
 
+	// Update database
+	int uId = ES::Session::getInstance()->getUser()->getId();
+	for (int i = 0; i < ui.tableWidget->rowCount(); ++i)
+	{
+		QTableWidgetItem* item = ui.tableWidget->item(i, 0);
+		QSqlQuery itemQuery("SELECT item_id FROM item WHERE item_code = '" + item->text() + "'");
+		if (itemQuery.next())
+		{
+			// bill_id, item_id, qty, paid_price, return_total, user_id
+			QSqlQuery q("INSERT INTO return_item (bill_id, item_id, qty, paid_price, return_total, user_id) VALUES (" +	
+				QString::number(m_billId) + "," +
+				itemQuery.value("item_id").toString() + "," +
+				ui.tableWidget->item(i, 2)->text() + "," +
+				ui.tableWidget->item(i, 4)->text() + "," +
+				ui.tableWidget->item(i, 5)->text() + "," + 
+				QString::number(uId) + ")"
+				);
+		}
+
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+
 	QPrinter printer;
 	printer.setPaperSize(QPrinter::A4);
 
