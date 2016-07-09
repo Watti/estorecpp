@@ -230,13 +230,13 @@ void ESManageStockItems::slotUpdate(QString stockId)
 	while (query.next())
 	{
 		QString price = query.value("selling_price").toString();
-		QString purchasedPrice = query.value("purchasing_price").toString();
 		itemId = query.value("item_id").toString();
 		QString discount = query.value("discount").toString();
 		addStockItem->getUI().itemIDLabel->setText(itemId);
 		addStockItem->getUI().itemPrice->setText(price);
 		addStockItem->getUI().discount->setText(discount);
-		addStockItem->getUI().purchasingPrice->setText(purchasedPrice);
+
+
 		QString quantity = query.value("qty").toString();
 		addStockItem->getUI().qty->setText(quantity);
 		bool isValid = false;
@@ -249,6 +249,12 @@ void ESManageStockItems::slotUpdate(QString stockId)
 		addStockItem->getUI().minQty->setText(minqty);
 		addStockItem->getUI().qty->setText(qty);
 		addStockItem->setExistingQuantityInStock(qty.toDouble());
+		QSqlQuery queryPO("SELECT purchasing_price FROM stock_purchase_order_item WHERE stock_id = " + stockId + "AND item_id =" + itemId);
+		if (queryPO.next())
+		{
+			QString purchasedPrice = queryPO.value("purchasing_price").toString();
+			addStockItem->getUI().purchasingPrice->setText(purchasedPrice);
+		}
 	}
 
 	QString qStockPO("SELECT purchasing_price FROM stock_purchase_order_item WHERE purchaseorder_id = -1 AND stock_id = " +

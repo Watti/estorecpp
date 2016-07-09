@@ -100,7 +100,7 @@ void AddStockItem::slotAddStockItem()
 					QString q;
 					if (isUpdate())
 					{
-						q = "UPDATE stock SET qty = '" + qtyStr + "', min_qty = '" + minQtyStr + "' ,selling_price = '"+price+"', discount ='"+discount+"', purchasing_price = '"+purchasingPrice+"' WHERE stock_id = " + m_stockId;
+						q = "UPDATE stock SET qty = '" + qtyStr + "', min_qty = '" + minQtyStr + "' ,selling_price = '"+price+"', discount ='"+discount+"' WHERE stock_id = " + m_stockId;
 					}
 // 					else
 // 					{
