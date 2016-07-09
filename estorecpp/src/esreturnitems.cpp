@@ -65,6 +65,8 @@ ESReturnItems::ESReturnItems(QWidget *parent /*= 0*/) : QWidget(parent), m_total
 	ui.tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
 	ui.tableWidget->hideColumn(8);
 	ui.tableWidget->hideColumn(9);
+
+	ui.itemCode->setFocus();
 }
 
 ESReturnItems::~ESReturnItems()
@@ -412,7 +414,7 @@ void ESReturnItems::slotPrintReturnBill()
 
 	row++;
 	{
-		KDReports::Cell& total = dataTableElement.cell(row, 0);
+		KDReports::Cell& total = dataTableElement.cell(row, 3);
 		//total.setColumnSpan(5);
 		KDReports::TextElement totalTxt("Total ");
 		totalTxt.setPointSize(11);
