@@ -66,6 +66,9 @@ ESReturnItems::ESReturnItems(QWidget *parent /*= 0*/) : QWidget(parent), m_total
 	ui.tableWidget->hideColumn(8);
 	ui.tableWidget->hideColumn(9);
 
+	ui.billIdLbl->setText("N/A");
+	ui.totalLbl->setText("0.00");
+
 	ui.itemCode->setFocus();
 }
 
@@ -458,6 +461,7 @@ void ESReturnItems::slotSelect()
 	if (m_billId == -1)
 	{
 		m_billId = billId.toInt();
+		ui.billIdLbl->setText(billId);
 	}
 	else
 	{
@@ -556,6 +560,7 @@ void ESReturnItems::slotSelect()
 		}
 	}
 
+	calculateTotal();
 }
 
 void ESReturnItems::slotItemDoubleClicked(int row, int col)
@@ -593,6 +598,8 @@ void ESReturnItems::slotRemove(QString rowId)
 			}
 		}
 	}
+
+	calculateTotal();
 }
 
 void ESReturnItems::slotQuantityCellUpdated(QString qtyStr, int row, int col)
@@ -601,7 +608,7 @@ void ESReturnItems::slotQuantityCellUpdated(QString qtyStr, int row, int col)
 	double billQty = billQtyItem->text().toDouble();
 	double qty = qtyStr.toDouble();
 
-	if (billQty < qty)
+	if (billQty < qty || qty <= 0.0)
 	{
 		QMessageBox mbox;
 		mbox.setIcon(QMessageBox::Critical);
@@ -622,4 +629,22 @@ void ESReturnItems::slotQuantityCellUpdated(QString qtyStr, int row, int col)
 	QTableWidgetItem* retPriceItem = new QTableWidgetItem(QString::number(returnPrice, 'f', 2));
 	retPriceItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
 	ui.tableWidget->setItem(row, 5, retPriceItem);
+
+	calculateTotal();
+}
+
+void ESReturnItems::calculateTotal()
+{
+	double total = 0.0;
+
+	for (int i = 0; i < ui.tableWidget->rowCount(); ++i)
+	{
+		QTableWidgetItem* item = ui.tableWidget->item(i, 5);
+		if (item)
+		{
+			total += item->text().toDouble();
+		}
+	}
+
+	ui.totalLbl->setText(QString::number(total, 'f', 2));
 }

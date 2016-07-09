@@ -23,8 +23,10 @@ public:
 
 	void slotAddReturnedItem();
 	void slotPrint(QPrinter* printer);
+
 private:
 	void printReturnItemInfo();
+	void calculateTotal();
 
 	Ui::ReturnItems ui;
 	QSignalMapper* m_removeButtonSignalMapper;
