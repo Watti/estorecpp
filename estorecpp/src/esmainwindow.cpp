@@ -31,6 +31,7 @@
 #include "essalesummaryreport.h"
 #include "escutomeroutstanding.h"
 #include "espettycashsummary.h"
+#include "essalesreportcontainer.h"
 
 ESMainWindow::ESMainWindow(QWidget *parent)
 : QMainWindow(parent)
@@ -320,9 +321,13 @@ void ESMainWindow::slotSalesReports()
 // 	this->setCentralWidget(salesReport);
 // 	salesReport->show();
 
-	ESSalesSummary* salesReport = new ESSalesSummary(this);
- 	this->setCentralWidget(salesReport);
- 	salesReport->show();
+// 	ESSalesSummary* salesReport = new ESSalesSummary(this);
+//  	this->setCentralWidget(salesReport);
+//  	salesReport->show();
+
+	ESSalesReportContainer* reports = new ESSalesReportContainer(this);
+	this->setCentralWidget(reports);
+	reports->show();
 }
 
 void ESMainWindow::slotStocksReports()

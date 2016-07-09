@@ -61,7 +61,7 @@ ESSalesSummary::ESSalesSummary(QWidget *parent /*= 0*/) : QWidget(parent)
 
 	QObject::connect(ui.generateButton, SIGNAL(clicked()), this, SLOT(slotGenerate()));
 
-	ui.datelbl->setText(QDate::currentDate().toString("yyyy-MM-dd"));
+	//ui.datelbl->setText(QDate::currentDate().toString("yyyy-MM-dd"));
 
 	while (ui.tableWidgetTotal->rowCount() > 0)
 	{

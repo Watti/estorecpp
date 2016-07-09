@@ -2,12 +2,12 @@
 
 PettyCashSummary::PettyCashSummary(QWidget *parent) : QWidget(parent)
 {
-	ui.setupUi(this);
-	QStringList userWiseLabels;
-	userWiseLabels.append("USER");
-	userWiseLabels.append("INCOME");
-	userWiseLabels.append("EXPENSE");
-	userWiseLabels.append("BALANCE");
+ 	ui.setupUi(this);
+ 	QStringList userWiseLabels;
+ 	userWiseLabels.append("USER");
+ 	userWiseLabels.append("INCOME");
+ 	userWiseLabels.append("EXPENSE");
+ 	userWiseLabels.append("BALANCE");
 
 }
 
