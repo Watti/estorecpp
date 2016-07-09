@@ -328,7 +328,7 @@ void ESAddManualStockItems::slotAddToStock()
 				{
 					QMessageBox mbox;
 					mbox.setIcon(QMessageBox::Information);
-					mbox.setText(QString("Item has been added to the stock"));
+					mbox.setText(QString("Update is success"));
 					mbox.exec();
 					ui.minQty->setText("");
 					ui.discount->setText("");
