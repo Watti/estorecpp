@@ -30,6 +30,7 @@
 #include "essecondarydisplay.h"
 #include "essalesummaryreport.h"
 #include "escutomeroutstanding.h"
+#include "espettycashsummary.h"
 
 ESMainWindow::ESMainWindow(QWidget *parent)
 : QMainWindow(parent)
@@ -75,11 +76,12 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	QObject::connect(ui.actionGiftVouchers, SIGNAL(triggered()), this, SLOT(slotGiftVouchers()));
 	QObject::connect(m_actionLogin, SIGNAL(triggered()), this, SLOT(slotLogin()));
 	QObject::connect(m_actionProfile, SIGNAL(triggered()), this, SLOT(slotProfile()));
-	QObject::connect(m_actionLogout, SIGNAL(triggered()), this, SLOT(slotLogout()));
+	QObject::connect(m_actionLogout, SIGNAL(triggered()), this, SLOT(slotLogout())); 
 	QObject::connect(m_actionManageUsers, SIGNAL(triggered()), this, SLOT(slotManageUsers()));
 	QObject::connect(ui.actionManageCustomers, SIGNAL(triggered()), this, SLOT(slotAddCustomer()));
 	QObject::connect(ui.actionViewCustomerHistory, SIGNAL(triggered()), this, SLOT(slotViewCustomerHistory()));
 	QObject::connect(ui.actionCustomerOutstanding, SIGNAL(triggered()), this, SLOT(slotViewCustomerOutstanding()));
+	QObject::connect(ui.actionPettyCashSummary, SIGNAL(triggered()), this, SLOT(slotPettyCashSummary()));
 
 	new QShortcut(QKeySequence(Qt::Key_F9), this, SLOT(slotShowCalculator()));
 
@@ -423,6 +425,13 @@ void ESMainWindow::slotViewCustomerOutstanding()
 	ESCustomerOutstanding* customerOutstanding = new ESCustomerOutstanding(this);
 	this->setCentralWidget(customerOutstanding);
 	customerOutstanding->show();
+}
+
+void ESMainWindow::slotPettyCashSummary()
+{
+	PettyCashSummary* pettyCashSummary = new PettyCashSummary(this);
+	this->setCentralWidget(pettyCashSummary);
+	pettyCashSummary->show();
 }
 
 

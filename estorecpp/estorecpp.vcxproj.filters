@@ -446,6 +446,15 @@
     <ClCompile Include="GeneratedFiles\Release\moc_escutomeroutstanding.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_espettycashsummary.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="src\espettycashsummary.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_espettycashsummary.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="esmainwindow.ui">
@@ -691,6 +700,12 @@
     <CustomBuild Include="includes\escutomeroutstanding.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
+    <CustomBuild Include="includes\espettycashsummary.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="pettycashsummary.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="includes\utility\esdbconnection.h">
@@ -820,6 +835,9 @@
       <Filter>Generated Files</Filter>
     </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_customeroutstanding.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GeneratedFiles\ui_pettycashsummary.h">
       <Filter>Generated Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -129,15 +129,33 @@ void AddStockItem::slotAddStockItem()
 							mbox.exec();
 						}
 
-						QString qUpdateStockPOStr("UPDATE stock_purchase_order_item SET  purchasing_price = " + purchasingPrice +
-							" WHERE purchaseorder_id = -1 AND stock_id = " + m_stockId + " AND item_id = " + itemId);
-						QSqlQuery updateStockPOQuery;
-						if (!updateStockPOQuery.exec(qUpdateStockPOStr))
+						QSqlQuery qSelectPO("SELECT * FROM stock_purchase_order_item WHERE  purchaseorder_id = -1 AND stock_id = " + m_stockId + " AND item_id = " + itemId);
+						if (qSelectPO.next())
 						{
-							QMessageBox mbox;
-							mbox.setIcon(QMessageBox::Critical);
-							mbox.setText(QString("Purchasing price update error !"));
-							mbox.exec();
+							QString qUpdateStockPOStr("UPDATE stock_purchase_order_item SET  purchasing_price = " + purchasingPrice +
+								" WHERE purchaseorder_id = -1 AND stock_id = " + m_stockId + " AND item_id = " + itemId);
+							QSqlQuery updateStockPOQuery;
+							if (!updateStockPOQuery.exec(qUpdateStockPOStr))
+							{
+								QMessageBox mbox;
+								mbox.setIcon(QMessageBox::Critical);
+								mbox.setText(QString("Purchasing price update error !"));
+								mbox.exec();
+							}
+						}
+						else
+						{
+							//no entry is available it has to be added to the database
+							QString qStockPOStr("INSERT INTO stock_purchase_order_item (purchaseorder_id, item_id, selling_price, purchasing_price, stock_id) VALUES (-1, " +
+								itemId + ", " + price + ", " + purchasingPrice + ", " + m_stockId + ")");
+							QSqlQuery queryStockPO;
+							if (!queryStockPO.exec(qStockPOStr))
+							{
+								QMessageBox mbox;
+								mbox.setIcon(QMessageBox::Critical);
+								mbox.setText(QString("purchasing price insertion error :: slotAddStockItem"));
+								mbox.exec();
+							}
 						}
 
 						ESManageStockItems* manageStock = new ESManageStockItems();

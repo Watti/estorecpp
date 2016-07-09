@@ -140,10 +140,11 @@
    </widget>
    <widget class="QMenu" name="menuCashBalance">
     <property name="title">
-     <string>Cash Balance</string>
+     <string>Petty Cash</string>
     </property>
     <addaction name="actionConfigure"/>
     <addaction name="actionShowStatus"/>
+    <addaction name="actionPettyCashSummary"/>
    </widget>
    <widget class="QMenu" name="menuSystem">
     <property name="title">
@@ -296,6 +297,11 @@
   <action name="actionCustomerOutstanding">
    <property name="text">
     <string>Customer Outstanding</string>
+   </property>
+  </action>
+  <action name="actionPettyCashSummary">
+   <property name="text">
+    <string>Summary</string>
    </property>
   </action>
  </widget>
