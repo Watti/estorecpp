@@ -19,6 +19,7 @@ public:
 
 	public slots:
 	void slotSearch();
+	void slotDateChanged();
 
 private:
 	Ui::ReturnSummaryWidget ui;

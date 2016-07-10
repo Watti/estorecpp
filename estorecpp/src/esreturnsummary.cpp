@@ -21,6 +21,10 @@ ESReturnSummary::ESReturnSummary(QWidget *parent /*= 0*/) : QWidget(parent)
 
 	ui.fromDate->setDate(QDate::currentDate());
 	ui.toDate->setDate(QDate::currentDate().addDays(1));
+
+	QObject::connect(ui.fromDate, SIGNAL(dateChanged(const QDate &)), this, SLOT(slotDateChanged()));
+	QObject::connect(ui.toDate, SIGNAL(dateChanged(const QDate &)), this, SLOT(slotDateChanged()));
+
 	slotSearch();
 }
 
@@ -36,7 +40,12 @@ void ESReturnSummary::slotSearch()
 		ui.tableWidgetByUser->removeRow(0);
 	}
 
-	QSqlQuery q("SELECT user_id, COUNT(bill_id) AS bills, SUM(return_total) AS total FROM return_item GROUP BY(user_id)");
+	QDateTime startDate = QDateTime::fromString(ui.fromDate->text(), Qt::ISODate);
+	QDateTime endDate = QDateTime::fromString(ui.toDate->text(), Qt::ISODate);
+	QString stardDateStr = startDate.date().toString("yyyy-MM-dd");
+	QString endDateStr = endDate.date().toString("yyyy-MM-dd");
+
+	QSqlQuery q("SELECT user_id, COUNT(bill_id) AS bills, SUM(return_total) AS total FROM return_item  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'" + "GROUP BY(user_id)");
 	while (q.next())
 	{
 		QString userId = q.value("user_id").toString();
@@ -79,4 +88,9 @@ void ESReturnSummary::slotSearch()
 		ui.tableWidgetByUser->setCellWidget(row, 3, base);
 		base->show();
 	}
+}
+
+void ESReturnSummary::slotDateChanged()
+{
+	slotSearch();
 }
