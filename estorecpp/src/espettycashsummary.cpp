@@ -8,6 +8,10 @@
 PettyCashSummary::PettyCashSummary(QWidget *parent) : QWidget(parent)
 {
 	ui.setupUi(this);
+
+	ui.fromDate->setDate(QDate::currentDate());
+	ui.toDate->setDate(QDate::currentDate().addDays(1));
+
 	QStringList userWiseLabels;
 	userWiseLabels.append("INCOME");
 	userWiseLabels.append("EXPENSE");

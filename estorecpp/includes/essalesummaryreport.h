@@ -15,6 +15,9 @@ class ESSalesSummary : public QWidget
 
 public:
 	ESSalesSummary(QWidget *parent = 0);
+
+	void displayResults();
+
 	~ESSalesSummary();
 
 	Ui::SaleSummary& getUI() { return ui; };
@@ -22,7 +25,7 @@ public:
 	public slots:
 	void slotGenerate();
 	void slotPrint(QPrinter* printer);
-
+	void slotDateChanged();
 private:
 	Ui::SaleSummary ui;
 

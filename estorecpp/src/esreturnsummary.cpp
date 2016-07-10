@@ -19,6 +19,8 @@ ESReturnSummary::ESReturnSummary(QWidget *parent /*= 0*/) : QWidget(parent)
 	ui.tableWidgetByUser->setSelectionBehavior(QAbstractItemView::SelectRows);
 	ui.tableWidgetByUser->setSelectionMode(QAbstractItemView::SingleSelection);
 
+	ui.fromDate->setDate(QDate::currentDate());
+	ui.toDate->setDate(QDate::currentDate().addDays(1));
 	slotSearch();
 }
 
