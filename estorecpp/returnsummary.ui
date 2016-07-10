@@ -45,7 +45,7 @@
       <widget class="QLabel" name="label_3">
        <property name="font">
         <font>
-         <pointsize>9</pointsize>
+         <pointsize>11</pointsize>
         </font>
        </property>
        <property name="text">
@@ -57,7 +57,7 @@
       <widget class="QDateEdit" name="fromDate">
        <property name="font">
         <font>
-         <pointsize>9</pointsize>
+         <pointsize>11</pointsize>
         </font>
        </property>
       </widget>
@@ -66,7 +66,7 @@
       <widget class="QLabel" name="label_4">
        <property name="font">
         <font>
-         <pointsize>9</pointsize>
+         <pointsize>11</pointsize>
         </font>
        </property>
        <property name="text">
@@ -78,7 +78,7 @@
       <widget class="QDateEdit" name="toDate">
        <property name="font">
         <font>
-         <pointsize>9</pointsize>
+         <pointsize>11</pointsize>
         </font>
        </property>
       </widget>
@@ -104,7 +104,7 @@
       <number>0</number>
      </property>
      <property name="columnCount">
-      <number>4</number>
+      <number>3</number>
      </property>
      <attribute name="horizontalHeaderVisible">
       <bool>true</bool>
@@ -112,7 +112,6 @@
      <attribute name="verticalHeaderVisible">
       <bool>true</bool>
      </attribute>
-     <column/>
      <column/>
      <column/>
      <column/>

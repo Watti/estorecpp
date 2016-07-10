@@ -19,6 +19,8 @@ ESReturnSummary::ESReturnSummary(QWidget *parent /*= 0*/) : QWidget(parent)
 	ui.tableWidgetByUser->setSelectionBehavior(QAbstractItemView::SelectRows);
 	ui.tableWidgetByUser->setSelectionMode(QAbstractItemView::SingleSelection);
 
+	ui.tableWidgetByUser->verticalHeader()->setMinimumWidth(200);
+
 	ui.fromDate->setDate(QDate::currentDate());
 	ui.toDate->setDate(QDate::currentDate().addDays(1));
 	slotSearch();
@@ -52,20 +54,23 @@ void ESReturnSummary::slotSearch()
 		QSqlQuery userQuery("SELECT display_name FROM user WHERE user_id = " + userId);
 		if (userQuery.next())
 		{
-			QTableWidgetItem* userIdItem = new QTableWidgetItem(userQuery.value("display_name").toString());
-			ui.tableWidgetByUser->setItem(row, 0, userIdItem);
+			//QTableWidgetItem* userIdItem = new QTableWidgetItem(userQuery.value("display_name").toString());
+			//ui.tableWidgetByUser->setItem(row, 0, userIdItem);
+
+			QTableWidgetItem* nameItem = new QTableWidgetItem(userQuery.value("display_name").toString());
+			ui.tableWidgetByUser->setVerticalHeaderItem(row, nameItem);
 		}
 
 		QString billsStr = q.value("bills").toString();
 		totalBillCount += billsStr.toInt();
 		QTableWidgetItem* billsItem = new QTableWidgetItem(billsStr);
-		ui.tableWidgetByUser->setItem(row, 1, billsItem);
+		ui.tableWidgetByUser->setItem(row, 0, billsItem);
 
 		double returnTotal = q.value("total").toDouble();
 		totalReturnAmount += returnTotal;
 		QTableWidgetItem* totalItem = new QTableWidgetItem(QString("%L1").arg(returnTotal, 0, 'f', 2));
 		totalItem->setTextAlignment(Qt::AlignRight);
-		ui.tableWidgetByUser->setItem(row, 2, totalItem);
+		ui.tableWidgetByUser->setItem(row, 1, totalItem);
 
 		QWidget* base = new QWidget(ui.tableWidgetByUser);
 
@@ -82,7 +87,7 @@ void ESReturnSummary::slotSearch()
 		layout->addWidget(removeBtn);
 		layout->insertStretch(2);
 		base->setLayout(layout);
-		ui.tableWidgetByUser->setCellWidget(row, 3, base);
+		ui.tableWidgetByUser->setCellWidget(row, 2, base);
 		base->show();
 	}
 
