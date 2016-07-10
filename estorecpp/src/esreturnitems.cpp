@@ -611,7 +611,7 @@ void ESReturnItems::slotRemove(QString rowId)
 {
 	for (int i = 0; i < ui.tableWidget->rowCount(); ++i)
 	{
-		QTableWidgetItem* item = ui.tableWidget->item(i, 7);
+		QTableWidgetItem* item = ui.tableWidget->item(i, 8);
 		if (item)
 		{
 			if (item->text() == rowId)
