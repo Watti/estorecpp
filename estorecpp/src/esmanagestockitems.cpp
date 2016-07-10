@@ -7,6 +7,7 @@
 #include "utility/utility.h"
 #include "esaddmanualstockitemswidget.h"
 #include "esmainwindow.h"
+#include "utility/session.h"
 
 ESManageStockItems::ESManageStockItems(QWidget *parent /*= 0*/)
 : QWidget(parent), m_startingLimit(0), m_pageOffset(15), m_nextCounter(0), m_maxNextCount(0)
@@ -225,6 +226,19 @@ void ESManageStockItems::slotUpdate(QString stockId)
 	addStockItem->getUI().groupBox->setTitle("Update Stock Item");
 	addStockItem->setItemId(stockId);
 	addStockItem->getUI().addItemButton->setText("Update");
+
+	if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
+		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
+	{
+		addStockItem->getUI().visibleLbl->show();
+		addStockItem->getUI().visibleCB->show();
+	}
+	else
+	{
+		addStockItem->getUI().visibleLbl->hide();
+		addStockItem->getUI().visibleCB->hide();
+	}
+
 	QSqlQuery query("SELECT * FROM stock WHERE stock_id = " + stockId);
 	QString itemId = "";
 	while (query.next())
@@ -254,6 +268,10 @@ void ESManageStockItems::slotUpdate(QString stockId)
 		{
 			QString purchasedPrice = queryPO.value("purchasing_price").toString();
 			addStockItem->getUI().purchasingPrice->setText(purchasedPrice);
+		}
+		else
+		{
+			addStockItem->getUI().purchasingPrice->setText("N/A");
 		}
 	}
 

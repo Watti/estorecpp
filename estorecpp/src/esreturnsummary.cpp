@@ -7,7 +7,6 @@ ESReturnSummary::ESReturnSummary(QWidget *parent /*= 0*/) : QWidget(parent)
 	m_removeButtonSignalMapper = new QSignalMapper(this);
 
 	QStringList headerLabels;
-	headerLabels.append("User");
 	headerLabels.append("# of Bills");
 	headerLabels.append("Total");
 	headerLabels.append("Actions");
@@ -74,6 +73,7 @@ void ESReturnSummary::slotSearch()
 		QString billsStr = q.value("bills").toString();
 		totalBillCount += billsStr.toInt();
 		QTableWidgetItem* billsItem = new QTableWidgetItem(billsStr);
+		billsItem->setTextAlignment(Qt::AlignRight);
 		ui.tableWidgetByUser->setItem(row, 0, billsItem);
 
 		double returnTotal = q.value("total").toDouble();
