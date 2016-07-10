@@ -36,6 +36,9 @@ void ESReturnSummary::slotSearch()
 		ui.tableWidgetByUser->removeRow(0);
 	}
 
+	double totalReturnAmount = 0.0;
+	int totalBillCount = 0;
+
 	QSqlQuery q("SELECT user_id, COUNT(bill_id) AS bills, SUM(return_total) AS total FROM return_item GROUP BY(user_id)");
 	while (q.next())
 	{
@@ -53,11 +56,14 @@ void ESReturnSummary::slotSearch()
 			ui.tableWidgetByUser->setItem(row, 0, userIdItem);
 		}
 
-		QTableWidgetItem* billsItem = new QTableWidgetItem(q.value("bills").toString());
+		QString billsStr = q.value("bills").toString();
+		totalBillCount += billsStr.toInt();
+		QTableWidgetItem* billsItem = new QTableWidgetItem(billsStr);
 		ui.tableWidgetByUser->setItem(row, 1, billsItem);
 
 		double returnTotal = q.value("total").toDouble();
-		QTableWidgetItem* totalItem = new QTableWidgetItem(QString::number(returnTotal, 'f', 2));
+		totalReturnAmount += returnTotal;
+		QTableWidgetItem* totalItem = new QTableWidgetItem(QString("%L1").arg(returnTotal, 0, 'f', 2));
 		totalItem->setTextAlignment(Qt::AlignRight);
 		ui.tableWidgetByUser->setItem(row, 2, totalItem);
 
@@ -79,4 +85,7 @@ void ESReturnSummary::slotSearch()
 		ui.tableWidgetByUser->setCellWidget(row, 3, base);
 		base->show();
 	}
+
+	ui.returnTotal->setText(QString("%L1").arg(totalReturnAmount, 0, 'f', 2));
+	ui.billTotal->setText(QString::number(totalBillCount));
 }
