@@ -12,11 +12,14 @@ class PettyCashSummary : public QWidget
 	Q_OBJECT
 public:
 	PettyCashSummary(QWidget *parent = 0);
+
+	void displayResults();
+
 	~PettyCashSummary();
 
 
 	public slots:
-
+	void slotDateChanged();
 private:
 	Ui::PettyCashSummary ui;
 
