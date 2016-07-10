@@ -44,8 +44,7 @@ void ESReturnSummary::slotSearch()
 	QDateTime endDate = QDateTime::fromString(ui.toDate->text(), Qt::ISODate);
 	QString stardDateStr = startDate.date().toString("yyyy-MM-dd");
 	QString endDateStr = endDate.date().toString("yyyy-MM-dd");
-
-	QSqlQuery q("SELECT user_id, COUNT(bill_id) AS bills, SUM(return_total) AS total FROM return_item  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'" + "GROUP BY(user_id)");
+	QSqlQuery q("SELECT user_id, COUNT(bill_id) AS bills, SUM(return_total) AS total FROM return_item WHERE DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'" + "GROUP BY(user_id)");
 	while (q.next())
 	{
 		QString userId = q.value("user_id").toString();
