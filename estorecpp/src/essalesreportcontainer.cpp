@@ -1,6 +1,7 @@
 #include "includes/essalesreportcontainer.h"
 #include "essalesummaryreport.h"
 #include "esreturnsummary.h"
+#include "espettycashsummary.h"
 
 ESSalesReportContainer::ESSalesReportContainer(QWidget *parent /*= 0*/) : QWidget(parent)
 {
@@ -11,6 +12,9 @@ ESSalesReportContainer::ESSalesReportContainer(QWidget *parent /*= 0*/) : QWidge
 
 	ESReturnSummary* returnSummary = new ESReturnSummary(ui.tabWidget);
 	ui.tabWidget->addTab(returnSummary, "Return Summary");
+
+	PettyCashSummary* pettyCashSummary = new PettyCashSummary(ui.tabWidget);
+	ui.tabWidget->addTab(pettyCashSummary, "Petty Cash Summary");
 }
 
 ESSalesReportContainer::~ESSalesReportContainer()

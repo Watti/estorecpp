@@ -17,6 +17,10 @@ ESSalesSummary::ESSalesSummary(QWidget *parent /*= 0*/) : QWidget(parent)
 {
 	ui.setupUi(this);
 
+
+	ui.fromDate->setDate(QDate::currentDate());
+	ui.toDate->setDate(QDate::currentDate().addDays(1));
+
 	QStringList headerLabels;
 	headerLabels.append("CASH");
 	headerLabels.append("CREDIT");
