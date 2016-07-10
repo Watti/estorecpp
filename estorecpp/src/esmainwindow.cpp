@@ -434,9 +434,9 @@ void ESMainWindow::slotViewCustomerOutstanding()
 
 void ESMainWindow::slotPettyCashSummary()
 {
-	PettyCashSummary* pettyCashSummary = new PettyCashSummary(this);
-	this->setCentralWidget(pettyCashSummary);
-	pettyCashSummary->show();
+// 	PettyCashSummary* pettyCashSummary = new PettyCashSummary(this);
+// 	this->setCentralWidget(pettyCashSummary);
+// 	pettyCashSummary->show();
 }
 
 

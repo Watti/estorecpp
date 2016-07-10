@@ -12,6 +12,9 @@ PettyCashSummary::PettyCashSummary(QWidget *parent) : QWidget(parent)
 	ui.fromDate->setDate(QDate::currentDate());
 	ui.toDate->setDate(QDate::currentDate().addDays(1));
 
+	QObject::connect(ui.fromDate, SIGNAL(dateChanged(const QDate &)), this, SLOT(slotDateChanged()));
+	QObject::connect(ui.toDate, SIGNAL(dateChanged(const QDate &)), this, SLOT(slotDateChanged()));
+
 	QStringList userWiseLabels;
 	userWiseLabels.append("INCOME");
 	userWiseLabels.append("EXPENSE");
@@ -40,11 +43,35 @@ PettyCashSummary::PettyCashSummary(QWidget *parent) : QWidget(parent)
 
 	//ui.datelbl->setText(QDate::currentDate().toString("yyyy-MM-dd"));
 
+	displayResults();
+
+
+}
+
+
+PettyCashSummary::~PettyCashSummary()
+{
+
+}
+
+void PettyCashSummary::slotDateChanged()
+{
+	displayResults();
+}
+
+void PettyCashSummary::displayResults()
+{
 	while (ui.tableWidgetByUser->rowCount() > 0)
 	{
 		ui.tableWidgetByUser->removeRow(0);
 	}
 	int row = 0;
+
+	QDateTime startDate = QDateTime::fromString(ui.fromDate->text(), Qt::ISODate);
+	QDateTime endDate = QDateTime::fromString(ui.toDate->text(), Qt::ISODate);
+	QString stardDateStr = startDate.date().toString("yyyy-MM-dd");
+	QString endDateStr = endDate.date().toString("yyyy-MM-dd");
+
 	QSqlQuery queryUserType("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE user.active = 1");
 	while (queryUserType.next())
 	{
@@ -57,7 +84,7 @@ PettyCashSummary::PettyCashSummary(QWidget *parent) : QWidget(parent)
 		QTableWidgetItem* nameItem = new QTableWidgetItem(uName);
 		ui.tableWidgetByUser->setVerticalHeaderItem(row, nameItem);
 
-		QSqlQuery queryPettyCash("SELECT * FROM petty_cash WHERE DATE(date) = CURDATE() AND user_id = " + uId);
+		QSqlQuery queryPettyCash("SELECT * FROM petty_cash WHERE user_id = " + uId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
 		while (queryPettyCash.next())
 		{
 			QString uId = queryPettyCash.value("user_id").toString();
@@ -91,8 +118,8 @@ PettyCashSummary::PettyCashSummary(QWidget *parent) : QWidget(parent)
 	ui.tableWidgetTotal->insertRow(row);
 	ui.tableWidgetTotal->setVerticalHeaderItem(row, new QTableWidgetItem("Total"));
 
-	QSqlQuery totalQuery("SELECT sum(amount) as total,type FROM petty_cash WHERE DATE(date) = CURDATE() group by type");
-	double income =0, expense =0;
+	QSqlQuery totalQuery("SELECT sum(amount) as total,type FROM petty_cash WHERE  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'" + " group by type");
+	double income = 0, expense = 0;
 	while (totalQuery.next())
 	{
 		int type = totalQuery.value("type").toUInt();
@@ -101,7 +128,7 @@ PettyCashSummary::PettyCashSummary(QWidget *parent) : QWidget(parent)
 			//expense
 			expense = totalQuery.value("total").toDouble();
 
-			QTableWidgetItem* expenseWidgetItem = new QTableWidgetItem(QString::number(expense,'f',2));
+			QTableWidgetItem* expenseWidgetItem = new QTableWidgetItem(QString::number(expense, 'f', 2));
 			expenseWidgetItem->setTextAlignment(Qt::AlignRight);
 			ui.tableWidgetTotal->setItem(row, 1, expenseWidgetItem);
 		}
@@ -110,16 +137,9 @@ PettyCashSummary::PettyCashSummary(QWidget *parent) : QWidget(parent)
 			//income
 			income = totalQuery.value("total").toDouble();
 
-			QTableWidgetItem* incomeWidgetItem = new QTableWidgetItem(QString::number(income,'f',2));
+			QTableWidgetItem* incomeWidgetItem = new QTableWidgetItem(QString::number(income, 'f', 2));
 			incomeWidgetItem->setTextAlignment(Qt::AlignRight);
 			ui.tableWidgetTotal->setItem(row, 0, incomeWidgetItem);
 		}
 	}
-
-}
-
-
-PettyCashSummary::~PettyCashSummary()
-{
-
 }
