@@ -34,7 +34,7 @@ PettyCashSummary::PettyCashSummary(QWidget *parent) : QWidget(parent)
 	ui.tableWidgetTotal->setSelectionMode(QAbstractItemView::SingleSelection);
 	ui.tableWidgetTotal->verticalHeader()->setMinimumWidth(200);
 
-	ui.datelbl->setText(QDate::currentDate().toString("yyyy-MM-dd"));
+	//ui.datelbl->setText(QDate::currentDate().toString("yyyy-MM-dd"));
 
 	while (ui.tableWidgetByUser->rowCount() > 0)
 	{
