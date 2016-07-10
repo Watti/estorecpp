@@ -17,12 +17,15 @@ ESSalesSummary::ESSalesSummary(QWidget *parent /*= 0*/) : QWidget(parent)
 {
 	ui.setupUi(this);
 
+	m_detailButtonSignalMapper = new QSignalMapper(this);
+
 	QStringList headerLabels;
 	headerLabels.append("CASH");
 	headerLabels.append("CREDIT");
 	headerLabels.append("CHEQUE");
 	headerLabels.append("CARD");
 	headerLabels.append("LOYALTY");
+	headerLabels.append("Actions");
 
 	QFont font = this->font();
 	font.setBold(true);
@@ -233,6 +236,27 @@ ESSalesSummary::ESSalesSummary(QWidget *parent /*= 0*/) : QWidget(parent)
 			cardSalesWidget = new QTableWidgetItem(QString::number(cardSales, 'f', 2));
 			cardSalesWidget->setTextAlignment(Qt::AlignRight);
 			ui.tableWidgetByUser->setItem(row, 3, cardSalesWidget);
+
+			// todo :loyalty
+
+			QWidget* base = new QWidget(ui.tableWidgetByUser);
+
+			QPushButton* detailBtn = new QPushButton(base);
+			detailBtn->setIcon(QIcon("icons/detail.png"));
+			detailBtn->setIconSize(QSize(24, 24));
+			detailBtn->setMaximumWidth(100);
+
+			m_detailButtonSignalMapper->setMapping(detailBtn, uId);
+			QObject::connect(detailBtn, SIGNAL(clicked()), m_detailButtonSignalMapper, SLOT(map()));
+
+			QHBoxLayout *layout = new QHBoxLayout;
+			layout->setContentsMargins(0, 0, 0, 0);
+			layout->addWidget(detailBtn);
+			layout->insertStretch(2);
+			base->setLayout(layout);
+			ui.tableWidgetByUser->setCellWidget(row, 5, base);
+			base->show();
+
 		}
 	}
 }

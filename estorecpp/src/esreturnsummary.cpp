@@ -62,7 +62,7 @@ void ESReturnSummary::slotSearch()
 		QWidget* base = new QWidget(ui.tableWidgetByUser);
 
 		QPushButton* removeBtn = new QPushButton(base);
-		removeBtn->setIcon(QIcon("icons/checkin.png"));
+		removeBtn->setIcon(QIcon("icons/detail.png"));
 		removeBtn->setIconSize(QSize(24, 24));
 		removeBtn->setMaximumWidth(100);
 

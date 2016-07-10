@@ -7,6 +7,7 @@
 #include "ui_salesummary.h"
 #include "KDReportsTableElement.h"
 #include "qnamespace.h"
+#include "QSignalMapper"
 
 class ESSalesSummary : public QWidget
 {
@@ -28,6 +29,7 @@ private:
 	void printRow(KDReports::TableElement& tableElement, int row, int col,
 		QString elementStr, Qt::AlignmentFlag alignment = Qt::AlignLeft);
 	KDReports::Report report;
+	QSignalMapper* m_detailButtonSignalMapper;
 
 };
 
