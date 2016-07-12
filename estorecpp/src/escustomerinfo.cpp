@@ -2,10 +2,13 @@
 #include "utility/esdbconnection.h"
 #include <QMessageBox>
 #include <QPushButton>
+#include "espaymentdetails.h"
 
 ESCustomerInfo::ESCustomerInfo(QWidget *parent /*= 0*/) : QWidget(parent)
 {
 	ui.setupUi(this);
+
+	m_paymentDetailsMapper = new QSignalMapper(this);
 
 	QStringList headerLabels;
 	headerLabels.append("CustomerID");
@@ -40,6 +43,7 @@ ESCustomerInfo::ESCustomerInfo(QWidget *parent /*= 0*/) : QWidget(parent)
 	QObject::connect(ui.customers, SIGNAL(cellPressed(int, int)), this, SLOT(slotCustomerSelected(int, int)));
 	QObject::connect(ui.showFullHistory, SIGNAL(stateChanged(int)), this, SLOT(slotPopulateCustomerHistory()));
 	QObject::connect(ui.searchText, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
+	QObject::connect(m_paymentDetailsMapper, SIGNAL(mapped(QString)), this, SLOT(slotShowPaymentDetails(QString)));
 
 	ui.commentsLbl->setWordWrap(true);
 	m_selectedCustomerId = "-1";
@@ -129,7 +133,7 @@ void ESCustomerInfo::slotPopulateCustomerHistory()
 		ui.customerHistory->removeRow(0);
 	}
 
-	QString q("SELECT * FROM bill WHERE user_id = " + m_selectedCustomerId + " ORDER BY date DESC ");
+	QString q("SELECT * FROM bill WHERE customer_id = " + m_selectedCustomerId + " ORDER BY date DESC ");
 	if (!ui.showFullHistory->isChecked())
 	{
 		q.append("LIMIT 15");
@@ -149,20 +153,122 @@ void ESCustomerInfo::slotPopulateCustomerHistory()
 		int row = ui.customerHistory->rowCount();
 		ui.customerHistory->insertRow(row);
 
-		QTableWidgetItem* billItem = new QTableWidgetItem(billQuery.value("bill_id").toString());
-		billItem->setTextAlignment(Qt::AlignRight);
+		QString billId = billQuery.value("bill_id").toString();
+
+		QTableWidgetItem* billItem = new QTableWidgetItem(billId);
+		billItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
 		ui.customerHistory->setItem(row, 0, billItem);
 
 		QDateTime dt = billQuery.value("date").toDateTime();
 		ui.customerHistory->setItem(row, 1, new QTableWidgetItem(dt.toString("yyyy-MM-dd (hh:mm)")));
 
 		QTableWidgetItem* item = new QTableWidgetItem(QString::number(billQuery.value("amount").toDouble(), 'f', 2));
-		item->setTextAlignment(Qt::AlignRight);
+		item->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
 		ui.customerHistory->setItem(row, 2, item);
 
 		QPushButton* btn = new QPushButton("Payment Details", ui.customerHistory);
 		btn->setMaximumWidth(200);
 		ui.customerHistory->setCellWidget(row, 3, btn);
+
+		m_paymentDetailsMapper->setMapping(btn, billId);
+		QObject::connect(btn, SIGNAL(clicked()), m_paymentDetailsMapper, SLOT(map()));
 	}
+}
+
+void ESCustomerInfo::slotShowPaymentDetails(QString billId)
+{
+	QSqlQuery q("SELECT * FROM payment WHERE bill_id = " + billId);
+
+	ESPaymentDetails infoDialog;
+	infoDialog.setWindowTitle("Bill ID : " + billId);
+	QTableWidget* table = infoDialog.getUi().tableWidget;
+
+	while (q.next())
+	{
+		int row = table->rowCount();
+		table->insertRow(row);
+
+		QString paymentId = q.value("payment_id").toString();
+		QString paymentType = q.value("payment_type").toString();
+		table->setItem(row, 0, new QTableWidgetItem(paymentType));
+
+		if (paymentType == "CASH")
+		{
+			QSqlQuery cashQ("SELECT * FROM cash WHERE payment_id = " + paymentId);
+			if (cashQ.next())
+			{
+				QTableWidgetItem* item = new QTableWidgetItem(QString::number(cashQ.value("amount").toDouble(), 'f', 2));
+				item->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+				table->setItem(row, 1, item);
+				item = new QTableWidgetItem("0.00");
+				item->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+				table->setItem(row, 2, item);
+				table->setItem(row, 3, new QTableWidgetItem("-"));
+				table->setItem(row, 4, new QTableWidgetItem("-"));
+			}			
+		}
+		else if (paymentType == "CREDIT")
+		{
+			QSqlQuery creditQ("SELECT * FROM credit WHERE payment_id = " + paymentId);
+			if (creditQ.next())
+			{
+				QTableWidgetItem* item = new QTableWidgetItem(QString::number(creditQ.value("amount").toDouble(), 'f', 2));
+				item->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+				table->setItem(row, 1, item);
+				item = new QTableWidgetItem(QString::number(creditQ.value("interest").toDouble(), 'f', 2));
+				item->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+				table->setItem(row, 2, item);
+				table->setItem(row, 3, new QTableWidgetItem(creditQ.value("due_date").toString()));
+				table->setItem(row, 4, new QTableWidgetItem("-"));
+			}				
+		}
+		else if (paymentType == "CHEQUE")
+		{
+			QSqlQuery chequeQ("SELECT * FROM cheque WHERE payment_id = " + paymentId);
+			if (chequeQ.next())
+			{
+				QTableWidgetItem* item = new QTableWidgetItem(QString::number(chequeQ.value("amount").toDouble(), 'f', 2));
+				item->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+				table->setItem(row, 1, item);
+				item = new QTableWidgetItem(QString::number(chequeQ.value("interest").toDouble(), 'f', 2));
+				item->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+				table->setItem(row, 2, item);
+				table->setItem(row, 3, new QTableWidgetItem(chequeQ.value("due_date").toString()));
+				table->setItem(row, 4, new QTableWidgetItem("-"));
+			}
+		}
+		else if (paymentType == "CARD")
+		{
+			QSqlQuery cardQ("SELECT * FROM card WHERE payment_id = " + paymentId);
+			if (cardQ.next())
+			{
+				QTableWidgetItem* item = new QTableWidgetItem(QString::number(cardQ.value("amount").toDouble(), 'f', 2));
+				item->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+				table->setItem(row, 1, item);
+				item = new QTableWidgetItem(QString::number(cardQ.value("interest").toDouble(), 'f', 2));
+				item->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+				table->setItem(row, 2, item);
+				table->setItem(row, 3, new QTableWidgetItem(cardQ.value("due_date").toString()));
+				table->setItem(row, 4, new QTableWidgetItem("-"));
+			}
+		}
+		else if (paymentType == "LOYALTY")
+		{
+			QSqlQuery loyaltyQ("SELECT * FROM loyalty WHERE payment_id = " + paymentId);
+			if (loyaltyQ.next())
+			{
+				QTableWidgetItem* item = new QTableWidgetItem(QString::number(loyaltyQ.value("amount").toDouble(), 'f', 2));
+				item->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+				table->setItem(row, 1, item);
+				item = new QTableWidgetItem(QString::number(loyaltyQ.value("interest").toDouble(), 'f', 2));
+				item->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+				table->setItem(row, 2, item);
+				table->setItem(row, 3, new QTableWidgetItem(loyaltyQ.value("due_date").toString()));
+				table->setItem(row, 4, new QTableWidgetItem("-"));
+			}
+		}
+	}
+
+	infoDialog.exec();
 }
 
