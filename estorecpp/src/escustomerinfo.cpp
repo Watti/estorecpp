@@ -39,10 +39,11 @@ ESCustomerInfo::ESCustomerInfo(QWidget *parent /*= 0*/) : QWidget(parent)
 
 	QObject::connect(ui.customers, SIGNAL(cellPressed(int, int)), this, SLOT(slotCustomerSelected(int, int)));
 	QObject::connect(ui.showFullHistory, SIGNAL(stateChanged(int)), this, SLOT(slotPopulateCustomerHistory()));
+	QObject::connect(ui.searchText, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
 
 	ui.commentsLbl->setWordWrap(true);
 	m_selectedCustomerId = "-1";
-	
+	ui.searchText->setFocus();
 }
 
 ESCustomerInfo::~ESCustomerInfo()
@@ -56,8 +57,15 @@ void ESCustomerInfo::slotSearch()
 	{
 		ui.customers->removeRow(0);
 	}
+	QString searchText = ui.searchText->text();
+	QString queryStr = "SELECT * FROM customer WHERE deleted = 0";
 
-	QSqlQuery q("SELECT * FROM customer WHERE deleted = 0");
+	if (!searchText.isEmpty())
+	{
+		queryStr += " AND (name LIKE '%" + searchText + "%' OR address LIKE '%" + searchText + "%' OR comments LIKE '%" + searchText + "%')";
+	}
+
+	QSqlQuery q(queryStr);
 
 	int row = 0;
 	while (q.next())

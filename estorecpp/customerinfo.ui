@@ -26,6 +26,20 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <item>
+         <widget class="QLabel" name="label_5">
+          <property name="text">
+           <string>Search Text : </string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="searchText"/>
+        </item>
+       </layout>
+      </item>
+      <item>
        <widget class="QTableWidget" name="customers">
         <property name="font">
          <font>
