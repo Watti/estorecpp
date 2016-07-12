@@ -806,7 +806,7 @@ void ESSinglePayment::printBill(int billId, float total)
 		if (queryItem.next())
 		{
 			itemName = queryItem.value("item_name").toString();
-			unitPrice = QString::number(queryItem.value("selling_price").toDouble(), 'f', 2);
+			unitPrice = QString::number(querySale.value("item_price").toDouble(), 'f', 2);
 			itemCode = queryItem.value("item_code").toString();
 		}
 		//columns (item_code, Description, UnitPrice, Discount, Qty, Sub Total)
@@ -939,7 +939,7 @@ void ESSinglePayment::printBill(int billId, float total)
 // 	report.addElement(web, Qt::AlignCenter);
 
 	QPrinter printer;
-	printer.setPaperSize(QPrinter::A4);
+	printer.setPaperSize(QPrinter::Custom);
 
 	printer.setFullPage(false);
 	printer.setOrientation(QPrinter::Portrait);

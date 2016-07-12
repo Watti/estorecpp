@@ -88,6 +88,8 @@ void ESSecondaryDisplay::update()
 		itemTotal->setTextAlignment(Qt::AlignRight);
 		ui.tableWidget->setItem(row, 3, itemTotal);
 	}
+
+	ui.tableWidget->scrollToBottom();
 }
 
 void ESSecondaryDisplay::setBillInfo(QString gross, QString net, QString items)

@@ -21,19 +21,19 @@ namespace
 	QString convertToPriceFormat(QString text, int row, int col, QTableWidget* table)
 	{
 		QString retVal("0");
- 		bool isValid = false;
- 		double reducedPrice = text.toDouble(&isValid);
+		bool isValid = false;
+		double reducedPrice = text.toDouble(&isValid);
 
 		QTableWidgetItem* item = table->item(row, 0);
-	
+
 		if (isValid && item)
 		{
-			QString qryStr("SELECT item_id FROM item WHERE deleted = 0 AND item_code = '"+ item->text() +"'");
+			QString qryStr("SELECT item_id FROM item WHERE deleted = 0 AND item_code = '" + item->text() + "'");
 			QSqlQuery itemQuery(qryStr);
 			if (itemQuery.next())
 			{
 				QString itemId = itemQuery.value("item_id").toString();
-				QString stockQryStr("SELECT selling_price FROM stock WHERE item_id = '" + itemId+"'");
+				QString stockQryStr("SELECT selling_price FROM stock WHERE item_id = '" + itemId + "'");
 				QSqlQuery queryStock(stockQryStr);
 				if (queryStock.next())
 				{
@@ -59,7 +59,7 @@ namespace
 							{
 								reducedPrice = sellingPrice;
 							}
-						}						
+						}
 					}
 
 				}
@@ -71,8 +71,8 @@ namespace
 
 	QString convertToQuantityFormat(QString text, int row, int col, QTableWidget* table)
 	{
-// 		double val = text.toDouble();
-// 		return QString::number(val, 'f', 3);
+		// 		double val = text.toDouble();
+		// 		return QString::number(val, 'f', 3);
 		return text;
 	}
 }
@@ -219,30 +219,30 @@ void ESAddBill::keyPressEvent(QKeyEvent* evt)
 	case Qt::Key_Return:
 	case Qt::Key_Enter:
 	{
-		int row = ui.tableWidget->currentRow();
-		QString quantity = "";
-		QTableWidgetItem* item = ui.tableWidget->item(row, 3);
-		if (item)
-		{
-			quantity = item->text();
-		}
+						  int row = ui.tableWidget->currentRow();
+						  QString quantity = "";
+						  QTableWidgetItem* item = ui.tableWidget->item(row, 3);
+						  if (item)
+						  {
+							  quantity = item->text();
+						  }
 
-		TableTextWidget* textWidget = new TableTextWidget(ui.tableWidget, row, 3, ui.tableWidget);
-		QObject::connect(textWidget, SIGNAL(notifyEnterPressed(QString, int, int)), this, SLOT(slotQuantityCellUpdated(QString, int, int)));
-		textWidget->setTextFormatterFunc(convertToQuantityFormat);
-		textWidget->setText(quantity);
-		textWidget->selectAll();
-		ui.tableWidget->setCellWidget(row, 3, textWidget);
-		textWidget->setFocus();
-		break;
+						  TableTextWidget* textWidget = new TableTextWidget(ui.tableWidget, row, 3, ui.tableWidget);
+						  QObject::connect(textWidget, SIGNAL(notifyEnterPressed(QString, int, int)), this, SLOT(slotQuantityCellUpdated(QString, int, int)));
+						  textWidget->setTextFormatterFunc(convertToQuantityFormat);
+						  textWidget->setText(quantity);
+						  textWidget->selectAll();
+						  ui.tableWidget->setCellWidget(row, 3, textWidget);
+						  textWidget->setFocus();
+						  break;
 	}
 	case Qt::Key_Up:
 	case Qt::Key_Down:
 	case Qt::Key_Left:
 	case Qt::Key_Right:
 	{
-		ui.tableWidget->setFocus();
-		break;
+						  ui.tableWidget->setFocus();
+						  break;
 	}
 	default:
 		QWidget::keyPressEvent(evt);
@@ -269,13 +269,14 @@ void ESAddBill::slotReturnPressed(QString saleId, int row)
 			le->setReadOnly(true);
 			double quantity = le->text().toDouble();
 
+			QString requestedQtyStr = le->text();
 			QSqlQuery query("SELECT stock.selling_price, stock.discount, stock.qty FROM stock JOIN sale ON stock.stock_id = sale.stock_id WHERE sale.deleted = 0 AND sale.sale_id = " + saleId);
 			if (query.first())
 			{
-				if (!le->text().isNull() && !le->text().isEmpty())
+				if (!requestedQtyStr.isNull() && !requestedQtyStr.isEmpty())
 				{
 					bool valid = false;
-					double requestedQty = le->text().toDouble(&valid);
+					double requestedQty = requestedQtyStr.toDouble(&valid);
 					if (!valid)
 					{
 						QMessageBox mbox;
@@ -291,6 +292,8 @@ void ESAddBill::slotReturnPressed(QString saleId, int row)
 						mbox.setIcon(QMessageBox::Critical);
 						mbox.setText(QString("Low stock"));
 						mbox.exec();
+						requestedQty = currentQty;
+						requestedQtyStr = QString::number(requestedQty);//cannot add more than the available stock
 						return;
 					}
 				}
@@ -302,7 +305,7 @@ void ESAddBill::slotReturnPressed(QString saleId, int row)
 				QString st = QString::number(subTotal, 'f', 2);
 				ui.tableWidget->item(row, 5)->setText(st);
 
-				QSqlQuery q("UPDATE sale SET quantity = " + le->text() + ", total = " + st + " WHERE sale_id = " + saleId);
+				QSqlQuery q("UPDATE sale SET quantity = " + requestedQtyStr + ", total = " + st + " WHERE sale_id = " + saleId);
 				calculateAndDisplayTotal();
 			}
 		}
@@ -320,7 +323,7 @@ void ESAddBill::calculateAndDisplayTotal()
 	{
 		double subTot = queryAllSales.value("total").toDouble();
 		double discount = queryAllSales.value("discount").toDouble();
-		netAmount += (subTot * (100.0 - discount)/ 100.0) ;
+		netAmount += (subTot * (100.0 - discount) / 100.0);
 		grossAmount += subTot;
 		noOfItems++;
 	}
@@ -351,7 +354,7 @@ void ESAddBill::slotCommit()
 		payment->setTotalAmount(QString::number(ui.grossAmountLabel->text().toDouble(), 'f', 2));
 		//payment->getUI().balanceLbl->setText("0.00");
 
-		QSize sz = payment->size(); 
+		QSize sz = payment->size();
 		QPoint screen = QApplication::desktop()->screen()->rect().center();
 		payment->move(screen.x() - sz.width() / 2, screen.y() - sz.height() / 2);
 	}
@@ -417,7 +420,7 @@ void ESAddBill::slotRemoveItem(QString saleId)
 		{
 			ui.tableWidget->removeRow(0);
 		}
-		
+
 		QString qStr = "SELECT * FROM sale WHERE bill_id = " + billId + " AND deleted = 0";
 		QSqlQuery queryBillTable(qStr);
 
@@ -466,30 +469,25 @@ void ESAddBill::slotCellDoubleClicked(int row, int col)
 void ESAddBill::checkAndContinuePendingBill()
 {
 	int userId = ES::Session::getInstance()->getUser()->getId();
-	QString pendingBill = "SELECT * FROM bill WHERE deleted = 0 AND status = 2 AND user_id = ";
-	pendingBill.append(userId);
+	QString pendingBill = "SELECT * FROM bill WHERE deleted = 0 AND status = 2 AND user_id = " + QString::number(userId);
 	QSqlQuery pendingBillQry(pendingBill);
 	if (pendingBillQry.next()/*ES::Session::getInstance()->isBillStarted()*/)
 	{
-		if (pendingBillQry.value("status").toInt() == 2 &&
-			pendingBillQry.value("user_id").toInt() == ES::Session::getInstance()->getUser()->getId())
-		{
-			//There is a pending bill
-			QString billId = pendingBillQry.value("bill_id").toString();
-			QSqlQuery updateDate("UPDATE bill SET date = NOW() WHERE bill_id = " + billId);
-			ui.billIdLabel->setText(billId);
+		//There is a pending bill
+		QString billId = pendingBillQry.value("bill_id").toString();
+		QSqlQuery updateDate("UPDATE bill SET date = NOW() WHERE bill_id = " + billId);
+		ui.billIdLabel->setText(billId);
 
-			ES::Session::getInstance()->startBill();
-			ES::Session::getInstance()->setBillId(billId);
-			//proceedPendingBill(ES::Session::getInstance()->getBillId());
-			int row = ui.tableWidget->rowCount();
+		ES::Session::getInstance()->startBill();
+		ES::Session::getInstance()->setBillId(billId);
+		//proceedPendingBill(ES::Session::getInstance()->getBillId());
+		int row = ui.tableWidget->rowCount();
 
-			QString q = "SELECT * FROM sale where bill_id= " + billId + " AND deleted = 0";
-			QSqlQuery queryAllSales(q);
+		QString q = "SELECT * FROM sale where bill_id= " + billId + " AND deleted = 0";
+		QSqlQuery queryAllSales(q);
 
-			populateTable(queryAllSales);
-			calculateAndDisplayTotal();
-		}
+		populateTable(queryAllSales);
+		calculateAndDisplayTotal();
 	}
 }
 
@@ -523,6 +521,8 @@ void ESAddBill::slotQuantityCellUpdated(QString txt, int row, int col)
 					mbox.setIcon(QMessageBox::Critical);
 					mbox.setText(QString("Low stock"));
 					mbox.exec();
+					txt = QString::number(currentQty);
+					ui.tableWidget->item(row, 3)->setText(txt);
 					return;
 				}
 			}

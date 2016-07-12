@@ -16,6 +16,7 @@
 #include "KDReportsHeader.h"
 #include "KDReportsHtmlElement.h"
 #include "QPrintPreviewDialog"
+#include "QString"
 
 ESCurrentBills::ESCurrentBills(QWidget *parent)
 : QWidget(parent)
@@ -24,9 +25,11 @@ ESCurrentBills::ESCurrentBills(QWidget *parent)
 	m_proceedButtonSignalMapper = new QSignalMapper(this);
 	m_voidBillButtonSignalMapper = new QSignalMapper(this);
 	m_reprintBillButtonSignalMapper = new QSignalMapper(this);
+	m_visibleButtonSignalMapper = new QSignalMapper(this);
 	QObject::connect(m_proceedButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotProceed(QString)));
 	QObject::connect(m_voidBillButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotVoidBill(QString)));
 	QObject::connect(m_reprintBillButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotReprint(QString)));
+	QObject::connect(m_visibleButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotVisible(QString)));
 
 	ui.startDate->setDisplayFormat("yyyy-MM-dd");
 	ui.endDate->setDisplayFormat("yyyy-MM-dd");
@@ -101,7 +104,7 @@ void ESCurrentBills::slotSearch()
 	endDate.setTime(QTime(23,59, 59));
 
 	int row = 0;
-	QSqlQuery allBillQuery("SELECT * FROM bill WHERE deleted = 0 AND DATE(date) = DATE(CURDATE())");
+	QSqlQuery allBillQuery("SELECT * FROM bill WHERE deleted = 0");
 	while (allBillQuery.next())
 	{		
 		if (selectedUser > 0)
@@ -159,6 +162,20 @@ void ESCurrentBills::slotSearch()
  			m_reprintBillButtonSignalMapper->setMapping(reprintBtn, billId);
  			QObject::connect(reprintBtn, SIGNAL(clicked()), m_reprintBillButtonSignalMapper, SLOT(map()));
  			layout->addWidget(reprintBtn);
+
+			//////////////////////////////////////////////////////////////////////////
+
+			if (ES::Session::getInstance()->getUser()->getType() == ES::User::DEV ||
+				ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER)
+			{
+				QPushButton* visibleBtn = new QPushButton("Visible", base);
+				visibleBtn->setMaximumWidth(100);
+				m_visibleButtonSignalMapper->setMapping(visibleBtn, billId);
+				QObject::connect(visibleBtn, SIGNAL(clicked()), m_visibleButtonSignalMapper, SLOT(map()));
+				layout->addWidget(visibleBtn);
+			}
+
+			//////////////////////////////////////////////////////////////////////////
 						
 			layout->insertStretch(2);
 			base->setLayout(layout);
@@ -533,6 +550,7 @@ void ESCurrentBills::slotReprint(QString billIdStr)
 				unitPrice = QString::number(queryItem.value("selling_price").toDouble(), 'f', 2);
 				itemCode = queryItem.value("item_code").toString();
 			}
+			total += qty.toDouble() * unitPrice.toDouble()* (100-discount.toDouble())/100;
 			//columns (item_code, Description, UnitPrice, Discount, Qty, Sub Total)
 			printRow(tableElement, row, 0, itemCode);
 			printRow(tableElement, row, 1, itemName);
@@ -701,4 +719,9 @@ void ESCurrentBills::printRow(KDReports::TableElement& tableElement, int row, in
 	KDReports::TextElement te(elementStr);
 	te.setPointSize(ES::Session::getInstance()->getBillItemFontSize());
 	cell.addElement(te, alignment);
+}
+
+void ESCurrentBills::slotVisible(QString billId)
+{
+
 }

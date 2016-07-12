@@ -7,6 +7,7 @@
 #include "ui_salesummary.h"
 #include "KDReportsTableElement.h"
 #include "qnamespace.h"
+#include "QSignalMapper"
 
 class ESSalesSummary : public QWidget
 {
@@ -14,6 +15,9 @@ class ESSalesSummary : public QWidget
 
 public:
 	ESSalesSummary(QWidget *parent = 0);
+
+	void displayResults();
+
 	~ESSalesSummary();
 
 	Ui::SaleSummary& getUI() { return ui; };
@@ -21,13 +25,14 @@ public:
 	public slots:
 	void slotGenerate();
 	void slotPrint(QPrinter* printer);
-
+	void slotDateChanged();
 private:
 	Ui::SaleSummary ui;
 
 	void printRow(KDReports::TableElement& tableElement, int row, int col,
 		QString elementStr, Qt::AlignmentFlag alignment = Qt::AlignLeft);
 	KDReports::Report report;
+	QSignalMapper* m_detailButtonSignalMapper;
 
 };
 

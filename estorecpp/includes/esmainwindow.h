@@ -42,6 +42,7 @@ public slots:
 	void slotViewCustomerHistory();
 	void slotViewCustomerOutstanding();
 	void slotManageUsers();
+	void slotPettyCashSummary();
 
 protected:
 	void closeEvent(QCloseEvent *event);

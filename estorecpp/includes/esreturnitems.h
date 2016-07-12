@@ -19,17 +19,21 @@ public:
 	void slotItemDoubleClicked(int row, int col);
 	void slotRemove(QString itemCode);
 	void slotPrintReturnBill();
+	void slotQuantityCellUpdated(QString, int, int);
 
 	void slotAddReturnedItem();
 	void slotPrint(QPrinter* printer);
+
 private:
 	void printReturnItemInfo();
+	void calculateTotal();
 
 	Ui::ReturnItems ui;
 	QSignalMapper* m_removeButtonSignalMapper;
 	int m_idGenerator;
 	KDReports::Report report;
 	int m_billId;
+	double m_total;
 };
 
 #endif

@@ -5,6 +5,7 @@
 #include "esmanagestockitems.h"
 #include "utility/esmainwindowholder.h"
 #include "esmainwindow.h"
+#include "utility/utility.h"
 
 AddStockItem::AddStockItem(QWidget *parent /*= 0*/)
 : QWidget(parent), m_existingQuantityInMainStock(0), m_update(false), m_existingQuantityInStock(0)
@@ -46,8 +47,15 @@ void AddStockItem::slotAddStockItem()
 				mbox.setText(QString("Invalid input - Quantity"));
 				mbox.exec();
 			}
-			if (quantity >= 0 && quantity >= m_existingQuantityInMainStock)
+			if (quantity >= 0)
 			{
+				if ( quantity < m_existingQuantityInMainStock)
+				{
+					if (!ES::Utility::verifyUsingMessageBox(this, "EStore", "Do you really want to reduce the stock quantity?"))
+					{
+						return;
+					}
+				}
 				double minQty = qtyStr.toDouble(&isValid);
 				if (!isValid)
 				{
@@ -121,15 +129,33 @@ void AddStockItem::slotAddStockItem()
 							mbox.exec();
 						}
 
-						QString qUpdateStockPOStr("UPDATE stock_purchase_order_item SET  purchasing_price = " + purchasingPrice +
-							" WHERE purchaseorder_id = -1 AND stock_id = " + m_stockId + " AND item_id = " + itemId);
-						QSqlQuery updateStockPOQuery;
-						if (!updateStockPOQuery.exec(qUpdateStockPOStr))
+						QSqlQuery qSelectPO("SELECT * FROM stock_purchase_order_item WHERE  purchaseorder_id = -1 AND stock_id = " + m_stockId + " AND item_id = " + itemId);
+						if (qSelectPO.next())
 						{
-							QMessageBox mbox;
-							mbox.setIcon(QMessageBox::Critical);
-							mbox.setText(QString("Purchasing price update error !"));
-							mbox.exec();
+							QString qUpdateStockPOStr("UPDATE stock_purchase_order_item SET  purchasing_price = " + purchasingPrice +
+								" WHERE purchaseorder_id = -1 AND stock_id = " + m_stockId + " AND item_id = " + itemId);
+							QSqlQuery updateStockPOQuery;
+							if (!updateStockPOQuery.exec(qUpdateStockPOStr))
+							{
+								QMessageBox mbox;
+								mbox.setIcon(QMessageBox::Critical);
+								mbox.setText(QString("Purchasing price update error !"));
+								mbox.exec();
+							}
+						}
+						else
+						{
+							//no entry is available it has to be added to the database
+							QString qStockPOStr("INSERT INTO stock_purchase_order_item (purchaseorder_id, item_id, selling_price, purchasing_price, stock_id) VALUES (-1, " +
+								itemId + ", " + price + ", " + purchasingPrice + ", " + m_stockId + ")");
+							QSqlQuery queryStockPO;
+							if (!queryStockPO.exec(qStockPOStr))
+							{
+								QMessageBox mbox;
+								mbox.setIcon(QMessageBox::Critical);
+								mbox.setText(QString("purchasing price insertion error :: slotAddStockItem"));
+								mbox.exec();
+							}
 						}
 
 						ESManageStockItems* manageStock = new ESManageStockItems();
@@ -150,7 +176,7 @@ void AddStockItem::slotAddStockItem()
 			{
 				QMessageBox mbox;
 				mbox.setIcon(QMessageBox::Warning);
-				mbox.setText(QString("Inserted quantity is lesser the existing quantity or invalid quantity"));
+				mbox.setText(QString("Invalid Quantity"));
 				mbox.exec();
 			}
 		}
@@ -158,7 +184,7 @@ void AddStockItem::slotAddStockItem()
 		{
 			QMessageBox mbox;
 			mbox.setIcon(QMessageBox::Warning);
-			mbox.setText(QString("Fields are Empty"));
+			mbox.setText(QString("Some fields are empty"));
 			mbox.exec();
 		}
 	}
