@@ -133,10 +133,8 @@ void ESSalesSummary::slotGenerate()
 		cTotal.addElement(tETotal, Qt::AlignCenter);
 		int row = 1;
 		double cashSales = 0, creditSales = 0, chequeSales = 0, cardSales = 0;
-		QDateTime startDate = QDateTime::fromString(ui.fromDate->text(), Qt::ISODate);
-		QDateTime endDate = QDateTime::fromString(ui.toDate->text(), Qt::ISODate);
-		QString stardDateStr = startDate.date().toString("yyyy-MM-dd");
-		QString endDateStr = endDate.date().toString("yyyy-MM-dd");
+		QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
+		QString endDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
 		QSqlQuery totalBillQry("SELECT* FROM bill WHERE deleted = 0 AND status = 1 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr+"'");
 		while (totalBillQry.next())
 		{
@@ -249,10 +247,10 @@ void ESSalesSummary::displayResults()
 	ui.tableWidgetTotal->setVerticalHeaderItem(row, new QTableWidgetItem("Total"));
 	double cashSales = 0, creditSales = 0, chequeSales = 0, cardSales = 0;
 	//QSqlQuery totalBillQry("SELECT* FROM bill WHERE deleted = 0 AND status = 1 AND  DATE(date) = CURDATE()");
-	QDateTime startDate = QDateTime::fromString(ui.fromDate->text(), Qt::ISODate);
-	QDateTime endDate = QDateTime::fromString(ui.toDate->text(), Qt::ISODate);
-	QString stardDateStr = startDate.date().toString("yyyy-MM-dd");
-	QString endDateStr = endDate.date().toString("yyyy-MM-dd");
+// 	QDateTime startDate = QDateTime::fromString(ui.fromDate->text(), Qt::ISODate);
+// 	QDateTime endDate = QDateTime::fromString(ui.toDate->text(), Qt::ISODate);
+	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
+	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
 	QSqlQuery totalBillQry("SELECT* FROM bill WHERE deleted = 0 AND status = 1 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
 	while (totalBillQry.next())
 	{

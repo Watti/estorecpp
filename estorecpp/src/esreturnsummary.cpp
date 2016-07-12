@@ -45,8 +45,6 @@ void ESReturnSummary::slotSearch()
 	int totalBillCount = 0;
 
 	//QSqlQuery q("SELECT user_id, COUNT(bill_id) AS bills, SUM(return_total) AS total FROM return_item GROUP BY(user_id)");
-	QDateTime startDate = QDateTime::fromString(ui.fromDate->text(), Qt::ISODate);
-	QDateTime endDate = QDateTime::fromString(ui.toDate->text(), Qt::ISODate);
 	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
 	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
 
@@ -63,9 +61,6 @@ void ESReturnSummary::slotSearch()
 		QSqlQuery userQuery("SELECT display_name FROM user WHERE user_id = " + userId);
 		if (userQuery.next())
 		{
-			//QTableWidgetItem* userIdItem = new QTableWidgetItem(userQuery.value("display_name").toString());
-			//ui.tableWidgetByUser->setItem(row, 0, userIdItem);
-
 			QTableWidgetItem* nameItem = new QTableWidgetItem(userQuery.value("display_name").toString());
 			ui.tableWidgetByUser->setVerticalHeaderItem(row, nameItem);
 		}

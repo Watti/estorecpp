@@ -17,7 +17,7 @@
 
 INITIALIZE_EASYLOGGINGPP
 
-#define SECOND_DISPLAY 1
+#define SECOND_DISPLAY 0
 
 void readSettings()
 {
@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
 	ES::MainWindowHolder::instance()->setMainWindow(&mainWindow);
 
 #if SECOND_DISPLAY
-	//ES::MainWindowHolder::instance()->openSecondaryDisplay();
+	ES::MainWindowHolder::instance()->openSecondaryDisplay();
 	ES::Session::getInstance()->setBillItemFontSize(12);
 	ES::Session::getInstance()->setBillTitle("HIRUNA MARKETING(PVT) LTD");
 	ES::Session::getInstance()->setBillAddress("No.374, High level Road, Meegoda");

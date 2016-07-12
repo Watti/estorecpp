@@ -67,10 +67,8 @@ void PettyCashSummary::displayResults()
 	}
 	int row = 0;
 
-	QDateTime startDate = QDateTime::fromString(ui.fromDate->text(), Qt::ISODate);
-	QDateTime endDate = QDateTime::fromString(ui.toDate->text(), Qt::ISODate);
-	QString stardDateStr = startDate.date().toString("yyyy-MM-dd");
-	QString endDateStr = endDate.date().toString("yyyy-MM-dd");
+	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
+	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
 
 	QSqlQuery queryUserType("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE user.active = 1");
 	while (queryUserType.next())
