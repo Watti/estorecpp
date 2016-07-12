@@ -24,6 +24,7 @@ public:
 	public slots:
 	void slotPrint(QPrinter* printer);
 	void slotSearch();
+	void slotGenerateReportForGivenUser(QString userId);
 private:
 	Ui::OverallSalesSummary ui;
 
