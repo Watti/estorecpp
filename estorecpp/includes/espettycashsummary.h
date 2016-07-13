@@ -20,8 +20,10 @@ public:
 
 	public slots:
 	void slotDateChanged();
+	void slotGenerateReportForGivenUser(QString);
 private:
 	Ui::PettyCashSummary ui;
+	QSignalMapper* m_generateReportSignalMapper;
 
 };
 #endif
