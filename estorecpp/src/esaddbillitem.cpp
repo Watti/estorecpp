@@ -46,6 +46,7 @@ ESAddBillItem::ESAddBillItem(ESAddBill* cart, QWidget *parent)
 	slotHideImages();
 
 	new QShortcut(QKeySequence(Qt::Key_Escape), this, SLOT(close()));
+	new QShortcut(QKeySequence(Qt::Key_Tab), this, SLOT(focus()));
 	ui.itemText->setFocusPolicy(Qt::StrongFocus);
 	setFocus();
 
@@ -293,5 +294,6 @@ void ESAddBillItem::focus()
 {
 	ui.itemText->setFocus();
 }
+
 
 

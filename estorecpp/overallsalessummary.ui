@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Overall Sales Summary</string>
+   <string>Overall Summary</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -24,7 +24,7 @@
         </font>
        </property>
        <property name="text">
-        <string>Overall Sales Summary</string>
+        <string>Overall Summary</string>
        </property>
       </widget>
      </item>

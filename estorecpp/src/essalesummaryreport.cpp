@@ -93,9 +93,11 @@ void ESSalesSummary::slotGenerate()
 		titleElement.setBold(true);
 		report.addElement(titleElement, Qt::AlignHCenter);
 
+		QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
+		QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
 
 		QString dateStr = "Date : ";
-		dateStr.append(QDateTime::currentDateTime().toString("yyyy-MM-dd"));
+		dateStr.append(stardDateStr).append(" - ").append(endDateStr);
 
 
 		KDReports::TableElement infoTableElement;
@@ -133,8 +135,6 @@ void ESSalesSummary::slotGenerate()
 		cTotal.addElement(tETotal, Qt::AlignCenter);
 		int row = 1;
 		double cashSales = 0, creditSales = 0, chequeSales = 0, cardSales = 0;
-		QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
-		QString endDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
 		QSqlQuery totalBillQry("SELECT* FROM bill WHERE deleted = 0 AND status = 1 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr+"'");
 		while (totalBillQry.next())
 		{
