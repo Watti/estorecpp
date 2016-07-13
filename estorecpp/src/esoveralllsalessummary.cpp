@@ -212,7 +212,10 @@ void OverallSalesSummary::slotSearch()
 
 void OverallSalesSummary::printRow(KDReports::TableElement& tableElement, int row, int col, QString elementStr, Qt::AlignmentFlag alignment /*= Qt::AlignLeft*/)
 {
-
+	KDReports::Cell& cell = tableElement.cell(row, col);
+	KDReports::TextElement te(elementStr);
+	te.setPointSize(ES::Session::getInstance()->getBillItemFontSize());
+	cell.addElement(te, alignment);
 }
 
 Ui::OverallSalesSummary& OverallSalesSummary::getUI()
@@ -222,7 +225,7 @@ Ui::OverallSalesSummary& OverallSalesSummary::getUI()
 
 void OverallSalesSummary::slotGenerateReportForGivenUser(QString userId)
 {
-		KDReports::TextElement titleElement("SALES SUMMARY");
+		KDReports::TextElement titleElement("OVERALL SALES SUMMARY");
 		titleElement.setPointSize(13);
 		titleElement.setBold(true);
 		report.addElement(titleElement, Qt::AlignHCenter);
