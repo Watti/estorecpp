@@ -6,6 +6,7 @@
 #include "QSignalMapper"
 #include "QWidget"
 #include "ui_PettyCashSummary.h"
+#include "KDReportsTableElement.h"
 
 class PettyCashSummary : public QWidget
 {
@@ -21,8 +22,13 @@ public:
 	public slots:
 	void slotDateChanged();
 	void slotGenerateReportForGivenUser(QString);
+	void slotPrint(QPrinter* printer);
+	void printRow(KDReports::TableElement& tableElement, int row, int col,
+		QString elementStr, Qt::AlignmentFlag alignment = Qt::AlignLeft);
+	void slotGenerateReport();
 private:
 	Ui::PettyCashSummary ui;
+	KDReports::Report report;
 	QSignalMapper* m_generateReportSignalMapper;
 
 };
