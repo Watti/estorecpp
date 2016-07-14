@@ -25,7 +25,6 @@ ESReturnSummary::ESReturnSummary(QWidget *parent /*= 0*/) : QWidget(parent)
 
 	QObject::connect(ui.fromDate, SIGNAL(dateChanged(const QDate &)), this, SLOT(slotDateChanged()));
 	QObject::connect(ui.toDate, SIGNAL(dateChanged(const QDate &)), this, SLOT(slotDateChanged()));
-
 	//slotSearch();
 }
 

@@ -26,13 +26,14 @@ public:
 	void slotGenerate();
 	void slotPrint(QPrinter* printer);
 	void slotDateChanged();
+	void slotGenerateReportForGivenUser(QString userId);
 private:
 	Ui::SaleSummary ui;
 
 	void printRow(KDReports::TableElement& tableElement, int row, int col,
 		QString elementStr, Qt::AlignmentFlag alignment = Qt::AlignLeft);
 	KDReports::Report report;
-	QSignalMapper* m_detailButtonSignalMapper;
+	QSignalMapper* m_generateUserReportMapper;
 
 };
 
