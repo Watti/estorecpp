@@ -6,6 +6,9 @@
 #include <QtSql/QSqlQuery>
 #include <QtGui>
 #include "QSignalMapper"
+#include "KDReportsReport.h"
+#include "qnamespace.h"
+#include "KDReportsTableElement.h"
 
 class ESReturnSummary : public QWidget
 {
@@ -20,10 +23,15 @@ public:
 	public slots:
 	void slotSearch();
 	void slotDateChanged();
+	void slotGenerateReport();
+	void slotPrint(QPrinter* printer);
 
 private:
 	Ui::ReturnSummaryWidget ui;
 	QSignalMapper* m_removeButtonSignalMapper;
+	KDReports::Report report;
+	void printRow(KDReports::TableElement& tableElement, int row, int col,
+		QString elementStr, Qt::AlignmentFlag alignment = Qt::AlignLeft);
 
 };
 
