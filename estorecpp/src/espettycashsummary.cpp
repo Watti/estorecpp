@@ -45,7 +45,7 @@ PettyCashSummary::PettyCashSummary(QWidget *parent) : QWidget(parent)
 
 	//ui.datelbl->setText(QDate::currentDate().toString("yyyy-MM-dd"));
 	QObject::connect(m_generateReportSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotGenerateReportForGivenUser(QString)));
-	displayResults();
+	//displayResults();
 
 
 }

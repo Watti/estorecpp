@@ -71,7 +71,7 @@ ESSalesSummary::ESSalesSummary(QWidget *parent /*= 0*/) : QWidget(parent)
 	QObject::connect(ui.toDate, SIGNAL(dateChanged(const QDate &)), this, SLOT(slotDateChanged()));
 	//ui.datelbl->setText(QDate::currentDate().toString("yyyy-MM-dd"));
 
-	displayResults();
+	//displayResults();
 
 }
 

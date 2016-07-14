@@ -5,6 +5,10 @@
 #include <QStandardItemModel>
 #include <QtSql/QSqlQuery>
 #include <QtGui>
+#include "espettycashsummary.h"
+#include "esreturnsummary.h"
+#include "essalesummaryreport.h"
+#include "esoveralllsalessummary.h"
 
 class ESSalesReportContainer : public QWidget
 {
@@ -18,9 +22,14 @@ public:
 
 	public slots:
 	void slotSearch();
+	void onTabChanged(int tabIndex);
 
 private:
 	Ui::SalesReportWidget ui;
+	PettyCashSummary* m_pettyCashSummary;
+	ESReturnSummary* m_returnSummary; 
+	ESSalesSummary* m_salesSummary;
+	OverallSalesSummary* m_overallSalesSummary;
 
 };
 
