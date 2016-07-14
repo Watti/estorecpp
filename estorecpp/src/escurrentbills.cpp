@@ -25,11 +25,11 @@ ESCurrentBills::ESCurrentBills(QWidget *parent)
 	m_proceedButtonSignalMapper = new QSignalMapper(this);
 	m_voidBillButtonSignalMapper = new QSignalMapper(this);
 	m_reprintBillButtonSignalMapper = new QSignalMapper(this);
-	m_visibleButtonSignalMapper = new QSignalMapper(this);
+	m_invisibleButtonSignalMapper = new QSignalMapper(this);
 	QObject::connect(m_proceedButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotProceed(QString)));
 	QObject::connect(m_voidBillButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotVoidBill(QString)));
 	QObject::connect(m_reprintBillButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotReprint(QString)));
-	QObject::connect(m_visibleButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotVisible(QString)));
+	QObject::connect(m_invisibleButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotInvisible(QString)));
 
 	ui.startDate->setDisplayFormat("yyyy-MM-dd");
 	ui.endDate->setDisplayFormat("yyyy-MM-dd");
@@ -104,7 +104,17 @@ void ESCurrentBills::slotSearch()
 	endDate.setTime(QTime(23, 59, 59));
 
 	int row = 0;
-	QSqlQuery allBillQuery("SELECT * FROM bill WHERE deleted = 0");
+	QString qStr;
+	if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
+		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
+	{
+		qStr = "SELECT * FROM bill WHERE deleted = 0";
+	}
+	else
+	{
+		qStr = "SELECT * FROM bill WHERE deleted = 0 AND visible = 1";
+	}
+	QSqlQuery allBillQuery(qStr);
 	while (allBillQuery.next())
 	{
 		if (selectedUser > 0)
@@ -168,11 +178,11 @@ void ESCurrentBills::slotSearch()
 				  if (ES::Session::getInstance()->getUser()->getType() == ES::User::DEV ||
 					  ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER)
 				  {
-					  QPushButton* visibleBtn = new QPushButton("Visible", base);
-					  visibleBtn->setMaximumWidth(100);
-					  m_visibleButtonSignalMapper->setMapping(visibleBtn, billId);
-					  QObject::connect(visibleBtn, SIGNAL(clicked()), m_visibleButtonSignalMapper, SLOT(map()));
-					  layout->addWidget(visibleBtn);
+					  QPushButton* hideBtn = new QPushButton("Hide", base);
+					  hideBtn->setMaximumWidth(100);
+					  m_invisibleButtonSignalMapper->setMapping(hideBtn, billId);
+					  QObject::connect(hideBtn, SIGNAL(clicked()), m_invisibleButtonSignalMapper, SLOT(map()));
+					  layout->addWidget(hideBtn);
 				  }
 
 				  //////////////////////////////////////////////////////////////////////////
@@ -722,7 +732,18 @@ void ESCurrentBills::printRow(KDReports::TableElement& tableElement, int row, in
 	cell.addElement(te, alignment);
 }
 
-void ESCurrentBills::slotVisible(QString billId)
+void ESCurrentBills::slotInvisible(QString billId)
 {
-
+	if (ES::Utility::verifyUsingMessageBox(this, "EStore", "Do you really want hide this ?"))
+	{
+		QString q("UPDATE bill SET visible = 0 WHERE bill_id = " + billId);
+		QSqlQuery query;
+		if (query.exec(q))
+		{
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Information);
+			mbox.setText("Operation is success");
+			mbox.exec();
+		}
+	}
 }
