@@ -188,17 +188,6 @@
        </property>
       </widget>
      </item>
-     <item>
-      <widget class="QCheckBox" name="checkBox">
-       <property name="text">
-        <string/>
-       </property>
-       <property name="icon">
-        <iconset>
-         <normaloff>icons/print.png</normaloff>icons/print.png</iconset>
-       </property>
-      </widget>
-     </item>
     </layout>
    </item>
    <item>

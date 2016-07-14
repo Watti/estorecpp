@@ -83,138 +83,134 @@ void ESSalesSummary::slotPrint(QPrinter* printer)
 
 void ESSalesSummary::slotGenerate()
 {
-	bool print = ui.checkBox->isChecked();
-	if (print)
+	//KDReports::Report report;
+
+	KDReports::TextElement titleElement("SALES SUMMARY");
+	titleElement.setPointSize(13);
+	titleElement.setBold(true);
+	report.addElement(titleElement, Qt::AlignHCenter);
+
+	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
+	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
+
+	QString dateStr = "Date : ";
+	dateStr.append(stardDateStr).append(" - ").append(endDateStr);
+
+
+	KDReports::TableElement infoTableElement;
+	infoTableElement.setHeaderRowCount(2);
+	infoTableElement.setHeaderColumnCount(2);
+	infoTableElement.setBorder(0);
+	infoTableElement.setWidth(100, KDReports::Percent);
+
 	{
-		//KDReports::Report report;
+		KDReports::Cell& dateCell = infoTableElement.cell(0, 1);
+		KDReports::TextElement t(dateStr);
+		t.setPointSize(10);
+		dateCell.addElement(t, Qt::AlignRight);
+	}
 
-		KDReports::TextElement titleElement("SALES SUMMARY");
-		titleElement.setPointSize(13);
-		titleElement.setBold(true);
-		report.addElement(titleElement, Qt::AlignHCenter);
+	report.addElement(infoTableElement);
+	report.addVerticalSpacing(5);
 
-		QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
-		QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
+	KDReports::TableElement tableElement;
+	//tableElement.setHeaderRowCount(5);
+	tableElement.setHeaderColumnCount(2);
+	tableElement.setBorder(1);
+	tableElement.setWidth(100, KDReports::Percent);
 
-		QString dateStr = "Date : ";
-		dateStr.append(stardDateStr).append(" - ").append(endDateStr);
+	KDReports::Cell& cellPType = tableElement.cell(0, 0);
+	KDReports::TextElement tEPType("Payment Type");
+	tEPType.setPointSize(11);
+	tEPType.setBold(true);
+	cellPType.addElement(tEPType, Qt::AlignCenter);
 
-
-		KDReports::TableElement infoTableElement;
-		infoTableElement.setHeaderRowCount(2);
-		infoTableElement.setHeaderColumnCount(2);
-		infoTableElement.setBorder(0);
-		infoTableElement.setWidth(100, KDReports::Percent);
-
+	KDReports::Cell& cTotal = tableElement.cell(0, 1);
+	KDReports::TextElement tETotal("Total");
+	tETotal.setBold(true);
+	tETotal.setPointSize(11);
+	cTotal.addElement(tETotal, Qt::AlignCenter);
+	int row = 1;
+	double cashSales = 0, creditSales = 0, chequeSales = 0, cardSales = 0;
+	QSqlQuery totalBillQry("SELECT* FROM bill WHERE deleted = 0 AND status = 1 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+	while (totalBillQry.next())
+	{
+		QSqlQuery queryUserType("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE user.user_id = " + totalBillQry.value("user_id").toString() + " AND usertype.usertype_name <> 'DEV'");
+		if (queryUserType.next())
 		{
-			KDReports::Cell& dateCell = infoTableElement.cell(0, 1);
-			KDReports::TextElement t(dateStr);
-			t.setPointSize(10);
-			dateCell.addElement(t, Qt::AlignRight);
-		}
-
-		report.addElement(infoTableElement);
-		report.addVerticalSpacing(5);
-		
-		KDReports::TableElement tableElement;
-		//tableElement.setHeaderRowCount(5);
-		tableElement.setHeaderColumnCount(2);
-		tableElement.setBorder(1);
-		tableElement.setWidth(100, KDReports::Percent);
-
-		KDReports::Cell& cellPType = tableElement.cell(0, 0);
-		KDReports::TextElement tEPType("Payment Type");
-		tEPType.setPointSize(11);
-		tEPType.setBold(true);
-		cellPType.addElement(tEPType, Qt::AlignCenter);
-
-		KDReports::Cell& cTotal = tableElement.cell(0, 1);
-		KDReports::TextElement tETotal("Total");
-		tETotal.setBold(true);
-		tETotal.setPointSize(11);
-		cTotal.addElement(tETotal, Qt::AlignCenter);
-		int row = 1;
-		double cashSales = 0, creditSales = 0, chequeSales = 0, cardSales = 0;
-		QSqlQuery totalBillQry("SELECT* FROM bill WHERE deleted = 0 AND status = 1 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr+"'");
-		while (totalBillQry.next())
-		{
-			QSqlQuery queryUserType("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE user.user_id = " + totalBillQry.value("user_id").toString() + " AND usertype.usertype_name <> 'DEV'");
-			if (queryUserType.next())
+			QSqlQuery paymentQry("SELECT * FROM payment WHERE valid = 1 AND bill_id = " + totalBillQry.value("bill_id").toString());
+			while (paymentQry.next())
 			{
-				QSqlQuery paymentQry("SELECT * FROM payment WHERE valid = 1 AND bill_id = " + totalBillQry.value("bill_id").toString());
-				while (paymentQry.next())
+				QString paymentType = paymentQry.value("payment_type").toString();
+				QString paymentId = paymentQry.value("payment_id").toString();
+				double tot = paymentQry.value("total_amount").toDouble();
+				if (paymentType == "CASH")
 				{
-					QString paymentType = paymentQry.value("payment_type").toString();
-					QString paymentId = paymentQry.value("payment_id").toString();
-					double tot = paymentQry.value("total_amount").toDouble();
-					if (paymentType == "CASH")
+					cashSales += tot;
+				}
+				else if (paymentType == "CREDIT")
+				{
+					QSqlQuery creditSaleQry("SELECT * FROM credit WHERE payment_id = " + paymentId);
+					while (creditSaleQry.next())
 					{
-						cashSales += tot;
+						double amount = creditSaleQry.value("amount").toDouble();
+						double interest = creditSaleQry.value("interest").toDouble();
+						amount = (amount * (100 + interest) / 100);
+						creditSales += amount;
 					}
-					else if (paymentType == "CREDIT")
+				}
+				else if (paymentType == "CHEQUE")
+				{
+					QSqlQuery chequeSaleQry("SELECT * FROM cheque WHERE payment_id = " + paymentId);
+					while (chequeSaleQry.next())
 					{
-						QSqlQuery creditSaleQry("SELECT * FROM credit WHERE payment_id = " + paymentId);
-						while (creditSaleQry.next())
-						{
-							double amount = creditSaleQry.value("amount").toDouble();
-							double interest = creditSaleQry.value("interest").toDouble();
-							amount = (amount * (100 + interest) / 100);
-							creditSales += amount;
-						}
+						double amount = chequeSaleQry.value("amount").toDouble();
+						double interest = chequeSaleQry.value("interest").toDouble();
+						amount = (amount * (100 + interest) / 100);
+						chequeSales += amount;
 					}
-					else if (paymentType == "CHEQUE")
+				}
+				else if (paymentType == "CARD")
+				{
+					QSqlQuery cardSaleQry("SELECT * FROM card WHERE payment_id = " + paymentId);
+					while (cardSaleQry.next())
 					{
-						QSqlQuery chequeSaleQry("SELECT * FROM cheque WHERE payment_id = " + paymentId);
-						while (chequeSaleQry.next())
-						{
-							double amount = chequeSaleQry.value("amount").toDouble();
-							double interest = chequeSaleQry.value("interest").toDouble();
-							amount = (amount * (100 + interest) / 100);
-							chequeSales += amount;
-						}
+						double amount = cardSaleQry.value("amount").toDouble();
+						double interest = cardSaleQry.value("interest").toDouble();
+						amount = (amount * (100 + interest) / 100);
+						cardSales += amount;
 					}
-					else if (paymentType == "CARD")
-					{
-						QSqlQuery cardSaleQry("SELECT * FROM card WHERE payment_id = " + paymentId);
-						while (cardSaleQry.next())
-						{
-							double amount = cardSaleQry.value("amount").toDouble();
-							double interest = cardSaleQry.value("interest").toDouble();
-							amount = (amount * (100 + interest) / 100);
-							cardSales += amount;
-						}
-					}
-					else if (paymentType == "LOYALTY")
-					{
-					}
+				}
+				else if (paymentType == "LOYALTY")
+				{
 				}
 			}
 		}
-		printRow(tableElement, row, 0, "CASH");
-		printRow(tableElement, row++, 1, QString::number(cashSales, 'f', 2));
-		printRow(tableElement, row, 0, "CREDIT");
-		printRow(tableElement, row++, 1, QString::number(creditSales, 'f', 2));
-		printRow(tableElement, row, 0, "CHEQUE");
-		printRow(tableElement, row++, 1, QString::number(chequeSales, 'f', 2));
-		printRow(tableElement, row, 0, "CARD");
-		printRow(tableElement, row++, 1, QString::number(cardSales, 'f', 2));
-
-		report.addElement(tableElement);
-
-		QPrinter printer;
-		printer.setPaperSize(QPrinter::A4);
-
-		printer.setFullPage(false);
-		printer.setOrientation(QPrinter::Portrait);
-
-		 			QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
-		 			QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
-		 			dialog->setWindowTitle(tr("Print Document"));
-		 			ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
-					dialog->exec();
-
-		//report.print(&printer);
 	}
+	printRow(tableElement, row, 0, "CASH");
+	printRow(tableElement, row++, 1, QString::number(cashSales, 'f', 2));
+	printRow(tableElement, row, 0, "CREDIT");
+	printRow(tableElement, row++, 1, QString::number(creditSales, 'f', 2));
+	printRow(tableElement, row, 0, "CHEQUE");
+	printRow(tableElement, row++, 1, QString::number(chequeSales, 'f', 2));
+	printRow(tableElement, row, 0, "CARD");
+	printRow(tableElement, row++, 1, QString::number(cardSales, 'f', 2));
+
+	report.addElement(tableElement);
+
+	QPrinter printer;
+	printer.setPaperSize(QPrinter::A4);
+
+	printer.setFullPage(false);
+	printer.setOrientation(QPrinter::Portrait);
+
+	QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
+	QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
+	dialog->setWindowTitle(tr("Print Document"));
+	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
+	dialog->exec();
+
+	//report.print(&printer);
 }
 
 ESSalesSummary::~ESSalesSummary()
@@ -247,8 +243,8 @@ void ESSalesSummary::displayResults()
 	ui.tableWidgetTotal->setVerticalHeaderItem(row, new QTableWidgetItem("Total"));
 	double cashSales = 0, creditSales = 0, chequeSales = 0, cardSales = 0;
 	//QSqlQuery totalBillQry("SELECT* FROM bill WHERE deleted = 0 AND status = 1 AND  DATE(date) = CURDATE()");
-// 	QDateTime startDate = QDateTime::fromString(ui.fromDate->text(), Qt::ISODate);
-// 	QDateTime endDate = QDateTime::fromString(ui.toDate->text(), Qt::ISODate);
+	// 	QDateTime startDate = QDateTime::fromString(ui.fromDate->text(), Qt::ISODate);
+	// 	QDateTime endDate = QDateTime::fromString(ui.toDate->text(), Qt::ISODate);
 	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
 	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
 	QSqlQuery totalBillQry("SELECT* FROM bill WHERE deleted = 0 AND status = 1 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
@@ -418,7 +414,7 @@ void ESSalesSummary::displayResults()
 			QWidget* base = new QWidget(ui.tableWidgetByUser);
 
 			QPushButton* detailBtn = new QPushButton(base);
-			detailBtn->setIcon(QIcon("icons/detail.png"));
+			detailBtn->setIcon(QIcon("icons/pdf.png"));
 			detailBtn->setIconSize(QSize(24, 24));
 			detailBtn->setMaximumWidth(100);
 
