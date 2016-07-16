@@ -15,10 +15,14 @@ public:
 	Ui::CustomerOutstandingWidget& getUI() { return ui; }
 
 	public slots:
-	void slotSearch();
+	void slotSearchCustomers();
+	void slotCustomerSelected(int row, int col);
+	void populateCustomerOutstanding();
 
 private:
 	Ui::CustomerOutstandingWidget ui;
+	QString m_selectedCustomerId;
+	QSignalMapper* m_paymentDetailsMapper;
 
 };
 
