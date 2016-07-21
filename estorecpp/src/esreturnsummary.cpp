@@ -16,7 +16,7 @@ ESReturnSummary::ESReturnSummary(QWidget *parent /*= 0*/) : QWidget(parent)
 {
 	ui.setupUi(this);
 
-	m_removeButtonSignalMapper = new QSignalMapper(this);
+	m_detailButtonSignalMapper = new QSignalMapper(this);
 
 	QStringList headerLabels;
 	headerLabels.append("# of Bills");
@@ -38,6 +38,7 @@ ESReturnSummary::ESReturnSummary(QWidget *parent /*= 0*/) : QWidget(parent)
 	QObject::connect(ui.fromDate, SIGNAL(dateChanged(const QDate &)), this, SLOT(slotDateChanged()));
 	QObject::connect(ui.toDate, SIGNAL(dateChanged(const QDate &)), this, SLOT(slotDateChanged()));
 	QObject::connect(ui.generateButton, SIGNAL(clicked()), this, SLOT(slotGenerateReport()));
+	QObject::connect(m_detailButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotGenerateReportForGivenUser(QString)));
 	//slotSearch();
 }
 
@@ -90,17 +91,17 @@ void ESReturnSummary::slotSearch()
 
 		QWidget* base = new QWidget(ui.tableWidgetByUser);
 
-		QPushButton* removeBtn = new QPushButton(base);
-		removeBtn->setIcon(QIcon("icons/detail.png"));
-		removeBtn->setIconSize(QSize(24, 24));
-		removeBtn->setMaximumWidth(100);
+		QPushButton* detailBtn = new QPushButton(base);
+		detailBtn->setIcon(QIcon("icons/pdf.png"));
+		detailBtn->setIconSize(QSize(24, 24));
+		detailBtn->setMaximumWidth(100);
 
-		m_removeButtonSignalMapper->setMapping(removeBtn, userId);
-		QObject::connect(removeBtn, SIGNAL(clicked()), m_removeButtonSignalMapper, SLOT(map()));
+		m_detailButtonSignalMapper->setMapping(detailBtn, userId);
+		QObject::connect(detailBtn, SIGNAL(clicked()), m_detailButtonSignalMapper, SLOT(map()));
 
 		QHBoxLayout *layout = new QHBoxLayout;
 		layout->setContentsMargins(0, 0, 0, 0);
-		layout->addWidget(removeBtn);
+		layout->addWidget(detailBtn);
 		layout->insertStretch(2);
 		base->setLayout(layout);
 		ui.tableWidgetByUser->setCellWidget(row, 2, base);
@@ -286,4 +287,129 @@ void ESReturnSummary::slotPrint(QPrinter* printer)
 {
 	report.print(printer);
 	this->close();
+}
+
+void ESReturnSummary::slotGenerateReportForGivenUser(QString userId)
+{
+	KDReports::TextElement titleElement("Return Item Report");
+	titleElement.setPointSize(13);
+	titleElement.setBold(true);
+	report.addElement(titleElement, Qt::AlignHCenter);
+
+	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
+	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
+
+	QString dateStr = "Date : ";
+	dateStr.append(stardDateStr).append(" - ").append(endDateStr);
+
+	QString userStr = "User : ";
+
+	QSqlQuery queryUser("SELECT * FROM user WHERE user_id = " + userId);
+	if (queryUser.next())
+	{
+		userStr.append(queryUser.value("display_name").toString());
+	}
+
+	KDReports::TableElement infoTableElement;
+	infoTableElement.setHeaderRowCount(2);
+	infoTableElement.setHeaderColumnCount(2);
+	infoTableElement.setBorder(0);
+	infoTableElement.setWidth(100, KDReports::Percent);
+
+	{
+		KDReports::Cell& dateCell = infoTableElement.cell(0, 1);
+		KDReports::TextElement t(dateStr);
+		t.setPointSize(10);
+		dateCell.addElement(t, Qt::AlignRight);
+	}
+
+	{
+		KDReports::Cell& userCell = infoTableElement.cell(0, 0);
+		KDReports::TextElement t(userStr);
+		t.setPointSize(10);
+		userCell.addElement(t, Qt::AlignLeft);
+	}
+
+	report.addElement(infoTableElement);
+	report.addVerticalSpacing(5);
+
+	KDReports::TableElement tableElement;
+	tableElement.setHeaderColumnCount(5);
+	tableElement.setBorder(1);
+	tableElement.setWidth(100, KDReports::Percent);
+
+	{
+		KDReports::Cell& cell = tableElement.cell(0, 0);
+		KDReports::TextElement cTextElement("Date");
+		cTextElement.setPointSize(11);
+		cTextElement.setBold(true);
+		cell.addElement(cTextElement, Qt::AlignCenter);
+	}
+	{
+		KDReports::Cell& cell = tableElement.cell(0, 1);
+		KDReports::TextElement cTextElement("Bill No");
+		cTextElement.setPointSize(11);
+		cTextElement.setBold(true);
+		cell.addElement(cTextElement, Qt::AlignCenter);
+	}
+	{
+		KDReports::Cell& cell = tableElement.cell(0, 2);
+		KDReports::TextElement cTextElement("Item");
+		cTextElement.setPointSize(11);
+		cTextElement.setBold(true);
+		cell.addElement(cTextElement, Qt::AlignCenter);
+	}
+	{
+		KDReports::Cell& cell = tableElement.cell(0, 3);
+		KDReports::TextElement cTextElement("Qty");
+		cTextElement.setPointSize(11);
+		cTextElement.setBold(true);
+		cell.addElement(cTextElement, Qt::AlignCenter);
+	}
+	{
+		KDReports::Cell& cell = tableElement.cell(0, 4);
+		KDReports::TextElement cTextElement("Line Total");
+		cTextElement.setPointSize(11);
+		cTextElement.setBold(true);
+		cell.addElement(cTextElement, Qt::AlignCenter);
+	}
+
+	QString pReturnQStr("SELECT * FROM return_item WHERE user_id = " + userId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+	QSqlQuery qReturnItems(pReturnQStr);
+	float total = 0;
+	int row = 1;
+	while (qReturnItems.next())
+	{
+		float lineTotal = qReturnItems.value("return_total").toFloat();
+		total += lineTotal;
+		QString dateStr = qReturnItems.value("date").toDateTime().date().toString("yyyy-MM-dd");
+		QString billId = qReturnItems.value("bill_id").toString();
+		QString itemId = qReturnItems.value("item_id").toString();
+		printRow(tableElement, row, 0, dateStr);
+		printRow(tableElement, row, 1, billId);
+		QSqlQuery qItems("SELECT item_name FROM item WHERE item_id = "+itemId);
+		if (qItems.next())
+		{
+			printRow(tableElement, row, 2, qItems.value("item_name").toString());
+		}
+		printRow(tableElement, row, 3, qReturnItems.value("qty").toString());
+		printRow(tableElement, row, 4, QString::number(lineTotal, 'f', 2), Qt::AlignRight);
+		row++;
+	}
+
+	printRow(tableElement, row,3, "Total");
+	printRow(tableElement, row, 4, QString::number(total, 'f', 2), Qt::AlignRight);
+	report.addElement(tableElement);
+
+	QPrinter printer;
+	printer.setPaperSize(QPrinter::A4);
+
+	printer.setFullPage(false);
+	printer.setOrientation(QPrinter::Portrait);
+
+	QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
+	QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
+	dialog->setWindowTitle(tr("Print Document"));
+	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
+	dialog->exec();
 }

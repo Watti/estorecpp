@@ -227,7 +227,7 @@ void ESSinglePayment::handleCreditPayment(int billId, double netAmount)
 			finishBill(netAmount, billId);
 
 			QSqlQuery qry;
-			qry.prepare("INSERT INTO customer_outstanding (customer_id, payment_id, payment_method, table_id, settled, settled_date, comments) VALUES (?, ?, 'CREDIT', ?, 0, '', '')");
+			qry.prepare("INSERT INTO customer_outstanding (customer_id, payment_id, payment_method, table_id, settled, settled_date, comments) VALUES (?, ?, 'CREDIT', ?, 0, NOW(), '')");
 			qry.addBindValue(m_customerId);
 			qry.addBindValue(lastInsertedId);
 			qry.addBindValue(q.lastInsertId().toInt());

@@ -20,6 +20,7 @@ public:
 	void slotCustomerSelected(int row, int col);
 	void slotPopulateCustomerHistory();
 	void slotShowPaymentDetails(QString billId);
+	void slotDeleteCustomer();
 
 private:
 	Ui::CustomerInfomationWidget ui;

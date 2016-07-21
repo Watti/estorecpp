@@ -44,6 +44,7 @@ ESCustomerInfo::ESCustomerInfo(QWidget *parent /*= 0*/) : QWidget(parent)
 	QObject::connect(ui.showFullHistory, SIGNAL(stateChanged(int)), this, SLOT(slotPopulateCustomerHistory()));
 	QObject::connect(ui.searchText, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
 	QObject::connect(m_paymentDetailsMapper, SIGNAL(mapped(QString)), this, SLOT(slotShowPaymentDetails(QString)));
+	QObject::connect(ui.deleteBtn, SIGNAL(clicked()), this, SLOT(slotDeleteCustomer()));
 
 	ui.commentsLbl->setWordWrap(true);
 	m_selectedCustomerId = "-1";
@@ -270,5 +271,22 @@ void ESCustomerInfo::slotShowPaymentDetails(QString billId)
 	}
 
 	infoDialog.exec();
+}
+
+void ESCustomerInfo::slotDeleteCustomer()
+{
+	if (m_selectedCustomerId.isEmpty() || m_selectedCustomerId == "-1")
+	{
+		return;
+	}
+	QSqlQuery q("UPDATE customer SET deleted = 1 WHERE customer_id = " + m_selectedCustomerId);
+
+	m_selectedCustomerId = "-1";
+	slotSearch();
+
+	ui.nameLbl->setText("");
+	ui.phoneLbl->setText("");
+	ui.addressLbl->setText("");
+	ui.commentsLbl->setText("");
 }
 

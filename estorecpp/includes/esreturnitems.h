@@ -20,6 +20,7 @@ public:
 	void slotRemove(QString itemCode);
 	void slotPrintReturnBill();
 	void slotQuantityCellUpdated(QString, int, int);
+	void slotInterestChanged();
 
 	void slotAddReturnedItem();
 	void slotPrint(QPrinter* printer);
@@ -34,6 +35,7 @@ private:
 	KDReports::Report report;
 	int m_billId;
 	double m_total;
+	bool m_hasInterest;
 };
 
 #endif

@@ -545,9 +545,7 @@ void ESCurrentBills::slotReprint(QString billIdStr)
 			QString qty = querySale.value("quantity").toString();
 			noOfPcs += qty.toInt();
 			noOfItems++;
-			//QString subTotal = QString::number(querySale.value("total").toDouble(), 'f', 2);
-			double subTotal = (querySale.value("total").toDouble() *(100 - querySale.value("discount").toDouble()) / 100);
-			QString subTotalStr = QString::number(subTotal, 'f', 2);
+			QString subTotal = QString::number(querySale.value("total").toDouble(), 'f', 2);
 			QString itemName = "";
 			QString unitPrice = "";
 			QString itemCode = "";
@@ -561,14 +559,13 @@ void ESCurrentBills::slotReprint(QString billIdStr)
 				unitPrice = QString::number(querySale.value("item_price").toDouble(), 'f', 2);
 				itemCode = queryItem.value("item_code").toString();
 			}
-			total += qty.toDouble() * unitPrice.toDouble()* (100 - discount.toDouble()) / 100;
 			//columns (item_code, Description, UnitPrice, Discount, Qty, Sub Total)
 			printRow(tableElement, row, 0, itemCode);
 			printRow(tableElement, row, 1, itemName);
 			printRow(tableElement, row, 2, unitPrice, Qt::AlignRight);
 			printRow(tableElement, row, 3, discount, Qt::AlignRight);
 			printRow(tableElement, row, 4, qty, Qt::AlignRight);
-			printRow(tableElement, row, 5, subTotalStr, Qt::AlignRight);
+			printRow(tableElement, row, 5, subTotal, Qt::AlignRight);
 			row++;
 		}
 
