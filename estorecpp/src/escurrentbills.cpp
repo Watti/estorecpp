@@ -25,11 +25,11 @@ ESCurrentBills::ESCurrentBills(QWidget *parent)
 	m_proceedButtonSignalMapper = new QSignalMapper(this);
 	m_voidBillButtonSignalMapper = new QSignalMapper(this);
 	m_reprintBillButtonSignalMapper = new QSignalMapper(this);
-	m_visibleButtonSignalMapper = new QSignalMapper(this);
+	m_invisibleButtonSignalMapper = new QSignalMapper(this);
 	QObject::connect(m_proceedButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotProceed(QString)));
 	QObject::connect(m_voidBillButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotVoidBill(QString)));
 	QObject::connect(m_reprintBillButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotReprint(QString)));
-	QObject::connect(m_visibleButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotVisible(QString)));
+	QObject::connect(m_invisibleButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotInvisible(QString)));
 
 	ui.startDate->setDisplayFormat("yyyy-MM-dd");
 	ui.endDate->setDisplayFormat("yyyy-MM-dd");
@@ -101,12 +101,22 @@ void ESCurrentBills::slotSearch()
 
 	QDateTime startDate = QDateTime::fromString(ui.startDate->text(), Qt::ISODate);
 	QDateTime endDate = QDateTime::fromString(ui.endDate->text(), Qt::ISODate);
-	endDate.setTime(QTime(23,59, 59));
+	endDate.setTime(QTime(23, 59, 59));
 
 	int row = 0;
-	QSqlQuery allBillQuery("SELECT * FROM bill WHERE deleted = 0");
+	QString qStr;
+	if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
+		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
+	{
+		qStr = "SELECT * FROM bill WHERE deleted = 0";
+	}
+	else
+	{
+		qStr = "SELECT * FROM bill WHERE deleted = 0 AND visible = 1";
+	}
+	QSqlQuery allBillQuery(qStr);
 	while (allBillQuery.next())
-	{		
+	{
 		if (selectedUser > 0)
 		{
 			if (selectedUser != allBillQuery.value("user_id").toInt())
@@ -130,101 +140,101 @@ void ESCurrentBills::slotSearch()
 
 		QTableWidgetItem* tableItem = NULL;
 		row = ui.tableWidget->rowCount();
-		ui.tableWidget->insertRow(row);		
+		ui.tableWidget->insertRow(row);
 		QColor rowColor;
 		QString billId = allBillQuery.value("bill_id").toString();
 		switch (statusId)
 		{
 		case 1:
 		{
-			rowColor.setRgb(169, 245, 208);
-			tableItem = new QTableWidgetItem("COMMITTED");
-			tableItem->setTextAlignment(Qt::AlignHCenter);
-			tableItem->setBackgroundColor(rowColor);
-			ui.tableWidget->setItem(row, 4, tableItem);
+				  rowColor.setRgb(169, 245, 208);
+				  tableItem = new QTableWidgetItem("COMMITTED");
+				  tableItem->setTextAlignment(Qt::AlignHCenter);
+				  tableItem->setBackgroundColor(rowColor);
+				  ui.tableWidget->setItem(row, 4, tableItem);
 
-			QWidget* base = new QWidget(ui.tableWidget);
-			QHBoxLayout *layout = new QHBoxLayout;
-			layout->setContentsMargins(0, 0, 0, 0);
-			
-			ES::User::UserType uType = ES::Session::getInstance()->getUser()->getType();
-			if (uType == ES::User::SENIOR_MANAGER || uType == ES::User::DEV || uType == ES::User::MANAGER)
-			{
-				QPushButton* voidBtn = new QPushButton("Cancel", base);
-				voidBtn->setMaximumWidth(100);
-				m_voidBillButtonSignalMapper->setMapping(voidBtn, billId);
-				QObject::connect(voidBtn, SIGNAL(clicked()), m_voidBillButtonSignalMapper, SLOT(map()));
-				layout->addWidget(voidBtn);
-			}
+				  QWidget* base = new QWidget(ui.tableWidget);
+				  QHBoxLayout *layout = new QHBoxLayout;
+				  layout->setContentsMargins(0, 0, 0, 0);
 
- 			QPushButton* reprintBtn = new QPushButton("Reprint", base);
- 			reprintBtn->setMaximumWidth(100);
- 			m_reprintBillButtonSignalMapper->setMapping(reprintBtn, billId);
- 			QObject::connect(reprintBtn, SIGNAL(clicked()), m_reprintBillButtonSignalMapper, SLOT(map()));
- 			layout->addWidget(reprintBtn);
+				  ES::User::UserType uType = ES::Session::getInstance()->getUser()->getType();
+				  if (uType == ES::User::SENIOR_MANAGER || uType == ES::User::DEV || uType == ES::User::MANAGER)
+				  {
+					  QPushButton* voidBtn = new QPushButton("Cancel", base);
+					  voidBtn->setMaximumWidth(100);
+					  m_voidBillButtonSignalMapper->setMapping(voidBtn, billId);
+					  QObject::connect(voidBtn, SIGNAL(clicked()), m_voidBillButtonSignalMapper, SLOT(map()));
+					  layout->addWidget(voidBtn);
+				  }
 
-			//////////////////////////////////////////////////////////////////////////
+				  QPushButton* reprintBtn = new QPushButton("Reprint", base);
+				  reprintBtn->setMaximumWidth(100);
+				  m_reprintBillButtonSignalMapper->setMapping(reprintBtn, billId);
+				  QObject::connect(reprintBtn, SIGNAL(clicked()), m_reprintBillButtonSignalMapper, SLOT(map()));
+				  layout->addWidget(reprintBtn);
 
-			if (ES::Session::getInstance()->getUser()->getType() == ES::User::DEV ||
-				ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER)
-			{
-				QPushButton* visibleBtn = new QPushButton("Visible", base);
-				visibleBtn->setMaximumWidth(100);
-				m_visibleButtonSignalMapper->setMapping(visibleBtn, billId);
-				QObject::connect(visibleBtn, SIGNAL(clicked()), m_visibleButtonSignalMapper, SLOT(map()));
-				layout->addWidget(visibleBtn);
-			}
+				  //////////////////////////////////////////////////////////////////////////
 
-			//////////////////////////////////////////////////////////////////////////
-						
-			layout->insertStretch(2);
-			base->setLayout(layout);
-			ui.tableWidget->setCellWidget(row, 5, base);
-			base->show();
+				  if (ES::Session::getInstance()->getUser()->getType() == ES::User::DEV ||
+					  ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER)
+				  {
+					  QPushButton* hideBtn = new QPushButton("Hide", base);
+					  hideBtn->setMaximumWidth(100);
+					  m_invisibleButtonSignalMapper->setMapping(hideBtn, billId);
+					  QObject::connect(hideBtn, SIGNAL(clicked()), m_invisibleButtonSignalMapper, SLOT(map()));
+					  layout->addWidget(hideBtn);
+				  }
+
+				  //////////////////////////////////////////////////////////////////////////
+
+				  layout->insertStretch(2);
+				  base->setLayout(layout);
+				  ui.tableWidget->setCellWidget(row, 5, base);
+				  base->show();
 		}
 			break;
 		case 2:
 		{
-			rowColor.setRgb(254, 239, 179);
-			tableItem = new QTableWidgetItem("PENDING");
-			tableItem->setTextAlignment(Qt::AlignHCenter);
-			tableItem->setBackgroundColor(rowColor);
-			ui.tableWidget->setItem(row, 4, tableItem);
+				  rowColor.setRgb(254, 239, 179);
+				  tableItem = new QTableWidgetItem("PENDING");
+				  tableItem->setTextAlignment(Qt::AlignHCenter);
+				  tableItem->setBackgroundColor(rowColor);
+				  ui.tableWidget->setItem(row, 4, tableItem);
 
-			QWidget* base = new QWidget(ui.tableWidget);
-			QPushButton* proceedBtn = new QPushButton("Proceed", base);
-			proceedBtn->setMaximumWidth(100);
+				  QWidget* base = new QWidget(ui.tableWidget);
+				  QPushButton* proceedBtn = new QPushButton("Proceed", base);
+				  proceedBtn->setMaximumWidth(100);
 
-			m_proceedButtonSignalMapper->setMapping(proceedBtn, billId);
-			QObject::connect(proceedBtn, SIGNAL(clicked()), m_proceedButtonSignalMapper, SLOT(map()));
-			
-			QHBoxLayout *layout = new QHBoxLayout;
-			layout->setContentsMargins(0, 0, 0, 0);
-			layout->addWidget(proceedBtn);
-			layout->insertStretch(2);
-			base->setLayout(layout);
-			ui.tableWidget->setCellWidget(row, 5, base);
-			base->show();
+				  m_proceedButtonSignalMapper->setMapping(proceedBtn, billId);
+				  QObject::connect(proceedBtn, SIGNAL(clicked()), m_proceedButtonSignalMapper, SLOT(map()));
+
+				  QHBoxLayout *layout = new QHBoxLayout;
+				  layout->setContentsMargins(0, 0, 0, 0);
+				  layout->addWidget(proceedBtn);
+				  layout->insertStretch(2);
+				  base->setLayout(layout);
+				  ui.tableWidget->setCellWidget(row, 5, base);
+				  base->show();
 		}
 			break;
 		case 3:
 		{
-			rowColor.setRgb(245, 169, 169);
-			tableItem = new QTableWidgetItem("CANCELED");
-			tableItem->setTextAlignment(Qt::AlignHCenter);
-			tableItem->setBackgroundColor(rowColor);
-			ui.tableWidget->setItem(row, 4, tableItem);
+				  rowColor.setRgb(245, 169, 169);
+				  tableItem = new QTableWidgetItem("CANCELED");
+				  tableItem->setTextAlignment(Qt::AlignHCenter);
+				  tableItem->setBackgroundColor(rowColor);
+				  ui.tableWidget->setItem(row, 4, tableItem);
 		}
 			break;
 		default:
 		{
-			rowColor.setRgb(255, 255, 255);
-			tableItem = new QTableWidgetItem("UNSPECIFIED");
-			tableItem->setTextAlignment(Qt::AlignHCenter);
-			tableItem->setBackgroundColor(rowColor);
-			ui.tableWidget->setItem(row, 4, tableItem);
+				   rowColor.setRgb(255, 255, 255);
+				   tableItem = new QTableWidgetItem("UNSPECIFIED");
+				   tableItem->setTextAlignment(Qt::AlignHCenter);
+				   tableItem->setBackgroundColor(rowColor);
+				   ui.tableWidget->setItem(row, 4, tableItem);
 		}
-			
+
 			break;
 		}
 
@@ -300,7 +310,7 @@ void ESCurrentBills::slotVoidBill(QString billId)
 		}
 		slotSearch();
 	}
-	
+
 }
 
 void ESCurrentBills::slotPrint(QPrinter* printer)
@@ -315,18 +325,19 @@ void ESCurrentBills::slotReprint(QString billIdStr)
 	QSqlQuery q("SELECT * FROM bill WHERE bill_id = " + billIdStr);
 
 	QString userName = "";
-	QString customerId = q.value("customer_id").toString();
-	QString qStrUser("SELECT display_name FROM user WHERE user_id = " + q.value("user_id").toString());
-	QSqlQuery queryUser(qStrUser);
-	if (queryUser.next())
-	{
-		userName = queryUser.value("display_name").toString();
-	}
+
 
 	double total = 0.0;
 
 	if (q.next())
 	{
+		QString customerId = q.value("customer_id").toString();
+		QString qStrUser("SELECT display_name FROM user WHERE user_id = " + q.value("user_id").toString());
+		QSqlQuery queryUser(qStrUser);
+		if (queryUser.next())
+		{
+			userName = queryUser.value("display_name").toString();
+		}
 		//KDReports::Report report;
 
 		QString dateStr = "Date : ";
@@ -534,9 +545,7 @@ void ESCurrentBills::slotReprint(QString billIdStr)
 			QString qty = querySale.value("quantity").toString();
 			noOfPcs += qty.toInt();
 			noOfItems++;
-			//QString subTotal = QString::number(querySale.value("total").toDouble(), 'f', 2);
-			double subTotal = (querySale.value("total").toDouble() *(100 - querySale.value("discount").toDouble()) / 100);
-			QString subTotalStr = QString::number(subTotal, 'f', 2);
+			QString subTotal = QString::number(querySale.value("total").toDouble(), 'f', 2);
 			QString itemName = "";
 			QString unitPrice = "";
 			QString itemCode = "";
@@ -547,17 +556,16 @@ void ESCurrentBills::slotReprint(QString billIdStr)
 			if (queryItem.next())
 			{
 				itemName = queryItem.value("item_name").toString();
-				unitPrice = QString::number(queryItem.value("selling_price").toDouble(), 'f', 2);
+				unitPrice = QString::number(querySale.value("item_price").toDouble(), 'f', 2);
 				itemCode = queryItem.value("item_code").toString();
 			}
-			total += qty.toDouble() * unitPrice.toDouble()* (100-discount.toDouble())/100;
 			//columns (item_code, Description, UnitPrice, Discount, Qty, Sub Total)
 			printRow(tableElement, row, 0, itemCode);
 			printRow(tableElement, row, 1, itemName);
 			printRow(tableElement, row, 2, unitPrice, Qt::AlignRight);
 			printRow(tableElement, row, 3, discount, Qt::AlignRight);
 			printRow(tableElement, row, 4, qty, Qt::AlignRight);
-			printRow(tableElement, row, 5, subTotalStr, Qt::AlignRight);
+			printRow(tableElement, row, 5, subTotal, Qt::AlignRight);
 			row++;
 		}
 
@@ -692,10 +700,10 @@ void ESCurrentBills::slotReprint(QString billIdStr)
 		// 	KDReports::TextElement web("www.progextech.com  T.P.: 072-6430268/071-1308531");
 		// 	foter.addElement(info, Qt::AlignCenter);
 		// 	foter.addElement(web, Qt::AlignCenter);
-// 		KDReports::TextElement poweredBy("Powered by PROGEX Technologies.");
-// 		KDReports::TextElement web("www.progextech.com  T.P.: 072-6430268/071-1308531");
-// 		report.addElement(poweredBy, Qt::AlignCenter);
-// 		report.addElement(web, Qt::AlignCenter);
+		// 		KDReports::TextElement poweredBy("Powered by PROGEX Technologies.");
+		// 		KDReports::TextElement web("www.progextech.com  T.P.: 072-6430268/071-1308531");
+		// 		report.addElement(poweredBy, Qt::AlignCenter);
+		// 		report.addElement(web, Qt::AlignCenter);
 
 		QPrinter printer;
 		printer.setPaperSize(QPrinter::A4);
@@ -703,11 +711,11 @@ void ESCurrentBills::slotReprint(QString billIdStr)
 		printer.setFullPage(false);
 		printer.setOrientation(QPrinter::Portrait);
 
-		 	QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
-		 	QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
-		 	dialog->setWindowTitle(tr("Print Document"));
-		 	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
-		 	dialog->exec();
+		QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
+		QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
+		dialog->setWindowTitle(tr("Print Document"));
+		ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
+		dialog->exec();
 
 		//report.print(&printer);
 	}
@@ -721,7 +729,18 @@ void ESCurrentBills::printRow(KDReports::TableElement& tableElement, int row, in
 	cell.addElement(te, alignment);
 }
 
-void ESCurrentBills::slotVisible(QString billId)
+void ESCurrentBills::slotInvisible(QString billId)
 {
-
+	if (ES::Utility::verifyUsingMessageBox(this, "EStore", "Do you really want hide this ?"))
+	{
+		QString q("UPDATE bill SET visible = 0 WHERE bill_id = " + billId);
+		QSqlQuery query;
+		if (query.exec(q))
+		{
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Information);
+			mbox.setText("Operation is success");
+			mbox.exec();
+		}
+	}
 }

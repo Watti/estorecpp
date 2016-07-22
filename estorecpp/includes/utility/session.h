@@ -38,6 +38,8 @@ namespace ES
 		void setBillItemFontSize(int val);
 		QString getBillEmail() const;
 		void setBillEmail(QString val);
+		bool isSecondDisplayOn() const;
+		void setSecondDisplayOn(bool val);
 	private:
 		Session();
 		static Session* m_session;
@@ -53,6 +55,7 @@ namespace ES
 		QString m_billPhone;
 		int m_billItemFontSize;
 		QString m_billEmail;
+		bool m_secondDisplayOn;
 	};
 
 }

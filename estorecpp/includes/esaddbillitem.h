@@ -14,12 +14,12 @@ public:
 	~ESAddBillItem();
 
 	Ui::AddBillItemWidget& getUI() { return ui; };
-	void focus();
 
 	public slots:
 	void slotSearch();
 	void slotHideImages();
 	void slotItemDoubleClicked(int, int);
+	void focus();
 
 protected:
 	void keyPressEvent(QKeyEvent * event);

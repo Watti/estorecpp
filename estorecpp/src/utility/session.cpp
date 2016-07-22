@@ -22,7 +22,8 @@ namespace ES
 		return m_session;
 	}
 
-	Session::Session() : m_user(NULL), m_billStarted(false), m_lowerPriceBlocked(true), m_serverIP("192.168.1.6"), m_billItemFontSize(11), m_billEmail("")
+	Session::Session() : m_user(NULL), m_billStarted(false), m_lowerPriceBlocked(true), m_serverIP("192.168.1.6"), 
+		m_billItemFontSize(11), m_billEmail(""), m_secondDisplayOn(false)
 	{
 
 	}
@@ -162,6 +163,16 @@ namespace ES
 	void Session::setBillEmail(QString val)
 	{
 		m_billEmail = val;
+	}
+
+	bool Session::isSecondDisplayOn() const
+	{
+		return m_secondDisplayOn;
+	}
+
+	void Session::setSecondDisplayOn(bool val)
+	{
+		m_secondDisplayOn = val;
 	}
 
 }

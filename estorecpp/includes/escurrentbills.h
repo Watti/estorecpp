@@ -20,7 +20,7 @@ public:
 	void slotProceed(QString);
 	void slotVoidBill(QString);
 	void slotReprint(QString);
-	void slotVisible(QString);
+	void slotInvisible(QString);
 	void slotPrint(QPrinter* printer);
 
 private:
@@ -31,7 +31,7 @@ private:
 	QSignalMapper* m_proceedButtonSignalMapper;
 	QSignalMapper* m_voidBillButtonSignalMapper;
 	QSignalMapper* m_reprintBillButtonSignalMapper;
-	QSignalMapper* m_visibleButtonSignalMapper;
+	QSignalMapper* m_invisibleButtonSignalMapper;
 	KDReports::Report report;
 
 };

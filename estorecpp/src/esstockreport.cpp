@@ -151,7 +151,17 @@ void ESStockReport::slotGenerate()
 		bool headerPrinted = false;
 
 		QString maxRows = ui.maxRows->text();
-		QSqlQuery q("SELECT stock.qty, stock.min_qty, item.item_code, item.item_name FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 LIMIT "+maxRows);
+		QString qStr;
+		if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
+			ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
+		{
+			qStr = "SELECT stock.qty, stock.min_qty, item.item_code, item.item_name FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 LIMIT " + maxRows;
+		}
+		else
+		{
+			qStr = "SELECT stock.qty, stock.min_qty, item.item_code, item.item_name FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 AND stock.visible = '0' LIMIT " + maxRows;
+		}
+		QSqlQuery q(qStr);
 		while (q.next())
 		{
 			if (!headerPrinted)

@@ -24,7 +24,7 @@ QString convertToQuantityFormat(QString text, int row, int col, QTableWidget* ta
 	return text;
 }
 
-ESReturnItems::ESReturnItems(QWidget *parent /*= 0*/) : QWidget(parent), m_total(0)
+ESReturnItems::ESReturnItems(QWidget *parent /*= 0*/) : QWidget(parent), m_total(0), m_hasInterest(false)
 {
 	ui.setupUi(this);
 
@@ -36,6 +36,7 @@ ESReturnItems::ESReturnItems(QWidget *parent /*= 0*/) : QWidget(parent), m_total
 	QObject::connect(ui.printBtn, SIGNAL(clicked()), this, SLOT(slotPrintReturnBill()));
 	QObject::connect(ui.tableWidget, SIGNAL(cellClicked(int, int)), this, SLOT(slotItemDoubleClicked(int, int)));
 	QObject::connect(m_removeButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotRemove(QString)));
+	QObject::connect(ui.interestText, SIGNAL(textChanged(QString)), this, SLOT(slotInterestChanged()));
 
 	if (!ES::DbConnection::instance()->open())
 	{
@@ -386,36 +387,78 @@ void ESReturnItems::slotPrintReturnBill()
 		row = i;
 		{
 			KDReports::Cell& cell = dataTableElement.cell(i, 0);
-			KDReports::TextElement t(ui.tableWidget->item(i, 0)->text());
+			QString code = ui.tableWidget->item(i, 0)->text();
+			KDReports::TextElement t(code);
 			t.setPointSize(10);
 			cell.addElement(t, Qt::AlignLeft);
 		}{
 			KDReports::Cell& cell = dataTableElement.cell(i, 1);
-			KDReports::TextElement t(ui.tableWidget->item(i, 1)->text());
+			QString name = ui.tableWidget->item(i, 1)->text();
+			KDReports::TextElement t(name);
 			t.setPointSize(10);
 			cell.addElement(t, Qt::AlignLeft);
 		}{
-			unitPrice = ui.tableWidget->item(i, 2)->text().toDouble();
+			QString qtyStr = ui.tableWidget->item(i, 2)->text();
+			qty = qtyStr.toDouble();
 			KDReports::Cell& cell = dataTableElement.cell(i, 2);
-			KDReports::TextElement t(ui.tableWidget->item(i, 2)->text());
+			KDReports::TextElement t(qtyStr);
 			t.setPointSize(10);
 			cell.addElement(t, Qt::AlignRight);
 		}{
 			KDReports::Cell& cell = dataTableElement.cell(i, 3);
-			KDReports::TextElement t(ui.tableWidget->item(i, 3)->text());
+			QString billedPrice = ui.tableWidget->item(i, 3)->text();
+			KDReports::TextElement t(billedPrice);
 			t.setPointSize(10);
 			cell.addElement(t, Qt::AlignRight);
 		}{
-			qty = ui.tableWidget->item(i, 4)->text().toDouble();
+			QString paidPrice = ui.tableWidget->item(i, 4)->text();
+			unitPrice = paidPrice.toDouble();
+			double total = qty * unitPrice;
 			KDReports::Cell& cell = dataTableElement.cell(i, 4);
-			KDReports::TextElement t(ui.tableWidget->item(i, 4)->text());
+			KDReports::TextElement t(QString::number(total, 'f', 2));
 			t.setPointSize(10);
 			cell.addElement(t, Qt::AlignRight);
 		}
 		m_total += unitPrice*qty;
 	}
 
-	row++;
+	row++; // sub total
+	{
+		KDReports::Cell& total = dataTableElement.cell(row, 3);
+		//total.setColumnSpan(5);
+		KDReports::TextElement totalTxt("Sub Total ");
+		totalTxt.setPointSize(11);
+		totalTxt.setBold(true);
+		total.addElement(totalTxt, Qt::AlignRight);
+	}
+	{
+		KDReports::Cell& total = dataTableElement.cell(row, 4);
+		//total.setColumnSpan(5);
+		QString totalStr = QString::number(m_total, 'f', 2);
+		KDReports::TextElement totalValue(totalStr);
+		totalValue.setPointSize(11);
+		totalValue.setBold(true);
+		total.addElement(totalValue, Qt::AlignRight);
+	}
+	row++; // interest
+	{
+		KDReports::Cell& total = dataTableElement.cell(row, 3);
+		//total.setColumnSpan(5);
+		KDReports::TextElement totalTxt("Interest ");
+		totalTxt.setPointSize(11);
+		totalTxt.setBold(true);
+		total.addElement(totalTxt, Qt::AlignRight);
+	}
+	{
+		KDReports::Cell& total = dataTableElement.cell(row, 4);
+		//total.setColumnSpan(5);
+		double interest = ui.interestText->text().toDouble();		
+		KDReports::TextElement totalValue(QString::number(interest, 'f', 2));
+		totalValue.setPointSize(11);
+		totalValue.setBold(true);
+		total.addElement(totalValue, Qt::AlignRight);
+	}
+	row++; // total
 	{
 		KDReports::Cell& total = dataTableElement.cell(row, 3);
 		//total.setColumnSpan(5);
@@ -427,8 +470,7 @@ void ESReturnItems::slotPrintReturnBill()
 	{
 		KDReports::Cell& total = dataTableElement.cell(row, 4);
 		//total.setColumnSpan(5);
-		QString totalStr = QString::number(m_total, 'f', 2);
-		KDReports::TextElement totalValue(totalStr);
+		KDReports::TextElement totalValue(ui.totLbl->text());
 		totalValue.setPointSize(11);
 		totalValue.setBold(true);
 		total.addElement(totalValue, Qt::AlignRight);
@@ -446,13 +488,17 @@ void ESReturnItems::slotPrintReturnBill()
 		QSqlQuery itemQuery("SELECT item_id FROM item WHERE item_code = '" + item->text() + "'");
 		if (itemQuery.next())
 		{
+			double quantity = ui.tableWidget->item(i, 2)->text().toDouble();
+			double paidPrice = ui.tableWidget->item(i, 4)->text().toDouble();
+			double interest = ui.interestText->text().toDouble();
+			double total = quantity * paidPrice * (100 + interest) / 100;
 			// bill_id, item_id, qty, paid_price, return_total, user_id
 			QSqlQuery q("INSERT INTO return_item (bill_id, item_id, qty, paid_price, return_total, user_id) VALUES (" +	
 				QString::number(m_billId) + "," +
 				itemQuery.value("item_id").toString() + "," +
-				ui.tableWidget->item(i, 2)->text() + "," +
+				QString::number(quantity) + "," +
 				ui.tableWidget->item(i, 4)->text() + "," +
-				ui.tableWidget->item(i, 5)->text() + "," + 
+				QString::number(total) + "," +
 				QString::number(uId) + ")"
 				);
 		}
@@ -495,6 +541,16 @@ void ESReturnItems::slotSelect()
 			mbox.setText(QString("A Return bill cannot have multiple bills. Please use separate return bill for this"));
 			mbox.exec();
 			return;
+		}
+	}
+
+	QSqlQuery pQ("SELECT payment_type FROM payment WHERE bill_id = " + billId);
+	if (pQ.next())
+	{
+		QString pm = pQ.value("payment_type").toString();
+		if (pm == "CREDIT" || pm == "CHEQUE")
+		{
+			m_hasInterest = true;
 		}
 	}
 
@@ -670,4 +726,21 @@ void ESReturnItems::calculateTotal()
 	}
 
 	ui.totalLbl->setText(QString::number(total, 'f', 2));
+
+	double netTotal = total;
+	if (m_hasInterest)
+	{
+		if (!ui.interestText->text().isEmpty())
+		{
+			double interest = ui.interestText->text().toDouble();
+			netTotal = netTotal + (netTotal * interest * 0.01);
+		}
+	}
+
+	ui.totLbl->setText(QString::number(netTotal, 'f', 2));
+}
+
+void ESReturnItems::slotInterestChanged()
+{
+	calculateTotal();
 }

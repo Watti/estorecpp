@@ -1,40 +1,38 @@
-#ifndef ES_SALE_SUMMARY_REPORT_H
-#define ES_SALE_SUMMARY_REPORT_H
+#ifndef ES_OVERALL_SALE_SUMMARY_REPORT_H
+#define ES_OVERALL_SALE_SUMMARY_REPORT_H
 
 #include <QtGui>
 #include <QPrinter>
 #include <KDReportsReport.h>
-#include "ui_salesummary.h"
+#include "ui_overallsalessummary.h"
 #include "KDReportsTableElement.h"
 #include "qnamespace.h"
 #include "QSignalMapper"
+#include "QDateTime"
 
-class ESSalesSummary : public QWidget
+class OverallSalesSummary : public QWidget
 {
 	Q_OBJECT
 
 public:
-	ESSalesSummary(QWidget *parent = 0);
+	OverallSalesSummary(QWidget *parent = 0);
+	~OverallSalesSummary();
 
+	Ui::OverallSalesSummary& getUI();
 	void displayResults();
 
-	~ESSalesSummary();
-
-	Ui::SaleSummary& getUI() { return ui; };
-
 	public slots:
-	void slotGenerate();
 	void slotPrint(QPrinter* printer);
-	void slotDateChanged();
+	void slotSearch();
 	void slotGenerateReportForGivenUser(QString userId);
+	void slotGenerateReport();
 private:
-	Ui::SaleSummary ui;
+	Ui::OverallSalesSummary ui;
 
 	void printRow(KDReports::TableElement& tableElement, int row, int col,
 		QString elementStr, Qt::AlignmentFlag alignment = Qt::AlignLeft);
 	KDReports::Report report;
-	QSignalMapper* m_generateUserReportMapper;
-
+	QSignalMapper* m_generateReportSignalMapper;
 };
 
 #endif

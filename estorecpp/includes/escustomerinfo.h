@@ -3,6 +3,7 @@
 
 #include "ui_customerinfo.h"
 #include <QtGui>
+#include "QSignalMapper"
 
 class ESCustomerInfo : public QWidget
 {
@@ -18,10 +19,13 @@ public:
 	void slotSearch();
 	void slotCustomerSelected(int row, int col);
 	void slotPopulateCustomerHistory();
+	void slotShowPaymentDetails(QString billId);
+	void slotDeleteCustomer();
 
 private:
 	Ui::CustomerInfomationWidget ui;
 	QString m_selectedCustomerId;
+	QSignalMapper* m_paymentDetailsMapper;
 
 };
 

@@ -126,6 +126,7 @@ void ESCashBalanceStatus::displayStatus()
 		int cType = qPettyCash.value("type").toInt();
 		if (cType == 0)
 		{
+			//expense
 			QTableWidgetItem* tWidget = new QTableWidgetItem("(-)");
 			tWidget->setBackgroundColor(red);
 			ui.tableWidget->setItem(row, 0, tWidget);
@@ -137,9 +138,11 @@ void ESCashBalanceStatus::displayStatus()
 			QTableWidgetItem* amountWidget = new QTableWidgetItem(QString::number(pCashAmount, 'f', 2));
 			amountWidget->setBackgroundColor(red);
 			ui.tableWidget->setItem(row, 2, amountWidget);
+			handOver -= pCashAmount;
 		}
 		else
 		{
+			//income
 			QTableWidgetItem* tWidget = new QTableWidgetItem("(+)");
 			tWidget->setBackgroundColor(green);
 			ui.tableWidget->setItem(row, 0, tWidget);
@@ -151,8 +154,9 @@ void ESCashBalanceStatus::displayStatus()
 			QTableWidgetItem* amountWidget = new QTableWidgetItem(QString::number(pCashAmount, 'f', 2));
 			amountWidget->setBackgroundColor(green);
 			ui.tableWidget->setItem(row, 2, amountWidget);
+			handOver += pCashAmount;
 		}
-		handOver -= pCashAmount;
+		//handOver -= pCashAmount;
 	}
 	ui.handoverLbl->setText(QString::number(handOver, 'f', 2));
 	ui.startBalanceLbl->setText(QString::number(startAmount, 'f', 2));

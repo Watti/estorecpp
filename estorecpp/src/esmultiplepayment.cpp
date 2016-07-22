@@ -329,6 +329,7 @@ void ESMultiplePayment::slotAdd()
 
 	double netAmount = ui.netAmountLbl->text().toDouble();
 	double remaining = netAmount - amountPaid;
+	double payingAmount = ui.totalBillLbl->text().toDouble();
 	if (remaining >= 0)
 	{
 		ui.netAmountLbl->setText(QString::number(remaining, 'f', 2));
@@ -361,7 +362,10 @@ void ESMultiplePayment::slotAdd()
 		double interest = ui.interestTxt->text().toDouble(&isValid);
 		if (isValid)
 		{
-			double amountWithInterest = amountPaid * (interest / 100) + amountPaid;
+			double interestAmount = amountPaid * (interest / 100);
+			double amountWithInterest =+ (interestAmount+ amountPaid);
+			payingAmount += interestAmount;
+			ui.totalBillLbl->setText(QString::number(payingAmount, 'f', 2));
 			ui.tableWidget->setItem(row, 0, new QTableWidgetItem(m_paymentType));
 			ui.tableWidget->setItem(row, 1, new QTableWidgetItem(QString::number(amountPaid, 'f', 2)));
 			ui.tableWidget->setItem(row, 2, new QTableWidgetItem(ui.interestTxt->text()));
@@ -377,7 +381,10 @@ void ESMultiplePayment::slotAdd()
 		double interest = ui.interestTxt->text().toDouble(&isValid);
 		if (isValid)
 		{
-			double amountWithInterest = amountPaid * (interest / 100) + amountPaid;
+			double interestAmount = amountPaid * (interest / 100);
+			double amountWithInterest = +(interestAmount + amountPaid);
+			payingAmount += interestAmount;
+			ui.totalBillLbl->setText(QString::number(payingAmount, 'f', 2));
 			ui.tableWidget->setItem(row, 0, new QTableWidgetItem(m_paymentType));
 			ui.tableWidget->setItem(row, 1, new QTableWidgetItem(QString::number(amountPaid, 'f', 2)));
 			ui.tableWidget->setItem(row, 2, new QTableWidgetItem(ui.interestTxt->text()));
@@ -393,7 +400,10 @@ void ESMultiplePayment::slotAdd()
 		double interest = ui.interestTxt->text().toDouble(&isValid);
 		if (isValid)
 		{
-			double amountWithInterest = amountPaid * (interest / 100) + amountPaid;
+			double interestAmount = amountPaid * (interest / 100);
+			double amountWithInterest = +(interestAmount + amountPaid);
+			payingAmount += interestAmount;
+			ui.totalBillLbl->setText(QString::number(payingAmount, 'f', 2));
 			ui.tableWidget->setItem(row, 0, new QTableWidgetItem(m_paymentType));
 			ui.tableWidget->setItem(row, 1, new QTableWidgetItem(QString::number(amountPaid, 'f', 2)));
 			ui.tableWidget->setItem(row, 2, new QTableWidgetItem(ui.interestTxt->text()));
@@ -437,6 +447,9 @@ void ESMultiplePayment::slotRemove(int row)
 			//amountPaid = (amountPaid - (amountPaid*interest) / 100);
 			ui.netAmountLbl->setText(QString::number((amountPaid + netAmount), 'f', 2));
 			ui.cashText->setText(QString::number((amountPaid + netAmount), 'f', 2));
+			double interest = ui.tableWidget->item(i, 2)->text().toDouble();
+			double totalAmount = ui.totalBillLbl->text().toDouble() - (amountPaid*interest/100);
+			ui.totalBillLbl->setText(QString::number(totalAmount, 'f', 2));
 			ui.addBtn->setEnabled(true);
 			ui.okBtn->setDisabled(true);
 

@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>SaleSummary</class>
- <widget class="QWidget" name="SaleSummary">
+ <class>OverallSalesSummary</class>
+ <widget class="QWidget" name="OverallSalesSummary">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>556</width>
-    <height>400</height>
+    <height>486</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Sale Summary</string>
+   <string>Overall Summary</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -24,7 +24,7 @@
         </font>
        </property>
        <property name="text">
-        <string>Sales Summary</string>
+        <string>Overall Summary</string>
        </property>
       </widget>
      </item>
@@ -42,14 +42,14 @@
       </spacer>
      </item>
      <item>
-      <widget class="QLabel" name="label_3">
+      <widget class="QLabel" name="datelbl">
        <property name="font">
         <font>
          <pointsize>11</pointsize>
         </font>
        </property>
        <property name="text">
-        <string>From  :</string>
+        <string>From : </string>
        </property>
       </widget>
      </item>
@@ -63,7 +63,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="label_4">
+      <widget class="QLabel" name="label_2">
        <property name="font">
         <font>
          <pointsize>11</pointsize>
@@ -104,7 +104,7 @@
       <number>0</number>
      </property>
      <property name="columnCount">
-      <number>6</number>
+      <number>8</number>
      </property>
      <attribute name="horizontalHeaderVisible">
       <bool>true</bool>
@@ -112,6 +112,8 @@
      <attribute name="verticalHeaderVisible">
       <bool>true</bool>
      </attribute>
+     <column/>
+     <column/>
      <column/>
      <column/>
      <column/>
@@ -145,7 +147,7 @@
       <number>1</number>
      </property>
      <property name="columnCount">
-      <number>5</number>
+      <number>7</number>
      </property>
      <attribute name="horizontalHeaderVisible">
       <bool>true</bool>
@@ -154,6 +156,8 @@
       <bool>true</bool>
      </attribute>
      <row/>
+     <column/>
+     <column/>
      <column/>
      <column/>
      <column/>

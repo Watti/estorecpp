@@ -88,14 +88,31 @@ void ESManageStockItems::slotSearch()
 	QString selectedCategory = ui.categoryComboBox->currentText();
 
 	QString q, qRecordCountStr;
-	q.append("SELECT * FROM stock JOIN item ON stock.item_id = item.item_id ");
-	q.append("JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id ");
-	q.append("WHERE item.deleted = 0");
-	//q.append("WHERE item.deleted = 0 AND stock.deleted = 0");
+	
 
-	qRecordCountStr.append("SELECT COUNT(*) as c FROM stock JOIN item ON stock.item_id = item.item_id ");
-	qRecordCountStr.append("JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id ");
-	qRecordCountStr.append("WHERE item.deleted = 0 ");
+	if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
+		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
+	{
+		q.append("SELECT * FROM stock JOIN item ON stock.item_id = item.item_id ");
+		q.append("JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id ");
+		q.append("WHERE item.deleted = 0");
+
+		qRecordCountStr.append("SELECT COUNT(*) as c FROM stock JOIN item ON stock.item_id = item.item_id ");
+		qRecordCountStr.append("JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id ");
+		qRecordCountStr.append("WHERE item.deleted = 0 ");
+	}
+	else
+	{
+		//hiding the invisible stock items
+		q.append("SELECT * FROM stock JOIN item ON stock.item_id = item.item_id ");
+		q.append("JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id ");
+		q.append("WHERE item.deleted = 0 AND stock.visible = 1");
+
+		qRecordCountStr.append("SELECT COUNT(*) as c FROM stock JOIN item ON stock.item_id = item.item_id ");
+		qRecordCountStr.append("JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id ");
+		qRecordCountStr.append("WHERE item.deleted = 0 AND stock.visible = 1");
+	}
+
 	//qRecordCountStr.append("WHERE item.deleted = 0 AND stock.deleted = 0");
 
 
@@ -230,13 +247,13 @@ void ESManageStockItems::slotUpdate(QString stockId)
 	if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
 		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
 	{
-		addStockItem->getUI().visibleLbl->show();
-		addStockItem->getUI().visibleCB->show();
+		addStockItem->getUI().invisibleCB->show();
+		addStockItem->getUI().inVisibleLbl->show();
 	}
 	else
 	{
-		addStockItem->getUI().visibleLbl->hide();
-		addStockItem->getUI().visibleCB->hide();
+		addStockItem->getUI().invisibleCB->hide();
+		addStockItem->getUI().inVisibleLbl->hide();
 	}
 
 	QSqlQuery query("SELECT * FROM stock WHERE stock_id = " + stockId);
@@ -245,6 +262,11 @@ void ESManageStockItems::slotUpdate(QString stockId)
 	{
 		QString price = query.value("selling_price").toString();
 		itemId = query.value("item_id").toString();
+		int visible = query.value("visible").toInt();
+		if (visible == 0)
+		{
+			addStockItem->getUI().invisibleCB->setChecked(true);
+		}
 		QString discount = query.value("discount").toString();
 		addStockItem->getUI().itemIDLabel->setText(itemId);
 		addStockItem->getUI().itemPrice->setText(price);
