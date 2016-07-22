@@ -387,29 +387,35 @@ void ESReturnItems::slotPrintReturnBill()
 		row = i;
 		{
 			KDReports::Cell& cell = dataTableElement.cell(i, 0);
-			KDReports::TextElement t(ui.tableWidget->item(i, 0)->text());
+			QString code = ui.tableWidget->item(i, 0)->text();
+			KDReports::TextElement t(code);
 			t.setPointSize(10);
 			cell.addElement(t, Qt::AlignLeft);
 		}{
 			KDReports::Cell& cell = dataTableElement.cell(i, 1);
-			KDReports::TextElement t(ui.tableWidget->item(i, 1)->text());
+			QString name = ui.tableWidget->item(i, 1)->text();
+			KDReports::TextElement t(name);
 			t.setPointSize(10);
 			cell.addElement(t, Qt::AlignLeft);
 		}{
-			unitPrice = ui.tableWidget->item(i, 2)->text().toDouble();
+			QString qtyStr = ui.tableWidget->item(i, 2)->text();
+			qty = qtyStr.toDouble();
 			KDReports::Cell& cell = dataTableElement.cell(i, 2);
-			KDReports::TextElement t(ui.tableWidget->item(i, 2)->text());
+			KDReports::TextElement t(qtyStr);
 			t.setPointSize(10);
 			cell.addElement(t, Qt::AlignRight);
 		}{
 			KDReports::Cell& cell = dataTableElement.cell(i, 3);
-			KDReports::TextElement t(ui.tableWidget->item(i, 3)->text());
+			QString billedPrice = ui.tableWidget->item(i, 3)->text();
+			KDReports::TextElement t(billedPrice);
 			t.setPointSize(10);
 			cell.addElement(t, Qt::AlignRight);
 		}{
-			qty = ui.tableWidget->item(i, 4)->text().toDouble();
+			QString paidPrice = ui.tableWidget->item(i, 4)->text();
+			unitPrice = paidPrice.toDouble();
+			double total = qty * unitPrice;
 			KDReports::Cell& cell = dataTableElement.cell(i, 4);
-			KDReports::TextElement t(ui.tableWidget->item(i, 4)->text());
+			KDReports::TextElement t(QString::number(total, 'f', 2));
 			t.setPointSize(10);
 			cell.addElement(t, Qt::AlignRight);
 		}
@@ -482,14 +488,15 @@ void ESReturnItems::slotPrintReturnBill()
 		QSqlQuery itemQuery("SELECT item_id FROM item WHERE item_code = '" + item->text() + "'");
 		if (itemQuery.next())
 		{
+			double quantity = ui.tableWidget->item(i, 2)->text().toDouble();
 			double paidPrice = ui.tableWidget->item(i, 4)->text().toDouble();
 			double interest = ui.interestText->text().toDouble();
-			double total = paidPrice * (100 - interest) / 100;
+			double total = quantity * paidPrice * (100 + interest) / 100;
 			// bill_id, item_id, qty, paid_price, return_total, user_id
 			QSqlQuery q("INSERT INTO return_item (bill_id, item_id, qty, paid_price, return_total, user_id) VALUES (" +	
 				QString::number(m_billId) + "," +
 				itemQuery.value("item_id").toString() + "," +
-				ui.tableWidget->item(i, 2)->text() + "," +
+				QString::number(quantity) + "," +
 				ui.tableWidget->item(i, 4)->text() + "," +
 				QString::number(total) + "," +
 				QString::number(uId) + ")"
@@ -726,7 +733,7 @@ void ESReturnItems::calculateTotal()
 		if (!ui.interestText->text().isEmpty())
 		{
 			double interest = ui.interestText->text().toDouble();
-			netTotal = netTotal - (netTotal * interest * 0.01);
+			netTotal = netTotal + (netTotal * interest * 0.01);
 		}
 	}
 

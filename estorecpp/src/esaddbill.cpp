@@ -146,6 +146,7 @@ ESAddBill::ESAddBill(QWidget *parent)
 #else
 	ui.secondaryDisplay->hide();
 #endif
+
 }
 
 ESAddBill::~ESAddBill()

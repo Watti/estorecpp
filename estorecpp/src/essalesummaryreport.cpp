@@ -132,7 +132,18 @@ void ESSalesSummary::slotGenerate()
 	cTotal.addElement(tETotal, Qt::AlignCenter);
 	int row = 1;
 	double cashSales = 0, creditSales = 0, chequeSales = 0, cardSales = 0;
-	QSqlQuery totalBillQry("SELECT* FROM bill WHERE deleted = 0 AND status = 1 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+	QString qStr;
+	if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
+		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
+	{
+		qStr = "SELECT* FROM bill WHERE deleted = 0 AND status = 1 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+	}
+	else
+	{
+		qStr = "SELECT* FROM bill WHERE deleted = 0 AND status = 1 AND visible = 1 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+	}
+
+	QSqlQuery totalBillQry(qStr);
 	while (totalBillQry.next())
 	{
 		QSqlQuery queryUserType("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE user.user_id = " + totalBillQry.value("user_id").toString() + " AND usertype.usertype_name <> 'DEV'");
@@ -247,7 +258,18 @@ void ESSalesSummary::displayResults()
 	// 	QDateTime endDate = QDateTime::fromString(ui.toDate->text(), Qt::ISODate);
 	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
 	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
-	QSqlQuery totalBillQry("SELECT* FROM bill WHERE deleted = 0 AND status = 1 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+	QString qStr;
+	if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
+		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
+	{
+		qStr = "SELECT* FROM bill WHERE deleted = 0 AND status = 1 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+	}
+	else
+	{
+		qStr = "SELECT* FROM bill WHERE deleted = 0 AND status = 1 AND visible = 1 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+	}
+
+	QSqlQuery totalBillQry(qStr);
 	while (totalBillQry.next())
 	{
 		QSqlQuery queryUserType("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE user.active = 1 AND user.user_id = " + totalBillQry.value("user_id").toString() + " AND usertype.usertype_name <> 'DEV'");
@@ -339,9 +361,18 @@ void ESSalesSummary::displayResults()
 
 			QTableWidgetItem* nameItem = new QTableWidgetItem(uName);
 			ui.tableWidgetByUser->setVerticalHeaderItem(row, nameItem);
+			QString qUserStr;
+			if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
+				ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
+			{
+				qUserStr = "SELECT * FROM bill WHERE status = 1 AND bill.user_id = " + uId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+			}
+			else
+			{
+				qUserStr = "SELECT * FROM bill WHERE status = 1 AND visible = 1 AND bill.user_id = " + uId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+			}
 
-			//QSqlQuery userBillQry("SELECT * FROM bill WHERE status = 1 AND DATE(bill.date) = CURDATE() AND bill.user_id = " + uId);
-			QSqlQuery userBillQry("SELECT * FROM bill WHERE status = 1 AND bill.user_id = " + uId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+			QSqlQuery userBillQry(qUserStr);
 			while (userBillQry.next())
 			{
 				QSqlQuery paymentQry("SELECT * FROM payment WHERE valid = 1 AND bill_id = " + userBillQry.value("bill_id").toString());
@@ -513,8 +544,18 @@ void ESSalesSummary::slotGenerateReportForGivenUser(QString userId)
 
 	int row = 1;
 	double cashSales = 0, creditSales = 0, chequeSales = 0, cardSales = 0;
+	QString qStr;
+	if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
+		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
+	{
+		qStr = "SELECT * FROM bill WHERE status = 1 AND bill.user_id = " + userId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+	}
+	else
+	{
+		qStr = "SELECT * FROM bill WHERE status = 1 AND visible = 1 AND bill.user_id = " + userId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+	}
 
-	QSqlQuery userBillQry("SELECT * FROM bill WHERE status = 1 AND bill.user_id = " + userId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+	QSqlQuery userBillQry(qStr);
 	while (userBillQry.next())
 	{
 		QSqlQuery paymentQry("SELECT * FROM payment WHERE valid = 1 AND bill_id = " + userBillQry.value("bill_id").toString());

@@ -57,9 +57,12 @@ ESAddBillItem::ESAddBillItem(ESAddBill* cart, QWidget *parent)
 	QObject::connect(ui.tableWidget, SIGNAL(cellClicked(int, int)), this, SLOT(slotItemDoubleClicked(int, int)));
 #endif
 
-#ifndef SECOND_DISPLAY
+#if SECOND_DISPLAY
+	ui.hideImages->setChecked(false);
+#else
 	ui.hideImages->setChecked(true);
 #endif
+
 }
 
 ESAddBillItem::~ESAddBillItem()

@@ -104,8 +104,8 @@ int main(int argc, char *argv[])
 #else
 ES::Session::getInstance()->setBillItemFontSize(12);
 ES::Session::getInstance()->setBillTitle("PUJITHA ENTERPRISES (PVT) LTD");
-ES::Session::getInstance()->setBillAddress("No. 154, Kurugala, Padukka");
-ES::Session::getInstance()->setBillPhone("Phone :  077-4784430 / 077-4784437");
+ES::Session::getInstance()->setBillAddress("No. 521, Panagoda, Homagama");
+ES::Session::getInstance()->setBillPhone("Phone :  011-7208574 / 07-4784430");
 ES::Session::getInstance()->setBillEmail("email : rapprasanna4@gmail.com");
 #endif
 //  	BackupThread b;

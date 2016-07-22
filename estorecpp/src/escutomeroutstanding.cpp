@@ -128,20 +128,28 @@ void ESCustomerOutstanding::populateCustomerOutstanding()
 		QSqlQuery qry("SELECT * FROM payment WHERE payment_id = " + paymentId);
 		QString pm = q.value("payment_method").toString();
 		QString dueDate = "";
+		float interest = 0;
+		float totalAmount = 0;
 		if (pm == "CREDIT")
 		{
-			QSqlQuery qq("SELECT due_date FROM credit WHERE credit_id = " + q.value("table_id").toString());
+			QSqlQuery qq("SELECT * FROM credit WHERE credit_id = " + q.value("table_id").toString());
 			if (qq.next())
 			{
 				dueDate = qq.value("due_date").toString();
+				interest = qq.value("interest").toFloat();
+				float amount = qq.value("amount").toFloat();
+				totalAmount += (amount * (100 + interest) / 100);
 			}
 		}
 		else if (pm == "CHEQUE")
 		{
-			QSqlQuery qq("SELECT due_date FROM cheque WHERE cheque_id = " + q.value("table_id").toString());
+			QSqlQuery qq("SELECT * FROM cheque WHERE cheque_id = " + q.value("table_id").toString());
 			if (qq.next())
 			{
 				dueDate = qq.value("due_date").toString();
+				interest = qq.value("interest").toFloat();
+				float amount = qq.value("amount").toFloat();
+				totalAmount += (amount * (100 + interest) / 100);
 			}
 		}
 
@@ -151,7 +159,7 @@ void ESCustomerOutstanding::populateCustomerOutstanding()
 			ui.outstandings->setItem(row, 1, new QTableWidgetItem(qry.value("bill_id").toString()));
 		}
 
-		QTableWidgetItem* item = new QTableWidgetItem(QString::number(qry.value("total_amount").toDouble(), 'f', 2));
+		QTableWidgetItem* item = new QTableWidgetItem(QString::number(totalAmount, 'f', 2));
 		item->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
 		ui.outstandings->setItem(row, 2, item);
 
