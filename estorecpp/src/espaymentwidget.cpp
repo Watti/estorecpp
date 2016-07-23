@@ -69,13 +69,16 @@ void ESPayment::slotSearch()
 		row = ui.customers->rowCount();
 		ui.customers->insertRow(row);
 
-		ui.customers->setItem(row, 0, new QTableWidgetItem(queryCustomers.value("customer_id").toString()));
+		QString customerId = queryCustomers.value("customer_id").toString();
+
+		ui.customers->setItem(row, 0, new QTableWidgetItem(customerId));
 		ui.customers->setItem(row, 1, new QTableWidgetItem(queryCustomers.value("name").toString()));
 		ui.customers->setItem(row, 2, new QTableWidgetItem(queryCustomers.value("address").toString()));
 		ui.customers->setItem(row, 3, new QTableWidgetItem(queryCustomers.value("comments").toString()));
 		//ui.customers->setItem(row, 4, new QTableWidgetItem(queryCustomers.value("phone").toString()));
 
-		// TODO: outstanding on 4th column
+		float outstanding = getTotalOutstanding(customerId);
+		ui.customers->setItem(row, 4, new QTableWidgetItem(QString::number(outstanding, 'f', 2)));
 
 		row++;
 	}
@@ -192,7 +195,7 @@ void ESPayment::setTotalAmount(QString val)
 
 float ESPayment::getTotalOutstanding(QString customerId)
 {
-	float totalAmount;
+	float totalAmount = 0.f;
 	QString query;
 	query.append("SELECT * FROM customer_outstanding WHERE customer_id = ");
 	query.append(customerId);

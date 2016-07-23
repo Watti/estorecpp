@@ -1,10 +1,15 @@
 #include "escutomeroutstanding.h"
 #include <QtGui>
 #include "QSqlQuery"
+#include "QPushButton"
+#include "QMessageBox"
+#include "eslatepayment.h"
+#include "utility\session.h"
 
 ESCustomerOutstanding::ESCustomerOutstanding(QWidget *parent /*= 0*/) : QWidget(parent)
 {
 	ui.setupUi(this);
+	m_paymentDetailsMapper = new QSignalMapper(this);
 
 	QStringList headerLabels;
 	headerLabels.append("CustomerID");
@@ -47,6 +52,7 @@ ESCustomerOutstanding::ESCustomerOutstanding(QWidget *parent /*= 0*/) : QWidget(
 	QObject::connect(ui.searchText, SIGNAL(textChanged(QString)), this, SLOT(slotSearchCustomers()));
 	QObject::connect(ui.paymentType, SIGNAL(activated(int)), this, SLOT(populateCustomerOutstanding()));
 	QObject::connect(ui.checkBox, SIGNAL(stateChanged(int)), this, SLOT(populateCustomerOutstanding()));
+	QObject::connect(m_paymentDetailsMapper, SIGNAL(mapped(QString)), this, SLOT(slotPay(QString)));
 
 	slotSearchCustomers();
 
@@ -154,9 +160,12 @@ void ESCustomerOutstanding::populateCustomerOutstanding()
 		}
 
 		ui.outstandings->setItem(row, 0, new QTableWidgetItem(pm));
+		QString billId = "-1";
+
 		if (qry.next())
 		{
-			ui.outstandings->setItem(row, 1, new QTableWidgetItem(qry.value("bill_id").toString()));
+			billId = qry.value("bill_id").toString();
+			ui.outstandings->setItem(row, 1, new QTableWidgetItem(billId));
 		}
 
 		QTableWidgetItem* item = new QTableWidgetItem(QString::number(totalAmount, 'f', 2));
@@ -166,7 +175,94 @@ void ESCustomerOutstanding::populateCustomerOutstanding()
 		QTableWidgetItem* itemDate = new QTableWidgetItem(dueDate);
 		itemDate->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
 		ui.outstandings->setItem(row, 3, itemDate);
-		ui.outstandings->setItem(row, 4, new QTableWidgetItem("-"));
+		//ui.outstandings->setItem(row, 4, new QTableWidgetItem("-"));
+
+		QWidget* base = new QWidget(ui.outstandings);
+		QHBoxLayout *layout = new QHBoxLayout;
+		layout->setContentsMargins(0, 0, 0, 0);
+
+		QPushButton* payBtn = new QPushButton("Pay", base);
+		payBtn->setMaximumWidth(100);
+		m_paymentDetailsMapper->setMapping(payBtn, billId);
+		QObject::connect(payBtn, SIGNAL(clicked()), m_paymentDetailsMapper, SLOT(map()));
+		layout->addWidget(payBtn);
+
+		layout->insertStretch(2);
+		base->setLayout(layout);
+		ui.outstandings->setCellWidget(row, 4, base);
+		base->show();
+
 	}
+}
+
+void ESCustomerOutstanding::slotPay(QString billId)
+{
+	QSqlQuery qry("SELECT * FROM bill WHERE bill_id = " + billId);
+	if (qry.next())
+	{
+		QString customerIdStr = qry.value("customer_id").toString();
+		QSqlQuery q("SELECT * FROM customer WHERE customer_id = " + customerIdStr);
+		if (q.next())
+		{
+			ESLatePayment* latePayment = new ESLatePayment(0);
+			latePayment->setWindowState(Qt::WindowActive);
+			latePayment->setWindowModality(Qt::ApplicationModal);
+			latePayment->setAttribute(Qt::WA_DeleteOnClose);
+
+			latePayment->getUI().customerName->setText(q.value("name").toString());
+			latePayment->getUI().cashierName->setText(ES::Session::getInstance()->getUser()->getName());
+
+			//outstanding start
+			float totalAmount = 0;
+			int customerId = customerIdStr.toInt();
+			if (customerId > -1)
+			{
+				totalAmount = getTotalOutstanding(customerIdStr);
+			}
+			// outstanding end
+
+			latePayment->show();
+		}
+	}	
+}
+
+
+float ESCustomerOutstanding::getTotalOutstanding(QString customerId)
+{
+	float totalAmount = 0.f;
+	QString query;
+	query.append("SELECT * FROM customer_outstanding WHERE customer_id = ");
+	query.append(customerId);
+	query.append(" AND settled = 0");
+
+	QSqlQuery q(query);
+	while (q.next())
+	{
+		QString paymentId = q.value("payment_id").toString();
+		QSqlQuery qry("SELECT * FROM payment WHERE payment_id = " + paymentId);
+		QString pm = q.value("payment_method").toString();
+		float interest = 0;
+		if (pm == "CREDIT")
+		{
+			QSqlQuery qq("SELECT * FROM credit WHERE credit_id = " + q.value("table_id").toString());
+			if (qq.next())
+			{
+				interest = qq.value("interest").toFloat();
+				float amount = qq.value("amount").toFloat();
+				totalAmount += (amount * (100 + interest) / 100);
+			}
+		}
+		else if (pm == "CHEQUE")
+		{
+			QSqlQuery qq("SELECT * FROM cheque WHERE cheque_id = " + q.value("table_id").toString());
+			if (qq.next())
+			{
+				interest = qq.value("interest").toFloat();
+				float amount = qq.value("amount").toFloat();
+				totalAmount += (amount * (100 + interest) / 100);
+			}
+		}
+	}
+	return totalAmount;
 }
 

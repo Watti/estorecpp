@@ -586,7 +586,10 @@ void ESSinglePayment::finishBill(double netAmount, int billId)
 			}
 		}
 
-		m_addBill->resetBill();
+		if (m_addBill)
+		{
+			m_addBill->resetBill();
+		}
 
 		if (ui.doPrintCB->isChecked())
 		{
