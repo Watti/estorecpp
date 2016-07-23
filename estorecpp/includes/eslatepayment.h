@@ -18,6 +18,7 @@ public:
 public slots:
 	void slotAddBill();
 	void slotRemoveBill(QString billId);
+	void slotRemovePayment(QString id);
 	void slotOk();
 
 	void slotAddCash();
@@ -29,7 +30,8 @@ public slots:
 private:
 	Ui::LatePaymentWidget ui;
 	QString m_selectedCustomerId;
-	QSignalMapper* m_removeButtonMapper;
+	QSignalMapper* m_removeBillButtonMapper;
+	QSignalMapper* m_removePaymentButtonMapper;
 
 };
 

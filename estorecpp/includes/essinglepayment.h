@@ -47,13 +47,14 @@ private:
 
 	bool validate();
 	float getTotalOutstanding(QString customerId);
+	float getOutstandingForBill(int billId);
 	Ui::SinglePaymentWidget ui;
 	QString m_customerId;
 	ESAddBill* m_addBill;
 	float m_initialNetAmount;
 	QString m_paymentMethod;
 
-	KDReports::Report report;
+	//KDReports::Report report;
 
 };
 

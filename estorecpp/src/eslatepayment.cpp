@@ -5,7 +5,8 @@
 ESLatePayment::ESLatePayment(QWidget *parent /*= 0*/) : QWidget(parent)
 {
 	ui.setupUi(this);
-	m_removeButtonMapper = new QSignalMapper(this);
+	m_removeBillButtonMapper = new QSignalMapper(this);
+	m_removePaymentButtonMapper = new QSignalMapper(this);
 	
 	QStringList headerLabels1;
 	headerLabels1.append("Bill ID");
@@ -48,7 +49,8 @@ ESLatePayment::ESLatePayment(QWidget *parent /*= 0*/) : QWidget(parent)
 	QObject::connect(ui.cardBtn, SIGNAL(clicked()), this, SLOT(slotAddCard()));
 	QObject::connect(ui.loyaltyBtn, SIGNAL(clicked()), this, SLOT(slotAddLoyalty()));
 
-	QObject::connect(m_removeButtonMapper, SIGNAL(mapped(QString)), this, SLOT(slotRemoveBill(QString)));
+	QObject::connect(m_removeBillButtonMapper, SIGNAL(mapped(QString)), this, SLOT(slotRemoveBill(QString)));
+	QObject::connect(m_removePaymentButtonMapper, SIGNAL(mapped(QString)), this, SLOT(slotRemovePayment(QString)));
 }
 
 ESLatePayment::~ESLatePayment()
@@ -101,8 +103,8 @@ void ESLatePayment::addBill(QString billId)
 
 		QPushButton* removeBtn = new QPushButton("Remove", base);
 		removeBtn->setMaximumWidth(100);
-		m_removeButtonMapper->setMapping(removeBtn, billId);
-		QObject::connect(removeBtn, SIGNAL(clicked()), m_removeButtonMapper, SLOT(map()));
+		m_removeBillButtonMapper->setMapping(removeBtn, billId);
+		QObject::connect(removeBtn, SIGNAL(clicked()), m_removeBillButtonMapper, SLOT(map()));
 		layout->addWidget(removeBtn);
 
 		layout->insertStretch(2);
@@ -130,6 +132,19 @@ void ESLatePayment::slotRemoveBill(QString billId)
 	}
 }
 
+void ESLatePayment::slotRemovePayment(QString id)
+{
+	for (int r = 0; r < ui.tableWidget->rowCount(); ++r)
+	{
+		QTableWidgetItem* item = ui.tableWidget->item(r, 8);
+		if (item && item->text() == id)
+		{
+			ui.tableWidget->removeRow(r);
+			return;
+		}
+	}
+}
+
 void ESLatePayment::slotOk()
 {
 
@@ -137,7 +152,16 @@ void ESLatePayment::slotOk()
 
 void ESLatePayment::slotAddCash()
 {
+	int row = ui.tableWidget->rowCount();
+	ui.tableWidget->insertRow(row);
 
+	ui.tableWidget->setItem(row, 0, new QTableWidgetItem("CASH"));
+	ui.tableWidget->setItem(row, 1, new QTableWidgetItem("0.00"));
+	ui.tableWidget->setItem(row, 2, new QTableWidgetItem("-/-"));
+	ui.tableWidget->setItem(row, 3, new QTableWidgetItem("0.00"));
+	ui.tableWidget->setItem(row, 4, new QTableWidgetItem("-/-"));
+	ui.tableWidget->setItem(row, 5, new QTableWidgetItem("-/-"));
+	ui.tableWidget->setItem(row, 6, new QTableWidgetItem("-/-"));
 }
 
 void ESLatePayment::slotAddCredit()

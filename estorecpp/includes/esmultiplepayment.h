@@ -39,6 +39,7 @@ private:
 	float getTotalOutstanding(QString customerId);
 	void printRow(KDReports::TableElement& tableElement, int row, int col,
 		QString elementStr, Qt::AlignmentFlag alignment = Qt::AlignLeft);
+	float getOutstandingForBill(int billId);
 	Ui::MultiplePaymentWidget ui;
 	QString m_customerId;
 	QString m_paymentType;

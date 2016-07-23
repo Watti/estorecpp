@@ -542,6 +542,7 @@ void ESMultiplePayment::slotFinalizeBill()
 						mbox.exec();
 					}
 					QSqlQuery qry;
+					QString quryString;
 					qry.prepare("INSERT INTO customer_outstanding (customer_id, payment_id, payment_method, table_id, settled, settled_date, comments) VALUES (?, ?, 'CREDIT', ?, 0, NOW(), '')");
 					qry.addBindValue(m_customerId);
 					qry.addBindValue(lastInsertedId);
@@ -751,6 +752,8 @@ void ESMultiplePayment::finishBill(double netAmount, int billId)
 
 void ESMultiplePayment::printBill(int billId, float total)
 {
+	QString chequeNo = "", dueDate = "", cardNo = "";
+	QString paymentTypeInfo = "";
 	QString billStr("SELECT * FROM bill WHERE bill_id = " + QString::number(billId));
 	QString userName = "";
 	QSqlQuery queryBill(billStr);
@@ -867,6 +870,11 @@ void ESMultiplePayment::printBill(int billId, float total)
 			QSqlQuery queryCard("SELECT * FROM card WHERE payment_id = " + paymentId);
 			if (queryCard.next())
 			{
+				cardNo = queryCard.value("card_no").toString();
+				paymentTypeInfo.append("Card No : ");
+				paymentTypeInfo.append(cardNo);
+				paymentTypeInfo.append("\n");
+
 				float interest = queryCard.value("interest").toFloat();
 				float amount = queryCard.value("amount").toFloat();
 				float netAmount = amount;
@@ -880,6 +888,14 @@ void ESMultiplePayment::printBill(int billId, float total)
 			QSqlQuery query("SELECT * FROM cheque WHERE payment_id = " + paymentId);
 			if (query.next())
 			{
+				chequeNo = query.value("cheque_number").toString();
+				paymentTypeInfo.append("Cheque No : ");
+				paymentTypeInfo.append(chequeNo);
+				paymentTypeInfo.append(" - Due Date :");
+				dueDate = query.value("due_date").toString();
+				paymentTypeInfo.append(dueDate);
+				paymentTypeInfo.append("\n");
+
 				float interest = query.value("interest").toFloat();
 				float amount = query.value("amount").toFloat();
 				float netAmount = amount;
@@ -893,6 +909,11 @@ void ESMultiplePayment::printBill(int billId, float total)
 			QSqlQuery query("SELECT * FROM credit WHERE payment_id = " + paymentId);
 			if (query.next())
 			{
+				dueDate = query.value("due_date").toString();
+				paymentTypeInfo.append("Due Date :");
+				paymentTypeInfo.append(dueDate);
+				paymentTypeInfo.append("\n");
+
 				float interest = query.value("interest").toFloat();
 				float amount = query.value("amount").toFloat();
 				float netAmount = amount;
@@ -1094,7 +1115,7 @@ void ESMultiplePayment::printBill(int billId, float total)
 	// customer info	
 	if (m_customerId == "-1")
 	{
-		QString customer = "Bill To : N/A";
+		QString customer = "Customer Id : N/A";
 
 		KDReports::TextElement customerInfo(customer);
 		customerInfo.setPointSize(11);
@@ -1102,15 +1123,22 @@ void ESMultiplePayment::printBill(int billId, float total)
 	}
 	else
 	{
-		QString customer = "Bill To : ";
+		QString customer = "Customer Id : ";
 		QSqlQuery q("SELECT * FROM customer WHERE customer_id = " + m_customerId);
 		if (q.next())
 		{
 			customer.append(q.value("customer_id").toString());
-			customer.append(" / ");
-			customer.append("Outstanding Amount : ");
-			float totalOutstanding = getTotalOutstanding(m_customerId);
+			customer.append("\n");
+			customer.append("Previous Outstanding : ");
+			float billOutstanding = getOutstandingForBill(billId);
+			float prevOutstanding = ui.outstandingText->text().toFloat();
+			customer.append(QString::number(prevOutstanding, 'f', 2));
+			customer.append("\n");
+			customer.append("Total Outstanding : ");
+			float totalOutstanding = prevOutstanding + billOutstanding;
 			customer.append(QString::number(totalOutstanding, 'f', 2));
+			customer.append("\n");
+			customer.append(paymentTypeInfo);
 		}
 		KDReports::TextElement customerInfo(customer);
 		customerInfo.setPointSize(11);
@@ -1211,6 +1239,38 @@ float ESMultiplePayment::getTotalOutstanding(QString customerId)
 		}
 	}
 	return totalAmount;
+}
+
+float ESMultiplePayment::getOutstandingForBill(int billId)
+{
+	float totalOutstanding = 0;
+	QSqlQuery queryPayment("SELECT * FROM payment WHERE bill_id = " + QString::number(billId) + " AND valid = 1");
+	while (queryPayment.next())
+	{
+		QString pId = queryPayment.value("payment_id").toString();
+		QString type = queryPayment.value("payment_type").toString();
+		if (type == "CHEQUE")
+		{
+			QSqlQuery queryCheque("SELECT * FROM cheque WHERE payment_id = " + pId);
+			while (queryCheque.next())
+			{
+				float amount = queryCheque.value("amount").toFloat();
+				float interest = queryCheque.value("interest").toFloat();
+				totalOutstanding += (amount * (100 + interest) / 100);
+			}
+		}
+		else if (type == "CREDIT")
+		{
+			QSqlQuery queryCheque("SELECT * FROM credit WHERE payment_id = " + pId);
+			while (queryCheque.next())
+			{
+				float amount = queryCheque.value("amount").toFloat();
+				float interest = queryCheque.value("interest").toFloat();
+				totalOutstanding += (amount * (100 + interest) / 100);
+			}
+		}
+	}
+	return totalOutstanding;
 }
 
 // void ESMultiplePayment::slotInterestChanged()
