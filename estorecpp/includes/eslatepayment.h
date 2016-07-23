@@ -8,17 +8,28 @@ class ESLatePayment : public QWidget
 {
 	Q_OBJECT
 public:
-	ESLatePayment(QString billId, QWidget *parent = 0);
+	ESLatePayment(QWidget *parent = 0);
 	~ESLatePayment();
 
 	Ui::LatePaymentWidget& getUI() { return ui; }
+	void addBill(QString billId);
+	void setCustomerId(QString customerId);
 
 public slots:
-	void slotSearch();
+	void slotAddBill();
+	void slotRemoveBill(QString billId);
+	void slotOk();
+
+	void slotAddCash();
+	void slotAddCredit();
+	void slotAddCheque();
+	void slotAddCard();
+	void slotAddLoyalty();
 
 private:
 	Ui::LatePaymentWidget ui;
-	QString m_billId;
+	QString m_selectedCustomerId;
+	QSignalMapper* m_removeButtonMapper;
 
 };
 

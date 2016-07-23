@@ -19,6 +19,7 @@ public:
 	void slotCustomerSelected(int row, int col);
 	void populateCustomerOutstanding();
 	void slotPay(QString billId);
+	void slotMultiPay();
 
 private:
 	float getTotalOutstanding(QString customerId);
