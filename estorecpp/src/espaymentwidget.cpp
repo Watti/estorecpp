@@ -126,7 +126,7 @@ void ESPayment::slotSinglePayment()
 	singlePayment->setCustomerId(m_customerId);
 
 	singlePayment->getUI().nameText->setText(m_name);
-	singlePayment->getUI().phoneText->setText(m_phone);
+	singlePayment->getUI().outstandingText->setText("0.00"); // TODO
 	singlePayment->getUI().addressText->setText(m_address);
 	singlePayment->getUI().commentsText->setText(m_comments);
 
@@ -149,7 +149,7 @@ void ESPayment::slotMultiplePayment()
 	multiplePayment->setCustomerId(m_customerId);
 
 	multiplePayment->getUI().nameText->setText(m_name);
-	multiplePayment->getUI().phoneText->setText(m_phone);
+	multiplePayment->getUI().outstandingText->setText("0.00"); // TODO
 	multiplePayment->getUI().addressText->setText(m_address);
 	multiplePayment->getUI().commentsText->setText(m_comments);
 
