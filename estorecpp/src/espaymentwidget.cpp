@@ -22,7 +22,7 @@ QWidget(parent), m_addBill(addBill)
 	headerLabels.append("Name");
 	headerLabels.append("Address");
 	headerLabels.append("Comments");
-	headerLabels.append("Phone");
+	headerLabels.append("Outstanding");
 
 	ui.customers->setHorizontalHeaderLabels(headerLabels);
 	ui.customers->horizontalHeader()->setStretchLastSection(true);
@@ -73,7 +73,9 @@ void ESPayment::slotSearch()
 		ui.customers->setItem(row, 1, new QTableWidgetItem(queryCustomers.value("name").toString()));
 		ui.customers->setItem(row, 2, new QTableWidgetItem(queryCustomers.value("address").toString()));
 		ui.customers->setItem(row, 3, new QTableWidgetItem(queryCustomers.value("comments").toString()));
-		ui.customers->setItem(row, 4, new QTableWidgetItem(queryCustomers.value("phone").toString()));
+		//ui.customers->setItem(row, 4, new QTableWidgetItem(queryCustomers.value("phone").toString()));
+
+		// TODO: outstanding on 4th column
 
 		row++;
 	}
