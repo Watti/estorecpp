@@ -943,6 +943,9 @@ void ESSinglePayment::printBill(int billId, float total)
 			customer.append(q.value("customer_id").toString());
 			customer.append(" / ");
 			customer.append(q.value("name").toString());
+			customer.append("Outstanding Amount : ");
+			float totalOutstanding = getTotalOutstanding(m_customerId);
+			customer.append(QString::number(totalOutstanding, 'f', 2));
 		}
 		KDReports::TextElement customerInfo(customer);
 		customerInfo.setPointSize(11);
@@ -1047,4 +1050,43 @@ void ESSinglePayment::slotDiscountPercentage()
 		netAmount = netAmount - discount;
 	}
 	ui.netAmountLbl->setText(QString::number(netAmount, 'f', 2));
+}
+
+float ESSinglePayment::getTotalOutstanding(QString customerId)
+{
+	float totalAmount;
+	QString query;
+	query.append("SELECT * FROM customer_outstanding WHERE customer_id = ");
+	query.append(customerId);
+	query.append(" AND settled = 0");
+
+	QSqlQuery q(query);
+	while (q.next())
+	{
+		QString paymentId = q.value("payment_id").toString();
+		QSqlQuery qry("SELECT * FROM payment WHERE payment_id = " + paymentId);
+		QString pm = q.value("payment_method").toString();
+		float interest = 0;
+		if (pm == "CREDIT")
+		{
+			QSqlQuery qq("SELECT * FROM credit WHERE credit_id = " + q.value("table_id").toString());
+			if (qq.next())
+			{
+				interest = qq.value("interest").toFloat();
+				float amount = qq.value("amount").toFloat();
+				totalAmount += (amount * (100 + interest) / 100);
+			}
+		}
+		else if (pm == "CHEQUE")
+		{
+			QSqlQuery qq("SELECT * FROM cheque WHERE cheque_id = " + q.value("table_id").toString());
+			if (qq.next())
+			{
+				interest = qq.value("interest").toFloat();
+				float amount = qq.value("amount").toFloat();
+				totalAmount += (amount * (100 + interest) / 100);
+			}
+		}
+	}
+	return totalAmount;
 }

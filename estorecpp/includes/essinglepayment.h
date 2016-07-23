@@ -46,7 +46,7 @@ private:
 	void printBill(int billId, float total);
 
 	bool validate();
-
+	float getTotalOutstanding(QString customerId);
 	Ui::SinglePaymentWidget ui;
 	QString m_customerId;
 	ESAddBill* m_addBill;

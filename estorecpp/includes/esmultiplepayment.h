@@ -36,6 +36,7 @@ private:
 	bool validate();
 	void finishBill(double netAmount, int billId);
 	void printBill(int billId, float total);
+	float getTotalOutstanding(QString customerId);
 	void printRow(KDReports::TableElement& tableElement, int row, int col,
 		QString elementStr, Qt::AlignmentFlag alignment = Qt::AlignLeft);
 	Ui::MultiplePaymentWidget ui;
