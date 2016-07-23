@@ -31,7 +31,7 @@ QWidget(parent), m_addBill(addBill)
 	ui.customers->setSelectionBehavior(QAbstractItemView::SelectRows);
 	ui.customers->setSelectionMode(QAbstractItemView::SingleSelection);
 	ui.customers->hideColumn(0);
-		
+
 	new QShortcut(QKeySequence(Qt::Key_Escape), this, SLOT(close()));
 	QObject::connect(ui.searchText, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
 	QObject::connect(ui.customers, SIGNAL(cellPressed(int, int)), this, SLOT(slotCustomerSeleced(int, int)));
@@ -79,7 +79,7 @@ void ESPayment::slotSearch()
 
 		row++;
 	}
-	
+
 }
 
 void ESPayment::slotCustomerSeleced(int row, int col)
@@ -126,9 +126,13 @@ void ESPayment::slotSinglePayment()
 	singlePayment->setCustomerId(m_customerId);
 	//outstanding start
 	QString query;
-	query.append("SELECT * FROM customer_outstanding WHERE customer_id = ");
-	query.append(m_customerId);
-	query.append(" AND settled = 0");
+	int customerId = m_customerId.toInt();
+	if (customerId > -1)
+	{
+		query.append("SELECT * FROM customer_outstanding WHERE customer_id = ");
+		query.append(m_customerId);
+		query.append(" AND settled = 0");
+	}
 
 	QSqlQuery q(query);
 	float totalAmount = 0;
@@ -159,7 +163,7 @@ void ESPayment::slotSinglePayment()
 			}
 		}
 	}
-		//outstanding end
+	//outstanding end
 	singlePayment->getUI().nameText->setText(m_name);
 	singlePayment->getUI().outstandingText->setText(QString::number(totalAmount, 'f', 2));
 	singlePayment->getUI().addressText->setText(m_address);
@@ -184,10 +188,15 @@ void ESPayment::slotMultiplePayment()
 	multiplePayment->setCustomerId(m_customerId);
 
 	//outstanding start
+	int customerId = m_customerId.toInt();
 	QString query;
-	query.append("SELECT * FROM customer_outstanding WHERE customer_id = ");
-	query.append(m_customerId);
-	query.append(" AND settled = 0");
+	if (customerId > -1)
+	{
+
+		query.append("SELECT * FROM customer_outstanding WHERE customer_id = ");
+		query.append(m_customerId);
+		query.append(" AND settled = 0");
+	}
 
 	QSqlQuery q(query);
 	float totalAmount = 0;

@@ -541,6 +541,18 @@ void ESMultiplePayment::slotFinalizeBill()
 						mbox.setText(QString("Failed"));
 						mbox.exec();
 					}
+					QSqlQuery qry;
+					qry.prepare("INSERT INTO customer_outstanding (customer_id, payment_id, payment_method, table_id, settled, settled_date, comments) VALUES (?, ?, 'CREDIT', ?, 0, NOW(), '')");
+					qry.addBindValue(m_customerId);
+					qry.addBindValue(lastInsertedId);
+					qry.addBindValue(q.lastInsertId().toInt());
+					if (!qry.exec())
+					{
+						QMessageBox mbox;
+						mbox.setIcon(QMessageBox::Critical);
+						mbox.setText(QString("Failed to add CUSTOMER OUTSTANDING info"));
+						mbox.exec();
+					}
 				}
 				else
 				{
@@ -572,6 +584,18 @@ void ESMultiplePayment::slotFinalizeBill()
 						QMessageBox mbox;
 						mbox.setIcon(QMessageBox::Critical);
 						mbox.setText(QString("Failed"));
+						mbox.exec();
+					}
+					QSqlQuery qry;
+					qry.prepare("INSERT INTO customer_outstanding (customer_id, payment_id, payment_method, table_id, settled, settled_date, comments) VALUES (?, ?, 'CHEQUE', ?, 0, '', '')");
+					qry.addBindValue(m_customerId);
+					qry.addBindValue(lastInsertedId);
+					qry.addBindValue(q.lastInsertId().toInt());
+					if (!qry.exec())
+					{
+						QMessageBox mbox;
+						mbox.setIcon(QMessageBox::Critical);
+						mbox.setText(QString("Failed to add CUSTOMER OUTSTANDING info"));
 						mbox.exec();
 					}
 				}
