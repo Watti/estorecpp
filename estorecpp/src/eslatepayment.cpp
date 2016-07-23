@@ -1,6 +1,16 @@
 #include "eslatepayment.h"
 #include "QSqlQuery"
+#include "entities\tabletextwidget.h"
 
+namespace
+{
+	QString convertToQuantityFormat(QString text, int row, int col, QTableWidget* table)
+	{
+		// 		double val = text.toDouble();
+		// 		return QString::number(val, 'f', 3);
+		return text;
+	}
+}
 
 ESLatePayment::ESLatePayment(QWidget *parent /*= 0*/) : QWidget(parent)
 {
@@ -51,6 +61,7 @@ ESLatePayment::ESLatePayment(QWidget *parent /*= 0*/) : QWidget(parent)
 
 	QObject::connect(m_removeBillButtonMapper, SIGNAL(mapped(QString)), this, SLOT(slotRemoveBill(QString)));
 	QObject::connect(m_removePaymentButtonMapper, SIGNAL(mapped(QString)), this, SLOT(slotRemovePayment(QString)));
+	QObject::connect(ui.tableWidget, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(slotItemDoubleClicked(int, int)));
 }
 
 ESLatePayment::~ESLatePayment()
@@ -182,4 +193,49 @@ void ESLatePayment::slotAddCard()
 void ESLatePayment::slotAddLoyalty()
 {
 
+}
+
+void ESLatePayment::slotItemDoubleClicked(int row, int col)
+{
+	QTableWidgetItem* paymentItem = ui.tableWidget->item(row, 0);
+	if (paymentItem)
+	{
+		QString paymentType = paymentItem->text();
+		if (paymentType == "CASH")
+		{
+			if (col == 1) // amount
+			{
+				QTableWidgetItem* item = ui.tableWidget->item(row, 1);
+				QString amountStr = item->text();
+
+				TableTextWidget* textWidget = new TableTextWidget(ui.tableWidget, row, col, ui.tableWidget);
+				QObject::connect(textWidget, SIGNAL(notifyEnterPressed(QString, int, int)), this, SLOT(slotQuantityCellUpdated(QString, int, int)));
+				textWidget->setTextFormatterFunc(convertToQuantityFormat);
+				textWidget->setText(amountStr);
+				textWidget->selectAll();
+				ui.tableWidget->setCellWidget(row, col, textWidget);
+				textWidget->setFocus();
+			}
+			else if (col == 3) // payment
+			{
+			}
+		}
+		else if (paymentType == "CREDIT")
+		{
+
+		}
+		else if (paymentType == "CHEQUE")
+		{
+
+		}
+		else if (paymentType == "CARD")
+		{
+
+		}
+		else if (paymentType == "LOYALTY")
+		{
+
+		}
+	}
+	
 }

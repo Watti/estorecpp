@@ -17,6 +17,7 @@ public:
 
 public slots:
 	void slotAddBill();
+	void slotItemDoubleClicked(int row, int col);
 	void slotRemoveBill(QString billId);
 	void slotRemovePayment(QString id);
 	void slotOk();
