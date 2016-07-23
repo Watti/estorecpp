@@ -161,15 +161,15 @@ void ESPayment::slotSinglePayment()
 	}
 		//outstanding end
 	singlePayment->getUI().nameText->setText(m_name);
-	singlePayment->getUI().outstandingText->setText("0.00"); // TODO
+	singlePayment->getUI().outstandingText->setText(QString::number(totalAmount, 'f', 2));
 	singlePayment->getUI().addressText->setText(m_address);
-	singlePayment->getUI().commentsText->setText(QString::number(totalAmount,'f',2));
+	singlePayment->getUI().commentsText->setText(m_comments);
 
 	singlePayment->getUI().netAmountLbl->setText(m_netAmount);
 	singlePayment->getUI().totalBillLbl->setText(m_totalAmount);
 	singlePayment->setInitialNetAmount(m_netAmount.toFloat());
 	singlePayment->getUI().noOfItemsLbl->setText(m_noOfItems);
-	singlePayment->getUI().balanceLbl->setText("0.00");
+	singlePayment->getUI().balanceLbl->setText(QString::number(totalAmount, 'f', 2));
 
 	singlePayment->show();
 	close();
@@ -221,16 +221,15 @@ void ESPayment::slotMultiplePayment()
 	//outstanding end
 
 	multiplePayment->getUI().nameText->setText(m_name);
-	multiplePayment->getUI().outstandingText->setText("0.00"); // TODO
+	multiplePayment->getUI().outstandingText->setText(QString::number(totalAmount, 'f', 2));
 	multiplePayment->getUI().addressText->setText(m_address);
 	multiplePayment->getUI().commentsText->setText(m_comments);
-	multiplePayment->getUI().commentsText->setText(QString::number(totalAmount, 'f', 2));
 
 	multiplePayment->getUI().netAmountLbl->setText(m_netAmount);
 	multiplePayment->getUI().totalBillLbl->setText(m_totalAmount);
 	multiplePayment->setInitialNetAmount(m_netAmount.toFloat());
 	multiplePayment->getUI().noOfItemsLbl->setText(m_noOfItems);
-	multiplePayment->getUI().balanceLbl->setText("0.00");
+	multiplePayment->getUI().balanceLbl->setText(QString::number(totalAmount, 'f', 2));
 
 	multiplePayment->show();
 	close();
