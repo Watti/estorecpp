@@ -122,11 +122,46 @@ void ESPayment::slotSinglePayment()
 	singlePayment->setWindowModality(Qt::ApplicationModal);
 	singlePayment->setAttribute(Qt::WA_DeleteOnClose);
 	singlePayment->setCustomerId(m_customerId);
+	//outstanding start
+	QString query;
+	query.append("SELECT * FROM customer_outstanding WHERE customer_id = ");
+	query.append(m_customerId);
+	query.append(" AND settled = 0");
 
+	QSqlQuery q(query);
+	float totalAmount = 0;
+	while (q.next())
+	{
+		QString paymentId = q.value("payment_id").toString();
+		QSqlQuery qry("SELECT * FROM payment WHERE payment_id = " + paymentId);
+		QString pm = q.value("payment_method").toString();
+		float interest = 0;
+		if (pm == "CREDIT")
+		{
+			QSqlQuery qq("SELECT * FROM credit WHERE credit_id = " + q.value("table_id").toString());
+			if (qq.next())
+			{
+				interest = qq.value("interest").toFloat();
+				float amount = qq.value("amount").toFloat();
+				totalAmount += (amount * (100 + interest) / 100);
+			}
+		}
+		else if (pm == "CHEQUE")
+		{
+			QSqlQuery qq("SELECT * FROM cheque WHERE cheque_id = " + q.value("table_id").toString());
+			if (qq.next())
+			{
+				interest = qq.value("interest").toFloat();
+				float amount = qq.value("amount").toFloat();
+				totalAmount += (amount * (100 + interest) / 100);
+			}
+		}
+	}
+		//outstanding end
 	singlePayment->getUI().nameText->setText(m_name);
 	singlePayment->getUI().phoneText->setText(m_phone);
 	singlePayment->getUI().addressText->setText(m_address);
-	singlePayment->getUI().commentsText->setText(m_comments);
+	singlePayment->getUI().commentsText->setText(QString::number(totalAmount,'f',2));
 
 	singlePayment->getUI().netAmountLbl->setText(m_netAmount);
 	singlePayment->getUI().totalBillLbl->setText(m_totalAmount);
@@ -146,10 +181,48 @@ void ESPayment::slotMultiplePayment()
 	multiplePayment->setAttribute(Qt::WA_DeleteOnClose);
 	multiplePayment->setCustomerId(m_customerId);
 
+	//outstanding start
+	QString query;
+	query.append("SELECT * FROM customer_outstanding WHERE customer_id = ");
+	query.append(m_customerId);
+	query.append(" AND settled = 0");
+
+	QSqlQuery q(query);
+	float totalAmount = 0;
+	while (q.next())
+	{
+		QString paymentId = q.value("payment_id").toString();
+		QSqlQuery qry("SELECT * FROM payment WHERE payment_id = " + paymentId);
+		QString pm = q.value("payment_method").toString();
+		float interest = 0;
+		if (pm == "CREDIT")
+		{
+			QSqlQuery qq("SELECT * FROM credit WHERE credit_id = " + q.value("table_id").toString());
+			if (qq.next())
+			{
+				interest = qq.value("interest").toFloat();
+				float amount = qq.value("amount").toFloat();
+				totalAmount += (amount * (100 + interest) / 100);
+			}
+		}
+		else if (pm == "CHEQUE")
+		{
+			QSqlQuery qq("SELECT * FROM cheque WHERE cheque_id = " + q.value("table_id").toString());
+			if (qq.next())
+			{
+				interest = qq.value("interest").toFloat();
+				float amount = qq.value("amount").toFloat();
+				totalAmount += (amount * (100 + interest) / 100);
+			}
+		}
+	}
+	//outstanding end
+
 	multiplePayment->getUI().nameText->setText(m_name);
 	multiplePayment->getUI().phoneText->setText(m_phone);
 	multiplePayment->getUI().addressText->setText(m_address);
 	multiplePayment->getUI().commentsText->setText(m_comments);
+	multiplePayment->getUI().commentsText->setText(QString::number(totalAmount, 'f', 2));
 
 	multiplePayment->getUI().netAmountLbl->setText(m_netAmount);
 	multiplePayment->getUI().totalBillLbl->setText(m_totalAmount);

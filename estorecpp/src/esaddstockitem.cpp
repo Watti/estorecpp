@@ -23,8 +23,8 @@ AddStockItem::AddStockItem(QWidget *parent /*= 0*/)
 	}
 	if (ES::Session::getInstance()->isSecondDisplayOn())
 	{
-		ui.floorTxt->setDisabled(true);
-		ui.floorLbl->setDisabled(true);
+		ui.floorTxt->hide();
+		ui.floorLbl->hide();
 	}
 }
 
