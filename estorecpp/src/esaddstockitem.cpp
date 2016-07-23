@@ -6,6 +6,7 @@
 #include "utility/esmainwindowholder.h"
 #include "esmainwindow.h"
 #include "utility/utility.h"
+#include "utility/session.h"
 
 AddStockItem::AddStockItem(QWidget *parent /*= 0*/)
 : QWidget(parent), m_existingQuantityInMainStock(0), m_update(false), m_existingQuantityInStock(0)
@@ -19,6 +20,11 @@ AddStockItem::AddStockItem(QWidget *parent /*= 0*/)
 		mbox.setIcon(QMessageBox::Critical);
 		mbox.setText(QString("Database Connection Error : AddStockItem"));
 		mbox.exec();
+	}
+	if (ES::Session::getInstance()->isSecondDisplayOn())
+	{
+		ui.floorTxt->setDisabled(true);
+		ui.floorLbl->setDisabled(true);
 	}
 }
 
@@ -35,7 +41,7 @@ void AddStockItem::slotAddStockItem()
 		QString minQtyStr = ui.minQty->text();
 		QString priceStr = ui.itemPrice->text();
 		QString purchasingPrice = ui.purchasingPrice->text();
-
+		QString floorNo = ui.floorTxt->text();
 		if (!qtyStr.isEmpty() && !minQtyStr.isEmpty() && !priceStr.isEmpty() && !purchasingPrice.isEmpty())
 		{
 			bool isValid = false;
@@ -95,6 +101,24 @@ void AddStockItem::slotAddStockItem()
 					mbox.exec();
 					return;
 				}
+
+				if (!floorNo.isEmpty())
+				{
+					isValid = false;
+					int floorNoInt = floorNo.toInt(&isValid);
+					if (!isValid)
+					{
+						QMessageBox mbox;
+						mbox.setIcon(QMessageBox::Warning);
+						mbox.setText(QString("Invalid input - Floor Number"));
+						mbox.exec();
+						return;
+					}
+				}
+				else
+				{
+					floorNo = "0";
+				}
 				if (isValid)
 				{
 					QString q;
@@ -105,7 +129,7 @@ void AddStockItem::slotAddStockItem()
 						{
 							visible = "0";
 						}
-						q = "UPDATE stock SET qty = '" + qtyStr + "', min_qty = '" + minQtyStr + "' ,selling_price = '"+price+"', discount ='"+discount+"', visible = '"+visible+"' WHERE stock_id = " + m_stockId;
+						q = "UPDATE stock SET qty = '" + qtyStr + "', min_qty = '" + minQtyStr + "' ,selling_price = '"+price+"', discount ='"+discount+"', visible = '"+visible+"', floor = '"+floorNo+"' WHERE stock_id = " + m_stockId;
 					}
 // 					else
 // 					{
