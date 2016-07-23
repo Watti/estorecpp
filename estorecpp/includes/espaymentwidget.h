@@ -23,6 +23,9 @@ public:
 	void slotCustomerSeleced(int,int);
 	void slotSinglePayment();
 	void slotMultiplePayment();
+
+	float getTotalOutstanding(QString customerId);
+
 	QString getTotalAmount() const;
 	void setTotalAmount(QString val);
 	
