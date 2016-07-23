@@ -22,6 +22,8 @@ public:
 	void slotReprint(QString);
 	void slotInvisible(QString);
 	void slotPrint(QPrinter* printer);
+	void slotPrev();
+	void slotNext();
 
 private:
 	void printRow(KDReports::TableElement& tableElement, int row, int col, 
@@ -33,7 +35,11 @@ private:
 	QSignalMapper* m_reprintBillButtonSignalMapper;
 	QSignalMapper* m_invisibleButtonSignalMapper;
 	KDReports::Report report;
-
+	int m_pageOffset;
+	int m_startingLimit;
+	int m_totalRecords;
+	int m_nextCounter;
+	int m_maxNextCount;
 };
 
 #endif

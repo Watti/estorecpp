@@ -19,17 +19,20 @@
 #include "QString"
 
 ESCurrentBills::ESCurrentBills(QWidget *parent)
-: QWidget(parent)
+: QWidget(parent), m_startingLimit(0), m_pageOffset(15), m_nextCounter(0), m_maxNextCount(0)
 {
 	ui.setupUi(this);
 	m_proceedButtonSignalMapper = new QSignalMapper(this);
 	m_voidBillButtonSignalMapper = new QSignalMapper(this);
 	m_reprintBillButtonSignalMapper = new QSignalMapper(this);
 	m_invisibleButtonSignalMapper = new QSignalMapper(this);
+
 	QObject::connect(m_proceedButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotProceed(QString)));
 	QObject::connect(m_voidBillButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotVoidBill(QString)));
 	QObject::connect(m_reprintBillButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotReprint(QString)));
 	QObject::connect(m_invisibleButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotInvisible(QString)));
+	QObject::connect(ui.nextBtn, SIGNAL(clicked()), this, SLOT(slotNext()));
+	QObject::connect(ui.prevBtn, SIGNAL(clicked()), this, SLOT(slotPrev()));
 
 	ui.startDate->setDisplayFormat("yyyy-MM-dd");
 	ui.endDate->setDisplayFormat("yyyy-MM-dd");
@@ -80,7 +83,8 @@ ESCurrentBills::ESCurrentBills(QWidget *parent)
 		ui.endDate->setDate(QDate::currentDate());
 
 	}
-
+	ui.prevBtn->setDisabled(true);
+	ui.nextBtn->setDisabled(true);
 	slotSearch();
 }
 
@@ -104,167 +108,193 @@ void ESCurrentBills::slotSearch()
 	endDate.setTime(QTime(23, 59, 59));
 
 	int row = 0;
-	QString qStr;
+	QString qStr, qRecordCountStr;
 	if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
 		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
 	{
 		qStr = "SELECT * FROM bill WHERE deleted = 0";
+		qRecordCountStr = "SELECT COUNT(*) as c FROM bill WHERE deleted = 0";
 	}
 	else
 	{
 		qStr = "SELECT * FROM bill WHERE deleted = 0 AND visible = 1";
+		qRecordCountStr = "SELECT COUNT(*) as c FROM bill WHERE deleted = 0 AND visible = 1";
 	}
-	QSqlQuery allBillQuery(qStr);
-	while (allBillQuery.next())
+	QSqlQuery queryRecordCount(qRecordCountStr);
+	if (queryRecordCount.next())
 	{
-		if (selectedUser > 0)
+		m_totalRecords = queryRecordCount.value("c").toInt();
+	}
+	//pagination start
+	qStr.append(" LIMIT ").append(QString::number(m_startingLimit));
+	qStr.append(" , ").append(QString::number(m_pageOffset));
+	//pagination end
+	QSqlQuery allBillQuery;
+	if (allBillQuery.exec(qStr))
+	{
+		//pagination start
+		m_maxNextCount = m_totalRecords / m_pageOffset;
+		if (m_maxNextCount > m_nextCounter)
 		{
-			if (selectedUser != allBillQuery.value("user_id").toInt())
+			ui.nextBtn->setEnabled(true);
+		}
+		int currentlyShowdItemCount = (m_nextCounter + 1)*m_pageOffset;
+		if (currentlyShowdItemCount >= m_totalRecords)
+		{
+			ui.nextBtn->setDisabled(true);
+		}
+		//pagination end
+		while (allBillQuery.next())
+		{
+			if (selectedUser > 0)
+			{
+				if (selectedUser != allBillQuery.value("user_id").toInt())
+				{
+					continue;
+				}
+			}
+			QDateTime billedDate = QDateTime::fromString(allBillQuery.value("date").toString(), Qt::ISODate);
+			if (billedDate < startDate || billedDate > endDate)
 			{
 				continue;
 			}
-		}
-		QDateTime billedDate = QDateTime::fromString(allBillQuery.value("date").toString(), Qt::ISODate);
-		if (billedDate < startDate || billedDate > endDate)
-		{
-			continue;
-		}
-		int statusId = allBillQuery.value("status").toInt();
-		if (selectedStatus > 0)
-		{
-			if (selectedStatus != statusId)
+			int statusId = allBillQuery.value("status").toInt();
+			if (selectedStatus > 0)
 			{
-				continue;
+				if (selectedStatus != statusId)
+				{
+					continue;
+				}
 			}
-		}
 
-		QTableWidgetItem* tableItem = NULL;
-		row = ui.tableWidget->rowCount();
-		ui.tableWidget->insertRow(row);
-		QColor rowColor;
-		QString billId = allBillQuery.value("bill_id").toString();
-		switch (statusId)
-		{
-		case 1:
-		{
-				  rowColor.setRgb(169, 245, 208);
-				  tableItem = new QTableWidgetItem("COMMITTED");
-				  tableItem->setTextAlignment(Qt::AlignHCenter);
-				  tableItem->setBackgroundColor(rowColor);
-				  ui.tableWidget->setItem(row, 4, tableItem);
+			QTableWidgetItem* tableItem = NULL;
+			row = ui.tableWidget->rowCount();
+			ui.tableWidget->insertRow(row);
+			QColor rowColor;
+			QString billId = allBillQuery.value("bill_id").toString();
+			switch (statusId)
+			{
+			case 1:
+			{
+					  rowColor.setRgb(169, 245, 208);
+					  tableItem = new QTableWidgetItem("COMMITTED");
+					  tableItem->setTextAlignment(Qt::AlignHCenter);
+					  tableItem->setBackgroundColor(rowColor);
+					  ui.tableWidget->setItem(row, 4, tableItem);
 
-				  QWidget* base = new QWidget(ui.tableWidget);
-				  QHBoxLayout *layout = new QHBoxLayout;
-				  layout->setContentsMargins(0, 0, 0, 0);
+					  QWidget* base = new QWidget(ui.tableWidget);
+					  QHBoxLayout *layout = new QHBoxLayout;
+					  layout->setContentsMargins(0, 0, 0, 0);
 
-				  ES::User::UserType uType = ES::Session::getInstance()->getUser()->getType();
-				  if (uType == ES::User::SENIOR_MANAGER || uType == ES::User::DEV || uType == ES::User::MANAGER)
-				  {
-					  QPushButton* voidBtn = new QPushButton("Cancel", base);
-					  voidBtn->setMaximumWidth(100);
-					  m_voidBillButtonSignalMapper->setMapping(voidBtn, billId);
-					  QObject::connect(voidBtn, SIGNAL(clicked()), m_voidBillButtonSignalMapper, SLOT(map()));
-					  layout->addWidget(voidBtn);
-				  }
+					  ES::User::UserType uType = ES::Session::getInstance()->getUser()->getType();
+					  if (uType == ES::User::SENIOR_MANAGER || uType == ES::User::DEV || uType == ES::User::MANAGER)
+					  {
+						  QPushButton* voidBtn = new QPushButton("Cancel", base);
+						  voidBtn->setMaximumWidth(100);
+						  m_voidBillButtonSignalMapper->setMapping(voidBtn, billId);
+						  QObject::connect(voidBtn, SIGNAL(clicked()), m_voidBillButtonSignalMapper, SLOT(map()));
+						  layout->addWidget(voidBtn);
+					  }
 
-				  QPushButton* reprintBtn = new QPushButton("Reprint", base);
-				  reprintBtn->setMaximumWidth(100);
-				  m_reprintBillButtonSignalMapper->setMapping(reprintBtn, billId);
-				  QObject::connect(reprintBtn, SIGNAL(clicked()), m_reprintBillButtonSignalMapper, SLOT(map()));
-				  layout->addWidget(reprintBtn);
+					  QPushButton* reprintBtn = new QPushButton("Reprint", base);
+					  reprintBtn->setMaximumWidth(100);
+					  m_reprintBillButtonSignalMapper->setMapping(reprintBtn, billId);
+					  QObject::connect(reprintBtn, SIGNAL(clicked()), m_reprintBillButtonSignalMapper, SLOT(map()));
+					  layout->addWidget(reprintBtn);
 
-				  //////////////////////////////////////////////////////////////////////////
+					  //////////////////////////////////////////////////////////////////////////
 
-				  if (ES::Session::getInstance()->getUser()->getType() == ES::User::DEV ||
-					  ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER)
-				  {
-					  QPushButton* hideBtn = new QPushButton("Hide", base);
-					  hideBtn->setMaximumWidth(100);
-					  m_invisibleButtonSignalMapper->setMapping(hideBtn, billId);
-					  QObject::connect(hideBtn, SIGNAL(clicked()), m_invisibleButtonSignalMapper, SLOT(map()));
-					  layout->addWidget(hideBtn);
-				  }
+					  if (ES::Session::getInstance()->getUser()->getType() == ES::User::DEV ||
+						  ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER)
+					  {
+						  QPushButton* hideBtn = new QPushButton("Hide", base);
+						  hideBtn->setMaximumWidth(100);
+						  m_invisibleButtonSignalMapper->setMapping(hideBtn, billId);
+						  QObject::connect(hideBtn, SIGNAL(clicked()), m_invisibleButtonSignalMapper, SLOT(map()));
+						  layout->addWidget(hideBtn);
+					  }
 
-				  //////////////////////////////////////////////////////////////////////////
+					  //////////////////////////////////////////////////////////////////////////
 
-				  layout->insertStretch(2);
-				  base->setLayout(layout);
-				  ui.tableWidget->setCellWidget(row, 5, base);
-				  base->show();
-		}
-			break;
-		case 2:
-		{
-				  rowColor.setRgb(254, 239, 179);
-				  tableItem = new QTableWidgetItem("PENDING");
-				  tableItem->setTextAlignment(Qt::AlignHCenter);
-				  tableItem->setBackgroundColor(rowColor);
-				  ui.tableWidget->setItem(row, 4, tableItem);
+					  layout->insertStretch(2);
+					  base->setLayout(layout);
+					  ui.tableWidget->setCellWidget(row, 5, base);
+					  base->show();
+			}
+				break;
+			case 2:
+			{
+					  rowColor.setRgb(254, 239, 179);
+					  tableItem = new QTableWidgetItem("PENDING");
+					  tableItem->setTextAlignment(Qt::AlignHCenter);
+					  tableItem->setBackgroundColor(rowColor);
+					  ui.tableWidget->setItem(row, 4, tableItem);
 
-				  QWidget* base = new QWidget(ui.tableWidget);
-				  QPushButton* proceedBtn = new QPushButton("Proceed", base);
-				  proceedBtn->setMaximumWidth(100);
+					  QWidget* base = new QWidget(ui.tableWidget);
+					  QPushButton* proceedBtn = new QPushButton("Proceed", base);
+					  proceedBtn->setMaximumWidth(100);
 
-				  m_proceedButtonSignalMapper->setMapping(proceedBtn, billId);
-				  QObject::connect(proceedBtn, SIGNAL(clicked()), m_proceedButtonSignalMapper, SLOT(map()));
+					  m_proceedButtonSignalMapper->setMapping(proceedBtn, billId);
+					  QObject::connect(proceedBtn, SIGNAL(clicked()), m_proceedButtonSignalMapper, SLOT(map()));
 
-				  QHBoxLayout *layout = new QHBoxLayout;
-				  layout->setContentsMargins(0, 0, 0, 0);
-				  layout->addWidget(proceedBtn);
-				  layout->insertStretch(2);
-				  base->setLayout(layout);
-				  ui.tableWidget->setCellWidget(row, 5, base);
-				  base->show();
-		}
-			break;
-		case 3:
-		{
-				  rowColor.setRgb(245, 169, 169);
-				  tableItem = new QTableWidgetItem("CANCELED");
-				  tableItem->setTextAlignment(Qt::AlignHCenter);
-				  tableItem->setBackgroundColor(rowColor);
-				  ui.tableWidget->setItem(row, 4, tableItem);
-		}
-			break;
-		default:
-		{
-				   rowColor.setRgb(255, 255, 255);
-				   tableItem = new QTableWidgetItem("UNSPECIFIED");
-				   tableItem->setTextAlignment(Qt::AlignHCenter);
-				   tableItem->setBackgroundColor(rowColor);
-				   ui.tableWidget->setItem(row, 4, tableItem);
-		}
+					  QHBoxLayout *layout = new QHBoxLayout;
+					  layout->setContentsMargins(0, 0, 0, 0);
+					  layout->addWidget(proceedBtn);
+					  layout->insertStretch(2);
+					  base->setLayout(layout);
+					  ui.tableWidget->setCellWidget(row, 5, base);
+					  base->show();
+			}
+				break;
+			case 3:
+			{
+					  rowColor.setRgb(245, 169, 169);
+					  tableItem = new QTableWidgetItem("CANCELED");
+					  tableItem->setTextAlignment(Qt::AlignHCenter);
+					  tableItem->setBackgroundColor(rowColor);
+					  ui.tableWidget->setItem(row, 4, tableItem);
+			}
+				break;
+			default:
+			{
+					   rowColor.setRgb(255, 255, 255);
+					   tableItem = new QTableWidgetItem("UNSPECIFIED");
+					   tableItem->setTextAlignment(Qt::AlignHCenter);
+					   tableItem->setBackgroundColor(rowColor);
+					   ui.tableWidget->setItem(row, 4, tableItem);
+			}
 
-			break;
-		}
+				break;
+			}
 
-		tableItem = new QTableWidgetItem(billId);
-		tableItem->setBackgroundColor(rowColor);
-		ui.tableWidget->setItem(row, 0, tableItem);
-		QDateTime datetime = QDateTime::fromString(allBillQuery.value("date").toString(), Qt::ISODate);
-		tableItem = new QTableWidgetItem(datetime.toString(Qt::SystemLocaleShortDate));
-		tableItem->setBackgroundColor(rowColor);
-		ui.tableWidget->setItem(row, 1, tableItem);
-
-
-		//QSqlQuery qSales("SELECT * FROM payment WHERE bill_id = " + billId);
-		//if (qSales.next())
-		{
-			tableItem = new QTableWidgetItem(QString::number(allBillQuery.value("amount").toDouble(), 'f', 2));
-			tableItem->setTextAlignment(Qt::AlignRight);
+			tableItem = new QTableWidgetItem(billId);
 			tableItem->setBackgroundColor(rowColor);
-			ui.tableWidget->setItem(row, 2, tableItem);
-		}
-
-		QString userQueryStr("SELECT * FROM user WHERE user_id=");
-		userQueryStr.append(allBillQuery.value("user_id").toString());
-		QSqlQuery userQuery(userQueryStr);
-		if (userQuery.first())
-		{
-			tableItem = new QTableWidgetItem(userQuery.value("display_name").toString());
-			tableItem->setTextAlignment(Qt::AlignHCenter);
+			ui.tableWidget->setItem(row, 0, tableItem);
+			QDateTime datetime = QDateTime::fromString(allBillQuery.value("date").toString(), Qt::ISODate);
+			tableItem = new QTableWidgetItem(datetime.toString(Qt::SystemLocaleShortDate));
 			tableItem->setBackgroundColor(rowColor);
-			ui.tableWidget->setItem(row, 3, tableItem);
+			ui.tableWidget->setItem(row, 1, tableItem);
+
+
+			//QSqlQuery qSales("SELECT * FROM payment WHERE bill_id = " + billId);
+			//if (qSales.next())
+			{
+				tableItem = new QTableWidgetItem(QString::number(allBillQuery.value("amount").toDouble(), 'f', 2));
+				tableItem->setTextAlignment(Qt::AlignRight);
+				tableItem->setBackgroundColor(rowColor);
+				ui.tableWidget->setItem(row, 2, tableItem);
+			}
+
+			QString userQueryStr("SELECT * FROM user WHERE user_id=");
+			userQueryStr.append(allBillQuery.value("user_id").toString());
+			QSqlQuery userQuery(userQueryStr);
+			if (userQuery.first())
+			{
+				tableItem = new QTableWidgetItem(userQuery.value("display_name").toString());
+				tableItem->setTextAlignment(Qt::AlignHCenter);
+				tableItem->setBackgroundColor(rowColor);
+				ui.tableWidget->setItem(row, 3, tableItem);
+			}
 		}
 	}
 
@@ -743,4 +773,30 @@ void ESCurrentBills::slotInvisible(QString billId)
 			mbox.exec();
 		}
 	}
+}
+
+void ESCurrentBills::slotPrev()
+{
+	if (m_nextCounter == 1)
+	{
+		ui.prevBtn->setDisabled(true);
+	}
+	if (m_nextCounter > 0)
+	{
+		m_nextCounter--;
+		m_startingLimit -= m_pageOffset;
+		ui.nextBtn->setEnabled(true);
+	}
+	slotSearch();
+}
+
+void ESCurrentBills::slotNext()
+{
+	if (m_nextCounter < m_maxNextCount)
+	{
+		m_nextCounter++;
+		ui.prevBtn->setEnabled(true);
+		m_startingLimit += m_pageOffset;
+	}
+	slotSearch();
 }
