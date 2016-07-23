@@ -812,23 +812,27 @@ void ESMultiplePayment::printBill(int billId, float total)
 	}
 
 	KDReports::TableElement infoTableElement;
-	infoTableElement.setHeaderRowCount(2);
+	infoTableElement.setHeaderRowCount(3);
 	infoTableElement.setHeaderColumnCount(2);
 	infoTableElement.setBorder(0);
 	infoTableElement.setWidth(100, KDReports::Percent);
+
 	{
 		KDReports::Cell& billIdCell = infoTableElement.cell(0, 0);
 		KDReports::TextElement t(billIdStr);
 		t.setPointSize(10);
 		billIdCell.addElement(t, Qt::AlignLeft);
-	}
-	{
+	}{
 		KDReports::Cell& userNameCell = infoTableElement.cell(1, 0);
+		KDReports::TextElement t("Customer : " + ui.nameText->text());
+		t.setPointSize(10);
+		userNameCell.addElement(t, Qt::AlignLeft);
+	}{
+		KDReports::Cell& userNameCell = infoTableElement.cell(2, 0);
 		KDReports::TextElement t("Cashier : " + userName);
 		t.setPointSize(10);
 		userNameCell.addElement(t, Qt::AlignLeft);
-	}
-	{
+	}{
 		KDReports::Cell& dateCell = infoTableElement.cell(0, 1);
 		KDReports::TextElement t(dateStr);
 		t.setPointSize(10);
@@ -1104,7 +1108,6 @@ void ESMultiplePayment::printBill(int billId, float total)
 		{
 			customer.append(q.value("customer_id").toString());
 			customer.append(" / ");
-			customer.append(q.value("name").toString());
 			customer.append("Outstanding Amount : ");
 			float totalOutstanding = getTotalOutstanding(m_customerId);
 			customer.append(QString::number(totalOutstanding, 'f', 2));

@@ -686,7 +686,7 @@ void ESSinglePayment::printBill(int billId, float total)
 		}
 	}
 
-	KDReports::Report report;
+	//KDReports::Report report;
 
 	QString dateStr = "Date : ";
 	dateStr.append(QDateTime::currentDateTime().toString("yyyy-MM-dd"));
@@ -732,7 +732,7 @@ void ESSinglePayment::printBill(int billId, float total)
 	}
 
 	KDReports::TableElement infoTableElement;
-	infoTableElement.setHeaderRowCount(2);
+	infoTableElement.setHeaderRowCount(3);
 	infoTableElement.setHeaderColumnCount(2);
 	infoTableElement.setBorder(0);
 	infoTableElement.setWidth(100, KDReports::Percent);
@@ -744,6 +744,11 @@ void ESSinglePayment::printBill(int billId, float total)
 		billIdCell.addElement(t, Qt::AlignLeft);
 	}{
 		KDReports::Cell& userNameCell = infoTableElement.cell(1, 0);
+		KDReports::TextElement t("Customer : " + ui.nameText->text());
+		t.setPointSize(10);
+		userNameCell.addElement(t, Qt::AlignLeft);
+	}{
+		KDReports::Cell& userNameCell = infoTableElement.cell(2, 0);
 		KDReports::TextElement t("Cashier : " + userName);
 		t.setPointSize(10);
 		userNameCell.addElement(t, Qt::AlignLeft);
@@ -936,17 +941,66 @@ void ESSinglePayment::printBill(int billId, float total)
 	}
 	else
 	{
+		
 		QString customer = "Bill To : ";
 		QSqlQuery q("SELECT * FROM customer WHERE customer_id = " + m_customerId);
+		QStringList outstandingSummary;
 		if (q.next())
 		{
 			customer.append(q.value("customer_id").toString());
 			customer.append(" / ");
-			customer.append(q.value("name").toString());
-			customer.append("Outstanding Amount : ");
-			float totalOutstanding = getTotalOutstanding(m_customerId);
-			customer.append(QString::number(totalOutstanding, 'f', 2));
+			customer.append("Total Outstanding : ");
+			//float totalOutstanding = getTotalOutstanding(m_customerId);
+			//customer.append(QString::number(totalOutstanding, 'f', 2));
+
+			//
+			float totalOutstandingAmount = 0;
+			QString query;
+			query.append("SELECT * FROM customer_outstanding WHERE customer_id = ");
+			query.append(m_customerId);
+			query.append(" AND settled = 0");
+
+			QSqlQuery q(query);
+			while (q.next())
+			{
+				QString paymentId = q.value("payment_id").toString();
+				QSqlQuery qry("SELECT * FROM payment WHERE payment_id = " + paymentId);
+				QString pm = q.value("payment_method").toString();
+				float interest = 0;
+				if (pm == "CREDIT")
+				{
+					QSqlQuery qq("SELECT * FROM credit WHERE credit_id = " + q.value("table_id").toString());
+					if (qq.next())
+					{
+						interest = qq.value("interest").toFloat();
+						float amount = qq.value("amount").toFloat();
+						float subTotal = (amount * (100 + interest) / 100);
+						outstandingSummary.append("Credit : " + QString::number(subTotal, 'f', 2));
+						totalOutstandingAmount += subTotal;
+					}
+				}
+				else if (pm == "CHEQUE")
+				{
+					QSqlQuery qq("SELECT * FROM cheque WHERE cheque_id = " + q.value("table_id").toString());
+					if (qq.next())
+					{
+						interest = qq.value("interest").toFloat();
+						float amount = qq.value("amount").toFloat();
+						float subTotal = (amount * (100 + interest) / 100);
+						outstandingSummary.append("Cheque : " + QString::number(subTotal, 'f', 2));
+						totalOutstandingAmount += subTotal;
+					}
+				}
+			}
+			//
 		}
+		customer.append(QString::number(totalPayingAmount, 'f', 2));
+		customer.append(" (");
+		for (QString s : outstandingSummary)
+		{
+			customer.append(s);
+		}
+		customer.append(" )");
 		KDReports::TextElement customerInfo(customer);
 		customerInfo.setPointSize(11);
 		report.addElement(customerInfo, Qt::AlignLeft);
@@ -975,19 +1029,19 @@ void ESSinglePayment::printBill(int billId, float total)
 	printer.setFullPage(false);
 	printer.setOrientation(QPrinter::Portrait);
 
-// 	 	  		QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
-// 	 	  		QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
-// 	 	  		dialog->setWindowTitle(tr("Print Document"));
-// 	 	  		ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
-// 	 	  		dialog->exec();
+	 	  		QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
+	 	  		QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
+	 	  		dialog->setWindowTitle(tr("Print Document"));
+	 	  		ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
+	 	  		dialog->exec();
 
-	report.print(&printer);
+	//report.print(&printer);
 }
 
 void ESSinglePayment::slotPrint(QPrinter* printer)
 {
-	//report.print(printer);
-	this->close();
+	report.print(printer);
+	//this->close();
 }
 
 void ESSinglePayment::printRow(KDReports::TableElement& tableElement, int row, int col, QString elementStr, Qt::AlignmentFlag alignment)
