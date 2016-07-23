@@ -1403,6 +1403,23 @@
          </widget>
         </item>
         <item>
+         <widget class="QLabel" name="label_13">
+          <property name="text">
+           <string>Floor</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="floorTxt">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QPushButton" name="addToStockBtn">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
