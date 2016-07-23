@@ -586,10 +586,7 @@ void ESSinglePayment::finishBill(double netAmount, int billId)
 			}
 		}
 
-		if (m_addBill)
-		{
-			m_addBill->resetBill();
-		}
+		m_addBill->resetBill();
 
 		if (ui.doPrintCB->isChecked())
 		{
@@ -611,6 +608,8 @@ void ESSinglePayment::slotInterestChanged()
 
 void ESSinglePayment::printBill(int billId, float total)
 {
+	QString chequeNo = "", dueDate = "", cardNo ="";
+	QString paymentTypeInfo ="";
 	QString billStr("SELECT user_id FROM bill WHERE bill_id = " + QString::number(billId));
 	QString userName = "";
 	QSqlQuery queryBill(billStr);
@@ -639,6 +638,10 @@ void ESSinglePayment::printBill(int billId, float total)
 			QSqlQuery queryCard("SELECT * FROM card WHERE payment_id = " + paymentId);
 			if (queryCard.next())
 			{
+				cardNo = queryCard.value("card_no").toString();
+				paymentTypeInfo.append("Card No : ");
+				paymentTypeInfo.append(cardNo);
+				paymentTypeInfo.append("\n");
 				float interest = queryCard.value("interest").toFloat();
 				float amount = queryCard.value("amount").toFloat();
 				total = amount;
@@ -652,6 +655,14 @@ void ESSinglePayment::printBill(int billId, float total)
 			QSqlQuery query("SELECT * FROM cheque WHERE payment_id = " + paymentId);
 			if (query.next())
 			{
+				chequeNo = query.value("cheque_number").toString();
+				paymentTypeInfo.append("Cheque No : ");
+				paymentTypeInfo.append(chequeNo);
+				paymentTypeInfo.append(" - Due Date :");
+				dueDate = query.value("due_date").toString();
+				paymentTypeInfo.append(dueDate);
+				paymentTypeInfo.append("\n");
+
 				float interest = query.value("interest").toFloat();
 				float amount = query.value("amount").toFloat();
 				total = amount;
@@ -665,6 +676,11 @@ void ESSinglePayment::printBill(int billId, float total)
 			QSqlQuery query("SELECT * FROM credit WHERE payment_id = " + paymentId);
 			if (query.next())
 			{
+				dueDate = query.value("due_date").toString();
+				paymentTypeInfo.append("Due Date :");
+				paymentTypeInfo.append(dueDate);
+				paymentTypeInfo.append("\n");
+
 				float interest = query.value("interest").toFloat();
 				float amount = query.value("amount").toFloat();
 				total = amount;
@@ -708,7 +724,7 @@ void ESSinglePayment::printBill(int billId, float total)
 	*/
 
 	KDReports::TableElement infoTableElement;
-	infoTableElement.setHeaderRowCount(2);
+	infoTableElement.setHeaderRowCount(3);
 	infoTableElement.setHeaderColumnCount(2);
 	infoTableElement.setBorder(0);
 	infoTableElement.setWidth(100, KDReports::Percent);
@@ -720,6 +736,11 @@ void ESSinglePayment::printBill(int billId, float total)
 		billIdCell.addElement(t, Qt::AlignLeft);
 	}{
 		KDReports::Cell& userNameCell = infoTableElement.cell(1, 0);
+		KDReports::TextElement t("Customer : " + ui.nameText->text());
+		t.setPointSize(10);
+		userNameCell.addElement(t, Qt::AlignLeft);
+	}{
+		KDReports::Cell& userNameCell = infoTableElement.cell(2, 0);
 		KDReports::TextElement t("Cashier : " + userName);
 		t.setPointSize(10);
 		userNameCell.addElement(t, Qt::AlignLeft);
@@ -895,12 +916,12 @@ void ESSinglePayment::printBill(int billId, float total)
 	payableCell.addElement(payableValue, Qt::AlignRight);
 	//
 	row++;
-	QString outstanding = "Outstanding Amount : ";
-	float totalOutstanding = getTotalOutstanding(m_customerId);
-	outstanding.append(QString::number(totalOutstanding, 'f', 2));
+	QString prevOutstandingText = "Prev. Outstanding : ";
+	double prevOutstanding = ui.outstandingText->text().toDouble();
+	prevOutstandingText.append(QString::number(prevOutstanding, 'f', 2));
 	KDReports::Cell& billToCell = tableElement.cell(row, 0);
 	billToCell.setColumnSpan(4);
-	KDReports::TextElement billTo(outstanding);
+	KDReports::TextElement billTo(prevOutstandingText);
 	billTo.setPointSize(11);
 	billToCell.addElement(billTo, Qt::AlignLeft);
 
@@ -918,8 +939,17 @@ void ESSinglePayment::printBill(int billId, float total)
 
 	//
 	row++;
-	KDReports::Cell& pcsText = tableElement.cell(row, 0);
-	pcsText.setColumnSpan(5);
+	QString outstandingText = "Total Outstanding : ";
+	float billOutstanding = getTotalOutstanding(m_customerId);
+	double totalOutstanding = prevOutstanding + billOutstanding;
+	outstandingText.append(QString::number(totalOutstanding, 'f', 2));
+	KDReports::Cell& outstandingCell = tableElement.cell(row, 0);
+	outstandingCell.setColumnSpan(4);
+	KDReports::TextElement outstanding(outstandingText);
+	outstanding.setPointSize(11);
+	outstandingCell.addElement(outstanding, Qt::AlignLeft);
+
+	KDReports::Cell& pcsText = tableElement.cell(row, 4);
 	KDReports::TextElement noOfPcsTxt("# of Pieces ");
 	noOfPcsTxt.setPointSize(11);
 	noOfPcsTxt.setBold(true);
@@ -1107,4 +1137,36 @@ float ESSinglePayment::getTotalOutstanding(QString customerId)
 		}
 	}
 	return totalAmount;
+}
+
+float ESSinglePayment::getOutstandingForBill(int billId)
+{
+	float totalOutstanding = 0;
+	QSqlQuery queryPayment("SELECT * FROM payment WHERE bill_id = "+QString::number(billId) +" AND valid = 1");
+	while (queryPayment.next())
+	{
+		QString pId = queryPayment.value("payment_id").toString();
+		QString type = queryPayment.value("payment_type").toString();
+		if (type == "CHEQUE")
+		{
+			QSqlQuery queryCheque("SELECT * FROM cheque WHERE payment_id = " + pId);
+			while (queryCheque.next())
+			{
+				float amount = queryCheque.value("amount").toFloat();
+				float interest = queryCheque.value("interest").toFloat();
+				totalOutstanding += (amount * (100 + interest) / 100);
+			}
+		}
+		else if (type == "CREDIT")
+		{
+			QSqlQuery queryCheque("SELECT * FROM credit WHERE payment_id = " + pId);
+			while (queryCheque.next())
+			{
+				float amount = queryCheque.value("amount").toFloat();
+				float interest = queryCheque.value("interest").toFloat();
+				totalOutstanding += (amount * (100 + interest) / 100);
+			}
+		}
+	}
+	return totalOutstanding;
 }
