@@ -1,11 +1,11 @@
 #include "eslatepayment.h"
+#include "QSqlQuery"
 
 
-ESLatePayment::ESLatePayment(QString billId, QWidget *parent /*= 0*/) : QWidget(parent)
+ESLatePayment::ESLatePayment(QWidget *parent /*= 0*/) : QWidget(parent)
 {
 	ui.setupUi(this);
-	m_billId = billId;
-
+	
 	QStringList headerLabels1;
 	headerLabels1.append("Bill ID");
 	headerLabels1.append("Date");
@@ -38,10 +38,6 @@ ESLatePayment::ESLatePayment(QString billId, QWidget *parent /*= 0*/) : QWidget(
 	ui.tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
 	ui.tableWidget->hideColumn(8);
 
-	if (!billId.isEmpty())
-	{
-		
-	}
 }
 
 ESLatePayment::~ESLatePayment()
@@ -49,7 +45,38 @@ ESLatePayment::~ESLatePayment()
 
 }
 
-void ESLatePayment::slotSearch()
+void ESLatePayment::slotAddBill()
 {
+	QString billId = ui.billIdText->text();
+	addBill(billId);
+}
 
+void ESLatePayment::addBill(QString billId)
+{
+	if (billId.isEmpty())
+	{
+		return;
+	}
+	bool valid = false;
+	(void)billId.toInt(&valid);
+	if (!valid)
+	{
+		return;
+	}
+
+	QSqlQuery q("SELECT * FROM bill WHERE bill_id = " + billId);
+	if (q.next())
+	{
+		int row = ui.bills->rowCount();
+		ui.bills->insertRow(row);
+
+		ui.bills->setItem(row, 0, new QTableWidgetItem(billId));
+		ui.bills->setItem(row, 1, new QTableWidgetItem(q.value("date").toString()));
+		ui.bills->setItem(row, 2, new QTableWidgetItem(QString::number(q.value("amount").toDouble(), 'f', 2)));
+	}
+}
+
+void ESLatePayment::setCustomerId(QString customerId)
+{
+	m_selectedCustomerId = customerId;
 }

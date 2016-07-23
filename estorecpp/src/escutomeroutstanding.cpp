@@ -53,6 +53,7 @@ ESCustomerOutstanding::ESCustomerOutstanding(QWidget *parent /*= 0*/) : QWidget(
 	QObject::connect(ui.paymentType, SIGNAL(activated(int)), this, SLOT(populateCustomerOutstanding()));
 	QObject::connect(ui.checkBox, SIGNAL(stateChanged(int)), this, SLOT(populateCustomerOutstanding()));
 	QObject::connect(m_paymentDetailsMapper, SIGNAL(mapped(QString)), this, SLOT(slotPay(QString)));
+	QObject::connect(ui.multiPayBtn, SIGNAL(clicked()), this, SLOT(slotMultiPay()));
 
 	slotSearchCustomers();
 
@@ -195,38 +196,6 @@ void ESCustomerOutstanding::populateCustomerOutstanding()
 	}
 }
 
-void ESCustomerOutstanding::slotPay(QString billId)
-{
-	QSqlQuery qry("SELECT * FROM bill WHERE bill_id = " + billId);
-	if (qry.next())
-	{
-		QString customerIdStr = qry.value("customer_id").toString();
-		QSqlQuery q("SELECT * FROM customer WHERE customer_id = " + customerIdStr);
-		if (q.next())
-		{
-			ESLatePayment* latePayment = new ESLatePayment(0);
-			latePayment->setWindowState(Qt::WindowActive);
-			latePayment->setWindowModality(Qt::ApplicationModal);
-			latePayment->setAttribute(Qt::WA_DeleteOnClose);
-
-			latePayment->getUI().customerName->setText(q.value("name").toString());
-			latePayment->getUI().cashierName->setText(ES::Session::getInstance()->getUser()->getName());
-
-			//outstanding start
-			float totalAmount = 0;
-			int customerId = customerIdStr.toInt();
-			if (customerId > -1)
-			{
-				totalAmount = getTotalOutstanding(customerIdStr);
-			}
-			// outstanding end
-
-			latePayment->show();
-		}
-	}	
-}
-
-
 float ESCustomerOutstanding::getTotalOutstanding(QString customerId)
 {
 	float totalAmount = 0.f;
@@ -264,5 +233,41 @@ float ESCustomerOutstanding::getTotalOutstanding(QString customerId)
 		}
 	}
 	return totalAmount;
+}
+
+void ESCustomerOutstanding::slotPay(QString billId)
+{
+	QSqlQuery q("SELECT * FROM customer WHERE customer_id = " + m_selectedCustomerId);
+	if (q.next())
+	{
+		ESLatePayment* latePayment = new ESLatePayment(0);
+		latePayment->setWindowState(Qt::WindowActive);
+		latePayment->setWindowModality(Qt::ApplicationModal);
+		latePayment->setAttribute(Qt::WA_DeleteOnClose);
+		latePayment->setCustomerId(m_selectedCustomerId);
+
+		latePayment->getUI().customerName->setText(q.value("name").toString());
+		latePayment->getUI().cashierName->setText(ES::Session::getInstance()->getUser()->getName());
+
+		latePayment->addBill(billId);
+		latePayment->show();
+	}
+}
+
+void ESCustomerOutstanding::slotMultiPay()
+{
+	QSqlQuery q("SELECT * FROM customer WHERE customer_id = " + m_selectedCustomerId);
+	if (q.next())
+	{
+		ESLatePayment* latePayment = new ESLatePayment(0);
+		latePayment->setWindowState(Qt::WindowActive);
+		latePayment->setWindowModality(Qt::ApplicationModal);
+		latePayment->setAttribute(Qt::WA_DeleteOnClose);
+		latePayment->setCustomerId(m_selectedCustomerId);
+
+		latePayment->getUI().customerName->setText(q.value("name").toString());
+		latePayment->getUI().cashierName->setText(ES::Session::getInstance()->getUser()->getName());
+		latePayment->show();
+	}
 }
 
