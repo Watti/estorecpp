@@ -58,6 +58,7 @@ ESCustomerOutstanding::ESCustomerOutstanding(QWidget *parent /*= 0*/) : QWidget(
 	slotSearchCustomers();
 
 	m_selectedCustomerId = "-1";
+	ui.multiPayBtn->setEnabled(false);
 	ui.searchText->setFocus();
 }
 
@@ -102,6 +103,7 @@ void ESCustomerOutstanding::slotCustomerSelected(int row, int col)
 	{
 		QString customerId = ui.customers->item(row, 0)->text();
 		m_selectedCustomerId = customerId;
+		ui.multiPayBtn->setEnabled(true);
 
 		// Populate customer history
 		populateCustomerOutstanding();
