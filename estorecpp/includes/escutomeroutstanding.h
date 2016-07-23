@@ -18,8 +18,11 @@ public:
 	void slotSearchCustomers();
 	void slotCustomerSelected(int row, int col);
 	void populateCustomerOutstanding();
+	void slotPay(QString billId);
 
 private:
+	float getTotalOutstanding(QString customerId);
+
 	Ui::CustomerOutstandingWidget ui;
 	QString m_selectedCustomerId;
 	QSignalMapper* m_paymentDetailsMapper;

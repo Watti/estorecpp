@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>703</width>
-    <height>451</height>
+    <height>539</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -859,6 +859,22 @@
          <string>0.00</string>
         </property>
        </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_10">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Floor</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="floorText"/>
       </item>
       <item>
        <widget class="QPushButton" name="addToStockBtn">
