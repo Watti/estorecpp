@@ -18,6 +18,8 @@
 #include "KDReportsHtmlElement.h"
 #include "qnamespace.h"
 #include <memory>
+#include <wingdi.h>
+#include "easylogging++.h"
 
 ESMultiplePayment::ESMultiplePayment(ESAddBill* addBill, QWidget *parent /*= 0*/) : QWidget(parent), m_addBill(addBill)
 {
@@ -364,7 +366,7 @@ void ESMultiplePayment::slotAdd()
 		if (isValid)
 		{
 			double interestAmount = amountPaid * (interest / 100);
-			double amountWithInterest =+ (interestAmount+ amountPaid);
+			double amountWithInterest = +(interestAmount + amountPaid);
 			payingAmount += interestAmount;
 			ui.totalBillLbl->setText(QString::number(payingAmount, 'f', 2));
 			ui.tableWidget->setItem(row, 0, new QTableWidgetItem(m_paymentType));
@@ -449,7 +451,7 @@ void ESMultiplePayment::slotRemove(int row)
 			ui.netAmountLbl->setText(QString::number((amountPaid + netAmount), 'f', 2));
 			ui.cashText->setText(QString::number((amountPaid + netAmount), 'f', 2));
 			double interest = ui.tableWidget->item(i, 2)->text().toDouble();
-			double totalAmount = ui.totalBillLbl->text().toDouble() - (amountPaid*interest/100);
+			double totalAmount = ui.totalBillLbl->text().toDouble() - (amountPaid*interest / 100);
 			ui.totalBillLbl->setText(QString::number(totalAmount, 'f', 2));
 			ui.addBtn->setEnabled(true);
 			ui.okBtn->setDisabled(true);
@@ -543,17 +545,27 @@ void ESMultiplePayment::slotFinalizeBill()
 						mbox.exec();
 					}
 					QSqlQuery qry;
-					QString quryString;
-					qry.prepare("INSERT INTO customer_outstanding (customer_id, payment_id, payment_method, table_id, settled, settled_date, comments) VALUES (?, ?, 'CREDIT', ?, 0, NOW(), '')");
-					qry.addBindValue(m_customerId);
-					qry.addBindValue(lastInsertedId);
-					qry.addBindValue(q.lastInsertId().toInt());
-					if (!qry.exec())
+					QString quryString("INSERT INTO customer_outstanding(customer_id, payment_id, payment_method, table_id, settled, comments) VALUES('");
+					quryString.append(m_customerId);
+					quryString.append("', '").append(QString::number(lastInsertedId));
+					quryString.append("', ").append("'CREDIT'").append(",'");
+					quryString.append(q.lastInsertId().toString()).append("',");
+					quryString.append("'0',");
+					quryString.append("'')");
+// 					qry.prepare("INSERT INTO customer_outstanding (customer_id, payment_id, payment_method, table_id, settled, settled_date, comments) VALUES (?, ?, 'CREDIT', ?, 0, NOW(), '')");
+// 					qry.addBindValue(m_customerId);
+// 					qry.addBindValue(lastInsertedId);
+// 					qry.addBindValue(q.lastInsertId().toInt());
+					if (!qry.exec(quryString))
 					{
 						QMessageBox mbox;
 						mbox.setIcon(QMessageBox::Critical);
 						mbox.setText(QString("Failed to add CUSTOMER OUTSTANDING info"));
 						mbox.exec();
+
+						QString logError("[ESMultiplePayment] Failed to add CUSTOMER OUTSTANDING info query = ");
+						logError.append(quryString);
+						LOG(ERROR) << logError.toLatin1().data();
 					}
 				}
 				else
@@ -871,12 +883,19 @@ void ESMultiplePayment::printBill(int billId, float total)
 
 	KDReports::Report report;
 
+	bool secondDisplayOn = ES::Session::getInstance()->isSecondDisplayOn();
+
 	QString dateStr = "Date : ";
 	dateStr.append(QDateTime::currentDateTime().toString("yyyy-MM-dd"));
 	QString timeStr = "Time : ";
 	timeStr.append(QDateTime::currentDateTime().toString("hh : mm"));
 	QString billIdStr("Bill No : " + QString::number(billId));
-	
+
+	if (secondDisplayOn)
+	{
+		billIdStr = "Bill No : " + QString::number(billId % 10000);
+	}
+
 	KDReports::TableElement infoTableElement;
 	infoTableElement.setHeaderRowCount(3);
 	infoTableElement.setHeaderColumnCount(2);
@@ -922,6 +941,10 @@ void ESMultiplePayment::printBill(int billId, float total)
 
 	KDReports::TableElement tableElement;
 	tableElement.setHeaderColumnCount(6);
+	if (secondDisplayOn)
+	{
+		tableElement.setHeaderColumnCount(5);
+	}
 	tableElement.setBorder(0);
 	tableElement.setWidth(100, KDReports::Percent);
 
@@ -943,24 +966,42 @@ void ESMultiplePayment::printBill(int billId, float total)
 	tEPrice.setBold(true);
 	cPrice.addElement(tEPrice, Qt::AlignRight);
 
-	KDReports::Cell& cDiscount = tableElement.cell(0, 3);
-	KDReports::TextElement tEDiscount("Discount");
-	tEDiscount.setPointSize(11);
-	tEDiscount.setBold(true);
-	cDiscount.addElement(tEDiscount, Qt::AlignRight);
+	if (secondDisplayOn)
+	{
+		KDReports::Cell& cQty = tableElement.cell(0, 3);
+		KDReports::TextElement tEQty("Qty");
+		tEQty.setPointSize(11);
+		tEQty.setBold(true);
+		cQty.addElement(tEQty, Qt::AlignRight);
 
-	KDReports::Cell& cQty = tableElement.cell(0, 4);
-	KDReports::TextElement tEQty("Qty");
-	tEQty.setPointSize(11);
-	tEQty.setBold(true);
-	cQty.addElement(tEQty, Qt::AlignRight);
+		KDReports::Cell& cTotal = tableElement.cell(0, 4);
+		KDReports::TextElement tETotal("Line Total");
+		tETotal.setPointSize(11);
+		tETotal.setBold(true);
+		cTotal.addElement(tETotal, Qt::AlignRight);
+	}
+	else
+	{
+		KDReports::Cell& cDiscount = tableElement.cell(0, 3);
+		KDReports::TextElement tEDiscount("Discount");
+		tEDiscount.setPointSize(11);
+		tEDiscount.setBold(true);
+		cDiscount.addElement(tEDiscount, Qt::AlignRight);
 
-	KDReports::Cell& cTotal = tableElement.cell(0, 5);
-	KDReports::TextElement tETotal("Line Total");
-	tETotal.setPointSize(11);
-	tETotal.setBold(true);
-	cTotal.addElement(tETotal, Qt::AlignRight);
-	
+		KDReports::Cell& cQty = tableElement.cell(0, 4);
+		KDReports::TextElement tEQty("Qty");
+		tEQty.setPointSize(11);
+		tEQty.setBold(true);
+		cQty.addElement(tEQty, Qt::AlignRight);
+
+		KDReports::Cell& cTotal = tableElement.cell(0, 5);
+		KDReports::TextElement tETotal("Line Total");
+		tETotal.setPointSize(11);
+		tETotal.setBold(true);
+		cTotal.addElement(tETotal, Qt::AlignRight);
+	}
+
+
 	int row = 1;
 	int noOfPcs = 0, noOfItems = 0;
 	while (querySale.next())
@@ -988,9 +1029,17 @@ void ESMultiplePayment::printBill(int billId, float total)
 		printRow(tableElement, row, 0, itemCode);
 		printRow(tableElement, row, 1, itemName);
 		printRow(tableElement, row, 2, unitPrice, Qt::AlignRight);
-		printRow(tableElement, row, 3, discount, Qt::AlignRight);
-		printRow(tableElement, row, 4, qty, Qt::AlignRight);
-		printRow(tableElement, row, 5, subTotal, Qt::AlignRight);
+		if (secondDisplayOn)
+		{
+			printRow(tableElement, row, 3, qty, Qt::AlignRight);
+			printRow(tableElement, row, 4, subTotal, Qt::AlignRight);
+		}
+		else
+		{
+			printRow(tableElement, row, 3, discount, Qt::AlignRight);
+			printRow(tableElement, row, 4, qty, Qt::AlignRight);
+			printRow(tableElement, row, 5, subTotal, Qt::AlignRight);
+		}
 		row++;
 	}
 
@@ -1007,186 +1056,259 @@ void ESMultiplePayment::printBill(int billId, float total)
 	// customer info	
 	if (m_customerId == "-1")
 	{
-		QString customer = "Customer Id : N/A";
+		QString customer = "Customer Id";
 
 		KDReports::Cell& billToCell = tableElement.cell(row, 0);
-		billToCell.setColumnSpan(4);
 		KDReports::TextElement billTo(customer);
 		billTo.setPointSize(11);
 		billToCell.addElement(billTo, Qt::AlignLeft);
 	}
 	else
 	{
-		QString customer = "Customer Id : ";
+		QString customer = "Customer Id";
 		QSqlQuery q("SELECT * FROM customer WHERE customer_id = " + m_customerId);
+
+		KDReports::Cell& billToCell = tableElement.cell(row, 0);
+		KDReports::TextElement billTo(customer);
+		billTo.setPointSize(10);
+		billToCell.addElement(billTo, Qt::AlignLeft);
 		if (q.next())
 		{
-			customer.append(q.value("customer_id").toString());
+			KDReports::Cell& cell = tableElement.cell(row, 1);
+			KDReports::TextElement te(q.value("customer_id").toString());
+			te.setPointSize(10);
+			te.setBold(false);
+			cell.addElement(te, Qt::AlignLeft);
 		}
-		KDReports::Cell& billToCell = tableElement.cell(row, 0);
-		billToCell.setColumnSpan(4);
-		KDReports::TextElement billTo(customer);
-		billTo.setPointSize(11);
-		billToCell.addElement(billTo, Qt::AlignLeft);
 	}
 
+	if (secondDisplayOn)
+	{
+		KDReports::Cell& payableTextC = tableElement.cell(row, 3);
+		KDReports::TextElement payableTxt("Total ");
+		payableTxt.setPointSize(11);
+		payableTxt.setBold(true);
+		payableTextC.addElement(payableTxt, Qt::AlignRight);
 
-	KDReports::Cell& payableTextC = tableElement.cell(row, 4);
-	KDReports::TextElement payableTxt("Total ");
-	payableTxt.setPointSize(11);
-	payableTxt.setBold(true);
-	payableTextC.addElement(payableTxt, Qt::AlignRight);
+		KDReports::Cell& payableCell = tableElement.cell(row, 4);
+		KDReports::TextElement payableValue(QString::number(totalPayingAmount, 'f', 2));
+		payableValue.setPointSize(11);
+		payableValue.setBold(true);
+		payableCell.addElement(payableValue, Qt::AlignRight);
+	}
+	else
+	{
 
-	KDReports::Cell& payableCell = tableElement.cell(row, 5);
-	KDReports::TextElement payableValue(QString::number(totalPayingAmount, 'f', 2));
-	payableValue.setPointSize(11);
-	payableValue.setBold(true);
-	payableCell.addElement(payableValue, Qt::AlignRight);
-	
+		KDReports::Cell& payableTextC = tableElement.cell(row, 4);
+		KDReports::TextElement payableTxt("Total ");
+		payableTxt.setPointSize(11);
+		payableTxt.setBold(true);
+		payableTextC.addElement(payableTxt, Qt::AlignRight);
+
+		KDReports::Cell& payableCell = tableElement.cell(row, 5);
+		KDReports::TextElement payableValue(QString::number(totalPayingAmount, 'f', 2));
+		payableValue.setPointSize(11);
+		payableValue.setBold(true);
+		payableCell.addElement(payableValue, Qt::AlignRight);
+	}
 	row++;
-	QString prevOutstandingText = "Prev. Outstanding : ";
+
 	double prevOutstanding = ui.outstandingText->text().toDouble();
-	prevOutstandingText.append(QString::number(prevOutstanding, 'f', 2));
-	KDReports::Cell& billToCell = tableElement.cell(row, 0);
-	billToCell.setColumnSpan(4);
-	KDReports::TextElement billTo(prevOutstandingText);
-	billTo.setPointSize(11);
-	billToCell.addElement(billTo, Qt::AlignLeft);
+	{
+		KDReports::Cell& cell = tableElement.cell(row, 0);
+		KDReports::TextElement te("Prev. Due");
+		te.setPointSize(10);
+		te.setBold(false);
+		cell.addElement(te, Qt::AlignLeft);
+	}
+	{
+		KDReports::Cell& cell = tableElement.cell(row, 1);
+		KDReports::TextElement te(QString::number(prevOutstanding, 'f', 2));
+		te.setPointSize(10);
+		te.setBold(false);
+		cell.addElement(te, Qt::AlignLeft);
+	}
 
-	KDReports::Cell& countText = tableElement.cell(row, 4);
-	KDReports::TextElement noOfItemsTxt("# of Items ");
-	noOfItemsTxt.setPointSize(11);
-	noOfItemsTxt.setBold(true);
-	countText.addElement(noOfItemsTxt, Qt::AlignRight);
+	if (secondDisplayOn)
+	{
+		KDReports::Cell& countText = tableElement.cell(row, 3);
+		KDReports::TextElement noOfItemsTxt("# of Items ");
+		noOfItemsTxt.setPointSize(11);
+		noOfItemsTxt.setBold(true);
+		countText.addElement(noOfItemsTxt, Qt::AlignRight);
 
-	KDReports::Cell& countItemCell = tableElement.cell(row, 5);
-	KDReports::TextElement itemCountValue(QString::number(noOfItems));
-	itemCountValue.setPointSize(11);
-	itemCountValue.setBold(true);
-	countItemCell.addElement(itemCountValue, Qt::AlignRight);
+		KDReports::Cell& countItemCell = tableElement.cell(row, 4);
+		KDReports::TextElement itemCountValue(QString::number(noOfItems));
+		itemCountValue.setPointSize(11);
+		itemCountValue.setBold(true);
+		countItemCell.addElement(itemCountValue, Qt::AlignRight);
+	}
+	else
+	{
+		KDReports::Cell& countText = tableElement.cell(row, 4);
+		KDReports::TextElement noOfItemsTxt("# of Items ");
+		noOfItemsTxt.setPointSize(11);
+		noOfItemsTxt.setBold(true);
+		countText.addElement(noOfItemsTxt, Qt::AlignRight);
+
+		KDReports::Cell& countItemCell = tableElement.cell(row, 5);
+		KDReports::TextElement itemCountValue(QString::number(noOfItems));
+		itemCountValue.setPointSize(11);
+		itemCountValue.setBold(true);
+		countItemCell.addElement(itemCountValue, Qt::AlignRight);
+	}
 
 	row++;
-	QString outstandingText = "Total Outstanding : ";
-	float billOutstanding = getOutstandingForBill(billId);
-	double totalOutstanding = prevOutstanding + billOutstanding;
-	outstandingText.append(QString::number(totalOutstanding, 'f', 2));
-	KDReports::Cell& outstandingCell = tableElement.cell(row, 0);
-	outstandingCell.setColumnSpan(4);
-	KDReports::TextElement outstanding(outstandingText);
-	outstanding.setPointSize(11);
-	outstandingCell.addElement(outstanding, Qt::AlignLeft);
 
-	KDReports::Cell& pcsText = tableElement.cell(row, 4);
-	KDReports::TextElement noOfPcsTxt("# of Pieces ");
-	noOfPcsTxt.setPointSize(11);
-	noOfPcsTxt.setBold(true);
-	pcsText.addElement(noOfPcsTxt, Qt::AlignRight);
+	{
+		KDReports::Cell& cell = tableElement.cell(row, 0);
+		KDReports::TextElement te("Total Due");
+		te.setPointSize(10);
+		te.setBold(false);
+		cell.addElement(te, Qt::AlignLeft);
+	}
+	{
+		float billOutstanding = getOutstandingForBill(billId);
+		double totalOutstanding = prevOutstanding + billOutstanding;
+		KDReports::Cell& cell = tableElement.cell(row, 1);
+		KDReports::TextElement te(QString::number(totalOutstanding, 'f', 2));
+		te.setPointSize(10);
+		te.setBold(false);
+		cell.addElement(te, Qt::AlignLeft);
+	}
 
-	KDReports::Cell& pcsItemCell = tableElement.cell(row, 5);
-	KDReports::TextElement itemPcsValue(QString::number(noOfPcs));
-	itemPcsValue.setPointSize(11);
-	itemPcsValue.setBold(true);
-	pcsItemCell.addElement(itemPcsValue, Qt::AlignRight);
-	
+	if (secondDisplayOn)
+	{
+		KDReports::Cell& pcsText = tableElement.cell(row, 3);
+		KDReports::TextElement noOfPcsTxt("# of Pieces ");
+		noOfPcsTxt.setPointSize(11);
+		noOfPcsTxt.setBold(true);
+		pcsText.addElement(noOfPcsTxt, Qt::AlignRight);
+
+		KDReports::Cell& pcsItemCell = tableElement.cell(row, 4);
+		KDReports::TextElement itemPcsValue(QString::number(noOfPcs));
+		itemPcsValue.setPointSize(11);
+		itemPcsValue.setBold(true);
+		pcsItemCell.addElement(itemPcsValue, Qt::AlignRight);
+	}
+	else
+	{
+		KDReports::Cell& pcsText = tableElement.cell(row, 4);
+		KDReports::TextElement noOfPcsTxt("# of Pieces ");
+		noOfPcsTxt.setPointSize(11);
+		noOfPcsTxt.setBold(true);
+		pcsText.addElement(noOfPcsTxt, Qt::AlignRight);
+
+		KDReports::Cell& pcsItemCell = tableElement.cell(row, 5);
+		KDReports::TextElement itemPcsValue(QString::number(noOfPcs));
+		itemPcsValue.setPointSize(11);
+		itemPcsValue.setBold(true);
+		pcsItemCell.addElement(itemPcsValue, Qt::AlignRight);
+
+	}
+
 	report.addElement(tableElement);
 	report.addVerticalSpacing(1);
 
-	KDReports::TableElement paymentSummaryElement;
-	paymentSummaryElement.setHeaderRowCount(payamentSummaryTableInfo.size());
-	paymentSummaryElement.setHeaderColumnCount(6);
-	paymentSummaryElement.setBorder(1);
-	paymentSummaryElement.setWidth(50, KDReports::Percent);
-	int pointSizeForPayement = 6;
+	if (!secondDisplayOn)
 	{
-		KDReports::Cell& cell = paymentSummaryElement.cell(0, 0);
-		KDReports::TextElement textElm("Type");
-		textElm.setPointSize(pointSizeForPayement);
-		textElm.setBold(true);
-		cell.addElement(textElm, Qt::AlignCenter);
-	}
-	{
-		KDReports::Cell& cell = paymentSummaryElement.cell(0, 1);
-		KDReports::TextElement textElm("Net Amount");
-		textElm.setPointSize(pointSizeForPayement);
-		textElm.setBold(true);
-		cell.addElement(textElm, Qt::AlignCenter);
-	}
-	{
-		KDReports::Cell& cell = paymentSummaryElement.cell(0, 2);
-		KDReports::TextElement textElm("Interest");
-		textElm.setPointSize(pointSizeForPayement);
-		textElm.setBold(true);
-		cell.addElement(textElm, Qt::AlignCenter);
-	}
-	{
-		KDReports::Cell& cell = paymentSummaryElement.cell(0, 3);
-		KDReports::TextElement textElm("Line Total");
-		textElm.setPointSize(pointSizeForPayement);
-		textElm.setBold(true);
-		cell.addElement(textElm, Qt::AlignCenter);
-	}
-	{
-		KDReports::Cell& cell = paymentSummaryElement.cell(0, 4);
-		KDReports::TextElement textElm("Cheque/Card No");
-		textElm.setPointSize(pointSizeForPayement);
-		textElm.setBold(true);
-		cell.addElement(textElm, Qt::AlignCenter);
-	}
-	{
-		KDReports::Cell& cell = paymentSummaryElement.cell(0, 5);
-		KDReports::TextElement textElm("Payment Date");
-		textElm.setPointSize(pointSizeForPayement);
-		textElm.setBold(true);
-		cell.addElement(textElm, Qt::AlignCenter);
-	}
-	int count = 1;
-	for (std::shared_ptr<PaymentSummaryElement> pse : payamentSummaryTableInfo)
-	{
+		KDReports::TableElement paymentSummaryElement;
+		paymentSummaryElement.setHeaderRowCount(payamentSummaryTableInfo.size());
+		paymentSummaryElement.setHeaderColumnCount(6);
+		paymentSummaryElement.setBorder(1);
+		paymentSummaryElement.setWidth(60, KDReports::Percent);
+		int pointSizeForPayement = 7;
 		{
-			KDReports::Cell& cell = paymentSummaryElement.cell(count, 0);
-			KDReports::TextElement textElm(pse->type);
+			KDReports::Cell& cell = paymentSummaryElement.cell(0, 0);
+			KDReports::TextElement textElm("Type");
 			textElm.setPointSize(pointSizeForPayement);
-			textElm.setBold(false);
-			cell.addElement(textElm, Qt::AlignLeft);
+			textElm.setBold(true);
+			cell.addElement(textElm, Qt::AlignCenter);
 		}
 		{
-		KDReports::Cell& cell = paymentSummaryElement.cell(count, 1);
-		KDReports::TextElement textElm(pse->netAmount);
-		textElm.setPointSize(pointSizeForPayement);
-		textElm.setBold(false);
-		cell.addElement(textElm, Qt::AlignRight);
+			KDReports::Cell& cell = paymentSummaryElement.cell(0, 1);
+			KDReports::TextElement textElm("Net Amount");
+			textElm.setPointSize(pointSizeForPayement);
+			textElm.setBold(true);
+			cell.addElement(textElm, Qt::AlignCenter);
 		}
 		{
-		KDReports::Cell& cell = paymentSummaryElement.cell(count, 2);
-		KDReports::TextElement textElm(pse->interest);
-		textElm.setPointSize(pointSizeForPayement);
-		textElm.setBold(false);
-		cell.addElement(textElm, Qt::AlignRight);
+			KDReports::Cell& cell = paymentSummaryElement.cell(0, 2);
+			KDReports::TextElement textElm("Interest");
+			textElm.setPointSize(pointSizeForPayement);
+			textElm.setBold(true);
+			cell.addElement(textElm, Qt::AlignCenter);
 		}
 		{
-			KDReports::Cell& cell = paymentSummaryElement.cell(count, 3);
-			KDReports::TextElement textElm(pse->amount);
+			KDReports::Cell& cell = paymentSummaryElement.cell(0, 3);
+			KDReports::TextElement textElm("Line Total");
+			textElm.setPointSize(pointSizeForPayement);
+			textElm.setBold(true);
+			cell.addElement(textElm, Qt::AlignCenter);
+		}
+		{
+			KDReports::Cell& cell = paymentSummaryElement.cell(0, 4);
+			KDReports::TextElement textElm("Cheque/Card No");
+			textElm.setPointSize(pointSizeForPayement);
+			textElm.setBold(true);
+			cell.addElement(textElm, Qt::AlignCenter);
+		}
+		{
+			KDReports::Cell& cell = paymentSummaryElement.cell(0, 5);
+			KDReports::TextElement textElm("Payment Date");
+			textElm.setPointSize(pointSizeForPayement);
+			textElm.setBold(true);
+			cell.addElement(textElm, Qt::AlignCenter);
+		}
+		int count = 1;
+		for (std::shared_ptr<PaymentSummaryElement> pse : payamentSummaryTableInfo)
+		{
+			{
+				KDReports::Cell& cell = paymentSummaryElement.cell(count, 0);
+				KDReports::TextElement textElm(pse->type);
+				textElm.setPointSize(pointSizeForPayement);
+				textElm.setBold(false);
+				cell.addElement(textElm, Qt::AlignLeft);
+			}
+			{
+			KDReports::Cell& cell = paymentSummaryElement.cell(count, 1);
+			KDReports::TextElement textElm(pse->netAmount);
 			textElm.setPointSize(pointSizeForPayement);
 			textElm.setBold(false);
 			cell.addElement(textElm, Qt::AlignRight);
 		}
-		{
-			KDReports::Cell& cell = paymentSummaryElement.cell(count, 4);
-			KDReports::TextElement textElm(pse->no);
-			textElm.setPointSize(pointSizeForPayement);
-			textElm.setBold(false);
-			cell.addElement(textElm, Qt::AlignLeft);
+			{
+				KDReports::Cell& cell = paymentSummaryElement.cell(count, 2);
+				KDReports::TextElement textElm(pse->interest);
+				textElm.setPointSize(pointSizeForPayement);
+				textElm.setBold(false);
+				cell.addElement(textElm, Qt::AlignRight);
+			}
+			{
+				KDReports::Cell& cell = paymentSummaryElement.cell(count, 3);
+				KDReports::TextElement textElm(pse->amount);
+				textElm.setPointSize(pointSizeForPayement);
+				textElm.setBold(false);
+				cell.addElement(textElm, Qt::AlignRight);
+			}
+			{
+				KDReports::Cell& cell = paymentSummaryElement.cell(count, 4);
+				KDReports::TextElement textElm(pse->no);
+				textElm.setPointSize(pointSizeForPayement);
+				textElm.setBold(false);
+				cell.addElement(textElm, Qt::AlignLeft);
+			}
+			{
+				KDReports::Cell& cell = paymentSummaryElement.cell(count, 5);
+				KDReports::TextElement textElm(pse->date);
+				textElm.setPointSize(pointSizeForPayement);
+				textElm.setBold(false);
+				cell.addElement(textElm, Qt::AlignLeft);
+			}
+			count++;
 		}
-		{
-			KDReports::Cell& cell = paymentSummaryElement.cell(count, 5);
-			KDReports::TextElement textElm(pse->date);
-			textElm.setPointSize(pointSizeForPayement);
-			textElm.setBold(false);
-			cell.addElement(textElm, Qt::AlignLeft);
-		}
-		count++;
+		report.addElement(paymentSummaryElement);
 	}
-	report.addElement(paymentSummaryElement);
 
 	report.addVerticalSpacing(1);
 
@@ -1201,11 +1323,11 @@ void ESMultiplePayment::printBill(int billId, float total)
 	printer.setOrientation(QPrinter::Portrait);
 
 	//preview start
-// 	QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
-// 	QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
-// 	dialog->setWindowTitle(tr("Print Document"));
-// 	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
-// 	dialog->exec();
+	// 	QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
+	// 	QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
+	// 	dialog->setWindowTitle(tr("Print Document"));
+	// 	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
+	// 	dialog->exec();
 	//preview end
 	KDReports::Header& header2 = report.header(KDReports::FirstPage);
 
