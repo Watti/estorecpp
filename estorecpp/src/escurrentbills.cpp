@@ -366,7 +366,6 @@ void ESCurrentBills::slotReprint(QString billIdStr)
 
 	QString userName = "";
 
-
 	double total = 0.0;
 	QString customerId = -1;
 	if (q.next())
@@ -716,8 +715,8 @@ void ESCurrentBills::slotReprint(QString billIdStr)
 		row++;
 
 		QString prevOutstandingText = "Prev. Outstanding : ";
-		double totalOutstanding = getTotalOutstanding(customerId);
-		double billOutstanding = getOutstandingForBill(billId);
+		double totalOutstanding = ES::Utility::getTotalOutstanding(customerId);
+		double billOutstanding = ES::Utility::getOutstandingForBill(billId);
 		double prevOutstanding = totalOutstanding - billOutstanding;
 		{
 			KDReports::Cell& cell = tableElement.cell(row, 0);
@@ -733,8 +732,6 @@ void ESCurrentBills::slotReprint(QString billIdStr)
 			te.setBold(false);
 			cell.addElement(te, Qt::AlignLeft);
 		}
-
-
 
 		if (secondDisplayOn)
 		{
@@ -783,8 +780,7 @@ void ESCurrentBills::slotReprint(QString billIdStr)
 			te.setBold(false);
 			cell.addElement(te, Qt::AlignLeft);
 		}
-
-
+		
 		if (secondDisplayOn)
 		{
 			KDReports::Cell& pcsText = tableElement.cell(row, 3);
@@ -818,15 +814,14 @@ void ESCurrentBills::slotReprint(QString billIdStr)
 		report.addElement(tableElement);
 		report.addVerticalSpacing(1);
 
-
 		if (!secondDisplayOn)
 		{
 			KDReports::TableElement paymentSummaryElement;
 			paymentSummaryElement.setHeaderRowCount(payamentSummaryTableInfo.size());
 			paymentSummaryElement.setHeaderColumnCount(6);
 			paymentSummaryElement.setBorder(1);
-			paymentSummaryElement.setWidth(60, KDReports::Percent);
-			int pointSizeForPayement = 7;
+			paymentSummaryElement.setWidth(100, KDReports::Percent);
+			int pointSizeForPayement = 9;
 			{
 				KDReports::Cell& cell = paymentSummaryElement.cell(0, 0);
 				KDReports::TextElement textElm("Type");
@@ -1029,75 +1024,4 @@ void ESCurrentBills::slotNext()
 		m_startingLimit += m_pageOffset;
 	}
 	slotSearch();
-}
-
-float ESCurrentBills::getTotalOutstanding(QString customerId)
-{
-	float totalAmount;
-	QString query;
-	query.append("SELECT * FROM customer_outstanding WHERE customer_id = ");
-	query.append(customerId);
-	query.append(" AND settled = 0");
-
-	QSqlQuery q(query);
-	while (q.next())
-	{
-		QString paymentId = q.value("payment_id").toString();
-		QSqlQuery qry("SELECT * FROM payment WHERE payment_id = " + paymentId);
-		QString pm = q.value("payment_method").toString();
-		float interest = 0;
-		if (pm == "CREDIT")
-		{
-			QSqlQuery qq("SELECT * FROM credit WHERE credit_id = " + q.value("table_id").toString());
-			if (qq.next())
-			{
-				interest = qq.value("interest").toFloat();
-				float amount = qq.value("amount").toFloat();
-				totalAmount += (amount * (100 + interest) / 100);
-			}
-		}
-		else if (pm == "CHEQUE")
-		{
-			QSqlQuery qq("SELECT * FROM cheque WHERE cheque_id = " + q.value("table_id").toString());
-			if (qq.next())
-			{
-				interest = qq.value("interest").toFloat();
-				float amount = qq.value("amount").toFloat();
-				totalAmount += (amount * (100 + interest) / 100);
-			}
-		}
-	}
-	return totalAmount;
-}
-
-float ESCurrentBills::getOutstandingForBill(int billId)
-{
-	float totalOutstanding = 0;
-	QSqlQuery queryPayment("SELECT * FROM payment WHERE bill_id = " + QString::number(billId) + " AND valid = 1");
-	while (queryPayment.next())
-	{
-		QString pId = queryPayment.value("payment_id").toString();
-		QString type = queryPayment.value("payment_type").toString();
-		if (type == "CHEQUE")
-		{
-			QSqlQuery queryCheque("SELECT * FROM cheque WHERE payment_id = " + pId);
-			while (queryCheque.next())
-			{
-				float amount = queryCheque.value("amount").toFloat();
-				float interest = queryCheque.value("interest").toFloat();
-				totalOutstanding += (amount * (100 + interest) / 100);
-			}
-		}
-		else if (type == "CREDIT")
-		{
-			QSqlQuery queryCheque("SELECT * FROM credit WHERE payment_id = " + pId);
-			while (queryCheque.next())
-			{
-				float amount = queryCheque.value("amount").toFloat();
-				float interest = queryCheque.value("interest").toFloat();
-				totalOutstanding += (amount * (100 + interest) / 100);
-			}
-		}
-	}
-	return totalOutstanding;
 }

@@ -20,6 +20,7 @@
 #include <memory>
 #include <wingdi.h>
 #include "easylogging++.h"
+#include "utility\utility.h"
 
 ESMultiplePayment::ESMultiplePayment(ESAddBill* addBill, QWidget *parent /*= 0*/) : QWidget(parent), m_addBill(addBill)
 {
@@ -601,7 +602,7 @@ void ESMultiplePayment::slotFinalizeBill()
 						mbox.exec();
 					}
 					QSqlQuery qry;
-					qry.prepare("INSERT INTO customer_outstanding (customer_id, payment_id, payment_method, table_id, settled, settled_date, comments) VALUES (?, ?, 'CHEQUE', ?, 0, '', '')");
+					qry.prepare("INSERT INTO customer_outstanding (customer_id, payment_id, payment_method, table_id, settled, comments) VALUES (?, ?, 'CHEQUE', ?, 0, '')");
 					qry.addBindValue(m_customerId);
 					qry.addBindValue(lastInsertedId);
 					qry.addBindValue(q.lastInsertId().toInt());
@@ -1168,7 +1169,7 @@ void ESMultiplePayment::printBill(int billId, float total)
 		cell.addElement(te, Qt::AlignLeft);
 	}
 	{
-		float billOutstanding = getOutstandingForBill(billId);
+		float billOutstanding = ES::Utility::getOutstandingForBill(billId);
 		double totalOutstanding = prevOutstanding + billOutstanding;
 		KDReports::Cell& cell = tableElement.cell(row, 1);
 		KDReports::TextElement te(QString::number(totalOutstanding, 'f', 2));
@@ -1216,8 +1217,8 @@ void ESMultiplePayment::printBill(int billId, float total)
 		paymentSummaryElement.setHeaderRowCount(payamentSummaryTableInfo.size());
 		paymentSummaryElement.setHeaderColumnCount(6);
 		paymentSummaryElement.setBorder(1);
-		paymentSummaryElement.setWidth(60, KDReports::Percent);
-		int pointSizeForPayement = 7;
+		paymentSummaryElement.setWidth(100, KDReports::Percent);
+		int pointSizeForPayement = 9;
 		{
 			KDReports::Cell& cell = paymentSummaryElement.cell(0, 0);
 			KDReports::TextElement textElm("Type");
@@ -1394,93 +1395,3 @@ void ESMultiplePayment::setInitialNetAmount(float val)
 	m_initialNetAmount = val;
 }
 
-float ESMultiplePayment::getTotalOutstanding(QString customerId)
-{
-	float totalAmount;
-	QString query;
-	query.append("SELECT * FROM customer_outstanding WHERE customer_id = ");
-	query.append(customerId);
-	query.append(" AND settled = 0");
-
-	QSqlQuery q(query);
-	while (q.next())
-	{
-		QString paymentId = q.value("payment_id").toString();
-		QSqlQuery qry("SELECT * FROM payment WHERE payment_id = " + paymentId);
-		QString pm = q.value("payment_method").toString();
-		float interest = 0;
-		if (pm == "CREDIT")
-		{
-			QSqlQuery qq("SELECT * FROM credit WHERE credit_id = " + q.value("table_id").toString());
-			if (qq.next())
-			{
-				interest = qq.value("interest").toFloat();
-				float amount = qq.value("amount").toFloat();
-				totalAmount += (amount * (100 + interest) / 100);
-			}
-		}
-		else if (pm == "CHEQUE")
-		{
-			QSqlQuery qq("SELECT * FROM cheque WHERE cheque_id = " + q.value("table_id").toString());
-			if (qq.next())
-			{
-				interest = qq.value("interest").toFloat();
-				float amount = qq.value("amount").toFloat();
-				totalAmount += (amount * (100 + interest) / 100);
-			}
-		}
-	}
-	return totalAmount;
-}
-
-float ESMultiplePayment::getOutstandingForBill(int billId)
-{
-	float totalOutstanding = 0;
-	QSqlQuery queryPayment("SELECT * FROM payment WHERE bill_id = " + QString::number(billId) + " AND valid = 1");
-	while (queryPayment.next())
-	{
-		QString pId = queryPayment.value("payment_id").toString();
-		QString type = queryPayment.value("payment_type").toString();
-		if (type == "CHEQUE")
-		{
-			QSqlQuery queryCheque("SELECT * FROM cheque WHERE payment_id = " + pId);
-			while (queryCheque.next())
-			{
-				float amount = queryCheque.value("amount").toFloat();
-				float interest = queryCheque.value("interest").toFloat();
-				totalOutstanding += (amount * (100 + interest) / 100);
-			}
-		}
-		else if (type == "CREDIT")
-		{
-			QSqlQuery queryCheque("SELECT * FROM credit WHERE payment_id = " + pId);
-			while (queryCheque.next())
-			{
-				float amount = queryCheque.value("amount").toFloat();
-				float interest = queryCheque.value("interest").toFloat();
-				totalOutstanding += (amount * (100 + interest) / 100);
-			}
-		}
-	}
-	return totalOutstanding;
-}
-
-// void ESMultiplePayment::slotInterestChanged()
-// {
-// 	bool valid = false;
-// 	double interest = ui.interestTxt->text().toDouble(&valid);
-// 	if (!valid)
-// 	{
-// 		return;
-// 	}
-// 	double netAmout = ui.netAmountLbl->text().toDouble();
-// 	valid = false;
-// 	double payingAmount = ui.cashText->text().toDouble(&valid);
-// 	if (!valid || payingAmount <= 0)
-// 	{
-// 		return;
-// 	}
-// 	double totalBill = netAmout - payingAmount;
-// 	//payingAmount * (interest / 100.0)
-// 	ui.netAmountLbl->setText(QString::number(totalBill, 'f', 2));
-// }
