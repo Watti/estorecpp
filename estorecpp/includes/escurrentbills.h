@@ -29,6 +29,7 @@ private:
 	void printRow(KDReports::TableElement& tableElement, int row, int col, 
 		QString elementStr, Qt::AlignmentFlag alignment = Qt::AlignLeft);
 	float getTotalOutstanding(QString customerId);
+	float getOutstandingForBill(int billId);
 	Ui::CurrentBills ui;
 	QSignalMapper* m_proceedButtonSignalMapper;
 	QSignalMapper* m_voidBillButtonSignalMapper;
