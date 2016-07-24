@@ -566,6 +566,13 @@
          <item row="4" column="1">
           <layout class="QHBoxLayout" name="horizontalLayout_4">
            <item>
+            <widget class="QPushButton" name="editBtn">
+             <property name="text">
+              <string>Edit</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QPushButton" name="deleteBtn">
              <property name="text">
               <string>Delete</string>

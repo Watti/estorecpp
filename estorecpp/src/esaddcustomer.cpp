@@ -2,6 +2,7 @@
 #include "utility/esdbconnection.h"
 #include <QMessageBox>
 #include <QSqlError>
+#include "QString"
 
 ESAddCustomer::ESAddCustomer(QWidget *parent /*= 0*/) : QWidget(parent), m_update(false)
 {
@@ -23,7 +24,7 @@ ESAddCustomer::ESAddCustomer(QWidget *parent /*= 0*/) : QWidget(parent), m_updat
 	{
 		QMessageBox mbox;
 		mbox.setIcon(QMessageBox::Critical);
-		mbox.setText(QString("Cannot connect to the database : AddItemCategory"));
+		mbox.setText(QString("Cannot connect to the database : ESAddCustomer"));
 		mbox.exec();
 	}
 }
@@ -50,28 +51,30 @@ void ESAddCustomer::slotProcess()
 	}
 	else
 	{
-		QSqlQuery query;
+		int deleted = 0;
+		if (!active)
+		{
+			deleted = 0;
+		}
+		QString qStr = "";
 		if (m_update)
 		{
-			query.prepare("UPDATE customer SET name = '?', phone = '?', address = '?', comments = '?', deleted = ? WHERE customer_id = ?");
-			query.addBindValue(name);
-			query.addBindValue(phone);
-			query.addBindValue(address);
-			query.addBindValue(comments);
-			query.addBindValue(!active);
-			query.addBindValue(m_id);
+			qStr = "UPDATE customer SET name = '"+name+"', phone = '"+phone+"', address = '"+address+"', comments = '"+comments+"', deleted ='"+QString::number(deleted)+"' WHERE customer_id ='"+m_id+"'";
 		}
 		else
 		{
-			query.prepare("INSERT INTO customer (name, phone, address, comments, deleted) VALUES (?, ?, ?, ?, ?)");
-			query.addBindValue(name);
-			query.addBindValue(phone);
-			query.addBindValue(address);
-			query.addBindValue(comments);
-			query.addBindValue(!active);
+			qStr = "INSERT INTO customer (name, phone, address, comments, deleted) VALUES ('" + name + "', phone = '" + phone + "', address = '" + address + "', comments = '" + comments + "', deleted ='" + QString::number(deleted) + "') WHERE customer_id ='" + m_id + "'";
+
+// 			query.prepare("INSERT INTO customer (name, phone, address, comments, deleted) VALUES (?, ?, ?, ?, ?)");
+// 			query.addBindValue(name);
+// 			query.addBindValue(phone);
+// 			query.addBindValue(address);
+// 			query.addBindValue(comments);
+// 			query.addBindValue(deleted);
 		}
-		
-		if (query.exec())
+
+		QSqlQuery query;
+		if (query.exec(qStr))
 		{
 			this->close();
 		}
@@ -80,7 +83,7 @@ void ESAddCustomer::slotProcess()
 			QString err = query.lastError().text();
 			QMessageBox mbox;
 			mbox.setIcon(QMessageBox::Critical);
-			mbox.setText(QString("Something goes wrong:: Category cannot be saved"));
+			mbox.setText(QString("Something goes wrong:: customer information cannot be saved"));
 			mbox.exec();
 		}
 	}
@@ -89,4 +92,9 @@ void ESAddCustomer::slotProcess()
 void ESAddCustomer::setUpdate(bool update)
 {
 	m_update = update;
+}
+
+void ESAddCustomer::setCustomerId(QString val)
+{
+	m_id = val;
 }

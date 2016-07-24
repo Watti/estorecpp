@@ -21,6 +21,7 @@ public:
 	void slotPopulateCustomerHistory();
 	void slotShowPaymentDetails(QString billId);
 	void slotDeleteCustomer();
+	void slotEditCustomer();
 
 private:
 	Ui::CustomerInfomationWidget ui;

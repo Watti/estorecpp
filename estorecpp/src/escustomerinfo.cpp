@@ -3,6 +3,11 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include "espaymentdetails.h"
+#include "esaddcustomer.h"
+#include "utility/esmainwindowholder.h"
+#include "utility/utility.h"
+#include "QMainWindow"
+#include "esmainwindow.h"
 
 ESCustomerInfo::ESCustomerInfo(QWidget *parent /*= 0*/) : QWidget(parent)
 {
@@ -45,6 +50,7 @@ ESCustomerInfo::ESCustomerInfo(QWidget *parent /*= 0*/) : QWidget(parent)
 	QObject::connect(ui.searchText, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
 	QObject::connect(m_paymentDetailsMapper, SIGNAL(mapped(QString)), this, SLOT(slotShowPaymentDetails(QString)));
 	QObject::connect(ui.deleteBtn, SIGNAL(clicked()), this, SLOT(slotDeleteCustomer()));
+	QObject::connect(ui.editBtn, SIGNAL(clicked()), this, SLOT(slotEditCustomer()));
 
 	ui.commentsLbl->setWordWrap(true);
 	m_selectedCustomerId = "-1";
@@ -288,5 +294,32 @@ void ESCustomerInfo::slotDeleteCustomer()
 	ui.phoneLbl->setText("");
 	ui.addressLbl->setText("");
 	ui.commentsLbl->setText("");
+}
+
+void ESCustomerInfo::slotEditCustomer()
+{
+	if (m_selectedCustomerId.isEmpty() || m_selectedCustomerId == "-1")
+	{
+		return;
+	}
+	QSqlQuery queryCustomer("SELECT * FROM customer WHERE customer_id = " + m_selectedCustomerId);
+	if (queryCustomer.next())
+	{
+		QString name = queryCustomer.value("name").toString();
+		QString phone = queryCustomer.value("phone").toString();
+		QString address = queryCustomer.value("address").toString();
+		QString comments = queryCustomer.value("comments").toString();
+
+		ESAddCustomer* customerInfo = new ESAddCustomer(this);
+		customerInfo->getUI().nameText->setText(name);
+		customerInfo->getUI().phoneText->setText(phone);
+		customerInfo->getUI().addressText->setText(address);
+		customerInfo->getUI().commentsText->setText(comments);
+		customerInfo->getUI().button->setText(QString(" Update "));
+		customerInfo->setUpdate(true);
+		customerInfo->setCustomerId(m_selectedCustomerId);
+		ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(customerInfo);
+		customerInfo->show();
+	}
 }
 
