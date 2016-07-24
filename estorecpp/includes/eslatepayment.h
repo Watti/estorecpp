@@ -28,6 +28,8 @@ public slots:
 	void slotAddCard();
 	void slotAddLoyalty();
 
+	void slotCashPaymentUpdated(QString txt, int row, int col);
+
 private:
 	Ui::LatePaymentWidget ui;
 	QString m_selectedCustomerId;
