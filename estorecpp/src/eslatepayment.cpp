@@ -4,11 +4,10 @@
 
 namespace
 {
-	QString convertToQuantityFormat(QString text, int row, int col, QTableWidget* table)
+	QString convertToPriceFormat(QString text, int row, int col, QTableWidget* table)
 	{
-		// 		double val = text.toDouble();
-		// 		return QString::number(val, 'f', 3);
-		return text;
+		double val = text.toDouble();
+		return QString::number(val, 'f', 2);
 	}
 }
 
@@ -158,7 +157,11 @@ void ESLatePayment::slotRemovePayment(QString id)
 
 void ESLatePayment::slotOk()
 {
-
+	for (int r = 0; r < ui.tableWidget->rowCount(); ++r)
+	{
+		// add row to payment table, with `payment_order` = 2.
+		// update `cash` table
+	}
 }
 
 void ESLatePayment::slotAddCash()
@@ -205,19 +208,20 @@ void ESLatePayment::slotItemDoubleClicked(int row, int col)
 		{
 			if (col == 1) // amount
 			{
+				
+			}
+			else if (col == 3) // payment
+			{
 				QTableWidgetItem* item = ui.tableWidget->item(row, 1);
 				QString amountStr = item->text();
 
 				TableTextWidget* textWidget = new TableTextWidget(ui.tableWidget, row, col, ui.tableWidget);
-				QObject::connect(textWidget, SIGNAL(notifyEnterPressed(QString, int, int)), this, SLOT(slotQuantityCellUpdated(QString, int, int)));
-				textWidget->setTextFormatterFunc(convertToQuantityFormat);
+				QObject::connect(textWidget, SIGNAL(notifyEnterPressed(QString, int, int)), this, SLOT(slotCashPaymentUpdated(QString, int, int)));
+				textWidget->setTextFormatterFunc(convertToPriceFormat);
 				textWidget->setText(amountStr);
 				textWidget->selectAll();
 				ui.tableWidget->setCellWidget(row, col, textWidget);
 				textWidget->setFocus();
-			}
-			else if (col == 3) // payment
-			{
 			}
 		}
 		else if (paymentType == "CREDIT")
@@ -238,4 +242,10 @@ void ESLatePayment::slotItemDoubleClicked(int row, int col)
 		}
 	}
 	
+}
+
+void ESLatePayment::slotCashPaymentUpdated(QString txt, int row, int col)
+{
+	QString price = QString::number(txt.toDouble(), 'f', 2);
+	ui.tableWidget->setItem(row, 1, new QTableWidgetItem(price));
 }
