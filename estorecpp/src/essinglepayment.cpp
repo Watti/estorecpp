@@ -227,19 +227,6 @@ void ESSinglePayment::handleCreditPayment(int billId, double netAmount)
 		else
 		{
 			finishBill(netAmount, billId);
-
-			QSqlQuery qry;
-			qry.prepare("INSERT INTO customer_outstanding (customer_id, payment_id, payment_method, table_id, settled,  comments) VALUES (?, ?, 'CREDIT', ?, 0, '')");
-			qry.addBindValue(m_customerId);
-			qry.addBindValue(lastInsertedId);
-			qry.addBindValue(q.lastInsertId().toInt());
-			if (!qry.exec())
-			{
-				QMessageBox mbox;
-				mbox.setIcon(QMessageBox::Critical);
-				mbox.setText(QString("Failed to add CUSTOMER OUTSTANDING info"));
-				mbox.exec();
-			}
 		}
 	}
 	else
@@ -279,19 +266,6 @@ void ESSinglePayment::handleChequePayment(int billId, double netAmount)
 		else
 		{
 			finishBill(netAmount, billId);
-
-			QSqlQuery qry;
-			qry.prepare("INSERT INTO customer_outstanding (customer_id, payment_id, payment_method, table_id, settled, comments) VALUES (?, ?, 'CHEQUE', ?, 0, '')");
-			qry.addBindValue(m_customerId);
-			qry.addBindValue(lastInsertedId);
-			qry.addBindValue(q.lastInsertId().toInt());
-			if (!qry.exec())
-			{
-				QMessageBox mbox;
-				mbox.setIcon(QMessageBox::Critical);
-				mbox.setText(QString("Failed to add CUSTOMER OUTSTANDING info"));
-				mbox.exec();
-			}
 		}
 	}
 	else

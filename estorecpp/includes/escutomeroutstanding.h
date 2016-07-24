@@ -16,17 +16,13 @@ public:
 
 	public slots:
 	void slotSearchCustomers();
-	void slotCustomerSelected(int row, int col);
-	void populateCustomerOutstanding();
-	void slotPay(QString billId);
-	void slotMultiPay();
+	void slotPay(QString customerId);
 
 private:
 	float getTotalOutstanding(QString customerId);
 
 	Ui::CustomerOutstandingWidget ui;
-	QString m_selectedCustomerId;
-	QSignalMapper* m_paymentDetailsMapper;
+	QSignalMapper* m_paymentButtonMapper;
 
 };
 

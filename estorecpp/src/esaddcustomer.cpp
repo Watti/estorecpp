@@ -63,7 +63,7 @@ void ESAddCustomer::slotProcess()
 		}
 		else
 		{
-			qStr = "INSERT INTO customer (name, phone, address, comments, deleted) VALUES ('" + name + "', phone = '" + phone + "', address = '" + address + "', comments = '" + comments + "', deleted ='" + QString::number(deleted) + "') WHERE customer_id ='" + m_id + "'";
+			qStr = "INSERT INTO customer (name, phone, address, comments, deleted) VALUES ('" + name + "','" + phone + "','" + address + "','" + comments + "'," + QString::number(deleted) + ")";
 
 // 			query.prepare("INSERT INTO customer (name, phone, address, comments, deleted) VALUES (?, ?, ?, ?, ?)");
 // 			query.addBindValue(name);

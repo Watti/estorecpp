@@ -9,7 +9,7 @@
 ESCustomerOutstanding::ESCustomerOutstanding(QWidget *parent /*= 0*/) : QWidget(parent)
 {
 	ui.setupUi(this);
-	m_paymentDetailsMapper = new QSignalMapper(this);
+	m_paymentButtonMapper = new QSignalMapper(this);
 
 	QStringList headerLabels;
 	headerLabels.append("CustomerID");
@@ -17,6 +17,8 @@ ESCustomerOutstanding::ESCustomerOutstanding(QWidget *parent /*= 0*/) : QWidget(
 	headerLabels.append("Phone");
 	headerLabels.append("Address");
 	headerLabels.append("Comments");
+	headerLabels.append("Current Outstanding");
+	headerLabels.append("Actions");
 
 	ui.customers->setHorizontalHeaderLabels(headerLabels);
 	ui.customers->horizontalHeader()->setStretchLastSection(true);
@@ -27,38 +29,11 @@ ESCustomerOutstanding::ESCustomerOutstanding(QWidget *parent /*= 0*/) : QWidget(
 	ui.customers->verticalHeader()->hide();
 	ui.customers->hideColumn(0);
 
-	QStringList headerLabels2;
-	headerLabels2.append("Payment Type");
-	headerLabels2.append("Bill ID");
-	headerLabels2.append("Amount");
-	headerLabels2.append("Due Date");
-	headerLabels2.append("Actions");
-
-	ui.outstandings->setHorizontalHeaderLabels(headerLabels2);
-	ui.outstandings->horizontalHeader()->setStretchLastSection(true);
-	ui.outstandings->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-	ui.outstandings->setEditTriggers(QAbstractItemView::NoEditTriggers);
-	ui.outstandings->setSelectionBehavior(QAbstractItemView::SelectRows);
-	ui.outstandings->setSelectionMode(QAbstractItemView::SingleSelection);
-	ui.outstandings->verticalHeader()->hide();
-	//ui.outstandings->hideColumn(0);
-
-	ui.paymentType->addItem("ALL");
-	ui.paymentType->addItem("CREDIT");
-	ui.paymentType->addItem("CHEQUE");
-	ui.paymentType->setCurrentIndex(0);
-
-	QObject::connect(ui.customers, SIGNAL(cellPressed(int, int)), this, SLOT(slotCustomerSelected(int, int)));
 	QObject::connect(ui.searchText, SIGNAL(textChanged(QString)), this, SLOT(slotSearchCustomers()));
-	QObject::connect(ui.paymentType, SIGNAL(activated(int)), this, SLOT(populateCustomerOutstanding()));
-	QObject::connect(ui.checkBox, SIGNAL(stateChanged(int)), this, SLOT(populateCustomerOutstanding()));
-	QObject::connect(m_paymentDetailsMapper, SIGNAL(mapped(QString)), this, SLOT(slotPay(QString)));
-	QObject::connect(ui.multiPayBtn, SIGNAL(clicked()), this, SLOT(slotMultiPay()));
+	QObject::connect(m_paymentButtonMapper, SIGNAL(mapped(QString)), this, SLOT(slotPay(QString)));
 
 	slotSearchCustomers();
 
-	m_selectedCustomerId = "-1";
-	ui.multiPayBtn->setEnabled(false);
 	ui.searchText->setFocus();
 }
 
@@ -89,112 +64,58 @@ void ESCustomerOutstanding::slotSearchCustomers()
 		row = ui.customers->rowCount();
 		ui.customers->insertRow(row);
 
-		ui.customers->setItem(row, 0, new QTableWidgetItem(q.value("customer_id").toString()));
-		ui.customers->setItem(row, 1, new QTableWidgetItem(q.value("name").toString()));
-		ui.customers->setItem(row, 2, new QTableWidgetItem(q.value("phone").toString()));
-		ui.customers->setItem(row, 3, new QTableWidgetItem(q.value("address").toString()));
-		ui.customers->setItem(row, 4, new QTableWidgetItem(q.value("comments").toString()));
-	}
-}
-
-void ESCustomerOutstanding::slotCustomerSelected(int row, int col)
-{
-	if (row > -1)
-	{
-		QString customerId = ui.customers->item(row, 0)->text();
-		m_selectedCustomerId = customerId;
-		ui.multiPayBtn->setEnabled(true);
-
-		// Populate customer history
-		populateCustomerOutstanding();
-	}
-}
-
-void ESCustomerOutstanding::populateCustomerOutstanding()
-{
-	if (m_selectedCustomerId == "-1")
-	{
-		return;
-	}
-
-	while (ui.outstandings->rowCount() > 0)
-	{
-		ui.outstandings->removeRow(0);
-	}
-
-	QString query;
-	query.append("SELECT * FROM customer_outstanding WHERE customer_id = ");
-	query.append(m_selectedCustomerId);
-	query.append(" AND settled = 0");
-
-	QSqlQuery q(query);
-	while (q.next())
-	{
-		int row = ui.outstandings->rowCount();
-		ui.outstandings->insertRow(row);
-
-		QString paymentId = q.value("payment_id").toString();
-		QSqlQuery qry("SELECT * FROM payment WHERE payment_id = " + paymentId);
-		QString pm = q.value("payment_method").toString();
-		QString dueDate = "";
-		float interest = 0;
-		float totalAmount = 0;
-		if (pm == "CREDIT")
+		QString customerId = q.value("customer_id").toString();
+		double outstandingAmount = getTotalOutstanding(customerId);
+		QColor rowColor;
+		if (outstandingAmount > 0)
 		{
-			QSqlQuery qq("SELECT * FROM credit WHERE credit_id = " + q.value("table_id").toString());
-			if (qq.next())
-			{
-				dueDate = qq.value("due_date").toString();
-				interest = qq.value("interest").toFloat();
-				float amount = qq.value("amount").toFloat();
-				totalAmount += (amount * (100 + interest) / 100);
-			}
+			rowColor.setRgb(245, 169, 169);
 		}
-		else if (pm == "CHEQUE")
+		else
 		{
-			QSqlQuery qq("SELECT * FROM cheque WHERE cheque_id = " + q.value("table_id").toString());
-			if (qq.next())
-			{
-				dueDate = qq.value("due_date").toString();
-				interest = qq.value("interest").toFloat();
-				float amount = qq.value("amount").toFloat();
-				totalAmount += (amount * (100 + interest) / 100);
-			}
+			rowColor.setRgb(169, 245, 208);
 		}
 
-		ui.outstandings->setItem(row, 0, new QTableWidgetItem(pm));
-		QString billId = "-1";
+		QTableWidgetItem* item = NULL;
+		item = new QTableWidgetItem(customerId);
+		item->setBackgroundColor(rowColor);
+		ui.customers->setItem(row, 0, item);
 
-		if (qry.next())
-		{
-			billId = qry.value("bill_id").toString();
-			ui.outstandings->setItem(row, 1, new QTableWidgetItem(billId));
-		}
+		item = new QTableWidgetItem(q.value("name").toString());
+		item->setBackgroundColor(rowColor);
+		ui.customers->setItem(row, 1, item);
 
-		QTableWidgetItem* item = new QTableWidgetItem(QString::number(totalAmount, 'f', 2));
-		item->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-		ui.outstandings->setItem(row, 2, item);
+		item = new QTableWidgetItem(q.value("phone").toString());
+		item->setBackgroundColor(rowColor);
+		ui.customers->setItem(row, 2, item);
 
-		QTableWidgetItem* itemDate = new QTableWidgetItem(dueDate);
-		itemDate->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-		ui.outstandings->setItem(row, 3, itemDate);
-		//ui.outstandings->setItem(row, 4, new QTableWidgetItem("-"));
+		item = new QTableWidgetItem(q.value("address").toString());
+		item->setBackgroundColor(rowColor);
+		ui.customers->setItem(row, 3, item);
 
-		QWidget* base = new QWidget(ui.outstandings);
+		item = new QTableWidgetItem(q.value("comments").toString());
+		item->setBackgroundColor(rowColor);
+		ui.customers->setItem(row, 4, item);
+				
+		QTableWidgetItem* outstandingItem = new QTableWidgetItem(QString::number(outstandingAmount, 'f', 2));
+		outstandingItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+		outstandingItem->setBackgroundColor(rowColor);
+		ui.customers->setItem(row, 5, outstandingItem);
+
+		//ui.customers->setItem(row, 6, new QTableWidgetItem("-"));
+		QWidget* base = new QWidget(ui.customers);
+		QPushButton* paymentBtn = new QPushButton("Settle", base);
+
+		m_paymentButtonMapper->setMapping(paymentBtn, customerId);
+		QObject::connect(paymentBtn, SIGNAL(clicked()), m_paymentButtonMapper, SLOT(map()));
+
 		QHBoxLayout *layout = new QHBoxLayout;
 		layout->setContentsMargins(0, 0, 0, 0);
-
-		QPushButton* payBtn = new QPushButton("Pay", base);
-		payBtn->setMaximumWidth(100);
-		m_paymentDetailsMapper->setMapping(payBtn, billId);
-		QObject::connect(payBtn, SIGNAL(clicked()), m_paymentDetailsMapper, SLOT(map()));
-		layout->addWidget(payBtn);
-
+		layout->addWidget(paymentBtn);
 		layout->insertStretch(2);
 		base->setLayout(layout);
-		ui.outstandings->setCellWidget(row, 4, base);
+		ui.customers->setCellWidget(row, 6, base);
 		base->show();
-
 	}
 }
 
@@ -237,39 +158,12 @@ float ESCustomerOutstanding::getTotalOutstanding(QString customerId)
 	return totalAmount;
 }
 
-void ESCustomerOutstanding::slotPay(QString billId)
+void ESCustomerOutstanding::slotPay(QString customerId)
 {
-	QSqlQuery q("SELECT * FROM customer WHERE customer_id = " + m_selectedCustomerId);
+	QSqlQuery q("SELECT * FROM customer_outstanding WHERE custome_id = " + customerId);
 	if (q.next())
 	{
-		ESLatePayment* latePayment = new ESLatePayment(0);
-		latePayment->setWindowState(Qt::WindowActive);
-		latePayment->setWindowModality(Qt::ApplicationModal);
-		latePayment->setAttribute(Qt::WA_DeleteOnClose);
-		latePayment->setCustomerId(m_selectedCustomerId);
 
-		latePayment->getUI().customerName->setText(q.value("name").toString());
-		latePayment->getUI().cashierName->setText(ES::Session::getInstance()->getUser()->getName());
-
-		latePayment->addBill(billId);
-		latePayment->show();
-	}
-}
-
-void ESCustomerOutstanding::slotMultiPay()
-{
-	QSqlQuery q("SELECT * FROM customer WHERE customer_id = " + m_selectedCustomerId);
-	if (q.next())
-	{
-		ESLatePayment* latePayment = new ESLatePayment(0);
-		latePayment->setWindowState(Qt::WindowActive);
-		latePayment->setWindowModality(Qt::ApplicationModal);
-		latePayment->setAttribute(Qt::WA_DeleteOnClose);
-		latePayment->setCustomerId(m_selectedCustomerId);
-
-		latePayment->getUI().customerName->setText(q.value("name").toString());
-		latePayment->getUI().cashierName->setText(ES::Session::getInstance()->getUser()->getName());
-		latePayment->show();
 	}
 }
 
