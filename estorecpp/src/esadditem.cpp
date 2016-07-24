@@ -85,6 +85,17 @@ void AddItem::slotAddItem()
 	}
 	else
 	{
+		QString qItem("SELECT * FROM item WHERE deleted = 0 AND item_code = '" + iCode+"'");
+		QSqlQuery queryItem(qItem);
+		if (queryItem.next())
+		{
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Warning);
+			mbox.setText(QString("Item code already exist"));
+			mbox.exec();
+			return;
+		}
+
 		QString q;
 		if (isUpdate())
 		{

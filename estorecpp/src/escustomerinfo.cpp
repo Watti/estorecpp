@@ -285,15 +285,18 @@ void ESCustomerInfo::slotDeleteCustomer()
 	{
 		return;
 	}
-	QSqlQuery q("UPDATE customer SET deleted = 1 WHERE customer_id = " + m_selectedCustomerId);
+	if (ES::Utility::verifyUsingMessageBox(this, "EStore","Do you really want to delete customer?"))
+	{
+		QSqlQuery q("UPDATE customer SET deleted = 1 WHERE customer_id = " + m_selectedCustomerId);
 
-	m_selectedCustomerId = "-1";
+		m_selectedCustomerId = "-1";
+
+		ui.nameLbl->setText("");
+		ui.phoneLbl->setText("");
+		ui.addressLbl->setText("");
+		ui.commentsLbl->setText("");
+	}
 	slotSearch();
-
-	ui.nameLbl->setText("");
-	ui.phoneLbl->setText("");
-	ui.addressLbl->setText("");
-	ui.commentsLbl->setText("");
 }
 
 void ESCustomerInfo::slotEditCustomer()

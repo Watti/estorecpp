@@ -42,6 +42,17 @@ void AddItemCategory::slotAddItemCategory()
 	}
 	else
 	{
+		QString qItem("SELECT * FROM item_category WHERE deleted = 0 AND itemcategory_code = '" + cCode + "'");
+		QSqlQuery queryItem(qItem);
+		if (queryItem.next())
+		{
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Warning);
+			mbox.setText(QString("Category code already exist"));
+			mbox.exec();
+			return;
+		}
+
 		QString q;
 		if (isUpdate())
 		{
