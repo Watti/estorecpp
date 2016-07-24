@@ -64,13 +64,6 @@ void ESAddCustomer::slotProcess()
 		else
 		{
 			qStr = "INSERT INTO customer (name, phone, address, comments, deleted) VALUES ('" + name + "','" + phone + "', '" + address + "','" + comments + "','" + QString::number(deleted) + "')";
-
-// 			query.prepare("INSERT INTO customer (name, phone, address, comments, deleted) VALUES (?, ?, ?, ?, ?)");
-// 			query.addBindValue(name);
-// 			query.addBindValue(phone);
-// 			query.addBindValue(address);
-// 			query.addBindValue(comments);
-// 			query.addBindValue(deleted);
 		}
 
 		QSqlQuery query;
