@@ -109,17 +109,26 @@ void ESCurrentBills::slotSearch()
 
 	int row = 0;
 	QString qStr, qRecordCountStr;
-	if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
-		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
+	qStr = "SELECT * FROM bill WHERE deleted = 0";
+	qRecordCountStr = "SELECT COUNT(*) as c FROM bill WHERE deleted = 0";
+	if (selectedUser > 0)
 	{
-		qStr = "SELECT * FROM bill WHERE deleted = 0";
-		qRecordCountStr = "SELECT COUNT(*) as c FROM bill WHERE deleted = 0";
+			qStr.append(" AND user_id = ").append(QString::number(selectedUser));
+			qRecordCountStr.append(" AND user_id = ").append(QString::number(selectedUser));
 	}
-	else
+	if (selectedStatus > 0)
 	{
-		qStr = "SELECT * FROM bill WHERE deleted = 0 AND visible = 1";
-		qRecordCountStr = "SELECT COUNT(*) as c FROM bill WHERE deleted = 0 AND visible = 1";
+		qStr.append(" AND status = ").append(QString::number(selectedStatus));
+		qRecordCountStr.append(" AND status = ").append(QString::number(selectedStatus));
 	}
+	if (!(ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
+		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV))
+	{
+
+		qStr.append(" AND visible = 1");
+		qRecordCountStr.append(" AND visible = 1");
+	}
+	qStr.append(" ORDER BY date DESC");
 	QSqlQuery queryRecordCount(qRecordCountStr);
 	if (queryRecordCount.next())
 	{
