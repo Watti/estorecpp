@@ -44,6 +44,7 @@ private:
 	void printRow(KDReports::TableElement& tableElement, int row, int col, 
 		QString elementStr, Qt::AlignmentFlag alignment = Qt::AlignLeft);
 	void printBill(int billId, float total);
+	float getTotalOutstanding(QString customerId);
 
 	bool validate();
 	Ui::SinglePaymentWidget ui;
