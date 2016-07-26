@@ -231,17 +231,7 @@ void ESSinglePayment::handleCreditPayment(int billId, double netAmount)
 			double outstandingAmount = getTotalOutstanding(m_customerId);
 			outstandingAmount += netAmount;
 
-			QSqlQuery qry;
-			qry.prepare("INSERT INTO customer_outstanding (customer_id, current_outstanding, settled, comments) VALUES (?, ?, 0, '')");
-			qry.addBindValue(m_customerId);
-			qry.addBindValue(outstandingAmount);
-			if (!qry.exec())
-			{
-				QMessageBox mbox;
-				mbox.setIcon(QMessageBox::Critical);
-				mbox.setText(QString("Failed to add CUSTOMER OUTSTANDING info"));
-				mbox.exec();
-			}
+			ES::Utility::updateOutstandingAmount(m_customerId, outstandingAmount);
 		}
 	}
 	else

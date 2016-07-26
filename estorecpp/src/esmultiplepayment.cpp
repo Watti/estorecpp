@@ -545,6 +545,13 @@ void ESMultiplePayment::slotFinalizeBill()
 						mbox.setText(QString("Failed"));
 						mbox.exec();
 					}
+					else
+					{
+						double outstandingAmount = ES::Utility::getTotalOutstanding(m_customerId);
+						outstandingAmount += amount;
+
+						ES::Utility::updateOutstandingAmount(m_customerId, outstandingAmount);
+					}
 				}
 				else
 				{

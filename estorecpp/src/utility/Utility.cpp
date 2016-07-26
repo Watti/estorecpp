@@ -103,4 +103,40 @@ namespace ES
 		return totalOutstanding;
 	}
 
+	void Utility::updateOutstandingAmount(QString customerId, double amount)
+	{
+		QSqlQuery q("SELECT * FROM customer_outstanding WHERE customer_id = " + customerId);
+		if (q.next())
+		{
+			double currentOutstanding = q.value("current_outstanding").toDouble();
+			currentOutstanding += amount;
+
+			QSqlQuery qry;
+			qry.prepare("UPDATE customer_outstanding SET current_outstanding = ? WHERE customer_id = ? ");
+			qry.addBindValue(currentOutstanding);
+			qry.addBindValue(customerId);
+			if (!qry.exec())
+			{
+				QMessageBox mbox;
+				mbox.setIcon(QMessageBox::Critical);
+				mbox.setText(QString("Failed to add CUSTOMER OUTSTANDING info"));
+				mbox.exec();
+			}
+		}
+		else
+		{
+			QSqlQuery qry;
+			qry.prepare("INSERT INTO customer_outstanding (customer_id, current_outstanding, settled, comments) VALUES (?, ?, 0, '')");
+			qry.addBindValue(customerId);
+			qry.addBindValue(amount);
+			if (!qry.exec())
+			{
+				QMessageBox mbox;
+				mbox.setIcon(QMessageBox::Critical);
+				mbox.setText(QString("Failed to add CUSTOMER OUTSTANDING info"));
+				mbox.exec();
+			}
+		}
+	}
+
 }
