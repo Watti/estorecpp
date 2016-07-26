@@ -33,7 +33,7 @@ ESReturnItems::ESReturnItems(QWidget *parent /*= 0*/) : QWidget(parent), m_total
 	m_billId = -1;
 
 	QObject::connect(ui.selectBtn, SIGNAL(clicked()), this, SLOT(slotSelect()));
-	QObject::connect(ui.printBtn, SIGNAL(clicked()), this, SLOT(slotPrintReturnBill()));
+	//QObject::connect(ui.printBtn, SIGNAL(clicked()), this, SLOT(slotPrintReturnBill()));
 	QObject::connect(ui.tableWidget, SIGNAL(cellClicked(int, int)), this, SLOT(slotItemDoubleClicked(int, int)));
 	QObject::connect(m_removeButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotRemove(QString)));
 	QObject::connect(ui.interestText, SIGNAL(textChanged(QString)), this, SLOT(slotInterestChanged()));
@@ -67,10 +67,28 @@ ESReturnItems::ESReturnItems(QWidget *parent /*= 0*/) : QWidget(parent), m_total
 	ui.tableWidget->hideColumn(8);
 	ui.tableWidget->hideColumn(9);
 
+	QStringList headerLabels2;
+	headerLabels2.append("Code");
+	headerLabels2.append("Item");
+	headerLabels2.append("Price");
+	headerLabels2.append("Qty");
+	headerLabels2.append("Discount");
+	headerLabels2.append("Sub Total");
+	headerLabels2.append("Actions");
+	headerLabels2.append("Sale_ID");
+
+	ui.billTableWidget->setHorizontalHeaderLabels(headerLabels2);
+	ui.billTableWidget->horizontalHeader()->setStretchLastSection(true);
+	ui.billTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+	ui.billTableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	ui.billTableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
+	ui.billTableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+	ui.billTableWidget->hideColumn(7);
+
 	ui.billIdLbl->setText("N/A");
 	ui.totalLbl->setText("0.00");
 
-	ui.itemCode->setFocus();
+	ui.billId->setFocus();
 }
 
 ESReturnItems::~ESReturnItems()
