@@ -255,10 +255,16 @@ void ESSinglePayment::handleCreditPayment(int billId, double netAmount)
 
 void ESSinglePayment::handleChequePayment(int billId, double netAmount)
 {
+	QString initialNetAmount = QString::number(m_initialNetAmount);
+	float interest = ui.lineEdit->text().toFloat();
+	QString totalChequeOutstanding = QString::number(m_initialNetAmount* (100+interest)/100);
+	QString chequeNo = ui.txt1->text();
+	QString bank = ui.txt2->text();
+	QString dueDate = ui.dateEdit->text();
 	QSqlQuery query;
 	query.prepare("INSERT INTO payment (bill_id, total_amount, payment_type) VALUES (?, ?, 'CHEQUE')");
 	query.addBindValue(billId);
-	query.addBindValue(QString::number(m_initialNetAmount));
+	query.addBindValue(initialNetAmount);
 
 	if (query.exec())
 	{
@@ -266,11 +272,11 @@ void ESSinglePayment::handleChequePayment(int billId, double netAmount)
 		QSqlQuery q;
 		q.prepare("INSERT INTO cheque (payment_id, amount, interest, cheque_number, bank, due_date) VALUES (?, ?, ?, ?, ?, ?)");
 		q.addBindValue(lastInsertedId);
-		q.addBindValue(QString::number(m_initialNetAmount));
+		q.addBindValue(initialNetAmount);
 		q.addBindValue(ui.lineEdit->text());
-		q.addBindValue(ui.txt1->text());
-		q.addBindValue(ui.txt2->text());
-		q.addBindValue(ui.dateEdit->text());
+		q.addBindValue(chequeNo);
+		q.addBindValue(bank);
+		q.addBindValue(dueDate);
 		if (!q.exec())
 		{
 			QMessageBox mbox;
@@ -280,6 +286,17 @@ void ESSinglePayment::handleChequePayment(int billId, double netAmount)
 		}
 		else
 		{
+// 			QString qStr("INSERT INTO cheque_outstanding (amount, settling_date, cheque_no, bank, customer_id) VALUES ('" + totalChequeOutstanding + "','" + dueDate + "','" + chequeNo + "','" +
+// 				bank + "','" + m_customerId+ "')");
+// 			QSqlQuery outstandingQry;
+// 			if (!outstandingQry.exec(qStr))
+// 			{
+// 
+// 				QMessageBox mbox;
+// 				mbox.setIcon(QMessageBox::Critical);
+// 				mbox.setText(QString("Failed to add outstanding cheque information"));
+// 				mbox.exec();
+// 			}
 			finishBill(netAmount, billId);
 		}
 	}
