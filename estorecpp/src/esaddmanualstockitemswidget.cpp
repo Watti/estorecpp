@@ -32,6 +32,11 @@ ESAddManualStockItems::ESAddManualStockItems(QWidget *parent /*= 0*/)
 	QObject::connect(ui.addToStockBtn, SIGNAL(clicked()), this, SLOT(slotAddToStock()));
 	QObject::connect(ui.searchTextBox, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
 	QObject::connect(ui.categoryComboBox, SIGNAL(activated(QString)), this, SLOT(slotSearch()));
+	if (ES::Session::getInstance()->isSecondDisplayOn())
+	{
+		ui.floorText->hide();
+		ui.label_10->hide();
+	}
 	if (!ES::DbConnection::instance()->open())
 	{
 		QMessageBox mbox;
@@ -174,6 +179,7 @@ void ESAddManualStockItems::slotAddToStock()
 	{
 		return;
 	}
+	QString floorNo = ui.floorText->text();
 	QString itemId = ui.itemIdText->text();
 	QString newSellingPrice = ui.sellingPrice->text();
 	if (newSellingPrice == nullptr || newSellingPrice.isEmpty())
@@ -265,6 +271,23 @@ void ESAddManualStockItems::slotAddToStock()
 		mbox.setText(QString("Invalid input - Purchasing Price"));
 		mbox.exec();
 	}
+	if (!floorNo.isEmpty())
+	{
+		isValid = false;
+		int floorNoInt = floorNo.toInt(&isValid);
+		if (!isValid)
+		{
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Warning);
+			mbox.setText(QString("Invalid input - Floor Number"));
+			mbox.exec();
+			return;
+		}
+	}
+	else
+	{
+		floorNo = "0";
+	}
 
 	int userId = ES::Session::getInstance()->getUser()->getId();
 	QString userIdStr;
@@ -284,7 +307,7 @@ void ESAddManualStockItems::slotAddToStock()
 		QString qtyStr;
 		qtyStr.setNum(currentQty);
 		QString q("UPDATE stock SET  qty = " + qtyStr + " , selling_price = " + newSellingPrice + " , discount = "
-			+ discount + " , min_qty =  " + ui.minQty->text() + " WHERE stock_id = " + stockId);
+			+ discount + " , min_qty =  " + ui.minQty->text() + " , floor = "+floorNo+" WHERE stock_id = " + stockId);
 		QSqlQuery query;
 		if (!query.exec(q))
 		{
@@ -322,7 +345,7 @@ void ESAddManualStockItems::slotAddToStock()
 			else
 			{
 				QString qStockPOStr("INSERT INTO stock_purchase_order_item (purchaseorder_id, item_id, selling_price, purchasing_price, stock_id) VALUES (-1, " +
-					itemId + ", " + newSellingPrice + ", " + purchasingPriceStr + ", " + stockId + ")");
+					itemId + ", " + newSellingPrice + ", " + purchasingPriceStr + ", "+ stockId + ")");
 				QSqlQuery queryStockPO;
 				if (queryStockPO.exec(qStockPOStr))
 				{
@@ -351,8 +374,8 @@ void ESAddManualStockItems::slotAddToStock()
 	{
 		QString qtyStr;
 		qtyStr.setNum(currentQty);
-		QString q("INSERT INTO stock (item_id, qty, min_qty, selling_price, discount, user_id) VALUES (" +
-			itemId + "," + qtyStr + "," + ui.minQty->text() + "," + newSellingPrice + "," + discount + "," + userIdStr + ")");
+		QString q("INSERT INTO stock (item_id, qty, min_qty, selling_price, discount, floor, user_id) VALUES (" +
+			itemId + "," + qtyStr + "," + ui.minQty->text() + "," + newSellingPrice + "," + discount + "," + floorNo + ", " + userIdStr + ")");
 		QSqlQuery query;
 		if (!query.exec(q))
 		{
