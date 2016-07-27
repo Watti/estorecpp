@@ -32,6 +32,7 @@
 #include "escutomeroutstanding.h"
 #include "espettycashsummary.h"
 #include "essalesreportcontainer.h"
+#include "eschequeinformation.h"
 
 ESMainWindow::ESMainWindow(QWidget *parent)
 : QMainWindow(parent)
@@ -82,6 +83,7 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	QObject::connect(ui.actionManageCustomers, SIGNAL(triggered()), this, SLOT(slotAddCustomer()));
 	QObject::connect(ui.actionViewCustomerHistory, SIGNAL(triggered()), this, SLOT(slotViewCustomerHistory()));
 	QObject::connect(ui.actionCustomerOutstanding, SIGNAL(triggered()), this, SLOT(slotViewCustomerOutstanding()));
+	QObject::connect(ui.actionCheques, SIGNAL(triggered()), this, SLOT(slotCustomerCheques()));
 	QObject::connect(ui.actionPettyCashSummary, SIGNAL(triggered()), this, SLOT(slotPettyCashSummary()));
 
 	new QShortcut(QKeySequence(Qt::Key_F9), this, SLOT(slotShowCalculator()));
@@ -152,6 +154,9 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	mmgr->addAction("Customer Outstanding", ui.actionCustomerOutstanding);
 	ui.actionCustomerOutstanding->setIcon(QIcon("icons/customer_outstanding.png"));
 	ui.mainToolBar->addAction(ui.actionCustomerOutstanding);
+	mmgr->addAction("Cheques", ui.actionCheques);
+	ui.actionCheques->setIcon(QIcon("icons/cheque.png"));
+	ui.mainToolBar->addAction(ui.actionCheques);
 	mmgr->addSeparator(ui.mainToolBar->addSeparator());
 
 	mmgr->addAction("Add Bill", ui.actionAddBill);
@@ -206,6 +211,7 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	mmgr->addMenuActionMapping("Customers", "Manage Customers");
 	mmgr->addMenuActionMapping("Customers", "View History");
 	mmgr->addMenuActionMapping("Customers", "Customer Outstanding");
+	mmgr->addMenuActionMapping("Customers", "Cheques");
 	mmgr->addMenuActionMapping("Billing", "Add Bill");
 	mmgr->addMenuActionMapping("Billing", "Current Bills");
 	mmgr->addMenuActionMapping("Cash Balance", "Configure");
@@ -437,6 +443,13 @@ void ESMainWindow::slotPettyCashSummary()
 // 	PettyCashSummary* pettyCashSummary = new PettyCashSummary(this);
 // 	this->setCentralWidget(pettyCashSummary);
 // 	pettyCashSummary->show();
+}
+
+void ESMainWindow::slotCustomerCheques()
+{
+	ESChequeInformation* chequeInfo = new ESChequeInformation(this);
+	this->setCentralWidget(chequeInfo);
+	chequeInfo->show();
 }
 
 

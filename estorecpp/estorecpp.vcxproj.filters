@@ -503,6 +503,15 @@
     <ClCompile Include="src\entities\returnbill.cpp">
       <Filter>Source Files\entities</Filter>
     </ClCompile>
+    <ClCompile Include="src\eschequeinformation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_eschequeinformation.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_eschequeinformation.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="esmainwindow.ui">
@@ -784,6 +793,12 @@
     <CustomBuild Include="includes\eslatepayment.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
+    <CustomBuild Include="chequeinformation.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="includes\eschequeinformation.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="includes\utility\esdbconnection.h">
@@ -935,6 +950,9 @@
     </ClInclude>
     <ClInclude Include="includes\entities\returnbill.h">
       <Filter>Header Files\enities</Filter>
+    </ClInclude>
+    <ClInclude Include="GeneratedFiles\ui_chequeinformation.h">
+      <Filter>Generated Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
