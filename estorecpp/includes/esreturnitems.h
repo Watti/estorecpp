@@ -4,6 +4,7 @@
 #include "QPrinter"
 #include "KDReportsReport.h"
 #include "QSignalMapper"
+#include "entities\returnbill.h"
 
 class ESReturnItems : public QWidget
 {
@@ -25,7 +26,8 @@ public:
 	void slotPrint(QPrinter* printer);
 
 private:
-	void calculateTotal();
+	void showTotal();
+	void updateReturnItemTable();
 
 	Ui::ReturnItems ui;
 	QSignalMapper* m_removeButtonSignalMapper;
@@ -34,6 +36,8 @@ private:
 	int m_oldBillId;
 	double m_total;
 	bool m_hasInterest;
+
+	ES::ReturnBill m_bill;
 };
 
 #endif

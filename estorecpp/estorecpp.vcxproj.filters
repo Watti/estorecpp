@@ -500,6 +500,9 @@
     <ClCompile Include="src\eslatepayment.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\entities\returnbill.cpp">
+      <Filter>Source Files\entities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="esmainwindow.ui">
@@ -929,6 +932,9 @@
     </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_latepaymentwidget.h">
       <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="includes\entities\returnbill.h">
+      <Filter>Header Files\enities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

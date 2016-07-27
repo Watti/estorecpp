@@ -387,119 +387,10 @@ void ESReturnItems::slotSelect()
 	QString itemCode = ui.itemCodeSearchText->text();
 	QString billId = ui.billIdSearchText->text();
 
-	if (m_oldBillId == -1)
-	{
-		m_oldBillId = billId.toInt();
-		ui.billIdLbl->setText(billId);
-	}
-	else
-	{
-		if (m_oldBillId != billId.toInt())
-		{
-			QMessageBox mbox;
-			mbox.setIcon(QMessageBox::Critical);
-			mbox.setText(QString("A Return bill cannot have multiple bills. Please use separate return bill for this"));
-			mbox.exec();
-			return;
-		}
-	}
+	m_bill.addReturnItem(billId, itemCode);
+	updateReturnItemTable();
 
-	QSqlQuery pQ("SELECT payment_type FROM payment WHERE bill_id = " + billId);
-	if (pQ.next())
-	{
-		QString pm = pQ.value("payment_type").toString();
-		if (pm == "CREDIT" || pm == "CHEQUE")
-		{
-			m_hasInterest = true;
-		}
-	}
-
-	int itemId = -1;
-	QString itemName = "-1";
-	QSqlQuery q("SELECT item_id, item_name FROM item WHERE item_code = '" + itemCode + "'");
-	if (q.next())
-	{
-		itemId = q.value("item_id").toInt();
-		itemName = q.value("item_name").toString();
-	}
-	else
-	{
-		QMessageBox mbox;
-		mbox.setIcon(QMessageBox::Critical);
-		mbox.setText(QString("Invalid Item Code"));
-		mbox.exec();
-		return;
-	}
-
-	QSqlQuery q2("SELECT stock_id FROM stock WHERE item_id = " + QString::number(itemId));
-	if (q2.next())
-	{
-		QString str("SELECT b.* FROM sale b JOIN stock s ON b.stock_id = s.stock_id AND s.stock_id = ");
-		str.append(q2.value("stock_id").toString());
-		str.append(" WHERE b.bill_id = ");
-		str.append(billId);
-		str.append(" AND b.deleted = 0");
-
-		QSqlQuery q3(str);
-		if (q3.next())
-		{
-			int row = ui.tableWidget->rowCount();
-			ui.tableWidget->insertRow(row);
-			ui.tableWidget->setItem(row, 0, new QTableWidgetItem(itemCode));
-			ui.tableWidget->setItem(row, 1, new QTableWidgetItem(itemName));
-
-			double quantity = q3.value("quantity").toDouble();
-			QTableWidgetItem* qtyItem = new QTableWidgetItem(QString::number(quantity));
-			qtyItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-			ui.tableWidget->setItem(row, 2, qtyItem);
-
-			double itemPrice = q3.value("item_price").toDouble();
-			QTableWidgetItem* itemPriceItem = new QTableWidgetItem(QString::number(itemPrice, 'f', 2));
-			itemPriceItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-			ui.tableWidget->setItem(row, 3, itemPriceItem);
-
-			double discount = q3.value("discount").toDouble();
-			double paidPrice = itemPrice - (itemPrice * discount / 100.0);
-			QTableWidgetItem* paidPriceItem = new QTableWidgetItem(QString::number(paidPrice, 'f', 2));
-			paidPriceItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-			ui.tableWidget->setItem(row, 4, paidPriceItem);
-
-			double returnPrice = paidPrice * quantity;
-			QTableWidgetItem* retPriceItem = new QTableWidgetItem(QString::number(returnPrice, 'f', 2));
-			retPriceItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-			ui.tableWidget->setItem(row, 5, retPriceItem);
-
-			QDate d = q3.value("date").toDate();
-			QTableWidgetItem* dateItem = new QTableWidgetItem(d.toString("yyyy-MM-dd"));
-			dateItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-			ui.tableWidget->setItem(row, 6, dateItem);
-
-			QWidget* base = new QWidget(ui.tableWidget);
-
-			QPushButton* removeBtn = new QPushButton(base);
-			removeBtn->setIcon(QIcon("icons/delete.png"));
-			removeBtn->setIconSize(QSize(24, 24));
-			removeBtn->setMaximumWidth(100);
-
-			int rowId = m_idGenerator++;
-
-			m_removeButtonSignalMapper->setMapping(removeBtn, QString::number(rowId));
-			QObject::connect(removeBtn, SIGNAL(clicked()), m_removeButtonSignalMapper, SLOT(map()));
-
-			QHBoxLayout *layout = new QHBoxLayout;
-			layout->setContentsMargins(0, 0, 0, 0);
-			layout->addWidget(removeBtn);
-			layout->insertStretch(2);
-			base->setLayout(layout);
-			ui.tableWidget->setCellWidget(row, 7, base);
-			base->show();
-
-			ui.tableWidget->setItem(row, 8, new QTableWidgetItem(QString::number(rowId)));
-			ui.tableWidget->setItem(row, 9, new QTableWidgetItem(QString::number(quantity)));
-		}
-	}
-
-	calculateTotal();
+	showTotal();
 }
 
 void ESReturnItems::slotItemDoubleClicked(int row, int col)
@@ -525,20 +416,9 @@ void ESReturnItems::slotItemDoubleClicked(int row, int col)
 
 void ESReturnItems::slotRemove(QString rowId)
 {
-	for (int i = 0; i < ui.tableWidget->rowCount(); ++i)
-	{
-		QTableWidgetItem* item = ui.tableWidget->item(i, 8);
-		if (item)
-		{
-			if (item->text() == rowId)
-			{
-				ui.tableWidget->removeRow(i);
-				break;
-			}
-		}
-	}
-
-	calculateTotal();
+	m_bill.removeReturnItem(rowId);
+	updateReturnItemTable();
+	showTotal();
 }
 
 void ESReturnItems::slotQuantityCellUpdated(QString qtyStr, int row, int col)
@@ -569,38 +449,76 @@ void ESReturnItems::slotQuantityCellUpdated(QString qtyStr, int row, int col)
 	retPriceItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
 	ui.tableWidget->setItem(row, 5, retPriceItem);
 
-	calculateTotal();
+	showTotal();
 }
 
-void ESReturnItems::calculateTotal()
+void ESReturnItems::showTotal()
 {
-	double total = 0.0;
-
-	for (int i = 0; i < ui.tableWidget->rowCount(); ++i)
-	{
-		QTableWidgetItem* item = ui.tableWidget->item(i, 5);
-		if (item)
-		{
-			total += item->text().toDouble();
-		}
-	}
-
-	ui.subTotalLbl->setText(QString::number(total, 'f', 2));
-
-	double netTotal = total;
-	if (m_hasInterest)
-	{
-		if (!ui.interestText->text().isEmpty())
-		{
-			double interest = ui.interestText->text().toDouble();
-			netTotal = netTotal + (netTotal * interest * 0.01);
-		}
-	}
-
-	ui.totLbl->setText(QString::number(netTotal, 'f', 2));
+	ui.subTotalLbl->setText(QString::number(m_bill.getSubTotal(), 'f', 2));
+	ui.totLbl->setText(QString::number(m_bill.getTotal(), 'f', 2));
 }
 
 void ESReturnItems::slotInterestChanged()
 {
-	calculateTotal();
+	m_bill.setInterest(ui.interestText->text());
+}
+
+void ESReturnItems::updateReturnItemTable()
+{
+	while (ui.tableWidget->rowCount() > 0)
+	{
+		ui.tableWidget->removeRow(0);
+	}
+	const std::map<int, QStringList>& returnItems = m_bill.getReturnItemTable();
+	for (std::map<int, QStringList>::const_iterator it = returnItems.begin(), ite = returnItems.end(); it != ite; ++it)
+	{
+		int row = ui.tableWidget->rowCount();
+		ui.tableWidget->insertRow(row);
+
+		const QStringList& sl = it->second;
+
+		ui.tableWidget->setItem(row, 0, new QTableWidgetItem(sl[0]));
+		ui.tableWidget->setItem(row, 1, new QTableWidgetItem(sl[1]));
+
+		QTableWidgetItem* qtyItem = new QTableWidgetItem(sl[2]);
+		qtyItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+		ui.tableWidget->setItem(row, 2, qtyItem);
+
+		QTableWidgetItem* itemPriceItem = new QTableWidgetItem(sl[3]);
+		itemPriceItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+		ui.tableWidget->setItem(row, 3, itemPriceItem);
+
+		QTableWidgetItem* paidPriceItem = new QTableWidgetItem(sl[4]);
+		paidPriceItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+		ui.tableWidget->setItem(row, 4, paidPriceItem);
+
+		QTableWidgetItem* retPriceItem = new QTableWidgetItem(sl[5]);
+		retPriceItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+		ui.tableWidget->setItem(row, 5, retPriceItem);
+
+		QTableWidgetItem* dateItem = new QTableWidgetItem(sl[6]);
+		dateItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+		ui.tableWidget->setItem(row, 6, dateItem);
+		// 7 - add/remove buttons
+		QWidget* base = new QWidget(ui.tableWidget);
+
+		QPushButton* removeBtn = new QPushButton(base);
+		removeBtn->setIcon(QIcon("icons/delete.png"));
+		removeBtn->setIconSize(QSize(24, 24));
+		removeBtn->setMaximumWidth(100);
+		
+		m_removeButtonSignalMapper->setMapping(removeBtn, QString::number(it->first));
+		QObject::connect(removeBtn, SIGNAL(clicked()), m_removeButtonSignalMapper, SLOT(map()));
+
+		QHBoxLayout *layout = new QHBoxLayout;
+		layout->setContentsMargins(0, 0, 0, 0);
+		layout->addWidget(removeBtn);
+		layout->insertStretch(2);
+		base->setLayout(layout);
+		ui.tableWidget->setCellWidget(row, 7, base);
+		base->show();
+
+		ui.tableWidget->setItem(row, 8, new QTableWidgetItem(QString::number(it->first)));
+		ui.tableWidget->setItem(row, 9, new QTableWidgetItem(sl[7]));
+	}
 }
