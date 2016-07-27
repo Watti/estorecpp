@@ -16,9 +16,13 @@ public:
 
 	public slots:
 	void slotSearch();
+	void slotSetProcessed(QString rowId);
+	void slotRevert(QString rowId);
 
 private:
 	Ui::ChequeInformationWidget ui;
+	QSignalMapper* m_processedButtonMapper;
+	QSignalMapper* m_revertButtonMapper;
 
 };
 

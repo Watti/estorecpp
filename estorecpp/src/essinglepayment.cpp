@@ -276,17 +276,16 @@ void ESSinglePayment::handleChequePayment(int billId, double netAmount)
 		}
 		else
 		{
-// 			QString qStr("INSERT INTO cheque_outstanding (amount, settling_date, cheque_no, bank, customer_id) VALUES ('" + totalChequeOutstanding + "','" + dueDate + "','" + chequeNo + "','" +
-// 				bank + "','" + m_customerId+ "')");
-// 			QSqlQuery outstandingQry;
-// 			if (!outstandingQry.exec(qStr))
-// 			{
-// 
-// 				QMessageBox mbox;
-// 				mbox.setIcon(QMessageBox::Critical);
-// 				mbox.setText(QString("Failed to add outstanding cheque information"));
-// 				mbox.exec();
-// 			}
+			QString qStr("INSERT INTO cheque_information (customer_id, cheque_number, bank, due_date) VALUES (" + 
+				m_customerId + ",'" + chequeNo + "','" + bank + "','" + dueDate + "')");
+			QSqlQuery outstandingQry;
+			if (!outstandingQry.exec(qStr))
+			{
+				QMessageBox mbox;
+				mbox.setIcon(QMessageBox::Critical);
+				mbox.setText(QString("Failed to add cheque information"));
+				mbox.exec();
+			}
 			finishBill(netAmount, billId);
 		}
 	}
