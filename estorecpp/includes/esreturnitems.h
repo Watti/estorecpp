@@ -22,18 +22,16 @@ public:
 	void slotQuantityCellUpdated(QString, int, int);
 	void slotInterestChanged();
 
-	void slotAddReturnedItem();
 	void slotPrint(QPrinter* printer);
 
 private:
-	void printReturnItemInfo();
 	void calculateTotal();
 
 	Ui::ReturnItems ui;
 	QSignalMapper* m_removeButtonSignalMapper;
 	int m_idGenerator;
 	KDReports::Report report;
-	int m_billId;
+	int m_oldBillId;
 	double m_total;
 	bool m_hasInterest;
 };
