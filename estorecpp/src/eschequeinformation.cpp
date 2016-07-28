@@ -38,7 +38,7 @@ ESChequeInformation::ESChequeInformation(QWidget *parent /*= 0*/) : QWidget(pare
 	ui.nextBtn->setDisabled(true);
 
 	ui.statusComboBox->addItem("ALL", 2);
-	ui.statusComboBox->addItem("PROCESSED", 1);
+	ui.statusComboBox->addItem("FINALIZED", 1);
 	ui.statusComboBox->addItem("WAITING", 0);
 
 	slotSearch();

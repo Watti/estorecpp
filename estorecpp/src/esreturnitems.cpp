@@ -461,6 +461,7 @@ void ESReturnItems::showTotal()
 void ESReturnItems::slotInterestChanged()
 {
 	m_bill.setInterest(ui.interestText->text());
+	showTotal();
 }
 
 void ESReturnItems::updateReturnItemTable()
