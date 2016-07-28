@@ -173,6 +173,7 @@
     <addaction name="actionManageCustomers"/>
     <addaction name="actionViewCustomerHistory"/>
     <addaction name="actionCustomerOutstanding"/>
+    <addaction name="actionCheques"/>
    </widget>
    <addaction name="menuStock"/>
    <addaction name="menuItems"/>
@@ -302,6 +303,11 @@
   <action name="actionPettyCashSummary">
    <property name="text">
     <string>Summary</string>
+   </property>
+  </action>
+  <action name="actionCheques">
+   <property name="text">
+    <string>Cheques</string>
    </property>
   </action>
  </widget>

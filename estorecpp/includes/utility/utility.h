@@ -17,6 +17,7 @@ namespace ES
 		static bool verifyUsingMessageBox(QWidget *parent, QString title, QString message);
 		static float getTotalOutstanding(QString customerId);
 		static float getOutstandingForBill(int billId);
+		static void updateOutstandingAmount(QString customerId, double amount);
 	private:
 
 	};
