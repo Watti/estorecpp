@@ -6,10 +6,15 @@ ESChequeInformation::ESChequeInformation(QWidget *parent /*= 0*/) : QWidget(pare
 {
 	ui.setupUi(this);
 
+	ui.startDate->setDate(QDate::currentDate());
+
 	m_processedButtonMapper = new QSignalMapper(this);
 	QObject::connect(m_processedButtonMapper, SIGNAL(mapped(QString)), this, SLOT(slotSetProcessed(QString)));
 	m_revertButtonMapper = new QSignalMapper(this);
 	QObject::connect(m_revertButtonMapper, SIGNAL(mapped(QString)), this, SLOT(slotRevert(QString)));
+	QObject::connect(ui.startDate, SIGNAL(dateChanged(const QDate &)), this, SLOT(slotSearch()));
+	QObject::connect(ui.statusComboBox, SIGNAL(activated(QString)), this, SLOT(slotSearch()));
+	QObject::connect(ui.customerSearchBox, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
 
 	QStringList headerLabels;
 	headerLabels.append("Customer");
@@ -25,9 +30,9 @@ ESChequeInformation::ESChequeInformation(QWidget *parent /*= 0*/) : QWidget(pare
 	ui.tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
 	ui.tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
 
-	ui.statusComboBox->addItem("ALL", 1);
-	ui.statusComboBox->addItem("PROCESSED", 2);
-	ui.statusComboBox->addItem("WAITING", 3);
+	ui.statusComboBox->addItem("ALL", 2);
+	ui.statusComboBox->addItem("FINALIZED", 1);
+	ui.statusComboBox->addItem("WAITING", 0);
 
 	slotSearch();
 }
@@ -44,18 +49,21 @@ void ESChequeInformation::slotSearch()
 		ui.tableWidget->removeRow(0);
 	}
 
-	QDateTime startDate = QDateTime::fromString(ui.startDate->text(), Qt::ISODate);
-	QDateTime endDate = QDateTime::fromString(ui.endDate->text(), Qt::ISODate);
-	endDate.setTime(QTime(23, 59, 59));
+	QString stardDateStr = ui.startDate->date().toString("yyyy-MM-dd");
 
-	QColor rowColor;
-	QSqlQuery q("SELECT * FROM cheque_information");
-	while (q.next())
+	int selectedStatus = ui.statusComboBox->currentData().toInt();
+	QString customerName = ui.customerSearchBox->text();
+	QString chequeQueryStr("SELECT * FROM cheque_information WHERE DATE(due_date) > '" + stardDateStr + "'");
+	if (selectedStatus != 2)
 	{
-		int row = ui.tableWidget->rowCount();
-		ui.tableWidget->insertRow(row);
+		chequeQueryStr.append("AND processed = " + QString::number(selectedStatus));
+	}
+	QColor rowColor;
+	QSqlQuery queryCheque(chequeQueryStr);
+	while (queryCheque.next())
+	{
 
-		if (q.value("processed").toInt() == 0)
+		if (queryCheque.value("processed").toInt() == 0)
 		{
 			rowColor.setRgb(245, 169, 169);
 		}
@@ -65,63 +73,71 @@ void ESChequeInformation::slotSearch()
 		}
 
 		QTableWidgetItem* item = NULL;
-		QSqlQuery qry("SELECT * FROM customer WHERE customer_id = " + q.value("customer_id").toString());
-		if (qry.next())
+		QString qCustomerStr("SELECT * FROM customer WHERE customer_id = " + queryCheque.value("customer_id").toString());
+		if (!customerName.isEmpty())
 		{
-			item = new QTableWidgetItem(qry.value("name").toString());
-			item->setBackgroundColor(rowColor);
-			ui.tableWidget->setItem(row, 0, item);
+			qCustomerStr = "SELECT * FROM customer WHERE name LIKE '%" + customerName + "%'";
 		}
-
-		item  = new QTableWidgetItem(q.value("cheque_number").toString());
-		item->setBackgroundColor(rowColor);
-		ui.tableWidget->setItem(row, 1, item);
-
-		item = new QTableWidgetItem(q.value("bank").toString());
-		item->setBackgroundColor(rowColor);
-		ui.tableWidget->setItem(row, 2, item);
-
-		item = new QTableWidgetItem(q.value("due_date").toString());
-		item->setBackgroundColor(rowColor);
-		ui.tableWidget->setItem(row, 3, item);
-
-		if (q.value("processed").toInt() == 0)
+		QSqlQuery queryCustomer(qCustomerStr);
+		if (queryCustomer.next())
 		{
-			QWidget* base = new QWidget(ui.tableWidget);
-			QPushButton* proceedBtn = new QPushButton("Finalize", base);
-			proceedBtn->setMaximumWidth(100);
-
-			m_processedButtonMapper->setMapping(proceedBtn, q.value("cheque_id").toString());
-			QObject::connect(proceedBtn, SIGNAL(clicked()), m_processedButtonMapper, SLOT(map()));
-
-			QHBoxLayout *layout = new QHBoxLayout;
-			layout->setContentsMargins(0, 0, 0, 0);
-			layout->addWidget(proceedBtn);
-			layout->insertStretch(2);
-			base->setLayout(layout);
-			ui.tableWidget->setCellWidget(row, 4, base);
-			base->show();
-		}
-		else
-		{
-			if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
-				ES::Session::getInstance()->getUser()->getType() == ES::User::MANAGER ||
-				ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
+			if (queryCustomer.value("customer_id").toInt() == queryCheque.value("customer_id").toInt())
 			{
-				QWidget* base = new QWidget(ui.tableWidget);
-				QPushButton* proceedBtn = new QPushButton("Revert", base);
-				proceedBtn->setMaximumWidth(100);
+				int row = ui.tableWidget->rowCount();
+				ui.tableWidget->insertRow(row);
+				item = new QTableWidgetItem(queryCustomer.value("name").toString());
+				item->setBackgroundColor(rowColor);
+				ui.tableWidget->setItem(row, 0, item);
+				item = new QTableWidgetItem(queryCheque.value("cheque_number").toString());
+				item->setBackgroundColor(rowColor);
+				ui.tableWidget->setItem(row, 1, item);
 
-				m_revertButtonMapper->setMapping(proceedBtn, q.value("cheque_id").toString());
-				QObject::connect(proceedBtn, SIGNAL(clicked()), m_revertButtonMapper, SLOT(map()));
+				item = new QTableWidgetItem(queryCheque.value("bank").toString());
+				item->setBackgroundColor(rowColor);
+				ui.tableWidget->setItem(row, 2, item);
 
-				QHBoxLayout *layout = new QHBoxLayout;
-				layout->setContentsMargins(0, 0, 0, 0);
-				layout->addWidget(proceedBtn);
-				layout->insertStretch(2);
-				base->setLayout(layout);
-				ui.tableWidget->setCellWidget(row, 4, base);
-				base->show();
+				item = new QTableWidgetItem(queryCheque.value("due_date").toString());
+				item->setBackgroundColor(rowColor);
+				ui.tableWidget->setItem(row, 3, item);
+
+				if (queryCheque.value("processed").toInt() == 0)
+				{
+					QWidget* base = new QWidget(ui.tableWidget);
+					QPushButton* proceedBtn = new QPushButton("Finalize", base);
+					proceedBtn->setMaximumWidth(100);
+					m_processedButtonMapper->setMapping(proceedBtn, queryCheque.value("cheque_id").toString());
+					QObject::connect(proceedBtn, SIGNAL(clicked()), m_processedButtonMapper, SLOT(map()));
+
+					QHBoxLayout *layout = new QHBoxLayout;
+					layout->setContentsMargins(0, 0, 0, 0);
+					layout->addWidget(proceedBtn);
+					layout->insertStretch(2);
+					base->setLayout(layout);
+					ui.tableWidget->setCellWidget(row, 4, base);
+					base->show();
+				}
+				else
+				{
+					if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
+						ES::Session::getInstance()->getUser()->getType() == ES::User::MANAGER ||
+						ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
+					{
+						QWidget* base = new QWidget(ui.tableWidget);
+						QPushButton* proceedBtn = new QPushButton("Revert", base);
+						proceedBtn->setMaximumWidth(100);
+
+						m_revertButtonMapper->setMapping(proceedBtn, queryCheque.value("cheque_id").toString());
+						QObject::connect(proceedBtn, SIGNAL(clicked()), m_revertButtonMapper, SLOT(map()));
+
+						QHBoxLayout *layout = new QHBoxLayout;
+						layout->setContentsMargins(0, 0, 0, 0);
+						layout->addWidget(proceedBtn);
+						layout->insertStretch(2);
+						base->setLayout(layout);
+						ui.tableWidget->setCellWidget(row, 4, base);
+						base->show();
+					}
+				}
 			}
 		}
 	}
