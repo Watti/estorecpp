@@ -22,6 +22,7 @@ public:
 	void slotPrintReturnBill();
 	void slotQuantityCellUpdated(QString, int, int);
 	void slotInterestChanged();
+	void slotShowAddItem();
 
 	void slotPrint(QPrinter* printer);
 
