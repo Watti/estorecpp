@@ -607,7 +607,7 @@ void ESSinglePayment::finishBill(double netAmount, int billId)
 void ESSinglePayment::slotInterestChanged()
 {
 	double interest = ui.lineEdit->text().toDouble();
-	double netAmout = ui.netAmountLbl->text().toDouble();
+	double netAmout = m_initialNetAmount;
 
 	double totalBill = netAmout + netAmout * (interest / 100.0);
 
