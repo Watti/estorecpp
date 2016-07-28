@@ -18,11 +18,18 @@ public:
 	void slotSearch();
 	void slotSetProcessed(QString rowId);
 	void slotRevert(QString rowId);
+	void slotPrev();
+	void slotNext();
 
 private:
 	Ui::ChequeInformationWidget ui;
 	QSignalMapper* m_processedButtonMapper;
 	QSignalMapper* m_revertButtonMapper;
+	int m_pageOffset;
+	int m_startingLimit;
+	int m_totalRecords;
+	int m_nextCounter;
+	int m_maxNextCount;
 
 };
 
