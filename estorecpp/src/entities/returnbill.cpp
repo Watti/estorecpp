@@ -184,6 +184,7 @@ void ES::ReturnBill::setInterest(QString interest)
 	{
 		m_interest = interest.toDouble();
 	}
+	calculateTotal();
 }
 
 void ES::ReturnBill::removeReturnItem(QString rowId)

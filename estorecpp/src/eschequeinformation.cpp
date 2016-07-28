@@ -88,7 +88,7 @@ void ESChequeInformation::slotSearch()
 		if (q.value("processed").toInt() == 0)
 		{
 			QWidget* base = new QWidget(ui.tableWidget);
-			QPushButton* proceedBtn = new QPushButton("Processed", base);
+			QPushButton* proceedBtn = new QPushButton("Finalize", base);
 			proceedBtn->setMaximumWidth(100);
 
 			m_processedButtonMapper->setMapping(proceedBtn, q.value("cheque_id").toString());
