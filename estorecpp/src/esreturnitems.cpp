@@ -16,6 +16,10 @@
 #include "QMainWindow"
 #include "esmainwindow.h"
 #include "entities\tabletextwidget.h"
+#include "QApplication"
+#include "QDesktopWidget"
+#include "esaddbillitem2.h"
+#include "QShortcut"
 
 QString convertToQuantityFormat(QString text, int row, int col, QTableWidget* table)
 {
@@ -37,6 +41,7 @@ ESReturnItems::ESReturnItems(QWidget *parent /*= 0*/) : QWidget(parent), m_total
 	QObject::connect(ui.tableWidget, SIGNAL(cellClicked(int, int)), this, SLOT(slotItemDoubleClicked(int, int)));
 	QObject::connect(m_removeButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotRemove(QString)));
 	QObject::connect(ui.interestText, SIGNAL(textChanged(QString)), this, SLOT(slotInterestChanged()));
+	QObject::connect(ui.addItemBtn, SIGNAL(clicked()), this, SLOT(slotShowAddItem()));
 
 	if (!ES::DbConnection::instance()->open())
 	{
@@ -87,6 +92,9 @@ ESReturnItems::ESReturnItems(QWidget *parent /*= 0*/) : QWidget(parent), m_total
 
 	ui.billIdLbl->setText("N/A");
 	ui.subTotalLbl->setText("0.00");
+
+	new QShortcut(QKeySequence(Qt::Key_F4), this, SLOT(slotShowAddItem()));
+	new QShortcut(QKeySequence(Qt::Key_F3), this, SLOT(slotStartNewBill()));
 
 	ui.billIdSearchText->setFocus();
 }
@@ -522,4 +530,24 @@ void ESReturnItems::updateReturnItemTable()
 		ui.tableWidget->setItem(row, 8, new QTableWidgetItem(QString::number(it->first)));
 		ui.tableWidget->setItem(row, 9, new QTableWidgetItem(sl[7]));
 	}
+}
+
+void ESReturnItems::slotShowAddItem()
+{
+	QRect rec = QApplication::desktop()->screenGeometry();
+	int width = rec.width();
+	int height = rec.height();
+
+	width -= 200;
+	height -= 200;
+
+	ESAddBillItem2* addBillItem = new ESAddBillItem2(&m_bill, this);
+	addBillItem->resize(QSize(width, height));
+	addBillItem->setWindowState(Qt::WindowActive);
+	addBillItem->setWindowModality(Qt::ApplicationModal);
+	addBillItem->setAttribute(Qt::WA_DeleteOnClose);
+	addBillItem->setWindowFlags(Qt::CustomizeWindowHint | Qt::Window);
+	addBillItem->show();
+	addBillItem->setFocus();
+	addBillItem->focus();
 }
