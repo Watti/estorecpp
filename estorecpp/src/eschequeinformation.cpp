@@ -7,14 +7,14 @@ ESChequeInformation::ESChequeInformation(QWidget *parent /*= 0*/) : QWidget(pare
 	ui.setupUi(this);
 
 	ui.startDate->setDate(QDate::currentDate());
-	ui.endDate->setDate(QDate::currentDate().addDays(1));
+	//ui.endDate->setDate(QDate::currentDate().addDays(1));
 
 	m_processedButtonMapper = new QSignalMapper(this);
 	QObject::connect(m_processedButtonMapper, SIGNAL(mapped(QString)), this, SLOT(slotSetProcessed(QString)));
 	m_revertButtonMapper = new QSignalMapper(this);
 	QObject::connect(m_revertButtonMapper, SIGNAL(mapped(QString)), this, SLOT(slotRevert(QString)));
 	QObject::connect(ui.startDate, SIGNAL(dateChanged(const QDate &)), this, SLOT(slotSearch()));
-	QObject::connect(ui.endDate, SIGNAL(dateChanged(const QDate &)), this, SLOT(slotSearch()));
+	//QObject::connect(ui.endDate, SIGNAL(dateChanged(const QDate &)), this, SLOT(slotSearch()));
 	QObject::connect(ui.statusComboBox, SIGNAL(activated(QString)), this, SLOT(slotSearch()));
 	QObject::connect(ui.customerSearchBox, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
 	QObject::connect(ui.nextBtn, SIGNAL(clicked()), this, SLOT(slotNext()));
@@ -57,11 +57,11 @@ void ESChequeInformation::slotSearch()
 	}
 
 	QString stardDateStr = ui.startDate->date().toString("yyyy-MM-dd");
-	QString endDateStr = ui.endDate->date().toString("yyyy-MM-dd");
+	//QString endDateStr = ui.endDate->date().toString("yyyy-MM-dd");
 	int selectedStatus = ui.statusComboBox->currentData().toInt();
 	QString customerName = ui.customerSearchBox->text();
-	QString qRecordCountStr("SELECT COUNT(*) as c FROM cheque_information JOIN customer ON cheque_information.customer_id = customer.customer_id WHERE DATE(due_date) BETWEEN ' " + stardDateStr + "' AND '" + endDateStr + "'");
-	QString chequeQueryStr("SELECT * FROM cheque_information JOIN customer ON cheque_information.customer_id = customer.customer_id WHERE DATE(due_date) BETWEEN ' " + stardDateStr + "' AND '" + endDateStr + "'");
+	QString qRecordCountStr("SELECT COUNT(*) as c FROM cheque_information JOIN customer ON cheque_information.customer_id = customer.customer_id WHERE DATE(due_date) = ' " + stardDateStr+"'");
+	QString chequeQueryStr("SELECT * FROM cheque_information JOIN customer ON cheque_information.customer_id = customer.customer_id WHERE DATE(due_date) = ' " + stardDateStr + "'");
 	if (selectedStatus != 2)
 	{
 		chequeQueryStr.append("AND processed = " + QString::number(selectedStatus));
