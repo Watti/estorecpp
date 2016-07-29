@@ -18,6 +18,9 @@ ESAddCustomer::ESAddCustomer(QWidget *parent /*= 0*/) : QWidget(parent), m_updat
 	else
 	{
 		ui.button->setText(QString(" Add "));
+		ui.outstandingAmount->setHidden(true);
+		ui.label_5->setHidden(true);
+		
 	}
 
 	if (!ES::DbConnection::instance()->open())
@@ -40,6 +43,7 @@ void ESAddCustomer::slotProcess()
 	QString phone = ui.phoneText->text();
 	QString address = ui.addressText->text();
 	QString comments = ui.commentsText->toPlainText();
+	float outstandingAmount = 0;
 	bool active = ui.active;
 
 	if (name == nullptr || name.isEmpty())
@@ -48,6 +52,7 @@ void ESAddCustomer::slotProcess()
 		mbox.setIcon(QMessageBox::Warning);
 		mbox.setText(QString("Name cannot be Empty"));
 		mbox.exec();
+		return;
 	}
 	else
 	{
@@ -59,11 +64,22 @@ void ESAddCustomer::slotProcess()
 		QString qStr = "";
 		if (m_update)
 		{
+			bool valid = false;
+			outstandingAmount = ui.outstandingAmount->text().toFloat(&valid);
+			if (!valid)
+			{
+				QMessageBox mbox;
+				mbox.setIcon(QMessageBox::Warning);
+				mbox.setText(QString("Invalid value for outstanding"));
+				mbox.exec();
+				return;
+			}
+
 			qStr = "UPDATE customer SET name = '"+name+"', phone = '"+phone+"', address = '"+address+"', comments = '"+comments+"', deleted ='"+QString::number(deleted)+"' WHERE customer_id ='"+m_id+"'";
 		}
 		else
 		{
-			qStr = "INSERT INTO customer (name, phone, address, comments, deleted) VALUES ('" + name + "','" + phone + "','" + address + "','" + comments + "'," + QString::number(deleted) + ")";
+			qStr = "INSERT INTO customer (name, phone, address, comments, deleted) VALUES ('" + name + "','" + phone + "','" + address + "','" + comments + "','" +QString::number(deleted) + "')";
 
 // 			query.prepare("INSERT INTO customer (name, phone, address, comments, deleted) VALUES (?, ?, ?, ?, ?)");
 // 			query.addBindValue(name);
@@ -76,6 +92,10 @@ void ESAddCustomer::slotProcess()
 		QSqlQuery query;
 		if (query.exec(qStr))
 		{
+			if (m_update)
+			{
+				QSqlQuery qOutstanding("UPDATE customer_outstanding set current_outstanding = "+QString::number(outstandingAmount)+" WHERE customer_id = "+m_id+" AND settled = 0");
+			}
 			this->close();
 		}
 		else

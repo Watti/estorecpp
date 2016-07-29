@@ -312,12 +312,21 @@ void ESCustomerInfo::slotEditCustomer()
 		QString phone = queryCustomer.value("phone").toString();
 		QString address = queryCustomer.value("address").toString();
 		QString comments = queryCustomer.value("comments").toString();
+		float outstanding = 0.0;
+		QSqlQuery queryOutstanding("SELECT * FROM customer_outstanding WHERE settled = 0 AND customer_id = "+m_selectedCustomerId);
+		if (queryOutstanding.next())
+		{
+			outstanding = queryOutstanding.value("current_outstanding").toFloat();
+		}
 
 		ESAddCustomer* customerInfo = new ESAddCustomer(this);
+		customerInfo->getUI().outstandingAmount->setHidden(false);
+		customerInfo->getUI().label_5->setHidden(false);
 		customerInfo->getUI().nameText->setText(name);
 		customerInfo->getUI().phoneText->setText(phone);
 		customerInfo->getUI().addressText->setText(address);
 		customerInfo->getUI().commentsText->setText(comments);
+		customerInfo->getUI().outstandingAmount->setText(QString::number(outstanding,'f',2));
 		customerInfo->getUI().button->setText(QString(" Update "));
 		customerInfo->setUpdate(true);
 		customerInfo->setCustomerId(m_selectedCustomerId);
