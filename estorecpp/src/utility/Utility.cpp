@@ -31,7 +31,7 @@ namespace ES
 		}
 	}
 
-	float Utility::getTotalOutstanding(QString customerId)
+	float Utility::getOutstandingTotalFromSales(QString customerId)
 	{
 		float totalAmount;
 		QString query;
@@ -137,6 +137,36 @@ namespace ES
 				mbox.exec();
 			}
 		}
+	}
+
+	float Utility::getTotalCreditOutstanding(QString customerId)
+	{
+		float outstandingAmount = 0;
+		QSqlQuery queryOutstanding("SELECT * FROM customer_outstanding WHERE settled = 0 AND customer_id = " + customerId);
+		if (queryOutstanding.next())
+		{
+			outstandingAmount = queryOutstanding.value("current_outstanding").toFloat();
+			
+		}
+		return outstandingAmount;
+	}
+
+	float Utility::getTotalChequeOutstanding(QString customerId)
+	{
+		float outstandingAmount = 0;
+		QSqlQuery queryCheque("SELECT * FROM cheque_information WHERE customer_id = "+customerId);
+		while (queryCheque.next())
+		{
+			QString chequeId = queryCheque.value("cheque_id").toString();
+			QSqlQuery queryChequeAmount("SELECT * FROM cheque WHERE cheque_id = "+chequeId);
+			if (queryChequeAmount.next())
+			{
+				float amount = queryChequeAmount.value("amount").toFloat();
+				float interest = queryChequeAmount.value("interest").toFloat();
+				outstandingAmount += amount * ((100+interest)/100);
+			}
+		}
+		return outstandingAmount;
 	}
 
 }

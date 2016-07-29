@@ -5,6 +5,8 @@
 #include "QMessageBox"
 #include "eslatepayment.h"
 #include "utility\session.h"
+#include "QString"
+#include "utility\utility.h"
 
 ESCustomerOutstanding::ESCustomerOutstanding(QWidget *parent /*= 0*/) : QWidget(parent)
 {
@@ -154,6 +156,15 @@ void ESCustomerOutstanding::slotPay(QString customerId)
 			ESLatePayment* latePayment = new ESLatePayment(0);
 			latePayment->getUI().cashierName->setText(ES::Session::getInstance()->getUser()->getName());
 			latePayment->getUI().customerName->setText(userQ.value("name").toString());
+			float creditOutstanding = ES::Utility::getTotalCreditOutstanding(customerId);
+			latePayment->getUI().currentOutstandingCash->setText(QString::number(creditOutstanding, 'f', 2));
+			latePayment->getUI().remainingAmountCash->setText(QString::number(creditOutstanding, 'f', 2));
+
+			float chequeOutstanding = ES::Utility::getTotalChequeOutstanding(customerId);
+			latePayment->getUI().currentOutstandingCheque->setText(QString::number(chequeOutstanding, 'f', 2));
+			latePayment->getUI().remainingAmountCheque->setText(QString::number(chequeOutstanding, 'f', 2));
+
+			latePayment->getUI().dueDate->setDate(QDate::currentDate());
 			latePayment->show();
 		}
 		

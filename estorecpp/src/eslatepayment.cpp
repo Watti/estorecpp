@@ -14,6 +14,7 @@ namespace
 ESLatePayment::ESLatePayment(QWidget *parent /*= 0*/) : QWidget(parent)
 {
 	ui.setupUi(this);
+	QObject::connect(ui.okBtn, SIGNAL(clicked()), this, SLOT(slotOk()));
 }
 
 ESLatePayment::~ESLatePayment()
@@ -24,4 +25,8 @@ ESLatePayment::~ESLatePayment()
 void ESLatePayment::slotOk()
 {
 	
+	if (ui.doPrintCB->isChecked())
+	{
+		//print the bill
+	}
 }

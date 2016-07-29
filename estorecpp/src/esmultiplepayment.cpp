@@ -547,7 +547,7 @@ void ESMultiplePayment::slotFinalizeBill()
 					}
 					else
 					{
-						double outstandingAmount = ES::Utility::getTotalOutstanding(m_customerId);
+						double outstandingAmount = ES::Utility::getOutstandingTotalFromSales(m_customerId);
 						outstandingAmount += amount;
 
 						ES::Utility::updateOutstandingAmount(m_customerId, outstandingAmount);
