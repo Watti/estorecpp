@@ -25,6 +25,7 @@ ESChequeInformation::ESChequeInformation(QWidget *parent /*= 0*/) : QWidget(pare
 	headerLabels.append("Cheque No.");
 	headerLabels.append("Bank");
 	headerLabels.append("Due Date");
+	headerLabels.append("Amount");
 	headerLabels.append("Actions");
 
 	ui.tableWidget->setHorizontalHeaderLabels(headerLabels);
@@ -56,6 +57,7 @@ void ESChequeInformation::slotSearch()
 		ui.tableWidget->removeRow(0);
 	}
 
+	float totalAmount = 0;
 	QString stardDateStr = ui.startDate->date().toString("yyyy-MM-dd");
 	//QString endDateStr = ui.endDate->date().toString("yyyy-MM-dd");
 	int selectedStatus = ui.statusComboBox->currentData().toInt();
@@ -129,6 +131,16 @@ void ESChequeInformation::slotSearch()
 		item->setBackgroundColor(rowColor);
 		ui.tableWidget->setItem(row, 3, item);
 
+		QString chequeId = queryCheque.value("cheque_id").toString();
+		QSqlQuery queryCheckAmount("SELECT * FROM cheque WHERE cheque_id = "+chequeId);
+		if (queryCheckAmount.next())
+		{
+			float chequeAmount = queryCheckAmount.value("amount").toFloat();
+			totalAmount += chequeAmount;
+			item = new QTableWidgetItem(QString::number(chequeAmount,'f',2));
+			item->setBackgroundColor(rowColor);
+			ui.tableWidget->setItem(row, 4, item);
+		}
 		if (queryCheque.value("processed").toInt() == 0)
 		{
 			QWidget* base = new QWidget(ui.tableWidget);
@@ -143,7 +155,7 @@ void ESChequeInformation::slotSearch()
 			layout->addWidget(proceedBtn);
 			layout->insertStretch(2);
 			base->setLayout(layout);
-			ui.tableWidget->setCellWidget(row, 4, base);
+			ui.tableWidget->setCellWidget(row, 5, base);
 			base->show();
 		}
 		else
@@ -164,11 +176,12 @@ void ESChequeInformation::slotSearch()
 				layout->addWidget(proceedBtn);
 				layout->insertStretch(2);
 				base->setLayout(layout);
-				ui.tableWidget->setCellWidget(row, 4, base);
+				ui.tableWidget->setCellWidget(row, 5, base);
 				base->show();
 			}
 		}
 	}
+	ui.totalLbl->setText(QString::number(totalAmount,'f',2));
 }
 
 void ESChequeInformation::slotSetProcessed(QString rowId)
