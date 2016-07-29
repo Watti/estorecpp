@@ -313,10 +313,12 @@ void ESCustomerInfo::slotEditCustomer()
 		QString address = queryCustomer.value("address").toString();
 		QString comments = queryCustomer.value("comments").toString();
 		float outstanding = 0.0;
+		QString outstandingId = "";
 		QSqlQuery queryOutstanding("SELECT * FROM customer_outstanding WHERE settled = 0 AND customer_id = "+m_selectedCustomerId);
 		if (queryOutstanding.next())
 		{
 			outstanding = queryOutstanding.value("current_outstanding").toFloat();
+			outstandingId = queryOutstanding.value("co_id").toString();
 		}
 
 		ESAddCustomer* customerInfo = new ESAddCustomer(this);
@@ -328,6 +330,7 @@ void ESCustomerInfo::slotEditCustomer()
 		customerInfo->getUI().commentsText->setText(comments);
 		customerInfo->getUI().outstandingAmount->setText(QString::number(outstanding,'f',2));
 		customerInfo->getUI().button->setText(QString(" Update "));
+		customerInfo->setOutstandingId(outstandingId);
 		customerInfo->setUpdate(true);
 		customerInfo->setCustomerId(m_selectedCustomerId);
 		ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(customerInfo);

@@ -94,7 +94,7 @@ void ESAddCustomer::slotProcess()
 		{
 			if (m_update)
 			{
-				QSqlQuery qOutstanding("UPDATE customer_outstanding set current_outstanding = "+QString::number(outstandingAmount)+" WHERE customer_id = "+m_id+" AND settled = 0");
+				QSqlQuery qOutstanding("UPDATE customer_outstanding set current_outstanding = "+QString::number(outstandingAmount)+" WHERE customer_id = "+m_id+" AND settled = 0 AND co_id ="+m_outstandingId);
 			}
 			this->close();
 		}
@@ -117,4 +117,9 @@ void ESAddCustomer::setUpdate(bool update)
 void ESAddCustomer::setCustomerId(QString val)
 {
 	m_id = val;
+}
+
+void ESAddCustomer::setOutstandingId(QString val)
+{
+	m_outstandingId = val;
 }
