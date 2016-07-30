@@ -4,6 +4,9 @@
 #include "QSqlQuery"
 #include "QString"
 #include "QVariant"
+#include "KDReportsTextElement.h"
+#include "utility/session.h"
+#include "KDReportsCell.h"
 
 namespace ES
 {
@@ -149,6 +152,14 @@ namespace ES
 			}
 		}
 		return outstandingAmount;
+	}
+
+	void Utility::printRow(KDReports::TableElement& tableElement, int row, int col, QString elementStr, Qt::AlignmentFlag alignment /*= Qt::AlignLeft*/)
+	{
+		KDReports::Cell& cell = tableElement.cell(row, col);
+		KDReports::TextElement te(elementStr);
+		te.setPointSize(ES::Session::getInstance()->getBillItemFontSize());
+		cell.addElement(te, alignment);
 	}
 
 }

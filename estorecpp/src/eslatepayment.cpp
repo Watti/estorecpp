@@ -2,6 +2,7 @@
 #include "QSqlQuery"
 #include "entities\tabletextwidget.h"
 #include "QMessageBox"
+#include "escutomeroutstanding.h"
 
 namespace
 {
@@ -71,18 +72,32 @@ void ESLatePayment::slotOk()
 	if (queryOutstanding.next())
 	{
 		float currentOutstanding = queryOutstanding.value("current_outstanding").toFloat();
+		if (payingAmount > currentOutstanding)
+		{
+			payingAmount = currentOutstanding;
+		}
 		float newOutstanding = currentOutstanding - payingAmount;
 		QSqlQuery qOutstandingUpdate;
-		QString updateQryStr("UPDATE customer_outstanding SET current_outstanding = " + QString::number(newOutstanding));
+		QString updateQryStr("UPDATE customer_outstanding SET current_outstanding = " + QString::number(newOutstanding)+" WHERE customer_id = "+m_customerId);
 		if (qOutstandingUpdate.exec(updateQryStr))
 		{
 			if (isCheque)
 			{
-				QSqlQuery queryCheque("INSERT into cheque");
+				QString qStr("INSERT INTO cheque_information (customer_id, cheque_number, bank, due_date, amount) VALUES (" +
+					m_customerId + ",'" + chNo + "','" + bank + "','" + dueDate + "', '" + QString::number(payingAmount) + "')");
+				QSqlQuery qryCheckInsert;
+				if (!qryCheckInsert.exec(qStr))
+				{
+					QMessageBox mbox;
+					mbox.setIcon(QMessageBox::Critical);
+					mbox.setText(QString("Insertion to cheque_information has been failed ! ! !"));
+					mbox.exec();
+				}
 			}
 			if (ui.doPrintCB->isChecked())
 			{
 				//print the bill
+
 			}
 		}
 		else
@@ -93,7 +108,10 @@ void ESLatePayment::slotOk()
 			mbox.exec();
 			return;
 		}
-
+		ESCustomerOutstanding* parent = static_cast<ESCustomerOutstanding*>(parent);
+		if (parent)
+			parent->slotSearchCustomers();
+		this->close();
 	}
 }
 

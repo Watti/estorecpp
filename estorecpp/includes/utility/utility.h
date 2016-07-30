@@ -3,6 +3,9 @@
 
 #include "QString"
 #include "QWidget"
+#include "KDReportsHeader.h"
+#include "qnamespace.h"
+#include "KDReportsTableElement.h"
 
 
 static const QString DEFAULT_DB_NUMERICAL_TO_DISPLAY = "0";
@@ -20,6 +23,8 @@ namespace ES
 		static float getTotalChequeOutstanding(QString customerId);
 		static float getOutstandingForBill(int billId);
 		static void updateOutstandingAmount(QString customerId, double amount);
+		static void printRow(KDReports::TableElement& tableElement, int row, int col,
+			QString elementStr, Qt::AlignmentFlag alignment = Qt::AlignLeft);
 	private:
 
 	};
