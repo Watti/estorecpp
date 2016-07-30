@@ -71,16 +71,6 @@ namespace ES
 		{
  			QString pId = queryPayment.value("payment_id").toString();
  			QString type = queryPayment.value("payment_type").toString();
-// 			if (type == "CHEQUE")
-// 			{
-// 				QSqlQuery queryCheque("SELECT * FROM cheque WHERE payment_id = " + pId);
-// 				while (queryCheque.next())
-// 				{
-// 					float amount = queryCheque.value("amount").toFloat();
-// 					float interest = queryCheque.value("interest").toFloat();
-// 					totalOutstanding += (amount * (100 + interest) / 100);
-// 				}
-// 			}
 			if (type == "CREDIT")
 			{
 				QSqlQuery queryCheque("SELECT * FROM credit WHERE payment_id = " + pId);
