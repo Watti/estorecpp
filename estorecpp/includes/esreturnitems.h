@@ -23,12 +23,14 @@ public:
 	void slotQuantityCellUpdated(QString, int, int);
 	void slotInterestChanged();
 	void slotShowAddItem();
+	void slotStartBill();
 
 	void slotPrint(QPrinter* printer);
 
 private:
 	void showTotal();
 	void updateReturnItemTable();
+	void setEnabled(bool enable);
 
 	Ui::ReturnItems ui;
 	QSignalMapper* m_removeButtonSignalMapper;

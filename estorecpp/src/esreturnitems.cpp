@@ -42,6 +42,7 @@ ESReturnItems::ESReturnItems(QWidget *parent /*= 0*/) : QWidget(parent), m_total
 	QObject::connect(m_removeButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotRemove(QString)));
 	QObject::connect(ui.interestText, SIGNAL(textChanged(QString)), this, SLOT(slotInterestChanged()));
 	QObject::connect(ui.addItemBtn, SIGNAL(clicked()), this, SLOT(slotShowAddItem()));
+	QObject::connect(ui.startBillBtn, SIGNAL(clicked()), this, SLOT(slotStartBill()));
 
 	if (!ES::DbConnection::instance()->open())
 	{
@@ -61,7 +62,6 @@ ESReturnItems::ESReturnItems(QWidget *parent /*= 0*/) : QWidget(parent), m_total
 	headerLabels.append("Date");
 	headerLabels.append("Actions");
 	headerLabels.append("rowID");
-	headerLabels.append("billQty");
 
 	ui.tableWidget->setHorizontalHeaderLabels(headerLabels);
 	ui.tableWidget->horizontalHeader()->setStretchLastSection(true);
@@ -96,7 +96,9 @@ ESReturnItems::ESReturnItems(QWidget *parent /*= 0*/) : QWidget(parent), m_total
 	new QShortcut(QKeySequence(Qt::Key_F4), this, SLOT(slotShowAddItem()));
 	new QShortcut(QKeySequence(Qt::Key_F3), this, SLOT(slotStartNewBill()));
 
-	ui.billIdSearchText->setFocus();
+	//ui.billIdSearchText->setFocus();
+
+	setEnabled(false);
 }
 
 ESReturnItems::~ESReturnItems()
@@ -431,31 +433,32 @@ void ESReturnItems::slotRemove(QString rowId)
 
 void ESReturnItems::slotQuantityCellUpdated(QString qtyStr, int row, int col)
 {
-	QTableWidgetItem* billQtyItem = ui.tableWidget->item(row, 9);
-	double billQty = billQtyItem->text().toDouble();
-	double qty = qtyStr.toDouble();
-
-	if (billQty < qty || qty <= 0.0)
+	QTableWidgetItem* rowIdItem = ui.tableWidget->item(row, 8);
+	long rowId = rowIdItem->text().toLong();
+	
+	if (m_bill.isStarted())
 	{
-		QMessageBox mbox;
-		mbox.setIcon(QMessageBox::Critical);
-		mbox.setText(QString("Quantity is larger than billed quantity"));
-		mbox.exec();
+		double billedQty = 0;
+		double returnPrice = 0;
+		if (!m_bill.updateItemQuantity(rowId, qtyStr, billedQty,returnPrice))
+		{
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Critical);
+			mbox.setText(QString("Quantity is larger than billed quantity or invalid quantity"));
+			mbox.exec();
 
-		// reset & return
-		QTableWidgetItem* retPriceItem = new QTableWidgetItem(QString::number(billQty));
+			// reset & return
+			QTableWidgetItem* retPriceItem = new QTableWidgetItem(QString::number(billedQty));
+			retPriceItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+			ui.tableWidget->setItem(row, col, retPriceItem);
+
+			return;
+		}
+
+		QTableWidgetItem* retPriceItem = new QTableWidgetItem(QString::number(returnPrice, 'f', 2));
 		retPriceItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-		ui.tableWidget->setItem(row, col, retPriceItem);
-		return;
+		ui.tableWidget->setItem(row, 5, retPriceItem);
 	}
-
-	QTableWidgetItem* paidPriceItem = ui.tableWidget->item(row, 4);
-	double paidPrice = paidPriceItem->text().toDouble();
-
-	double returnPrice = paidPrice * qty;
-	QTableWidgetItem* retPriceItem = new QTableWidgetItem(QString::number(returnPrice, 'f', 2));
-	retPriceItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-	ui.tableWidget->setItem(row, 5, retPriceItem);
 
 	showTotal();
 }
@@ -478,34 +481,34 @@ void ESReturnItems::updateReturnItemTable()
 	{
 		ui.tableWidget->removeRow(0);
 	}
-	const std::map<int, QStringList>& returnItems = m_bill.getReturnItemTable();
-	for (std::map<int, QStringList>::const_iterator it = returnItems.begin(), ite = returnItems.end(); it != ite; ++it)
+	const std::map<int, ES::ReturnBill::BillInfo>& returnItems = m_bill.getReturnItemTable();
+	for (std::map<int, ES::ReturnBill::BillInfo>::const_iterator it = returnItems.begin(), ite = returnItems.end(); it != ite; ++it)
 	{
 		int row = ui.tableWidget->rowCount();
 		ui.tableWidget->insertRow(row);
 
-		const QStringList& sl = it->second;
+		const ES::ReturnBill::BillInfo& bi = it->second;
 
-		ui.tableWidget->setItem(row, 0, new QTableWidgetItem(sl[0]));
-		ui.tableWidget->setItem(row, 1, new QTableWidgetItem(sl[1]));
+		ui.tableWidget->setItem(row, 0, new QTableWidgetItem(bi.itemCode));
+		ui.tableWidget->setItem(row, 1, new QTableWidgetItem(bi.itemName));
 
-		QTableWidgetItem* qtyItem = new QTableWidgetItem(sl[2]);
+		QTableWidgetItem* qtyItem = new QTableWidgetItem(QString::number(bi.quantity));
 		qtyItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
 		ui.tableWidget->setItem(row, 2, qtyItem);
 
-		QTableWidgetItem* itemPriceItem = new QTableWidgetItem(sl[3]);
+		QTableWidgetItem* itemPriceItem = new QTableWidgetItem(QString::number(bi.itemPrice, 'f', 2));
 		itemPriceItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
 		ui.tableWidget->setItem(row, 3, itemPriceItem);
 
-		QTableWidgetItem* paidPriceItem = new QTableWidgetItem(sl[4]);
+		QTableWidgetItem* paidPriceItem = new QTableWidgetItem(QString::number(bi.paidPrice, 'f', 2));
 		paidPriceItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
 		ui.tableWidget->setItem(row, 4, paidPriceItem);
 
-		QTableWidgetItem* retPriceItem = new QTableWidgetItem(sl[5]);
+		QTableWidgetItem* retPriceItem = new QTableWidgetItem(QString::number(bi.returnPrice, 'f', 2));
 		retPriceItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
 		ui.tableWidget->setItem(row, 5, retPriceItem);
 
-		QTableWidgetItem* dateItem = new QTableWidgetItem(sl[6]);
+		QTableWidgetItem* dateItem = new QTableWidgetItem(bi.date);
 		dateItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
 		ui.tableWidget->setItem(row, 6, dateItem);
 		// 7 - add/remove buttons
@@ -528,7 +531,6 @@ void ESReturnItems::updateReturnItemTable()
 		base->show();
 
 		ui.tableWidget->setItem(row, 8, new QTableWidgetItem(QString::number(it->first)));
-		ui.tableWidget->setItem(row, 9, new QTableWidgetItem(sl[7]));
 	}
 }
 
@@ -550,4 +552,44 @@ void ESReturnItems::slotShowAddItem()
 	addBillItem->show();
 	addBillItem->setFocus();
 	addBillItem->focus();
+}
+
+void ESReturnItems::setEnabled(bool enable)
+{
+	ui.billIdSearchText->setEnabled(enable);
+	ui.itemCodeSearchText->setEnabled(enable);
+	ui.selectBtn->setEnabled(enable);
+	ui.tableWidget->setEnabled(enable);
+	ui.billTableWidget->setEnabled(enable);
+	ui.interestText->setEnabled(enable);
+	ui.addItemBtn->setEnabled(enable);
+	ui.commitBtn->setEnabled(enable);
+	ui.cancelBtn->setEnabled(enable);
+
+	if (enable)
+	{
+		ui.billIdSearchText->setFocus();
+	}
+}
+
+void ESReturnItems::slotStartBill()
+{
+	if (m_bill.isStarted())
+		return;
+
+	if (m_bill.start())
+	{
+		QString billid;
+		billid.setNum(m_bill.getBillId());
+		ui.billIdLbl->setText(billid);
+
+		setEnabled(true);
+	}
+	else
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Critical);
+		mbox.setText(QString("Bill cannot be started"));
+		mbox.exec();
+	}
 }

@@ -3,6 +3,7 @@
 #include <QSqlQuery>
 #include <QMessageBox>
 #include "QPushButton"
+#include "utility/session.h"
 
 ES::ReturnBill::ReturnBill()
 {
@@ -13,6 +14,9 @@ ES::ReturnBill::ReturnBill()
 	m_interest = 0.0;
 	m_subTotal = 0.0;
 	m_total = 0.0;
+
+	m_returnItemsIDGenerator = 0;
+	m_newItemsIDGenerator = 0;
 }
 
 ES::ReturnBill::~ReturnBill()
@@ -20,10 +24,20 @@ ES::ReturnBill::~ReturnBill()
 	end();
 }
 
-void ES::ReturnBill::start()
+bool ES::ReturnBill::start()
 {
 	m_started = true;
-	// todo - generate bill id
+
+	QSqlQuery insertBillQuery;
+	insertBillQuery.prepare("INSERT INTO bill (user_id) VALUES(?)");
+	insertBillQuery.addBindValue(ES::Session::getInstance()->getUser()->getId());
+	
+	if (insertBillQuery.exec())
+	{
+		m_billId = (insertBillQuery.lastInsertId()).value<int>();
+		return true;
+	}
+	return false;
 }
 
 void ES::ReturnBill::end()
@@ -38,6 +52,9 @@ void ES::ReturnBill::end()
 	m_total = 0.0;
 	m_returnItems.clear();
 	m_newItems.clear();
+
+	m_returnItemsIDGenerator = 0;
+	m_newItemsIDGenerator = 0;
 }
 
 bool ES::ReturnBill::addReturnItem(QString oldBillId, QString itemCode)
@@ -90,32 +107,33 @@ bool ES::ReturnBill::addReturnItem(QString oldBillId, QString itemCode)
 		str.append(oldBillId);
 		str.append(" AND b.deleted = 0");
 
-		QStringList sl;
+		BillInfo bi;
 		QSqlQuery q3(str);
 		if (q3.next())
 		{
-			sl.push_back(itemCode);
-			sl.push_back(itemName);
+			bi.itemCode = itemCode;
+			bi.itemName = itemName;
 
 			QString qtyStr = q3.value("quantity").toString();
 			double quantity = qtyStr.toDouble();
-			sl.push_back(qtyStr);
+			bi.quantity = quantity;
 			
 			double itemPrice = q3.value("item_price").toDouble();
-			sl.push_back(QString::number(itemPrice, 'f', 2));
+			bi.itemPrice = itemPrice;
 
 			double discount = q3.value("discount").toDouble();
 			double paidPrice = itemPrice - (itemPrice * discount / 100.0);
-			sl.push_back(QString::number(paidPrice, 'f', 2));
+			bi.paidPrice = paidPrice;
 
 			double returnPrice = paidPrice * quantity;
-			sl.push_back(QString::number(returnPrice, 'f', 2));
+			bi.returnPrice = returnPrice;
 
 			QDate d = q3.value("date").toDate();
-			sl.push_back(d.toString("yyyy-MM-dd"));
-			sl.push_back(QString::number(quantity));
+			bi.date = d.toString("yyyy-MM-dd");
+
+			bi.billedQuantity = quantity;
 		}
-		m_returnItems[m_returnItems.size()] = sl;
+		m_returnItems[m_returnItemsIDGenerator++] = bi;
 	}
 
 	calculateTotal();
@@ -137,12 +155,12 @@ void ES::ReturnBill::cancel()
 	// todo - set bill status 'cancel'
 }
 
-const std::map<int, QStringList>& ES::ReturnBill::getReturnItemTable() const
+const std::map<int, ES::ReturnBill::BillInfo>& ES::ReturnBill::getReturnItemTable() const
 {
 	return m_returnItems;
 }
 
-const std::map<int, QStringList>& ES::ReturnBill::getNewItemTable() const
+const std::map<int, ES::ReturnBill::BillInfo>& ES::ReturnBill::getNewItemTable() const
 {
 	return m_newItems;
 }
@@ -161,10 +179,10 @@ void ES::ReturnBill::calculateTotal()
 {
 	double total = 0.0;
 
-	for (std::map<int,QStringList>::iterator it = m_returnItems.begin(), ite = m_returnItems.end(); it != ite; ++it)
+	for (std::map<int, BillInfo>::iterator it = m_returnItems.begin(), ite = m_returnItems.end(); it != ite; ++it)
 	{
-		const QStringList& sl = it->second;
-		total += sl[5].toDouble();
+		const BillInfo& bi = it->second;
+		total += bi.returnPrice;
 	}
 
 	m_subTotal = total;
@@ -184,12 +202,16 @@ void ES::ReturnBill::setInterest(QString interest)
 	{
 		m_interest = interest.toDouble();
 	}
+	else
+	{
+		m_interest = 0;
+	}
 	calculateTotal();
 }
 
 void ES::ReturnBill::removeReturnItem(QString rowId)
 {
-	std::map<int, QStringList>::iterator iter = m_returnItems.find(rowId.toInt());
+	std::map<int, BillInfo>::iterator iter = m_returnItems.find(rowId.toInt());
 	if (iter != m_returnItems.end())
 	{
 		m_returnItems.erase(iter);
@@ -200,4 +222,28 @@ void ES::ReturnBill::removeReturnItem(QString rowId)
 void ES::ReturnBill::removeNewItem(QString rowId)
 {
 
+}
+
+bool ES::ReturnBill::updateItemQuantity(long rowId, QString qtyStr, double& billedQty, double& returnPrice)
+{
+	std::map<int, BillInfo>::iterator iter = m_returnItems.find(rowId);
+	if (iter != m_returnItems.end())
+	{
+		BillInfo& bi = iter->second;
+		double qty = qtyStr.toDouble();
+
+		if (bi.billedQuantity < qty || qty <= 0.0)
+		{
+			billedQty = bi.quantity;
+			return false;
+		}
+
+		bi.quantity = qty;
+		bi.returnPrice = bi.paidPrice * qty;
+		returnPrice = bi.returnPrice;
+		calculateTotal();
+		
+		return true;
+	}
+	return false;
 }
