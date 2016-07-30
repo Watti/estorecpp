@@ -62,7 +62,7 @@ void ESChequeInformation::slotSearch()
 	//QString endDateStr = ui.endDate->date().toString("yyyy-MM-dd");
 	int selectedStatus = ui.statusComboBox->currentData().toInt();
 	QString customerName = ui.customerSearchBox->text();
-	QString qRecordCountStr("SELECT COUNT(*) as c FROM cheque_information JOIN customer ON cheque_information.customer_id = customer.customer_id WHERE DATE(due_date) = ' " + stardDateStr+"'");
+	QString qRecordCountStr("SELECT COUNT(*) as c FROM cheque_information JOIN customer ON cheque_information.customer_id = customer.customer_id WHERE DATE(due_date) = ' " + stardDateStr + "'");
 	QString chequeQueryStr("SELECT * FROM cheque_information JOIN customer ON cheque_information.customer_id = customer.customer_id WHERE DATE(due_date) = ' " + stardDateStr + "'");
 	if (selectedStatus != 2)
 	{
@@ -132,15 +132,12 @@ void ESChequeInformation::slotSearch()
 		ui.tableWidget->setItem(row, 3, item);
 
 		QString chequeId = queryCheque.value("cheque_id").toString();
-		QSqlQuery queryCheckAmount("SELECT * FROM cheque WHERE cheque_id = "+chequeId);
-		if (queryCheckAmount.next())
-		{
-			float chequeAmount = queryCheckAmount.value("amount").toFloat();
-			totalAmount += chequeAmount;
-			item = new QTableWidgetItem(QString::number(chequeAmount,'f',2));
-			item->setBackgroundColor(rowColor);
-			ui.tableWidget->setItem(row, 4, item);
-		}
+		float chequeAmount = queryCheque.value("amount").toFloat();
+		totalAmount += chequeAmount;
+		item = new QTableWidgetItem(QString::number(chequeAmount, 'f', 2));
+		item->setBackgroundColor(rowColor);
+		ui.tableWidget->setItem(row, 4, item);
+
 		if (queryCheque.value("processed").toInt() == 0)
 		{
 			QWidget* base = new QWidget(ui.tableWidget);
@@ -181,7 +178,7 @@ void ESChequeInformation::slotSearch()
 			}
 		}
 	}
-	ui.totalLbl->setText(QString::number(totalAmount,'f',2));
+	ui.totalLbl->setText(QString::number(totalAmount, 'f', 2));
 }
 
 void ESChequeInformation::slotSetProcessed(QString rowId)

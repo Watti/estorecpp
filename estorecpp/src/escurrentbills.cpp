@@ -715,7 +715,7 @@ void ESCurrentBills::slotReprint(QString billIdStr)
 		row++;
 
 		QString prevOutstandingText = "Prev. Outstanding : ";
-		double totalOutstanding = ES::Utility::getOutstandingTotalFromSales(customerId);
+		double totalOutstanding = ES::Utility::getTotalCreditOutstanding(customerId);
 		double billOutstanding = ES::Utility::getOutstandingForBill(billId);
 		double prevOutstanding = totalOutstanding - billOutstanding;
 		{

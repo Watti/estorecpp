@@ -162,9 +162,8 @@ void ESCustomerOutstanding::slotPay(QString customerId)
 			latePayment->getUI().currentOutstandingCash->setText(QString::number(creditOutstanding, 'f', 2));
 			latePayment->getUI().remainingAmountCash->setText(QString::number(creditOutstanding, 'f', 2));
 
-			float chequeOutstanding = ES::Utility::getTotalChequeOutstanding(customerId);
-			latePayment->getUI().currentOutstandingCheque->setText(QString::number(chequeOutstanding, 'f', 2));
-			latePayment->getUI().remainingAmountCheque->setText(QString::number(chequeOutstanding, 'f', 2));
+			latePayment->getUI().currentOutstandingCheque->setText(QString::number(creditOutstanding, 'f', 2));
+			latePayment->getUI().remainingAmountCheque->setText(QString::number(creditOutstanding, 'f', 2));
 
 			latePayment->getUI().dueDate->setDate(QDate::currentDate());
 			latePayment->show();

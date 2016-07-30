@@ -16,6 +16,8 @@ public:
 
 public slots:
 	void slotOk();
+	void slotCalculateCashBalance();
+	void slotCalculateChequeBalance();
 
 private:
 	Ui::LatePaymentWidget ui;

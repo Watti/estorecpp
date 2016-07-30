@@ -490,7 +490,7 @@ void ESMultiplePayment::slotFinalizeBill()
 	for (int i = 0; i < rowCount; ++i)
 	{
 		double amount = ui.tableWidget->item(i, 1)->text().toDouble();
-
+		double interest = ui.tableWidget->item(i, 2)->text().toDouble();
 		QTableWidgetItem* paymentTypeItem = ui.tableWidget->item(i, 0);
 		if (paymentTypeItem)
 		{
@@ -547,10 +547,11 @@ void ESMultiplePayment::slotFinalizeBill()
 					}
 					else
 					{
-						double outstandingAmount = ES::Utility::getOutstandingTotalFromSales(m_customerId);
-						outstandingAmount += amount;
+						double outstandingAmount = ES::Utility::getTotalCreditOutstanding(m_customerId);//cheque is not considered here
+						double outstandingForTheBill = amount* (100 + interest) / 100;
+						outstandingAmount += outstandingForTheBill;
 
-						ES::Utility::updateOutstandingAmount(m_customerId, outstandingAmount);
+						ES::Utility::updateOutstandingAmount(m_customerId, outstandingForTheBill);
 					}
 				}
 				else

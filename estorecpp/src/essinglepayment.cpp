@@ -228,10 +228,10 @@ void ESSinglePayment::handleCreditPayment(int billId, double netAmount)
 		{
 			finishBill(netAmount, billId);
 
-			double outstandingAmount = getTotalOutstanding(m_customerId);
+			double outstandingAmount = ES::Utility::getTotalCreditOutstanding(m_customerId);
 			outstandingAmount += netAmount;
 
-			ES::Utility::updateOutstandingAmount(m_customerId, outstandingAmount);
+			ES::Utility::updateOutstandingAmount(m_customerId, netAmount);
 		}
 	}
 	else
@@ -1276,41 +1276,41 @@ void ESSinglePayment::slotDiscountPercentage()
 }
 
 
-float ESSinglePayment::getTotalOutstanding(QString customerId)
-{
-	float totalAmount = 0.f;
-	QString query;
-	query.append("SELECT * FROM customer_outstanding WHERE customer_id = ");
-	query.append(customerId);
-	query.append(" AND settled = 0");
-
-	QSqlQuery q(query);
-	while (q.next())
-	{
-		QString paymentId = q.value("payment_id").toString();
-		QSqlQuery qry("SELECT * FROM payment WHERE payment_id = " + paymentId);
-		QString pm = q.value("payment_method").toString();
-		float interest = 0;
-		if (pm == "CREDIT")
-		{
-			QSqlQuery qq("SELECT * FROM credit WHERE credit_id = " + q.value("table_id").toString());
-			if (qq.next())
-			{
-				interest = qq.value("interest").toFloat();
-				float amount = qq.value("amount").toFloat();
-				totalAmount += (amount * (100 + interest) / 100);
-			}
-		}
-		else if (pm == "CHEQUE")
-		{
-			QSqlQuery qq("SELECT * FROM cheque WHERE cheque_id = " + q.value("table_id").toString());
-			if (qq.next())
-			{
-				interest = qq.value("interest").toFloat();
-				float amount = qq.value("amount").toFloat();
-				totalAmount += (amount * (100 + interest) / 100);
-			}
-		}
-	}
-	return totalAmount;
-}
+// float ESSinglePayment::getTotalOutstanding(QString customerId)
+// {
+// 	float totalAmount = 0.f;
+// 	QString query;
+// 	query.append("SELECT * FROM customer_outstanding WHERE customer_id = ");
+// 	query.append(customerId);
+// 	query.append(" AND settled = 0");
+// 
+// 	QSqlQuery q(query);
+// 	while (q.next())
+// 	{
+// 		QString paymentId = q.value("payment_id").toString();
+// 		QSqlQuery qry("SELECT * FROM payment WHERE payment_id = " + paymentId);
+// 		QString pm = q.value("payment_method").toString();
+// 		float interest = 0;
+// 		if (pm == "CREDIT")
+// 		{
+// 			QSqlQuery qq("SELECT * FROM credit WHERE credit_id = " + q.value("table_id").toString());
+// 			if (qq.next())
+// 			{
+// 				interest = qq.value("interest").toFloat();
+// 				float amount = qq.value("amount").toFloat();
+// 				totalAmount += (amount * (100 + interest) / 100);
+// 			}
+// 		}
+// 		else if (pm == "CHEQUE")
+// 		{
+// 			QSqlQuery qq("SELECT * FROM cheque WHERE cheque_id = " + q.value("table_id").toString());
+// 			if (qq.next())
+// 			{
+// 				interest = qq.value("interest").toFloat();
+// 				float amount = qq.value("amount").toFloat();
+// 				totalAmount += (amount * (100 + interest) / 100);
+// 			}
+// 		}
+// 	}
+// 	return totalAmount;
+// }
