@@ -3,6 +3,7 @@
 
 #include "ui_latepaymentwidget.h"
 #include <QtGui>
+#include "KDReportsReport.h"
 
 class ESLatePayment : public QWidget
 {
@@ -18,10 +19,12 @@ public slots:
 	void slotOk();
 	void slotCalculateCashBalance();
 	void slotCalculateChequeBalance();
+	void slotPrint(QPrinter* printer);
 
 private:
 	Ui::LatePaymentWidget ui;
 	QString m_customerId;
+	KDReports::Report report;
 
 };
 

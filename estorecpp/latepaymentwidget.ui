@@ -836,17 +836,6 @@
        </property>
       </widget>
      </item>
-     <item>
-      <widget class="QCheckBox" name="doPrintCB">
-       <property name="text">
-        <string/>
-       </property>
-       <property name="icon">
-        <iconset>
-         <normaloff>icons/print.png</normaloff>icons/print.png</iconset>
-       </property>
-      </widget>
-     </item>
     </layout>
    </item>
   </layout>
