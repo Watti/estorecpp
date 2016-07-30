@@ -68,3 +68,8 @@ void ESLatePayment::slotOk()
 		//print the bill
 	}
 }
+
+void ESLatePayment::setCustomerId(QString customerId)
+{
+	m_customerId = customerId;
+}

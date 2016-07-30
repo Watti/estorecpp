@@ -19,6 +19,7 @@ public slots:
 
 private:
 	Ui::LatePaymentWidget ui;
+	QString m_customerId;
 
 };
 
