@@ -1,0 +1,5 @@
+BACKUP_FOLDER-{F:\estore\backup}
+PRICE_CHANGE_ACTION-{non}
+SETTINGS_PATH-{F:\estore\settings.txt}
+SECOND_DISPLAY-{OFF}
+SERVER-{127.0.0.1}
