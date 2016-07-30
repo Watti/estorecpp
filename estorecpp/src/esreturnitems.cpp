@@ -397,10 +397,21 @@ void ESReturnItems::slotSelect()
 	QString itemCode = ui.itemCodeSearchText->text();
 	QString billId = ui.billIdSearchText->text();
 
-	m_bill.addReturnItem(billId, itemCode);
-	updateReturnItemTable();
-
-	showTotal();
+	if (m_bill.addReturnItem(billId, itemCode))
+	{
+		updateReturnItemTable();
+		showTotal();
+	}
+	else
+	{
+		QString oldBill;
+		oldBill.setNum(m_bill.getOldBillId());
+				
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Critical);
+		mbox.setText(QString("Invalid bill id. Current Bill is : " + oldBill));
+		mbox.exec();
+	}
 }
 
 void ESReturnItems::slotItemDoubleClicked(int row, int col)
@@ -463,6 +474,30 @@ void ESReturnItems::slotQuantityCellUpdated(QString qtyStr, int row, int col)
 	showTotal();
 }
 
+void ESReturnItems::slotNewItemQuantityCellUpdated(QString txt, int row, int col)
+{
+	QTableWidgetItem* item = ui.billTableWidget->item(row, 7);
+	if (item)
+	{
+		long rowId = item->text().toLong();
+		m_bill.updateNewItemQuantity(rowId, txt);
+
+		const std::map<int, ES::ReturnBill::NewItemInfo>& newItems = m_bill.getNewItemTable();
+		std::map<int, ES::ReturnBill::NewItemInfo>::const_iterator iter = newItems.find(rowId);
+		if (iter != newItems.end())
+		{
+			const ES::ReturnBill::NewItemInfo& ni = iter->second;
+
+			double subtotal = ni.itemPrice * ni.quantity;
+			QTableWidgetItem* subtotalItem = new QTableWidgetItem(QString::number(subtotal, 'f', 2));
+			subtotalItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+			ui.billTableWidget->setItem(row, 5, subtotalItem);
+		}			
+	}
+	
+	showTotal();
+}
+
 void ESReturnItems::showTotal()
 {
 	ui.subTotalLbl->setText(QString::number(m_bill.getSubTotal(), 'f', 2));
@@ -481,13 +516,13 @@ void ESReturnItems::updateReturnItemTable()
 	{
 		ui.tableWidget->removeRow(0);
 	}
-	const std::map<int, ES::ReturnBill::BillInfo>& returnItems = m_bill.getReturnItemTable();
-	for (std::map<int, ES::ReturnBill::BillInfo>::const_iterator it = returnItems.begin(), ite = returnItems.end(); it != ite; ++it)
+	const std::map<int, ES::ReturnBill::ReturnItemInfo>& returnItems = m_bill.getReturnItemTable();
+	for (std::map<int, ES::ReturnBill::ReturnItemInfo>::const_iterator it = returnItems.begin(), ite = returnItems.end(); it != ite; ++it)
 	{
 		int row = ui.tableWidget->rowCount();
 		ui.tableWidget->insertRow(row);
 
-		const ES::ReturnBill::BillInfo& bi = it->second;
+		const ES::ReturnBill::ReturnItemInfo& bi = it->second;
 
 		ui.tableWidget->setItem(row, 0, new QTableWidgetItem(bi.itemCode));
 		ui.tableWidget->setItem(row, 1, new QTableWidgetItem(bi.itemName));
@@ -543,7 +578,7 @@ void ESReturnItems::slotShowAddItem()
 	width -= 200;
 	height -= 200;
 
-	ESAddBillItem2* addBillItem = new ESAddBillItem2(&m_bill, this);
+	ESAddBillItem2* addBillItem = new ESAddBillItem2(m_bill, this);
 	addBillItem->resize(QSize(width, height));
 	addBillItem->setWindowState(Qt::WindowActive);
 	addBillItem->setWindowModality(Qt::ApplicationModal);
@@ -592,4 +627,87 @@ void ESReturnItems::slotStartBill()
 		mbox.setText(QString("Bill cannot be started"));
 		mbox.exec();
 	}
+}
+
+void ESReturnItems::updateNewItemTable()
+{
+	while (ui.billTableWidget->rowCount() > 0)
+	{
+		ui.billTableWidget->removeRow(0);
+	}
+	int row = ui.billTableWidget->rowCount();
+
+	const std::map<int, ES::ReturnBill::NewItemInfo>& newItems = m_bill.getNewItemTable();
+	for (std::map<int, ES::ReturnBill::NewItemInfo>::const_iterator it = newItems.begin(), ite = newItems.end(); it != ite; ++it)
+	{
+		row = ui.billTableWidget->rowCount();
+		ui.billTableWidget->insertRow(row);
+
+		const ES::ReturnBill::NewItemInfo& ni = it->second;
+
+		QString ss;
+		ss.setNum(ni.itemPrice);
+		ni.itemCode + " : " + ss;
+
+		ui.billTableWidget->setItem(row, 0, new QTableWidgetItem(ni.itemCode));
+		ui.billTableWidget->setItem(row, 1, new QTableWidgetItem(ni.itemName));
+
+		QTableWidgetItem* priceItem = new QTableWidgetItem(QString::number(ni.itemPrice, 'f', 2));
+		priceItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+		ui.billTableWidget->setItem(row, 2, priceItem);
+		
+		QTableWidgetItem* qtyItem = new QTableWidgetItem(QString::number(ni.quantity));
+		qtyItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+		ui.billTableWidget->setItem(row, 3, qtyItem);
+
+		QTableWidgetItem* discountItem = new QTableWidgetItem(QString::number(ni.discount, 'f', 2));
+		discountItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+		ui.billTableWidget->setItem(row, 4, discountItem);
+
+		double total = ni.itemPrice * ni.quantity;
+		double subtotal = total + total * ni.discount * 0.01;
+		QTableWidgetItem* subtotalItem = new QTableWidgetItem(QString::number(subtotal, 'f', 2));
+		subtotalItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+		ui.billTableWidget->setItem(row, 5, subtotalItem);
+
+		ui.billTableWidget->setItem(row, 7, new QTableWidgetItem(it->first));
+	}
+}
+
+void ESReturnItems::keyPressEvent(QKeyEvent* evt)
+{
+	switch (evt->key())
+	{
+	case Qt::Key_Return:
+	case Qt::Key_Enter:
+	{
+						  int row = ui.billTableWidget->currentRow();
+						  QString quantity = "";
+						  QTableWidgetItem* item = ui.billTableWidget->item(row, 3);
+						  if (item)
+						  {
+							  quantity = item->text();
+						  }
+
+						  TableTextWidget* textWidget = new TableTextWidget(ui.billTableWidget, row, 3, ui.billTableWidget);
+						  QObject::connect(textWidget, SIGNAL(notifyEnterPressed(QString, int, int)), this, SLOT(slotNewItemQuantityCellUpdated(QString, int, int)));
+						  textWidget->setTextFormatterFunc(convertToQuantityFormat);
+						  textWidget->setText(quantity);
+						  textWidget->selectAll();
+						  ui.billTableWidget->setCellWidget(row, 3, textWidget);
+						  textWidget->setFocus();
+						  break;
+	}
+	case Qt::Key_Up:
+	case Qt::Key_Down:
+	case Qt::Key_Left:
+	case Qt::Key_Right:
+	{
+						  ui.tableWidget->setFocus();
+						  break;
+	}
+	default:
+		QWidget::keyPressEvent(evt);
+	}
+	QWidget::keyPressEvent(evt);
 }

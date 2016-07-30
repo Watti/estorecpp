@@ -578,6 +578,11 @@
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
       <widget class="QPushButton" name="prevBtn">
+       <property name="font">
+        <font>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
        <property name="text">
         <string>&lt;&lt;</string>
        </property>
@@ -597,7 +602,24 @@
       </spacer>
      </item>
      <item>
+      <widget class="QPushButton" name="generateReportBtn">
+       <property name="font">
+        <font>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string> Generate Report </string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="nextBtn">
+       <property name="font">
+        <font>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
        <property name="text">
         <string>&gt;&gt;</string>
        </property>

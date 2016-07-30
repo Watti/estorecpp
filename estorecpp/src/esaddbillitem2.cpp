@@ -10,6 +10,7 @@
 #include "entities\tabletextwidget.h"
 #include "utility\esmainwindowholder.h"
 #include "essecondarydisplay.h"
+#include "esreturnitems.h"
 
 namespace
 {
@@ -21,10 +22,9 @@ namespace
 	}
 }
 
-ESAddBillItem2::ESAddBillItem2(ES::ReturnBill* cart, QWidget *parent)
-:QWidget(parent)
+ESAddBillItem2::ESAddBillItem2(ES::ReturnBill& cart, ESReturnItems* widget, QWidget *parent)
+:QWidget(parent), m_cart(cart), m_widget(widget)
 {
-	m_cart = cart;
 	ui.setupUi(this);
 	QStringList headerLabels;
 	headerLabels.append("Stock ID");
@@ -270,6 +270,21 @@ void ESAddBillItem2::addToBill(QString stockId)
 
 	ES::MainWindowHolder::instance()->getSecondaryDisplay()->update();
 	*/
+	m_cart.addNewItem(stockId);
+	m_widget->updateNewItemTable();
+	
+	int row = m_widget->getUI().billTableWidget->rowCount() - 1;
+	if (row >= 0)
+	{
+		TableTextWidget* textWidget = new TableTextWidget(m_widget->getUI().billTableWidget, row, 3, m_widget->getUI().billTableWidget);
+		QObject::connect(textWidget, SIGNAL(notifyEnterPressed(QString, int, int)), m_widget, SLOT(slotNewItemQuantityCellUpdated(QString, int, int)));
+		textWidget->setTextFormatterFunc(convertToQuantityFormat);
+		m_widget->getUI().billTableWidget->setCellWidget(row, 3, textWidget);
+		m_widget->getUI().billTableWidget->setCurrentCell(row, 3);
+		m_widget->getUI().billTableWidget->setFocus();
+		textWidget->setFocus();
+	}
+
 	close();
 }
 
