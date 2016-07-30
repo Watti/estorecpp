@@ -20,6 +20,7 @@
 #include "QDesktopWidget"
 #include "esaddbillitem2.h"
 #include "QShortcut"
+#include "espaymentwidget.h"
 
 QString convertToQuantityFormat(QString text, int row, int col, QTableWidget* table)
 {
@@ -33,6 +34,7 @@ ESReturnItems::ESReturnItems(QWidget *parent /*= 0*/) : QWidget(parent), m_total
 	ui.setupUi(this);
 
 	m_removeButtonSignalMapper = new QSignalMapper(this);
+	m_removeNewItemButtonSignalMapper = new QSignalMapper(this);
 	m_idGenerator = 0;
 	m_oldBillId = -1;
 
@@ -40,9 +42,12 @@ ESReturnItems::ESReturnItems(QWidget *parent /*= 0*/) : QWidget(parent), m_total
 	//QObject::connect(ui.printBtn, SIGNAL(clicked()), this, SLOT(slotPrintReturnBill()));
 	QObject::connect(ui.tableWidget, SIGNAL(cellClicked(int, int)), this, SLOT(slotItemDoubleClicked(int, int)));
 	QObject::connect(m_removeButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotRemove(QString)));
-	QObject::connect(ui.interestText, SIGNAL(textChanged(QString)), this, SLOT(slotInterestChanged()));
+	QObject::connect(m_removeNewItemButtonSignalMapper, SIGNAL(mapped(int)), this, SLOT(slotRemoveNewItem(int)));
+	QObject::connect(ui.returnInterest, SIGNAL(textChanged(QString)), this, SLOT(slotInterestChanged()));
+	QObject::connect(ui.newInterest, SIGNAL(textChanged(QString)), this, SLOT(slotNewInterestChanged()));
 	QObject::connect(ui.addItemBtn, SIGNAL(clicked()), this, SLOT(slotShowAddItem()));
 	QObject::connect(ui.startBillBtn, SIGNAL(clicked()), this, SLOT(slotStartBill()));
+	QObject::connect(ui.commitBtn, SIGNAL(clicked()), this, SLOT(slotCommit()));
 
 	if (!ES::DbConnection::instance()->open())
 	{
@@ -91,10 +96,10 @@ ESReturnItems::ESReturnItems(QWidget *parent /*= 0*/) : QWidget(parent), m_total
 	ui.billTableWidget->hideColumn(7);
 
 	ui.billIdLbl->setText("N/A");
-	ui.subTotalLbl->setText("0.00");
+	//ui.subTotalLbl->setText("0.00");
 
 	new QShortcut(QKeySequence(Qt::Key_F4), this, SLOT(slotShowAddItem()));
-	new QShortcut(QKeySequence(Qt::Key_F3), this, SLOT(slotStartNewBill()));
+	new QShortcut(QKeySequence(Qt::Key_F3), this, SLOT(slotStartBill()));
 
 	//ui.billIdSearchText->setFocus();
 
@@ -119,7 +124,7 @@ void ESReturnItems::slotPrint(QPrinter* printer)
 
 void ESReturnItems::slotPrintReturnBill()
 {
-	QString billedUser = "Billed Cashier : ";
+/*	QString billedUser = "Billed Cashier : ";
 	QSqlQuery q("SELECT display_name FROM user JOIN bill ON user.user_id = bill.user_id WHERE bill.bill_id = " + QString::number(m_oldBillId));
 	if (q.next())
 	{
@@ -388,7 +393,7 @@ void ESReturnItems::slotPrintReturnBill()
 	dialog->setWindowTitle(tr("Print Document"));
 	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
 	dialog->exec();
-
+	*/
 	//report.print(&printer);
 }
 
@@ -479,7 +484,9 @@ void ESReturnItems::slotNewItemQuantityCellUpdated(QString txt, int row, int col
 	QTableWidgetItem* item = ui.billTableWidget->item(row, 7);
 	if (item)
 	{
-		long rowId = item->text().toLong();
+		QString rowIdStr = item->text();
+		std::string s = rowIdStr.toStdString();
+		long rowId = rowIdStr.toLong();
 		m_bill.updateNewItemQuantity(rowId, txt);
 
 		const std::map<int, ES::ReturnBill::NewItemInfo>& newItems = m_bill.getNewItemTable();
@@ -500,13 +507,16 @@ void ESReturnItems::slotNewItemQuantityCellUpdated(QString txt, int row, int col
 
 void ESReturnItems::showTotal()
 {
-	ui.subTotalLbl->setText(QString::number(m_bill.getSubTotal(), 'f', 2));
-	ui.totLbl->setText(QString::number(m_bill.getTotal(), 'f', 2));
+	ui.returnSubTotal->setText(QString::number(m_bill.getSubTotal(), 'f', 2));
+	ui.returnTotal->setText(QString::number(m_bill.getTotal(), 'f', 2));
+
+	ui.newSubTotal->setText(QString::number(m_bill.getNewSubTotal(), 'f', 2));
+	ui.newTotal->setText(QString::number(m_bill.getNewTotal(), 'f', 2));
 }
 
 void ESReturnItems::slotInterestChanged()
 {
-	m_bill.setInterest(ui.interestText->text());
+	m_bill.setInterest(ui.returnInterest->text());
 	showTotal();
 }
 
@@ -596,7 +606,8 @@ void ESReturnItems::setEnabled(bool enable)
 	ui.selectBtn->setEnabled(enable);
 	ui.tableWidget->setEnabled(enable);
 	ui.billTableWidget->setEnabled(enable);
-	ui.interestText->setEnabled(enable);
+	ui.returnInterest->setEnabled(enable);
+	ui.newInterest->setEnabled(enable);
 	ui.addItemBtn->setEnabled(enable);
 	ui.commitBtn->setEnabled(enable);
 	ui.cancelBtn->setEnabled(enable);
@@ -670,7 +681,24 @@ void ESReturnItems::updateNewItemTable()
 		subtotalItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
 		ui.billTableWidget->setItem(row, 5, subtotalItem);
 
-		ui.billTableWidget->setItem(row, 7, new QTableWidgetItem(it->first));
+		QWidget* base = new QWidget(ui.billTableWidget);
+		QPushButton* removeBtn = new QPushButton(base);
+		removeBtn->setIcon(QIcon("icons/delete.png"));
+		removeBtn->setIconSize(QSize(24, 24));
+		removeBtn->setMaximumWidth(100);
+
+		QObject::connect(removeBtn, SIGNAL(clicked()), m_removeNewItemButtonSignalMapper, SLOT(map()));
+		m_removeNewItemButtonSignalMapper->setMapping(removeBtn, it->first);
+
+		QHBoxLayout *layout = new QHBoxLayout;
+		layout->setContentsMargins(0, 0, 0, 0);
+		layout->addWidget(removeBtn);
+		layout->insertStretch(2);
+		base->setLayout(layout);
+		ui.billTableWidget->setCellWidget(row, 6, base);
+		base->show();
+
+		ui.billTableWidget->setItem(row, 7, new QTableWidgetItem(QString::number(it->first)));
 	}
 }
 
@@ -710,4 +738,37 @@ void ESReturnItems::keyPressEvent(QKeyEvent* evt)
 		QWidget::keyPressEvent(evt);
 	}
 	QWidget::keyPressEvent(evt);
+}
+
+void ESReturnItems::slotRemoveNewItem(int id)
+{
+	m_bill.removeNewItem(id);
+	updateNewItemTable();
+	showTotal();
+}
+
+void ESReturnItems::slotCommit()
+{
+	ESPayment* payment = new ESPayment(NULL, 0, true);
+
+	payment->setWindowState(Qt::WindowActive);
+	payment->setWindowModality(Qt::ApplicationModal);
+	payment->setAttribute(Qt::WA_DeleteOnClose);
+	//payment->setWindowFlags(Qt::CustomizeWindowHint | Qt::Window);
+	payment->show();
+
+	//payment->setNetAmount(QString::number(ui.netAmountLabel->text().toDouble(), 'f', 2));
+	//payment->setNoOfItems(ui.noOfItemLabel->text());
+	//payment->setTotalAmount(QString::number(ui.grossAmountLabel->text().toDouble(), 'f', 2));
+	//payment->getUI().balanceLbl->setText("0.00");
+
+	QSize sz = payment->size();
+	QPoint screen = QApplication::desktop()->screen()->rect().center();
+	payment->move(screen.x() - sz.width() / 2, screen.y() - sz.height() / 2);
+}
+
+void ESReturnItems::slotNewInterestChanged()
+{
+	m_bill.setNewInterest(ui.newInterest->text());
+	showTotal();
 }

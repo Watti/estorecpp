@@ -22,7 +22,8 @@
 #include "easylogging++.h"
 #include "utility\utility.h"
 
-ESMultiplePayment::ESMultiplePayment(ESAddBill* addBill, QWidget *parent /*= 0*/) : QWidget(parent), m_addBill(addBill)
+ESMultiplePayment::ESMultiplePayment(ESAddBill* addBill, QWidget *parent /*= 0*/, bool isReturnBill) : 
+QWidget(parent), m_addBill(addBill), m_isReturnBill(isReturnBill)
 {
 	m_customerId = "-1";
 	ui.setupUi(this);

@@ -9,7 +9,7 @@ class ESPayment : public QWidget
 	Q_OBJECT
 
 public:
-	ESPayment(ESAddBill* addBill , QWidget *parent = 0);
+	ESPayment(ESAddBill* addBill , QWidget *parent = 0, bool isReturnBill = false);
 
 	~ESPayment();
 
@@ -40,6 +40,7 @@ private:
 	QString m_netAmount;
 	QString m_totalAmount;
 	QString m_noOfItems;
+	bool m_isReturnBill;
 
 };
 

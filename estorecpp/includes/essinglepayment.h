@@ -13,7 +13,7 @@ class ESSinglePayment : public QWidget
 	Q_OBJECT
 
 public:
-	ESSinglePayment(ESAddBill* addBill, QWidget *parent = 0);
+	ESSinglePayment(ESAddBill* addBill, QWidget *parent = 0, bool isReturnBill = false);
 
 	~ESSinglePayment();
 
@@ -52,6 +52,7 @@ private:
 	ESAddBill* m_addBill;
 	float m_initialNetAmount;
 	QString m_paymentMethod;
+	bool m_isReturnBill;
 
 	//KDReports::Report report;
 

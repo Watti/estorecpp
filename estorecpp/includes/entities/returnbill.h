@@ -41,17 +41,21 @@ namespace ES
 		bool addReturnItem(QString oldBillId, QString itemCode);
 		void addNewItem(QString stockId);
 		void setInterest(QString interest);
+		void setNewInterest(QString interest);
 		bool updateItemQuantity(long rowId, QString qtyStr, double& billedQty, double& returnPrice);
 		bool updateNewItemQuantity(long rowId, QString qtyStr);
 
 		void removeReturnItem(QString rowId);
-		void removeNewItem(QString rowId);
+		void removeNewItem(int rowId);
 
 		const std::map<int, ReturnItemInfo>& getReturnItemTable() const;
 		const std::map<int, NewItemInfo>& getNewItemTable() const;
 
 		double getSubTotal();
 		double getTotal();
+
+		double getNewSubTotal();
+		double getNewTotal();
 
 		void commit();
 		void cancel();
@@ -72,6 +76,9 @@ namespace ES
 		double m_interest;
 		double m_subTotal;
 		double m_total;
+		double m_newInterest;
+		double m_newSubTotal;
+		double m_newTotal;
 
 		long m_returnItemsIDGenerator;
 		long m_newItemsIDGenerator;

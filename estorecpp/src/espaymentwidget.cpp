@@ -10,8 +10,8 @@
 #include "esmultiplepayment.h"
 #include "utility/utility.h"
 
-ESPayment::ESPayment(ESAddBill* addBill, QWidget *parent /*= 0*/) :
-QWidget(parent), m_addBill(addBill)
+ESPayment::ESPayment(ESAddBill* addBill, QWidget *parent /*= 0*/, bool isReturnBill) :
+QWidget(parent), m_addBill(addBill), m_isReturnBill(isReturnBill)
 {
 	m_customerId = "-1";
 	ui.setupUi(this);
@@ -123,7 +123,7 @@ void ESPayment::slotCustomerSeleced(int row, int col)
 
 void ESPayment::slotSinglePayment()
 {
-	ESSinglePayment* singlePayment = new ESSinglePayment(m_addBill, 0);
+	ESSinglePayment* singlePayment = new ESSinglePayment(m_addBill, 0, m_isReturnBill);
 	singlePayment->setWindowState(Qt::WindowActive);
 	singlePayment->setWindowModality(Qt::ApplicationModal);
 	singlePayment->setAttribute(Qt::WA_DeleteOnClose);
@@ -153,7 +153,7 @@ void ESPayment::slotSinglePayment()
 
 void ESPayment::slotMultiplePayment()
 {
-	ESMultiplePayment* multiplePayment = new ESMultiplePayment(m_addBill, 0);
+	ESMultiplePayment* multiplePayment = new ESMultiplePayment(m_addBill, 0, m_isReturnBill);
 	multiplePayment->setWindowState(Qt::WindowActive);
 	multiplePayment->setWindowModality(Qt::ApplicationModal);
 	multiplePayment->setAttribute(Qt::WA_DeleteOnClose);

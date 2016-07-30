@@ -13,7 +13,7 @@ class ESMultiplePayment : public QWidget
 	Q_OBJECT
 
 public:
-	ESMultiplePayment(ESAddBill* addBill, QWidget *parent = 0);
+	ESMultiplePayment(ESAddBill* addBill, QWidget *parent = 0, bool isReturnBill = false);
 
 	~ESMultiplePayment();
 
@@ -45,6 +45,7 @@ private:
 	ESAddBill* m_addBill;
 	float m_initialNetAmount;
 	//KDReports::Report report;
+	bool m_isReturnBill;
 
 };
 

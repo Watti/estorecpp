@@ -14,6 +14,9 @@ ES::ReturnBill::ReturnBill()
 	m_interest = 0.0;
 	m_subTotal = 0.0;
 	m_total = 0.0;
+	m_newInterest = 0.0;
+	m_newSubTotal = 0.0;
+	m_newTotal = 0.0;
 
 	m_returnItemsIDGenerator = 0;
 	m_newItemsIDGenerator = 0;
@@ -50,6 +53,9 @@ void ES::ReturnBill::end()
 	m_interest = 0.0;
 	m_subTotal = 0.0;
 	m_total = 0.0;
+	m_newInterest = 0.0;
+	m_newSubTotal = 0.0;
+	m_newTotal = 0.0;
 	m_returnItems.clear();
 	m_newItems.clear();
 
@@ -163,6 +169,7 @@ void ES::ReturnBill::addNewItem(QString stockId)
 		ni.stockId = stockId.toLong();
 		ni.itemPrice = itemPrice;
 		ni.discount = discount;
+		ni.quantity = 0;
 		
 		QSqlQuery itemQ("SELECT * FROM item WHERE item_id=" + itemId);
 		if (itemQ.next())
@@ -175,12 +182,18 @@ void ES::ReturnBill::addNewItem(QString stockId)
 	calculateTotal();
 }
 
-void ES::ReturnBill::removeNewItem(QString rowId)
+void ES::ReturnBill::removeNewItem(int rowId)
 {
-	std::map<int, NewItemInfo>::iterator iter = m_newItems.find(rowId.toInt());
+	qDebug() << rowId << " removed...\n";
+	std::map<int, NewItemInfo>::iterator iter = m_newItems.find(rowId);
 	if (iter != m_newItems.end())
 	{
 		m_newItems.erase(iter);
+	}
+	for (std::map<int, NewItemInfo>::iterator it = m_newItems.begin(), ite = m_newItems.end(); it != ite; ++it)
+	{
+		NewItemInfo& ni = it->second;
+		qDebug() << it->first << " : " << ni.itemCode << ", " << ni.quantity;
 	}
 	calculateTotal();
 }
@@ -234,6 +247,21 @@ void ES::ReturnBill::calculateTotal()
 	}
 
 	m_total = netTotal;
+
+	//////////////////////////////////////////////////////////////////////////
+
+	double newTotal = 0.0;
+	for (std::map<int, NewItemInfo>::iterator it = m_newItems.begin(), ite = m_newItems.end(); it != ite; ++it)
+	{
+		const NewItemInfo& ni = it->second;
+		newTotal += (ni.itemPrice * ni.quantity);
+	}
+
+	m_newSubTotal = newTotal;
+
+	double newNetTotal = newTotal;
+	newNetTotal = newNetTotal + (newNetTotal * m_newInterest * 0.01);
+	m_newTotal = newNetTotal;
 }
 
 void ES::ReturnBill::setInterest(QString interest)
@@ -302,4 +330,27 @@ bool ES::ReturnBill::updateNewItemQuantity(long rowId, QString qtyStr)
 		return true;
 	}
 	return false;
+}
+
+void ES::ReturnBill::setNewInterest(QString interest)
+{
+	if (!interest.isEmpty())
+	{
+		m_newInterest = interest.toDouble();
+	}
+	else
+	{
+		m_newInterest = 0;
+	}
+	calculateTotal();
+}
+
+double ES::ReturnBill::getNewSubTotal()
+{
+	return m_newSubTotal;
+}
+
+double ES::ReturnBill::getNewTotal()
+{
+	return m_newTotal;
 }

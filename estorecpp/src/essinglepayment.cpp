@@ -15,7 +15,8 @@
 #include <memory>
 #include "utility\utility.h"
 
-ESSinglePayment::ESSinglePayment(ESAddBill* addBill, QWidget *parent /*= 0*/) : QWidget(parent), m_addBill(addBill)
+ESSinglePayment::ESSinglePayment(ESAddBill* addBill, QWidget *parent /*= 0*/, bool isReturnBill) : 
+QWidget(parent), m_addBill(addBill), m_isReturnBill(isReturnBill)
 {
 	m_customerId = "-1";
 	ui.setupUi(this);
@@ -584,7 +585,10 @@ void ESSinglePayment::finishBill(double netAmount, int billId)
 			}
 		}
 
-		m_addBill->resetBill();
+		if (m_addBill)
+		{
+			m_addBill->resetBill();
+		}
 
 		if (ui.doPrintCB->isChecked())
 		{

@@ -20,12 +20,15 @@ public:
 	void slotSelect();
 	void slotItemDoubleClicked(int row, int col);
 	void slotRemove(QString itemCode);
+	void slotRemoveNewItem(int rowId);
 	void slotPrintReturnBill();
 	void slotQuantityCellUpdated(QString, int, int);
 	void slotNewItemQuantityCellUpdated(QString, int, int);
 	void slotInterestChanged();
+	void slotNewInterestChanged();
 	void slotShowAddItem();
 	void slotStartBill();
+	void slotCommit();
 
 	void slotPrint(QPrinter* printer);
 
@@ -39,6 +42,7 @@ private:
 
 	Ui::ReturnItems ui;
 	QSignalMapper* m_removeButtonSignalMapper;
+	QSignalMapper* m_removeNewItemButtonSignalMapper;
 	int m_idGenerator;
 	KDReports::Report report;
 	int m_oldBillId;
