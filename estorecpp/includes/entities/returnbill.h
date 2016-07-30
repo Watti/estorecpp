@@ -10,7 +10,7 @@ namespace ES
 	class ReturnBill
 	{
 	public:
-		struct BillInfo
+		struct ReturnItemInfo
 		{
 			QString itemCode;
 			QString itemName;
@@ -21,6 +21,15 @@ namespace ES
 			QString date;
 			double billedQuantity;
 		};
+		struct NewItemInfo
+		{
+			long stockId;
+			QString itemCode;
+			QString itemName;
+			double itemPrice;
+			double quantity;
+			double discount;
+		};
 
 		ReturnBill();
 		~ReturnBill();
@@ -30,15 +39,16 @@ namespace ES
 
 		bool isStarted() const { return m_started; }
 		bool addReturnItem(QString oldBillId, QString itemCode);
-		void addNewItem();
+		void addNewItem(QString stockId);
 		void setInterest(QString interest);
 		bool updateItemQuantity(long rowId, QString qtyStr, double& billedQty, double& returnPrice);
+		bool updateNewItemQuantity(long rowId, QString qtyStr);
 
 		void removeReturnItem(QString rowId);
 		void removeNewItem(QString rowId);
 
-		const std::map<int, BillInfo>& getReturnItemTable() const;
-		const std::map<int, BillInfo>& getNewItemTable() const;
+		const std::map<int, ReturnItemInfo>& getReturnItemTable() const;
+		const std::map<int, NewItemInfo>& getNewItemTable() const;
 
 		double getSubTotal();
 		double getTotal();
@@ -47,12 +57,13 @@ namespace ES
 		void cancel();
 
 		long getBillId() const { return m_billId; }
+		long getOldBillId() const { return m_oldBillId; }
 
 	private:
 		void calculateTotal();
 		
-		std::map<int,BillInfo> m_returnItems;
-		std::map<int,BillInfo> m_newItems;
+		std::map<int,ReturnItemInfo> m_returnItems;
+		std::map<int,NewItemInfo> m_newItems;
 		bool m_started;
 		long m_oldBillId;
 		long m_billId;

@@ -14,6 +14,7 @@ public:
 	ESReturnItems(QWidget *parent = 0);
 	~ESReturnItems();
 	Ui::ReturnItems& getUI();
+	void updateNewItemTable();
 
 	public slots:
 	void slotSelect();
@@ -21,11 +22,15 @@ public:
 	void slotRemove(QString itemCode);
 	void slotPrintReturnBill();
 	void slotQuantityCellUpdated(QString, int, int);
+	void slotNewItemQuantityCellUpdated(QString, int, int);
 	void slotInterestChanged();
 	void slotShowAddItem();
 	void slotStartBill();
 
 	void slotPrint(QPrinter* printer);
+
+protected:
+	void keyPressEvent(QKeyEvent* evt);
 
 private:
 	void showTotal();

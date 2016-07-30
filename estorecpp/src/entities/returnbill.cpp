@@ -107,7 +107,7 @@ bool ES::ReturnBill::addReturnItem(QString oldBillId, QString itemCode)
 		str.append(oldBillId);
 		str.append(" AND b.deleted = 0");
 
-		BillInfo bi;
+		ReturnItemInfo bi;
 		QSqlQuery q3(str);
 		if (q3.next())
 		{
@@ -140,9 +140,49 @@ bool ES::ReturnBill::addReturnItem(QString oldBillId, QString itemCode)
 	return true;
 }
 
-void ES::ReturnBill::addNewItem()
+void ES::ReturnBill::removeReturnItem(QString rowId)
 {
+	std::map<int, ReturnItemInfo>::iterator iter = m_returnItems.find(rowId.toInt());
+	if (iter != m_returnItems.end())
+	{
+		m_returnItems.erase(iter);
+	}
+	calculateTotal();
+}
 
+void ES::ReturnBill::addNewItem(QString stockId)
+{
+	QSqlQuery queryStock("SELECT item_id, discount, selling_price FROM stock WHERE stock_id = " + stockId);
+	if (queryStock.next())
+	{
+		QString itemId = queryStock.value("item_id").toString();
+		double discount = queryStock.value("discount").toDouble();
+		double itemPrice = queryStock.value("selling_price").toDouble();
+		
+		NewItemInfo ni;
+		ni.stockId = stockId.toLong();
+		ni.itemPrice = itemPrice;
+		ni.discount = discount;
+		
+		QSqlQuery itemQ("SELECT * FROM item WHERE item_id=" + itemId);
+		if (itemQ.next())
+		{
+			ni.itemCode = itemQ.value("item_code").toString();
+			ni.itemName = itemQ.value("item_name").toString();
+		}
+		m_newItems[m_newItemsIDGenerator++] = ni;
+	}
+	calculateTotal();
+}
+
+void ES::ReturnBill::removeNewItem(QString rowId)
+{
+	std::map<int, NewItemInfo>::iterator iter = m_newItems.find(rowId.toInt());
+	if (iter != m_newItems.end())
+	{
+		m_newItems.erase(iter);
+	}
+	calculateTotal();
 }
 
 void ES::ReturnBill::commit()
@@ -155,12 +195,12 @@ void ES::ReturnBill::cancel()
 	// todo - set bill status 'cancel'
 }
 
-const std::map<int, ES::ReturnBill::BillInfo>& ES::ReturnBill::getReturnItemTable() const
+const std::map<int, ES::ReturnBill::ReturnItemInfo>& ES::ReturnBill::getReturnItemTable() const
 {
 	return m_returnItems;
 }
 
-const std::map<int, ES::ReturnBill::BillInfo>& ES::ReturnBill::getNewItemTable() const
+const std::map<int, ES::ReturnBill::NewItemInfo>& ES::ReturnBill::getNewItemTable() const
 {
 	return m_newItems;
 }
@@ -179,9 +219,9 @@ void ES::ReturnBill::calculateTotal()
 {
 	double total = 0.0;
 
-	for (std::map<int, BillInfo>::iterator it = m_returnItems.begin(), ite = m_returnItems.end(); it != ite; ++it)
+	for (std::map<int, ReturnItemInfo>::iterator it = m_returnItems.begin(), ite = m_returnItems.end(); it != ite; ++it)
 	{
-		const BillInfo& bi = it->second;
+		const ReturnItemInfo& bi = it->second;
 		total += bi.returnPrice;
 	}
 
@@ -209,27 +249,12 @@ void ES::ReturnBill::setInterest(QString interest)
 	calculateTotal();
 }
 
-void ES::ReturnBill::removeReturnItem(QString rowId)
-{
-	std::map<int, BillInfo>::iterator iter = m_returnItems.find(rowId.toInt());
-	if (iter != m_returnItems.end())
-	{
-		m_returnItems.erase(iter);
-	}
-	calculateTotal();
-}
-
-void ES::ReturnBill::removeNewItem(QString rowId)
-{
-
-}
-
 bool ES::ReturnBill::updateItemQuantity(long rowId, QString qtyStr, double& billedQty, double& returnPrice)
 {
-	std::map<int, BillInfo>::iterator iter = m_returnItems.find(rowId);
+	std::map<int, ReturnItemInfo>::iterator iter = m_returnItems.find(rowId);
 	if (iter != m_returnItems.end())
 	{
-		BillInfo& bi = iter->second;
+		ReturnItemInfo& bi = iter->second;
 		double qty = qtyStr.toDouble();
 
 		if (bi.billedQuantity < qty || qty <= 0.0)
@@ -243,6 +268,37 @@ bool ES::ReturnBill::updateItemQuantity(long rowId, QString qtyStr, double& bill
 		returnPrice = bi.returnPrice;
 		calculateTotal();
 		
+		return true;
+	}
+	return false;
+}
+
+bool ES::ReturnBill::updateNewItemQuantity(long rowId, QString qtyStr)
+{
+	std::map<int, NewItemInfo>::iterator iter = m_newItems.find(rowId);
+	if (iter != m_newItems.end())
+	{
+		NewItemInfo& ni = iter->second;
+		bool valid = false;
+		double requestedQty = qtyStr.toDouble(&valid);
+		if (!valid)
+		{
+			return false;
+		}
+
+		QSqlQuery query("SELECT qty FROM stock stock_id = " + ni.stockId);
+		if (query.first())
+		{
+			double currentQty = query.value("qty").toDouble();
+			if (requestedQty > currentQty)
+			{
+				return false;
+			}
+		}
+
+		ni.quantity = requestedQty;
+		calculateTotal();
+
 		return true;
 	}
 	return false;
