@@ -67,7 +67,7 @@ void ESCustomerOutstanding::slotSearchCustomers()
 		ui.customers->insertRow(row);
 
 		QString customerId = q.value("customer_id").toString();
-		double outstandingAmount = getTotalOutstanding(customerId);
+		double outstandingAmount = ES::Utility::getTotalCreditOutstanding(customerId);
 
 		QColor rowColor;
 		if (outstandingAmount > 0)
@@ -154,8 +154,10 @@ void ESCustomerOutstanding::slotPay(QString customerId)
 		if (userQ.next())
 		{
 			ESLatePayment* latePayment = new ESLatePayment(0);
+			latePayment->setCustomerId(customerId);
 			latePayment->getUI().cashierName->setText(ES::Session::getInstance()->getUser()->getName());
 			latePayment->getUI().customerName->setText(userQ.value("name").toString());
+
 			float creditOutstanding = ES::Utility::getTotalCreditOutstanding(customerId);
 			latePayment->getUI().currentOutstandingCash->setText(QString::number(creditOutstanding, 'f', 2));
 			latePayment->getUI().remainingAmountCash->setText(QString::number(creditOutstanding, 'f', 2));
