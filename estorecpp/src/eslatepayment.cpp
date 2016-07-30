@@ -3,6 +3,18 @@
 #include "entities\tabletextwidget.h"
 #include "QMessageBox"
 #include "escutomeroutstanding.h"
+#include "KDReportsTableElement.h"
+#include "KDReportsUnit.h"
+#include "KDReportsCell.h"
+#include "KDReportsTextElement.h"
+#include "utility\session.h"
+#include "utility\utility.h"
+#include "KDReportsHtmlElement.h"
+#include "QPrintPreviewDialog"
+#include "QPrinter"
+#include "utility\esmainwindowholder.h"
+#include "QMainWindow"
+#include "esmainwindow.h"
 
 namespace
 {
@@ -28,6 +40,7 @@ ESLatePayment::~ESLatePayment()
 
 void ESLatePayment::slotOk()
 {
+	float outstandingTotal = 0;
 	bool valid = false;
 	bool isCheque = false;
 	QString chNo = "", dueDate = "", bank = "", remarks = "";
@@ -72,13 +85,14 @@ void ESLatePayment::slotOk()
 	if (queryOutstanding.next())
 	{
 		float currentOutstanding = queryOutstanding.value("current_outstanding").toFloat();
+		outstandingTotal = currentOutstanding;
 		if (payingAmount > currentOutstanding)
 		{
 			payingAmount = currentOutstanding;
 		}
 		float newOutstanding = currentOutstanding - payingAmount;
 		QSqlQuery qOutstandingUpdate;
-		QString updateQryStr("UPDATE customer_outstanding SET current_outstanding = " + QString::number(newOutstanding)+" WHERE customer_id = "+m_customerId);
+		QString updateQryStr("UPDATE customer_outstanding SET current_outstanding = " + QString::number(newOutstanding) + " WHERE customer_id = " + m_customerId);
 		if (qOutstandingUpdate.exec(updateQryStr))
 		{
 			if (isCheque)
@@ -94,11 +108,127 @@ void ESLatePayment::slotOk()
 					mbox.exec();
 				}
 			}
-			if (ui.doPrintCB->isChecked())
-			{
-				//print the bill
+			//print the bill
 
+			QString dateStr = "Date : ";
+			dateStr.append(QDateTime::currentDateTime().toString("yyyy-MM-dd"));
+			QString timeStr = "Time : ";
+			timeStr.append(QDateTime::currentDateTime().toString("hh : mm"));
+
+			KDReports::TableElement infoTableElement;
+			infoTableElement.setHeaderRowCount(2);
+			infoTableElement.setHeaderColumnCount(2);
+			infoTableElement.setBorder(0);
+			infoTableElement.setWidth(100, KDReports::Percent);
+
+			{
+				KDReports::Cell& userNameCell = infoTableElement.cell(0, 0);
+				KDReports::TextElement t("Customer : " + ui.customerName->text());
+				t.setPointSize(10);
+				userNameCell.addElement(t, Qt::AlignLeft);
 			}
+			{
+				QString userName = ES::Session::getInstance()->getUser()->getName();
+
+				KDReports::Cell& userNameCell = infoTableElement.cell(1, 0);
+				KDReports::TextElement t("Cashier : " + userName);
+				t.setPointSize(10);
+				userNameCell.addElement(t, Qt::AlignLeft);
+			}{
+				KDReports::Cell& dateCell = infoTableElement.cell(0, 1);
+				KDReports::TextElement t(dateStr);
+				t.setPointSize(10);
+				dateCell.addElement(t, Qt::AlignRight);
+			}{
+				KDReports::Cell& timeCell = infoTableElement.cell(1, 1);
+				KDReports::TextElement t(timeStr);
+				t.setPointSize(10);
+				timeCell.addElement(t, Qt::AlignRight);
+			}
+
+			report.addElement(infoTableElement);
+
+			KDReports::HtmlElement htmlElem;
+			QString htm("<div><hr/></div>");
+			htmlElem.setHtml(htm);
+			report.addElement(htmlElem);
+
+			{
+				KDReports::TextElement titleElement("Credit Payment Receipt");
+				titleElement.setPointSize(12);
+				titleElement.setBold(true);
+				report.addElement(titleElement, Qt::AlignCenter);
+			}
+
+			report.addElement(htmlElem);
+			report.addVerticalSpacing(2);
+			int pointSizeForPayement = 10;
+			{
+				KDReports::TextElement textElm("Amount Paid : " + QString::number(payingAmount, 'f', 2));
+				textElm.setPointSize(pointSizeForPayement);
+				textElm.setBold(true);
+				report.addElement(textElm, Qt::AlignLeft);
+			}
+			report.addVerticalSpacing(2);
+			{
+				KDReports::TextElement textElm("Current Due : " + QString::number((outstandingTotal - payingAmount), 'f', 2));
+				textElm.setPointSize(9);
+				textElm.setBold(false);
+				report.addElement(textElm, Qt::AlignLeft);
+			}
+
+			report.addVerticalSpacing(1);
+
+			KDReports::TextElement customerInfo2("Thank You!");
+			customerInfo2.setPointSize(8);
+			report.addElement(customerInfo2, Qt::AlignCenter);
+
+			KDReports::Header& header = report.header(KDReports::FirstPage);
+
+
+			QString titleStr = ES::Session::getInstance()->getBillTitle();
+			{
+				KDReports::TextElement element(titleStr);
+				element.setPointSize(13);
+				element.setBold(false);
+				header.addElement(element, Qt::AlignCenter);
+			}
+			QString addressStr = ES::Session::getInstance()->getBillAddress();
+			{
+				KDReports::TextElement element(addressStr);
+				element.setPointSize(10);
+				element.setBold(false);
+				header.addElement(element, Qt::AlignCenter);
+			}
+			QString phoneStr = ES::Session::getInstance()->getBillPhone();
+			{
+				KDReports::TextElement element(phoneStr);
+				element.setPointSize(10);
+				element.setBold(false);
+				header.addElement(element, Qt::AlignCenter);
+			}
+
+			QString emailStr = ES::Session::getInstance()->getBillEmail();
+			if (emailStr != "")
+			{
+				KDReports::TextElement emailElement(emailStr);
+				emailElement.setPointSize(10);
+				emailElement.setBold(false);
+				header.addElement(emailElement, Qt::AlignCenter);
+			}
+
+			QPrinter printer;
+			printer.setPaperSize(QPrinter::Custom);
+			printer.setFullPage(false);
+			printer.setOrientation(QPrinter::Portrait);
+
+			//preview start
+			QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
+			QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
+			dialog->setWindowTitle(tr("Print Document"));
+			ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
+			dialog->exec();
+			//preview end
 		}
 		else
 		{
@@ -108,9 +238,7 @@ void ESLatePayment::slotOk()
 			mbox.exec();
 			return;
 		}
-		ESCustomerOutstanding* parent = static_cast<ESCustomerOutstanding*>(parent);
-		if (parent)
-			parent->slotSearchCustomers();
+		
 		this->close();
 	}
 }
@@ -148,4 +276,9 @@ void ESLatePayment::slotCalculateChequeBalance()
 		float remainingAmount = ui.currentOutstandingCheque->text().toFloat() - payingAmount;
 		ui.remainingAmountCheque->setText(QString::number(remainingAmount, 'f', 2));
 	}
+}
+
+void ESLatePayment::slotPrint(QPrinter* printer)
+{
+	report.print(printer);
 }
