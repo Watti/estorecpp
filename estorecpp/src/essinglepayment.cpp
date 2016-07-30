@@ -276,8 +276,9 @@ void ESSinglePayment::handleChequePayment(int billId, double netAmount)
 		}
 		else
 		{
-			QString qStr("INSERT INTO cheque_information (customer_id, cheque_number, bank, due_date) VALUES (" + 
-				m_customerId + ",'" + chequeNo + "','" + bank + "','" + dueDate + "')");
+			float chequeAmount = initialNetAmount.toFloat() * ((100 + interest) / 100);
+			QString qStr("INSERT INTO cheque_information (customer_id, cheque_number, bank, due_date, amount) VALUES (" + 
+				m_customerId + ",'" + chequeNo + "','" + bank + "','" + dueDate +"', '"+ QString::number(chequeAmount)+"')");
 			QSqlQuery outstandingQry;
 			if (!outstandingQry.exec(qStr))
 			{

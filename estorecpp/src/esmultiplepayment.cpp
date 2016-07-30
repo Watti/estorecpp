@@ -571,6 +571,7 @@ void ESMultiplePayment::slotFinalizeBill()
 				if (query.exec())
 				{
 					int lastInsertedId = query.lastInsertId().toInt();
+					float interest = ui.tableWidget->item(i, 2)->text().toFloat();
 					QSqlQuery q;
 					q.prepare("INSERT INTO cheque (payment_id, amount, interest, cheque_number, bank, due_date) VALUES (?, ?, ?, ?, ?, ?)");
 					q.addBindValue(lastInsertedId);
@@ -588,8 +589,9 @@ void ESMultiplePayment::slotFinalizeBill()
 					}
 					else
 					{
-						QString qStr("INSERT INTO cheque_information (customer_id, cheque_number, bank, due_date) VALUES (" +
-							m_customerId + ",'" + ui.tableWidget->item(i, 5)->text() + "','" + ui.tableWidget->item(i, 6)->text() + "','" + ui.tableWidget->item(i, 4)->text() + "')");
+						float chequeAmount = amount * ((100 + interest) / 100);
+						QString qStr("INSERT INTO cheque_information (customer_id, cheque_number, bank, due_date, amount) VALUES (" +
+							m_customerId + ",'" + ui.tableWidget->item(i, 5)->text() + "','" + ui.tableWidget->item(i, 6)->text() + "','" + ui.tableWidget->item(i, 4)->text() +"', '"+ QString::number(chequeAmount)+"')");
 						QSqlQuery outstandingQry;
 						if (!outstandingQry.exec(qStr))
 						{
