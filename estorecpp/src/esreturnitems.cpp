@@ -16,6 +16,10 @@
 #include "QMainWindow"
 #include "esmainwindow.h"
 #include "entities\tabletextwidget.h"
+#include "QApplication"
+#include "QDesktopWidget"
+#include "esaddbillitem2.h"
+#include "QShortcut"
 
 QString convertToQuantityFormat(QString text, int row, int col, QTableWidget* table)
 {
@@ -30,13 +34,14 @@ ESReturnItems::ESReturnItems(QWidget *parent /*= 0*/) : QWidget(parent), m_total
 
 	m_removeButtonSignalMapper = new QSignalMapper(this);
 	m_idGenerator = 0;
-	m_billId = -1;
+	m_oldBillId = -1;
 
 	QObject::connect(ui.selectBtn, SIGNAL(clicked()), this, SLOT(slotSelect()));
-	QObject::connect(ui.printBtn, SIGNAL(clicked()), this, SLOT(slotPrintReturnBill()));
+	//QObject::connect(ui.printBtn, SIGNAL(clicked()), this, SLOT(slotPrintReturnBill()));
 	QObject::connect(ui.tableWidget, SIGNAL(cellClicked(int, int)), this, SLOT(slotItemDoubleClicked(int, int)));
 	QObject::connect(m_removeButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotRemove(QString)));
 	QObject::connect(ui.interestText, SIGNAL(textChanged(QString)), this, SLOT(slotInterestChanged()));
+	QObject::connect(ui.addItemBtn, SIGNAL(clicked()), this, SLOT(slotShowAddItem()));
 
 	if (!ES::DbConnection::instance()->open())
 	{
@@ -67,10 +72,31 @@ ESReturnItems::ESReturnItems(QWidget *parent /*= 0*/) : QWidget(parent), m_total
 	ui.tableWidget->hideColumn(8);
 	ui.tableWidget->hideColumn(9);
 
-	ui.billIdLbl->setText("N/A");
-	ui.totalLbl->setText("0.00");
+	QStringList headerLabels2;
+	headerLabels2.append("Code");
+	headerLabels2.append("Item");
+	headerLabels2.append("Price");
+	headerLabels2.append("Qty");
+	headerLabels2.append("Discount");
+	headerLabels2.append("Sub Total");
+	headerLabels2.append("Actions");
+	headerLabels2.append("Sale_ID");
 
-	ui.itemCode->setFocus();
+	ui.billTableWidget->setHorizontalHeaderLabels(headerLabels2);
+	ui.billTableWidget->horizontalHeader()->setStretchLastSection(true);
+	ui.billTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+	ui.billTableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	ui.billTableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
+	ui.billTableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+	ui.billTableWidget->hideColumn(7);
+
+	ui.billIdLbl->setText("N/A");
+	ui.subTotalLbl->setText("0.00");
+
+	new QShortcut(QKeySequence(Qt::Key_F4), this, SLOT(slotShowAddItem()));
+	new QShortcut(QKeySequence(Qt::Key_F3), this, SLOT(slotStartNewBill()));
+
+	ui.billIdSearchText->setFocus();
 }
 
 ESReturnItems::~ESReturnItems()
@@ -83,230 +109,6 @@ Ui::ReturnItems& ESReturnItems::getUI()
 	return ui;
 }
 
-void ESReturnItems::slotAddReturnedItem()
-{
-	/*	QString iName = ui.itemName->text();
-		QString iCode = ui.itemCode->text();
-		QString remarks = ui.remarks->toPlainText();
-		//QString catId = ui.itemCategoryComboBox->itemData(ui.itemCategoryComboBox->currentIndex()).toString();
-		QString iPrice = ui.itemPrice->text();
-		QString qty = ui.qtyText->text();
-
-		if (iCode == nullptr || iCode.isEmpty() ||
-		qty == nullptr || qty.isEmpty() || iPrice == nullptr || iPrice.isEmpty())
-		{
-		QMessageBox mbox;
-		mbox.setIcon(QMessageBox::Warning);
-		mbox.setText(QString("Following fields should not be empty : Item Code, Item Name, Unit, Category, Item Price"));
-		mbox.exec();
-		return;
-		}
-		if (qty.toDouble() <= 0)
-		{
-		QMessageBox mbox;
-		mbox.setIcon(QMessageBox::Critical);
-		mbox.setText(QString("Invalid value for Quantity"));
-		mbox.exec();
-		return;
-		}
-		QString q("SELECT * FROM item WHERE item_code = '" + iCode + "'");
-		QSqlQuery query(q);
-		if (query.next())
-		{
-		QString itemId = query.value("item_id").toString();
-		q = "SELECT * FROM stock WHERE item_id = " + itemId;
-		query.exec(q);
-		if (query.first())
-		{
-		double currentQty = query.value("qty").toDouble();
-		double currentPrice = query.value("selling_price").toDouble();
-
-		bool isValid = false;
-		double returnedItemPrice = iPrice.toDouble(&isValid);
-		if (!isValid)
-		{
-		QMessageBox mbox;
-		mbox.setIcon(QMessageBox::Critical);
-		mbox.setText(QString("Price should be a number"));
-		mbox.exec();
-		return;
-		}
-		// 			if (returnedItemPrice != currentPrice)
-		// 			{
-		// 				ES::Utility::verifyUsingMessageBox(this, "Return Item", "Price of this item doesn't match with the stock. Do you want to proceed with this price? ");
-		// 				QMessageBox mbox;
-		// 				mbox.setIcon(QMessageBox::Warning);
-		// 				mbox.setText(QString("Price of the returned Item does not match with the prices of the stock"));
-		// 				mbox.exec();
-		// 			}
-		isValid = false;
-		double retunedQty = qty.toDouble(&isValid);
-		if (!isValid)
-		{
-		QMessageBox mbox;
-		mbox.setIcon(QMessageBox::Critical);
-		mbox.setText(QString("Quantity should be a number"));
-		mbox.exec();
-		return;
-		}
-		//currentQty += retunedQty;
-		// 				q = "UPDATE stock set qty = "+QString::number(currentQty)+" WHERE item_id = "+itemId;
-		// 				if (!query.exec(q))
-		// 				{
-		// 					QMessageBox mbox;
-		// 					mbox.setIcon(QMessageBox::Critical);
-		// 					mbox.setText(QString("Error has been occurred while updating the stock quantity"));
-		// 					mbox.exec();
-		// 					LOG(ERROR) << "Failed update stock when return item handling query = "<<q.toLatin1().data();
-		// 				}
-		int uId = ES::Session::getInstance()->getUser()->getId();
-		q = "INSERT INTO return_item (item_id, item_price, user_id, remarks) VALUES (" + itemId + ", " + iPrice + ", " + QString::number(uId) + ",'" + remarks + "')";
-		if (!query.exec(q))
-		{
-		QMessageBox mbox;
-		mbox.setIcon(QMessageBox::Critical);
-		mbox.setText(QString("Error has been occurred while updating the stock quantity"));
-		mbox.exec();
-		LOG(ERROR) << "Failed to insert in to return table. query = " << q.toLatin1().data();
-		}
-		//TODO print the bill
-		if (ui.doPrintCB->isChecked())
-		{
-		printReturnItemInfo();
-		}
-
-		}
-
-		}
-		else
-		{
-		QMessageBox mbox;
-		mbox.setIcon(QMessageBox::Critical);
-		mbox.setText(QString("Invalid item code."));
-		mbox.exec();
-		return;
-		}
-		this->close();*/
-}
-
-
-void ESReturnItems::printReturnItemInfo()
-{
-	/*	KDReports::Report report;
-
-		QString titleStr = ES::Session::getInstance()->getBillTitle();
-		KDReports::TextElement titleElement(titleStr);
-		titleElement.setPointSize(14);
-		titleElement.setBold(true);
-		report.addElement(titleElement, Qt::AlignHCenter);
-
-		QString addressStr = ES::Session::getInstance()->getBillAddress();
-		KDReports::TextElement addressElement(addressStr);
-		addressElement.setPointSize(10);
-		addressElement.setBold(false);
-		report.addElement(addressElement, Qt::AlignHCenter);
-
-
-		QString phoneStr = ES::Session::getInstance()->getBillPhone();
-		KDReports::TextElement telElement(phoneStr);
-		telElement.setPointSize(10);
-		telElement.setBold(false);
-		report.addElement(telElement, Qt::AlignHCenter);
-
-		QString dateStr = "Date : ";
-		dateStr.append(QDateTime::currentDateTime().toString("yyyy-MM-dd"));
-		QString timeStr = "Time : ";
-		timeStr.append(QDateTime::currentDateTime().toString("hh : mm"));
-
-		KDReports::TableElement infoTableElement;
-		infoTableElement.setHeaderRowCount(2);
-		infoTableElement.setHeaderColumnCount(2);
-		infoTableElement.setBorder(0);
-		infoTableElement.setWidth(100, KDReports::Percent);
-
-		{
-		KDReports::Cell& userNameCell = infoTableElement.cell(1, 0);
-		KDReports::TextElement t("Cashier : " + ES::Session::getInstance()->getUser()->getName());
-		t.setPointSize(10);
-		userNameCell.addElement(t, Qt::AlignLeft);
-		}{
-		KDReports::Cell& dateCell = infoTableElement.cell(0, 1);
-		KDReports::TextElement t(dateStr);
-		t.setPointSize(10);
-		dateCell.addElement(t, Qt::AlignRight);
-		}{
-		KDReports::Cell& timeCell = infoTableElement.cell(1, 1);
-		KDReports::TextElement t(timeStr);
-		t.setPointSize(10);
-		timeCell.addElement(t, Qt::AlignRight);
-		}
-
-		report.addElement(infoTableElement);
-
-		KDReports::TextElement retTitleElement("Return Bill Summary");
-		retTitleElement.setPointSize(10);
-		retTitleElement.setBold(true);
-		report.addElement(retTitleElement, Qt::AlignHCenter);
-
-		report.addVerticalSpacing(5);
-
-
-		KDReports::HtmlElement htmlElem1;
-		QString htm1("<div><hr/></div>");
-		htmlElem1.setHtml(htm1);
-		report.addElement(htmlElem1);
-
-		{// Item Code
-		KDReports::TextElement telElement("Item Code : " + ui.itemCode->text());
-		telElement.setPointSize(12);
-		telElement.setBold(false);
-		report.addElement(telElement, Qt::AlignLeft);
-		}{// Item Name
-		QString itemCode = ui.itemCode->text();
-		QSqlQuery queryItem("SELECT item_name FROM item WHERE deleted = 0 AND item_code = '" + ui.itemCode->text()+"'");
-		if (queryItem.next())
-		{
-		QString itemName = queryItem.value("item_name").toString();
-		KDReports::TextElement telElement("Item Name : " + queryItem.value("item_name").toString());
-		telElement.setPointSize(12);
-		telElement.setBold(false);
-		report.addElement(telElement, Qt::AlignLeft);
-		}
-		}{// Quantity
-		KDReports::TextElement telElement("Quantity : " + ui.qtyText->text());
-		telElement.setPointSize(12);
-		telElement.setBold(false);
-		report.addElement(telElement, Qt::AlignLeft);
-		}{// Remarks
-		KDReports::TextElement telElement("Remarks : " + ui.remarks->toPlainText());
-		telElement.setPointSize(12);
-		telElement.setBold(false);
-		report.addElement(telElement, Qt::AlignLeft);
-		}{// Item Price
-		QString itemp = "-" + QString::number(ui.itemPrice->text().toDouble(), 'f', 2);
-		KDReports::TextElement telElement("Item Price : " + itemp);
-		telElement.setPointSize(12);
-		telElement.setBold(true);
-		report.addElement(telElement, Qt::AlignLeft);
-		}
-
-
-		QPrinter printer;
-		printer.setPaperSize(QPrinter::A4);
-
-		printer.setFullPage(false);
-		printer.setOrientation(QPrinter::Portrait);
-
-		// 	QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
-		// 	QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
-		// 	dialog->setWindowTitle(tr("Print Document"));
-		// 	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
-		// 	dialog->exec();
-
-		report.print(&printer);
-		*/
-}
-
 void ESReturnItems::slotPrint(QPrinter* printer)
 {
 	report.print(printer);
@@ -316,7 +118,7 @@ void ESReturnItems::slotPrint(QPrinter* printer)
 void ESReturnItems::slotPrintReturnBill()
 {
 	QString billedUser = "Billed Cashier : ";
-	QSqlQuery q("SELECT display_name FROM user JOIN bill ON user.user_id = bill.user_id WHERE bill.bill_id = " + QString::number(m_billId));
+	QSqlQuery q("SELECT display_name FROM user JOIN bill ON user.user_id = bill.user_id WHERE bill.bill_id = " + QString::number(m_oldBillId));
 	if (q.next())
 	{
 		billedUser.append(q.value("display_name").toString());
@@ -328,7 +130,7 @@ void ESReturnItems::slotPrintReturnBill()
 	report.addElement(titleElement, Qt::AlignHCenter);
 
 	QString billIdStr = "Bill ID : ";
-	billIdStr.append(QString::number(m_billId));
+	billIdStr.append(QString::number(m_oldBillId));
 	KDReports::TextElement addressElement(billIdStr);
 	addressElement.setPointSize(11);
 	addressElement.setBold(false);
@@ -423,7 +225,7 @@ void ESReturnItems::slotPrintReturnBill()
 	}
 
 	float returnedTotal = 0;
-	float billOutstanding = ES::Utility::getOutstandingForBill(m_billId);
+	float billOutstanding = ES::Utility::getOutstandingForBill(m_oldBillId);
 
 	row++; // sub total
 	{
@@ -552,7 +354,7 @@ void ESReturnItems::slotPrintReturnBill()
 			double total = returnQty * paidPrice * (100 + interest) / 100;
 			// bill_id, item_id, qty, paid_price, return_total, user_id
 			QSqlQuery q("INSERT INTO return_item (bill_id, item_id, qty, paid_price, return_total, user_id) VALUES (" +	
-				QString::number(m_billId) + "," +
+				QString::number(m_oldBillId) + "," +
 				itemQuery.value("item_id").toString() + "," +
 				QString::number(returnQty) + "," +
 				ui.tableWidget->item(i, 4)->text() + "," +
@@ -590,122 +392,13 @@ void ESReturnItems::slotPrintReturnBill()
 
 void ESReturnItems::slotSelect()
 {
-	QString itemCode = ui.itemCode->text();
-	QString billId = ui.billId->text();
+	QString itemCode = ui.itemCodeSearchText->text();
+	QString billId = ui.billIdSearchText->text();
 
-	if (m_billId == -1)
-	{
-		m_billId = billId.toInt();
-		ui.billIdLbl->setText(billId);
-	}
-	else
-	{
-		if (m_billId != billId.toInt())
-		{
-			QMessageBox mbox;
-			mbox.setIcon(QMessageBox::Critical);
-			mbox.setText(QString("A Return bill cannot have multiple bills. Please use separate return bill for this"));
-			mbox.exec();
-			return;
-		}
-	}
+	m_bill.addReturnItem(billId, itemCode);
+	updateReturnItemTable();
 
-	QSqlQuery pQ("SELECT payment_type FROM payment WHERE bill_id = " + billId);
-	if (pQ.next())
-	{
-		QString pm = pQ.value("payment_type").toString();
-		if (pm == "CREDIT" || pm == "CHEQUE")
-		{
-			m_hasInterest = true;
-		}
-	}
-
-	int itemId = -1;
-	QString itemName = "-1";
-	QSqlQuery q("SELECT item_id, item_name FROM item WHERE item_code = '" + itemCode + "'");
-	if (q.next())
-	{
-		itemId = q.value("item_id").toInt();
-		itemName = q.value("item_name").toString();
-	}
-	else
-	{
-		QMessageBox mbox;
-		mbox.setIcon(QMessageBox::Critical);
-		mbox.setText(QString("Invalid Item Code"));
-		mbox.exec();
-		return;
-	}
-
-	QSqlQuery q2("SELECT stock_id FROM stock WHERE item_id = " + QString::number(itemId));
-	if (q2.next())
-	{
-		QString str("SELECT b.* FROM sale b JOIN stock s ON b.stock_id = s.stock_id AND s.stock_id = ");
-		str.append(q2.value("stock_id").toString());
-		str.append(" WHERE b.bill_id = ");
-		str.append(billId);
-		str.append(" AND b.deleted = 0");
-
-		QSqlQuery q3(str);
-		if (q3.next())
-		{
-			int row = ui.tableWidget->rowCount();
-			ui.tableWidget->insertRow(row);
-			ui.tableWidget->setItem(row, 0, new QTableWidgetItem(itemCode));
-			ui.tableWidget->setItem(row, 1, new QTableWidgetItem(itemName));
-
-			double quantity = q3.value("quantity").toDouble();
-			QTableWidgetItem* qtyItem = new QTableWidgetItem(QString::number(quantity));
-			qtyItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-			ui.tableWidget->setItem(row, 2, qtyItem);
-
-			double itemPrice = q3.value("item_price").toDouble();
-			QTableWidgetItem* itemPriceItem = new QTableWidgetItem(QString::number(itemPrice, 'f', 2));
-			itemPriceItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-			ui.tableWidget->setItem(row, 3, itemPriceItem);
-
-			double discount = q3.value("discount").toDouble();
-			double paidPrice = itemPrice - (itemPrice * discount / 100.0);
-			QTableWidgetItem* paidPriceItem = new QTableWidgetItem(QString::number(paidPrice, 'f', 2));
-			paidPriceItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-			ui.tableWidget->setItem(row, 4, paidPriceItem);
-
-			double returnPrice = paidPrice * quantity;
-			QTableWidgetItem* retPriceItem = new QTableWidgetItem(QString::number(returnPrice, 'f', 2));
-			retPriceItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-			ui.tableWidget->setItem(row, 5, retPriceItem);
-
-			QDate d = q3.value("date").toDate();
-			QTableWidgetItem* dateItem = new QTableWidgetItem(d.toString("yyyy-MM-dd"));
-			dateItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-			ui.tableWidget->setItem(row, 6, dateItem);
-
-			QWidget* base = new QWidget(ui.tableWidget);
-
-			QPushButton* removeBtn = new QPushButton(base);
-			removeBtn->setIcon(QIcon("icons/delete.png"));
-			removeBtn->setIconSize(QSize(24, 24));
-			removeBtn->setMaximumWidth(100);
-
-			int rowId = m_idGenerator++;
-
-			m_removeButtonSignalMapper->setMapping(removeBtn, QString::number(rowId));
-			QObject::connect(removeBtn, SIGNAL(clicked()), m_removeButtonSignalMapper, SLOT(map()));
-
-			QHBoxLayout *layout = new QHBoxLayout;
-			layout->setContentsMargins(0, 0, 0, 0);
-			layout->addWidget(removeBtn);
-			layout->insertStretch(2);
-			base->setLayout(layout);
-			ui.tableWidget->setCellWidget(row, 7, base);
-			base->show();
-
-			ui.tableWidget->setItem(row, 8, new QTableWidgetItem(QString::number(rowId)));
-			ui.tableWidget->setItem(row, 9, new QTableWidgetItem(QString::number(quantity)));
-		}
-	}
-
-	calculateTotal();
+	showTotal();
 }
 
 void ESReturnItems::slotItemDoubleClicked(int row, int col)
@@ -731,20 +424,9 @@ void ESReturnItems::slotItemDoubleClicked(int row, int col)
 
 void ESReturnItems::slotRemove(QString rowId)
 {
-	for (int i = 0; i < ui.tableWidget->rowCount(); ++i)
-	{
-		QTableWidgetItem* item = ui.tableWidget->item(i, 8);
-		if (item)
-		{
-			if (item->text() == rowId)
-			{
-				ui.tableWidget->removeRow(i);
-				break;
-			}
-		}
-	}
-
-	calculateTotal();
+	m_bill.removeReturnItem(rowId);
+	updateReturnItemTable();
+	showTotal();
 }
 
 void ESReturnItems::slotQuantityCellUpdated(QString qtyStr, int row, int col)
@@ -775,38 +457,97 @@ void ESReturnItems::slotQuantityCellUpdated(QString qtyStr, int row, int col)
 	retPriceItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
 	ui.tableWidget->setItem(row, 5, retPriceItem);
 
-	calculateTotal();
+	showTotal();
 }
 
-void ESReturnItems::calculateTotal()
+void ESReturnItems::showTotal()
 {
-	double total = 0.0;
-
-	for (int i = 0; i < ui.tableWidget->rowCount(); ++i)
-	{
-		QTableWidgetItem* item = ui.tableWidget->item(i, 5);
-		if (item)
-		{
-			total += item->text().toDouble();
-		}
-	}
-
-	ui.totalLbl->setText(QString::number(total, 'f', 2));
-
-	double netTotal = total;
-	if (m_hasInterest)
-	{
-		if (!ui.interestText->text().isEmpty())
-		{
-			double interest = ui.interestText->text().toDouble();
-			netTotal = netTotal + (netTotal * interest * 0.01);
-		}
-	}
-
-	ui.totLbl->setText(QString::number(netTotal, 'f', 2));
+	ui.subTotalLbl->setText(QString::number(m_bill.getSubTotal(), 'f', 2));
+	ui.totLbl->setText(QString::number(m_bill.getTotal(), 'f', 2));
 }
 
 void ESReturnItems::slotInterestChanged()
 {
-	calculateTotal();
+	m_bill.setInterest(ui.interestText->text());
+	showTotal();
+}
+
+void ESReturnItems::updateReturnItemTable()
+{
+	while (ui.tableWidget->rowCount() > 0)
+	{
+		ui.tableWidget->removeRow(0);
+	}
+	const std::map<int, QStringList>& returnItems = m_bill.getReturnItemTable();
+	for (std::map<int, QStringList>::const_iterator it = returnItems.begin(), ite = returnItems.end(); it != ite; ++it)
+	{
+		int row = ui.tableWidget->rowCount();
+		ui.tableWidget->insertRow(row);
+
+		const QStringList& sl = it->second;
+
+		ui.tableWidget->setItem(row, 0, new QTableWidgetItem(sl[0]));
+		ui.tableWidget->setItem(row, 1, new QTableWidgetItem(sl[1]));
+
+		QTableWidgetItem* qtyItem = new QTableWidgetItem(sl[2]);
+		qtyItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+		ui.tableWidget->setItem(row, 2, qtyItem);
+
+		QTableWidgetItem* itemPriceItem = new QTableWidgetItem(sl[3]);
+		itemPriceItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+		ui.tableWidget->setItem(row, 3, itemPriceItem);
+
+		QTableWidgetItem* paidPriceItem = new QTableWidgetItem(sl[4]);
+		paidPriceItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+		ui.tableWidget->setItem(row, 4, paidPriceItem);
+
+		QTableWidgetItem* retPriceItem = new QTableWidgetItem(sl[5]);
+		retPriceItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+		ui.tableWidget->setItem(row, 5, retPriceItem);
+
+		QTableWidgetItem* dateItem = new QTableWidgetItem(sl[6]);
+		dateItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+		ui.tableWidget->setItem(row, 6, dateItem);
+		// 7 - add/remove buttons
+		QWidget* base = new QWidget(ui.tableWidget);
+
+		QPushButton* removeBtn = new QPushButton(base);
+		removeBtn->setIcon(QIcon("icons/delete.png"));
+		removeBtn->setIconSize(QSize(24, 24));
+		removeBtn->setMaximumWidth(100);
+		
+		m_removeButtonSignalMapper->setMapping(removeBtn, QString::number(it->first));
+		QObject::connect(removeBtn, SIGNAL(clicked()), m_removeButtonSignalMapper, SLOT(map()));
+
+		QHBoxLayout *layout = new QHBoxLayout;
+		layout->setContentsMargins(0, 0, 0, 0);
+		layout->addWidget(removeBtn);
+		layout->insertStretch(2);
+		base->setLayout(layout);
+		ui.tableWidget->setCellWidget(row, 7, base);
+		base->show();
+
+		ui.tableWidget->setItem(row, 8, new QTableWidgetItem(QString::number(it->first)));
+		ui.tableWidget->setItem(row, 9, new QTableWidgetItem(sl[7]));
+	}
+}
+
+void ESReturnItems::slotShowAddItem()
+{
+	QRect rec = QApplication::desktop()->screenGeometry();
+	int width = rec.width();
+	int height = rec.height();
+
+	width -= 200;
+	height -= 200;
+
+	ESAddBillItem2* addBillItem = new ESAddBillItem2(&m_bill, this);
+	addBillItem->resize(QSize(width, height));
+	addBillItem->setWindowState(Qt::WindowActive);
+	addBillItem->setWindowModality(Qt::ApplicationModal);
+	addBillItem->setAttribute(Qt::WA_DeleteOnClose);
+	addBillItem->setWindowFlags(Qt::CustomizeWindowHint | Qt::Window);
+	addBillItem->show();
+	addBillItem->setFocus();
+	addBillItem->focus();
 }

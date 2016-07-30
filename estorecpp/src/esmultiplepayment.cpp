@@ -545,6 +545,13 @@ void ESMultiplePayment::slotFinalizeBill()
 						mbox.setText(QString("Failed"));
 						mbox.exec();
 					}
+					else
+					{
+						double outstandingAmount = ES::Utility::getOutstandingTotalFromSales(m_customerId);
+						outstandingAmount += amount;
+
+						ES::Utility::updateOutstandingAmount(m_customerId, outstandingAmount);
+					}
 				}
 				else
 				{
@@ -577,6 +584,19 @@ void ESMultiplePayment::slotFinalizeBill()
 						mbox.setIcon(QMessageBox::Critical);
 						mbox.setText(QString("Failed"));
 						mbox.exec();
+					}
+					else
+					{
+						QString qStr("INSERT INTO cheque_information (customer_id, cheque_number, bank, due_date) VALUES (" +
+							m_customerId + ",'" + ui.tableWidget->item(i, 5)->text() + "','" + ui.tableWidget->item(i, 6)->text() + "','" + ui.tableWidget->item(i, 4)->text() + "')");
+						QSqlQuery outstandingQry;
+						if (!outstandingQry.exec(qStr))
+						{
+							QMessageBox mbox;
+							mbox.setIcon(QMessageBox::Critical);
+							mbox.setText(QString("Failed to add cheque information"));
+							mbox.exec();
+						}
 					}
 				}
 				else

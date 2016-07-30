@@ -41,6 +41,7 @@ public slots:
 	void slotAddCustomer();
 	void slotViewCustomerHistory();
 	void slotViewCustomerOutstanding();
+	void slotCustomerCheques();
 	void slotManageUsers();
 	void slotPettyCashSummary();
 
