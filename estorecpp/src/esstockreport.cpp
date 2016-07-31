@@ -37,7 +37,7 @@ ESStockReport::ESStockReport(QWidget *parent /*= 0*/) : QWidget(parent)
 		ui.tableWidget->removeRow(0);
 	}
 	QString maxRows = ui.maxRows->text();
-	QSqlQuery q("SELECT stock.qty, stock.min_qty, item.item_code FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 LIMIT " + maxRows);
+	QSqlQuery q("SELECT stock.qty, stock.min_qty, item.item_code FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0  AND stock.qty <= stock.min_qty LIMIT " + maxRows);
 	while (q.next())
 	{
 		int row = ui.tableWidget->rowCount();
@@ -120,15 +120,15 @@ void ESStockReport::slotGenerate()
 		report.addVerticalSpacing(1);
 
 		// Add a text element for the title
-		KDReports::TextElement titleElement(qq.value("report_title").toString());
+		KDReports::TextElement titleElement("Stock Item Re-Order Report");
 		titleElement.setPointSize(15);
 		report.addElement(titleElement, Qt::AlignHCenter);
 
 		report.addVerticalSpacing(2);
 
-		QString dateStr = qq.value("report_date").toString().append(" : ");
+		QString dateStr = "Date : ";
 		dateStr.append(QDateTime::currentDateTime().toString("yyyy-MM-dd"));
-		QString timeStr = qq.value("report_time").toString().append(" : ");
+		QString timeStr = "Time : ";
 		timeStr.append(QDateTime::currentDateTime().toString("hh : mm"));
 
 		KDReports::TextElement date(dateStr);
@@ -141,7 +141,7 @@ void ESStockReport::slotGenerate()
 
 		KDReports::TableElement tableElement;
 		tableElement.setHeaderRowCount(5);
-		tableElement.setHeaderColumnCount(5);
+		tableElement.setHeaderColumnCount(4);
 		tableElement.setBorder(1);
 		tableElement.setWidth(100, KDReports::Percent);
 
@@ -155,11 +155,11 @@ void ESStockReport::slotGenerate()
 		if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
 			ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
 		{
-			qStr = "SELECT stock.qty, stock.min_qty, item.item_code, item.item_name FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 LIMIT " + maxRows;
+			qStr = "SELECT stock.qty, stock.min_qty, item.item_code, item.item_name FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 AND stock.qty <= stock.min_qty";
 		}
 		else
 		{
-			qStr = "SELECT stock.qty, stock.min_qty, item.item_code, item.item_name FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 AND stock.visible = '0' LIMIT " + maxRows;
+			qStr = "SELECT stock.qty, stock.min_qty, item.item_code, item.item_name FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 AND stock.visible = '0' AND stock.qty <= stock.min_qty";
 		}
 		QSqlQuery q(qStr);
 		while (q.next())
@@ -171,40 +171,39 @@ void ESStockReport::slotGenerate()
 				QStringList colList = cols.split(",");
 
 				KDReports::Cell& c1 = tableElement.cell(row, 0);
-				KDReports::TextElement t1(colList.at(0));
+				KDReports::TextElement t1("Code");
 				t1.setPointSize(12);
 				//t1.setTextColor(Qt::gray);
 				c1.addElement(t1);
 
 				KDReports::Cell& c21 = tableElement.cell(row, 1);
-				KDReports::TextElement t21(colList.at(1));
+				KDReports::TextElement t21("Item");
 				t21.setPointSize(12);
 				//t2.setTextColor(Qt::gray);
 				c21.addElement(t21);
 
 				KDReports::Cell& c2 = tableElement.cell(row, 2);
-				KDReports::TextElement t2(colList.at(2));
+				KDReports::TextElement t2("Qty");
 				t2.setPointSize(12);
 				//t2.setTextColor(Qt::gray);
 				c2.addElement(t2);
 
 				KDReports::Cell& c3 = tableElement.cell(row, 3);
-				KDReports::TextElement t3(colList.at(3));
+				KDReports::TextElement t3("Min. Qty");
 				t3.setPointSize(12);
 				//t3.setTextColor(Qt::gray);
 				c3.addElement(t3);
 
 				KDReports::Cell& c4 = tableElement.cell(row, 4);
-				KDReports::TextElement t4(colList.at(4));
+				KDReports::TextElement t4("Status");
 				t4.setPointSize(12);
 				//t4.setTextColor(Qt::gray);
 				c4.addElement(t4);
 
-				KDReports::Cell& c5 = tableElement.cell(row, 5);
-				KDReports::TextElement t5(colList.at(5));
-				t5.setPointSize(12);
-				//t5.setTextColor(Qt::gray);
-				c5.addElement(t5);
+// 				KDReports::Cell& c5 = tableElement.cell(row, 5);
+// 				KDReports::TextElement t5(colList.at(5));
+// 				t5.setPointSize(12);
+// 				c5.addElement(t5);
 
 				headerPrinted = true;
 			}
@@ -264,11 +263,11 @@ void ESStockReport::slotGenerate()
 				t4.setPointSize(12);
 				if (excess < 0) t4.setTextColor(Qt::red);
 				c4.addElement(t4);
-				KDReports::Cell& c5 = tableElement.cell(row, 5);
-				KDReports::TextElement t5(reorder);
-				t5.setPointSize(12);
-				if (excess < 0) t5.setTextColor(Qt::red);
-				c5.addElement(t5);
+// 				KDReports::Cell& c5 = tableElement.cell(row, 5);
+// 				KDReports::TextElement t5(reorder);
+// 				t5.setPointSize(12);
+// 				if (excess < 0) t5.setTextColor(Qt::red);
+// 				c5.addElement(t5);
 			}
 			row++;
 		}

@@ -3,6 +3,10 @@
 
 #include "ui_chequeinformation.h"
 #include <QtGui>
+#include <memory>
+#include "KDReportsReport.h"
+#include "KDReportsHtmlElement.h"
+#include "QPrinter"
 
 class ESChequeInformation : public QWidget
 {
@@ -20,6 +24,8 @@ public:
 	void slotRevert(QString rowId);
 	void slotPrev();
 	void slotNext();
+	void slotGenerateReport();
+	void slotPrint(QPrinter* printer);
 
 private:
 	Ui::ChequeInformationWidget ui;
@@ -30,6 +36,7 @@ private:
 	int m_totalRecords;
 	int m_nextCounter;
 	int m_maxNextCount;
+	std::shared_ptr<KDReports::Report> m_report;
 
 };
 

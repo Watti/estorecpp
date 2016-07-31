@@ -1,6 +1,15 @@
 #include "eschequeinformation.h"
 #include "QSqlQuery"
 #include "utility\session.h"
+#include "KDReportsTextElement.h"
+#include "qnamespace.h"
+#include "KDReportsCell.h"
+#include "KDReportsTableElement.h"
+#include "utility\utility.h"
+#include "QPrintPreviewDialog"
+#include "QPrinter"
+#include "utility\esmainwindowholder.h"
+#include "esmainwindow.h"
 
 ESChequeInformation::ESChequeInformation(QWidget *parent /*= 0*/) : QWidget(parent), m_startingLimit(0), m_pageOffset(15), m_nextCounter(0), m_maxNextCount(0)
 {
@@ -19,6 +28,7 @@ ESChequeInformation::ESChequeInformation(QWidget *parent /*= 0*/) : QWidget(pare
 	QObject::connect(ui.customerSearchBox, SIGNAL(textChanged(QString)), this, SLOT(slotSearch()));
 	QObject::connect(ui.nextBtn, SIGNAL(clicked()), this, SLOT(slotNext()));
 	QObject::connect(ui.prevBtn, SIGNAL(clicked()), this, SLOT(slotPrev()));
+	QObject::connect(ui.generateReportBtn, SIGNAL(clicked()), this, SLOT(slotGenerateReport()));
 
 	QStringList headerLabels;
 	headerLabels.append("Customer");
@@ -103,7 +113,6 @@ void ESChequeInformation::slotSearch()
 
 	while (queryCheque.next())
 	{
-
 		if (queryCheque.value("processed").toInt() == 0)
 		{
 			rowColor.setRgb(245, 169, 169);
@@ -221,4 +230,128 @@ void ESChequeInformation::slotNext()
 		m_startingLimit += m_pageOffset;
 	}
 	slotSearch();
+}
+
+void ESChequeInformation::slotGenerateReport()
+{
+	m_report = std::make_shared<KDReports::Report>();
+
+	double chequTotal = 0.0;
+
+	QString currDateStr = QDateTime::currentDateTime().toString("yyyy-MM-dd");
+
+	KDReports::TextElement titleElement("Cheque Information Report");
+	titleElement.setPointSize(13);
+	titleElement.setBold(true);
+	m_report->addElement(titleElement, Qt::AlignHCenter);
+
+	QString stardDateStr = ui.startDate->date().toString("yyyy-MM-dd");
+	int selectedStatus = ui.statusComboBox->currentData().toInt();
+	QString customerName = ui.customerSearchBox->text();
+
+	QString chequeQueryStr("SELECT * FROM cheque_information JOIN customer ON cheque_information.customer_id = customer.customer_id WHERE DATE(due_date) = ' " + stardDateStr + "'");
+	if (selectedStatus != 2)
+	{
+		chequeQueryStr.append("AND processed = " + QString::number(selectedStatus));
+	}
+	if (!customerName.isEmpty())
+	{
+		chequeQueryStr.append("AND customer.name LIKE '%" + customerName + "%'");
+	}
+
+	QString dateStr = "Date : ";
+	dateStr.append(currDateStr);
+
+
+	KDReports::TableElement infoTableElement;
+	infoTableElement.setHeaderRowCount(2);
+	infoTableElement.setHeaderColumnCount(2);
+	infoTableElement.setBorder(0);
+	infoTableElement.setWidth(100, KDReports::Percent);
+
+	{
+		KDReports::Cell& dateCell = infoTableElement.cell(0, 1);
+		KDReports::TextElement t(dateStr);
+		t.setPointSize(10);
+		dateCell.addElement(t, Qt::AlignRight);
+	}
+
+	m_report->addElement(infoTableElement);
+	m_report->addVerticalSpacing(5);
+
+	KDReports::TableElement tableElement;
+	tableElement.setHeaderColumnCount(5);
+	tableElement.setBorder(1);
+	tableElement.setWidth(100, KDReports::Percent);
+
+	{
+		KDReports::Cell& cell = tableElement.cell(0, 0);
+		KDReports::TextElement cTextElement("Customer");
+		cTextElement.setPointSize(11);
+		cTextElement.setBold(true);
+		cell.addElement(cTextElement, Qt::AlignCenter);
+	}
+	{
+		KDReports::Cell& cell = tableElement.cell(0, 1);
+		KDReports::TextElement cTextElement("Cheque No");
+		cTextElement.setPointSize(11);
+		cTextElement.setBold(true);
+		cell.addElement(cTextElement, Qt::AlignCenter);
+	}
+	{
+		KDReports::Cell& cell = tableElement.cell(0, 2);
+		KDReports::TextElement cTextElement("Bank");
+		cTextElement.setPointSize(11);
+		cTextElement.setBold(true);
+		cell.addElement(cTextElement, Qt::AlignCenter);
+	}
+	{
+		KDReports::Cell& cell = tableElement.cell(0, 3);
+		KDReports::TextElement cTextElement("Date");
+		cTextElement.setPointSize(11);
+		cTextElement.setBold(true);
+		cell.addElement(cTextElement, Qt::AlignCenter);
+	}
+	{
+		KDReports::Cell& cell = tableElement.cell(0, 4);
+		KDReports::TextElement cTextElement("Amount");
+		cTextElement.setPointSize(11);
+		cTextElement.setBold(true);
+		cell.addElement(cTextElement, Qt::AlignCenter);
+	}
+	int row = 1;
+	QSqlQuery q(chequeQueryStr);
+	while (q.next())
+	{
+		ES::Utility::printRow(tableElement, row, 0, q.value("name").toString());
+		ES::Utility::printRow(tableElement, row, 1, q.value("cheque_number").toString());
+		ES::Utility::printRow(tableElement, row, 2, q.value("bank").toString());
+		ES::Utility::printRow(tableElement, row, 3, q.value("due_date").toString());
+		float chequeAmount = q.value("amount").toFloat();
+		chequTotal += chequeAmount;
+		ES::Utility::printRow(tableElement, row, 4, QString::number(chequeAmount, 'f', 2), Qt::AlignRight);
+		row++;
+	}
+
+	ES::Utility::printRow(tableElement, row, 3, "Total");
+	ES::Utility::printRow(tableElement, row++, 4, QString::number(chequTotal, 'f', 2), Qt::AlignRight);
+
+	m_report->addElement(tableElement);
+
+	QPrinter printer;
+	printer.setPaperSize(QPrinter::A4);
+
+	printer.setFullPage(false);
+	printer.setOrientation(QPrinter::Portrait);
+
+	QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
+	QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
+	dialog->setWindowTitle(tr("Print Document"));
+	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
+	dialog->exec();
+}
+
+void ESChequeInformation::slotPrint(QPrinter* printer)
+{
+	m_report->print(printer);
 }
