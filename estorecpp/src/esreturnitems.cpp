@@ -124,7 +124,7 @@ void ESReturnItems::slotPrint(QPrinter* printer)
 
 void ESReturnItems::slotPrintReturnBill()
 {
-/*	QString billedUser = "Billed Cashier : ";
+	QString billedUser = "Billed Cashier : ";
 	QSqlQuery q("SELECT display_name FROM user JOIN bill ON user.user_id = bill.user_id WHERE bill.bill_id = " + QString::number(m_oldBillId));
 	if (q.next())
 	{
@@ -261,7 +261,7 @@ void ESReturnItems::slotPrintReturnBill()
 		total.addElement(totalTxt, Qt::AlignRight);
 	}
 	{
-		returnedTotal = ui.totLbl->text().toFloat();
+		returnedTotal = ui.returnTotal->text().toFloat();
 		KDReports::Cell& total = dataTableElement.cell(row, 1);
 		//total.setColumnSpan(5);
 		KDReports::TextElement totalValue(QString::number(billOutstanding, 'f', 2));
@@ -281,7 +281,7 @@ void ESReturnItems::slotPrintReturnBill()
 	{
 		KDReports::Cell& total = dataTableElement.cell(row, 4);
 		//total.setColumnSpan(5);
-		double interest = ui.interestText->text().toDouble();		
+		double interest = ui.returnInterest->text().toDouble();		
 		KDReports::TextElement totalValue(QString::number(interest, 'f', 2));
 		totalValue.setPointSize(11);
 		totalValue.setBold(true);
@@ -296,7 +296,7 @@ void ESReturnItems::slotPrintReturnBill()
 		total.addElement(totalTxt, Qt::AlignRight);
 	}
 	{
-		returnedTotal = ui.totLbl->text().toFloat();
+		returnedTotal = ui.returnTotal->text().toFloat();
 		KDReports::Cell& total = dataTableElement.cell(row, 1);
 		//total.setColumnSpan(5);
 		KDReports::TextElement totalValue("-" + QString::number(returnedTotal, 'f', 2));
@@ -314,10 +314,10 @@ void ESReturnItems::slotPrintReturnBill()
 		total.addElement(totalTxt, Qt::AlignRight);
 	}
 	{
-		returnedTotal  = ui.totLbl->text().toFloat();
+		returnedTotal  = ui.returnTotal->text().toFloat();
 		KDReports::Cell& total = dataTableElement.cell(row, 4);
 		//total.setColumnSpan(5);
-		KDReports::TextElement totalValue(ui.totLbl->text());
+		KDReports::TextElement totalValue(ui.returnTotal->text());
 		totalValue.setPointSize(11);
 		totalValue.setBold(true);
 		total.addElement(totalValue, Qt::AlignRight);
@@ -331,7 +331,7 @@ void ESReturnItems::slotPrintReturnBill()
 		total.addElement(totalTxt, Qt::AlignRight);
 	}
 	{
-		returnedTotal = ui.totLbl->text().toFloat();
+		returnedTotal = ui.returnTotal->text().toFloat();
 		KDReports::Cell& total = dataTableElement.cell(row, 1);
 		//total.setColumnSpan(5);
 		KDReports::TextElement totalValue(QString::number(billOutstanding - returnedTotal, 'f', 2));
@@ -356,7 +356,7 @@ void ESReturnItems::slotPrintReturnBill()
 		{
 			returnQty = ui.tableWidget->item(i, 2)->text().toFloat();
 			float paidPrice = ui.tableWidget->item(i, 4)->text().toFloat();
-			float interest = ui.interestText->text().toFloat();
+			float interest = ui.returnInterest->text().toFloat();
 			itemId = itemQuery.value("item_id").toString();
 			double total = returnQty * paidPrice * (100 + interest) / 100;
 			// bill_id, item_id, qty, paid_price, return_total, user_id
@@ -393,7 +393,7 @@ void ESReturnItems::slotPrintReturnBill()
 	dialog->setWindowTitle(tr("Print Document"));
 	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
 	dialog->exec();
-	*/
+	
 	//report.print(&printer);
 }
 
@@ -749,7 +749,7 @@ void ESReturnItems::slotRemoveNewItem(int id)
 
 void ESReturnItems::slotCommit()
 {
-	ESPayment* payment = new ESPayment(NULL, 0, true);
+	/*ESPayment* payment = new ESPayment(NULL, 0, true);
 
 	payment->setWindowState(Qt::WindowActive);
 	payment->setWindowModality(Qt::ApplicationModal);
@@ -764,7 +764,9 @@ void ESReturnItems::slotCommit()
 
 	QSize sz = payment->size();
 	QPoint screen = QApplication::desktop()->screen()->rect().center();
-	payment->move(screen.x() - sz.width() / 2, screen.y() - sz.height() / 2);
+	payment->move(screen.x() - sz.width() / 2, screen.y() - sz.height() / 2);*/
+
+	slotPrintReturnBill();
 }
 
 void ESReturnItems::slotNewInterestChanged()
