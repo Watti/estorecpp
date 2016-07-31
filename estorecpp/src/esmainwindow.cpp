@@ -383,6 +383,7 @@ void ESMainWindow::slotProfile()
 
 void ESMainWindow::slotLogout()
 {
+	ES::Session::getInstance()->endBill();
 	ES::Session::getInstance()->invalidate();
 
 	ESLoginWidget* loginWidget = new ESLoginWidget(this);

@@ -23,7 +23,7 @@ namespace ES
 	}
 
 	Session::Session() : m_user(NULL), m_billStarted(false), m_lowerPriceBlocked(true), m_serverIP("192.168.1.6"), 
-		m_billItemFontSize(11), m_billEmail(""), m_secondDisplayOn(false)
+		m_billItemFontSize(11), m_billEmail(""), m_secondDisplayOn(false), m_billId(-1)
 	{
 
 	}
@@ -53,6 +53,7 @@ namespace ES
 	void Session::endBill()
 	{
 		m_billStarted = false;
+		m_billId = -1;
 		ES::MainWindowHolder::instance()->getSecondaryDisplay()->endBill();
 	}
 
