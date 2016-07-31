@@ -125,7 +125,8 @@ void ESReturnItems::slotPrint(QPrinter* printer)
 void ESReturnItems::slotPrintReturnBill()
 {
 	QString billedUser = "Billed Cashier : ";
-	QSqlQuery q("SELECT display_name FROM user JOIN bill ON user.user_id = bill.user_id WHERE bill.bill_id = " + QString::number(m_oldBillId));
+	QString qStrUserQry("SELECT display_name FROM user JOIN bill ON user.user_id = bill.user_id WHERE bill.bill_id = " + QString::number(m_bill.getOldBillId()));
+	QSqlQuery q(qStrUserQry);
 	if (q.next())
 	{
 		billedUser.append(q.value("display_name").toString());
@@ -230,9 +231,8 @@ void ESReturnItems::slotPrintReturnBill()
 		}
 		m_total += unitPrice*qty;
 	}
-
 	float returnedTotal = 0;
-	float billOutstanding = ES::Utility::getOutstandingForBill(m_oldBillId);
+	float billOutstanding = ES::Utility::getOutstandingForBill(m_bill.getOldBillId());
 
 	row++; // sub total
 	{

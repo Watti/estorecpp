@@ -93,7 +93,10 @@ void ESAddCustomer::slotProcess()
 		QSqlQuery query;
 		if (query.exec(qStr))
 		{
-			ES::Utility::updateOutstandingAmount(m_id, outstandingAmount);
+			if (!m_update)
+			{
+				m_id = query.lastInsertId().toString();
+			}
 			QSqlQuery q("SELECT * FROM customer_outstanding WHERE customer_id = " + m_id);
 			if (q.next())
 			{
@@ -111,6 +114,9 @@ void ESAddCustomer::slotProcess()
 			}
 			else
 			{
+
+				QString qrt("INSERT INTO customer_outstanding(customer_id, current_outstanding, settled, comments) VALUES('" + m_id + "' ,' " + QString::number(outstandingAmount) + "' , 0, '')");
+			
 				QSqlQuery qry;
 				qry.prepare("INSERT INTO customer_outstanding (customer_id, current_outstanding, settled, comments) VALUES (?, ?, 0, '')");
 				qry.addBindValue(m_id);
