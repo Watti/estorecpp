@@ -3,6 +3,7 @@
 #include <QMessageBox>
 #include <QSqlError>
 #include "QString"
+#include "utility/utility.h"
 
 ESAddCustomer::ESAddCustomer(QWidget *parent /*= 0*/) : QWidget(parent), m_update(false)
 {
@@ -92,9 +93,35 @@ void ESAddCustomer::slotProcess()
 		QSqlQuery query;
 		if (query.exec(qStr))
 		{
-			if (m_update)
+			ES::Utility::updateOutstandingAmount(m_id, outstandingAmount);
+			QSqlQuery q("SELECT * FROM customer_outstanding WHERE customer_id = " + m_id);
+			if (q.next())
 			{
-				QSqlQuery qOutstanding("UPDATE customer_outstanding set current_outstanding = "+QString::number(outstandingAmount)+" WHERE customer_id = "+m_id+" AND settled = 0 AND co_id ="+m_outstandingId);
+				QSqlQuery qry;
+				qry.prepare("UPDATE customer_outstanding SET current_outstanding = ? WHERE customer_id = ? ");
+				qry.addBindValue(outstandingAmount);
+				qry.addBindValue(m_id);
+				if (!qry.exec())
+				{
+					QMessageBox mbox;
+					mbox.setIcon(QMessageBox::Critical);
+					mbox.setText(QString("Failed to add CUSTOMER OUTSTANDING info"));
+					mbox.exec();
+				}
+			}
+			else
+			{
+				QSqlQuery qry;
+				qry.prepare("INSERT INTO customer_outstanding (customer_id, current_outstanding, settled, comments) VALUES (?, ?, 0, '')");
+				qry.addBindValue(m_id);
+				qry.addBindValue(outstandingAmount);
+				if (!qry.exec())
+				{
+					QMessageBox mbox;
+					mbox.setIcon(QMessageBox::Critical);
+					mbox.setText(QString("Failed to add CUSTOMER OUTSTANDING info"));
+					mbox.exec();
+				}
 			}
 			this->close();
 		}

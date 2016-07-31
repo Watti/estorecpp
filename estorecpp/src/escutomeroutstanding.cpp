@@ -9,6 +9,12 @@
 #include "utility\utility.h"
 #include "utility\esmainwindowholder.h"
 #include "esmainwindow.h"
+#include "QPrintPreviewDialog"
+#include "QPrinter"
+#include "KDReportsTextElement.h"
+#include "QDateTime"
+#include "KDReportsCell.h"
+#include "qnamespace.h"
 
 ESCustomerOutstanding::ESCustomerOutstanding(QWidget *parent /*= 0*/) : QWidget(parent), m_startingLimit(0),
 m_pageOffset(15), m_nextCounter(0), m_maxNextCount(0)
@@ -38,6 +44,7 @@ m_pageOffset(15), m_nextCounter(0), m_maxNextCount(0)
 	QObject::connect(m_paymentButtonMapper, SIGNAL(mapped(QString)), this, SLOT(slotPay(QString)));
 	QObject::connect(ui.nextBtn, SIGNAL(clicked()), this, SLOT(slotNext()));
 	QObject::connect(ui.prevBtn, SIGNAL(clicked()), this, SLOT(slotPrev()));
+	QObject::connect(ui.generateReportBtn, SIGNAL(clicked()), this, SLOT(slotGenerateReport()));
 
 	ui.prevBtn->setDisabled(true);
 	ui.nextBtn->setDisabled(true);
@@ -230,6 +237,111 @@ void ESCustomerOutstanding::slotNext()
 		m_startingLimit += m_pageOffset;
 	}
 	slotSearchCustomers();
+}
+
+void ESCustomerOutstanding::slotGenerateReport()
+{
+	m_report = std::make_shared<KDReports::Report>();
+
+	double outstandingTotal = 0.0;
+
+	QString currDateStr = QDateTime::currentDateTime().toString("yyyy-MM-dd");
+
+	KDReports::TextElement titleElement("Customer Outstanding Report");
+	titleElement.setPointSize(13);
+	titleElement.setBold(true);
+	m_report->addElement(titleElement, Qt::AlignHCenter);
+
+	QString dateStr = "Date : ";
+	dateStr.append(currDateStr);
+
+
+	KDReports::TableElement infoTableElement;
+	infoTableElement.setHeaderRowCount(2);
+	infoTableElement.setHeaderColumnCount(2);
+	infoTableElement.setBorder(0);
+	infoTableElement.setWidth(100, KDReports::Percent);
+
+	{
+		KDReports::Cell& dateCell = infoTableElement.cell(0, 1);
+		KDReports::TextElement t(dateStr);
+		t.setPointSize(10);
+		dateCell.addElement(t, Qt::AlignRight);
+	}
+
+	m_report->addElement(infoTableElement);
+	m_report->addVerticalSpacing(5);
+
+	KDReports::TableElement tableElement;
+	tableElement.setHeaderColumnCount(4);
+	tableElement.setBorder(1);
+	tableElement.setWidth(100, KDReports::Percent);
+
+	{
+		KDReports::Cell& cell = tableElement.cell(0, 0);
+		KDReports::TextElement cTextElement("Name");
+		cTextElement.setPointSize(11);
+		cTextElement.setBold(true);
+		cell.addElement(cTextElement, Qt::AlignCenter);
+	}
+	{
+		KDReports::Cell& cell = tableElement.cell(0, 1);
+		KDReports::TextElement cTextElement("Phone No");
+		cTextElement.setPointSize(11);
+		cTextElement.setBold(true);
+		cell.addElement(cTextElement, Qt::AlignCenter);
+	}
+	{
+		KDReports::Cell& cell = tableElement.cell(0, 2);
+		KDReports::TextElement cTextElement("Address");
+		cTextElement.setPointSize(11);
+		cTextElement.setBold(true);
+		cell.addElement(cTextElement, Qt::AlignCenter);
+	}
+	{
+		KDReports::Cell& cell = tableElement.cell(0, 3);
+		KDReports::TextElement cTextElement("Amount");
+		cTextElement.setPointSize(11);
+		cTextElement.setBold(true);
+		cell.addElement(cTextElement, Qt::AlignCenter);
+	}
+
+	int row = 1;
+	QSqlQuery q("SELECT * FROM customer WHERE deleted = 0");
+	while (q.next())
+	{
+		QString customerId = q.value("customer_id").toString();
+		double outstandingAmount = ES::Utility::getTotalCreditOutstanding(customerId);
+		outstandingTotal += outstandingAmount;
+
+		ES::Utility::printRow(tableElement, row, 0, q.value("name").toString());
+		ES::Utility::printRow(tableElement, row, 1, q.value("phone").toString());
+		ES::Utility::printRow(tableElement, row, 2, q.value("address").toString());
+		ES::Utility::printRow(tableElement, row, 3, QString::number(outstandingAmount, 'f', 2), Qt::AlignRight);
+		row++;
+	}
+
+	ES::Utility::printRow(tableElement, row, 2, "Total");
+	ES::Utility::printRow(tableElement, row++, 3, QString::number(outstandingTotal, 'f', 2), Qt::AlignRight);
+
+	m_report->addElement(tableElement);
+
+	QPrinter printer;
+	printer.setPaperSize(QPrinter::A4);
+
+	printer.setFullPage(false);
+	printer.setOrientation(QPrinter::Portrait);
+
+	QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
+	QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
+	dialog->setWindowTitle(tr("Print Document"));
+	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
+	dialog->exec();
+}
+
+void ESCustomerOutstanding::slotPrint(QPrinter* printer)
+{
+	m_report->print(printer);
 }
 
 

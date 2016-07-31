@@ -3,6 +3,10 @@
 #include "ui_customeroutstanding.h"
 #include <QStandardItemModel>
 #include <QtGui>
+#include <memory>
+#include "QPrinter"
+#include "KDReportsHtmlElement.h"
+#include "KDReportsReport.h"
 
 class ESCustomerOutstanding : public QWidget
 {
@@ -19,6 +23,8 @@ public:
 	void slotPay(QString customerId);
 	void slotPrev();
 	void slotNext();
+	void slotGenerateReport();
+	void slotPrint(QPrinter* printer);
 
 private:
 	float getTotalOutstanding(QString customerId);
@@ -30,6 +36,7 @@ private:
 	int m_totalRecords;
 	int m_nextCounter;
 	int m_maxNextCount;
+	std::shared_ptr<KDReports::Report> m_report;
 
 };
 
