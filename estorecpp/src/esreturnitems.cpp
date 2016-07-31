@@ -137,7 +137,7 @@ void ESReturnItems::slotPrintReturnBill()
 	report.addElement(titleElement, Qt::AlignHCenter);
 
 	QString billIdStr = "Bill ID : ";
-	billIdStr.append(QString::number(m_oldBillId));
+	billIdStr.append(QString::number(m_bill.getOldBillId()));
 	KDReports::TextElement addressElement(billIdStr);
 	addressElement.setPointSize(11);
 	addressElement.setBold(false);
@@ -601,15 +601,16 @@ void ESReturnItems::slotShowAddItem()
 
 void ESReturnItems::setEnabled(bool enable)
 {
-	ui.billIdSearchText->setEnabled(enable);
-	ui.itemCodeSearchText->setEnabled(enable);
-	ui.selectBtn->setEnabled(enable);
-	ui.tableWidget->setEnabled(enable);
+	ui.billIdSearchText->setEnabled(true);
+	ui.itemCodeSearchText->setEnabled(true);
+	ui.selectBtn->setEnabled(true);
+	ui.tableWidget->setEnabled(true);
 	ui.billTableWidget->setEnabled(enable);
-	ui.returnInterest->setEnabled(enable);
+	ui.returnInterest->setEnabled(true);
 	ui.newInterest->setEnabled(enable);
+	ui.startBillBtn->setEnabled(enable);
 	ui.addItemBtn->setEnabled(enable);
-	ui.commitBtn->setEnabled(enable);
+	ui.commitBtn->setEnabled(true);
 	ui.cancelBtn->setEnabled(enable);
 
 	if (enable)
