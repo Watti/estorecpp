@@ -137,7 +137,7 @@ ESAddBill::ESAddBill(QWidget *parent)
 	}
 
 	// TODO: prompt code should be added
-	checkAndContinuePendingBill();
+	//checkAndContinuePendingBill();
 	ES::MainWindowHolder::instance()->getSecondaryDisplay()->update();
 
 	ui.calButton->hide();
@@ -627,15 +627,15 @@ void ESAddBill::slotSellingPriceUpdated(QString txt, int row, int col)
 		if (saleQtyQuery.next())
 		{
 			QString stockId = saleQtyQuery.value("stock_id").toString();
-			QSqlQuery q("SELECT selling_price FROM stock WHERE stock_id = " + stockId);
-			if (q.next())
-			{
-				double stockPrice = q.value("selling_price").toDouble();
-				if (itemPrice < stockPrice)
-				{
-					itemPrice = stockPrice;
-				}
-			}
+// 			QSqlQuery q("SELECT selling_price FROM stock WHERE stock_id = " + stockId);
+// 			if (q.next())
+// 			{
+// 				double stockPrice = q.value("selling_price").toDouble();
+// 				if (itemPrice < stockPrice)
+// 				{
+// 					itemPrice = stockPrice;
+// 				}
+// 			}
 			double qty = saleQtyQuery.value("quantity").toDouble();
 			double total = qty * itemPrice;
 			QSqlQuery updateQuery;

@@ -51,7 +51,7 @@ void TableTextWidget::slotFinish()
 	m_table->setFocus();
 	blockSignals(false);
 
-	emit notifyEnterPressed(text(), m_row, m_col);
+	emit notifyEnterPressed(str, m_row, m_col);
 }
 
 void TableTextWidget::setTextFormatterFunc(TextFormatterFunc func)
