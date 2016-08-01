@@ -85,16 +85,7 @@ void AddItem::slotAddItem()
 	}
 	else
 	{
-		QString qItem("SELECT * FROM item WHERE deleted = 0 AND item_code = '" + iCode+"'");
-		QSqlQuery queryItem(qItem);
-		if (queryItem.next())
-		{
-			QMessageBox mbox;
-			mbox.setIcon(QMessageBox::Warning);
-			mbox.setText(QString("Item code already exist"));
-			mbox.exec();
-			return;
-		}
+		
 
 		QString q;
 		if (isUpdate())
@@ -104,6 +95,16 @@ void AddItem::slotAddItem()
 		}
 		else
 		{
+			QString qItem("SELECT * FROM item WHERE deleted = 0 AND item_code = '" + iCode + "'");
+			QSqlQuery queryItem(qItem);
+			if (queryItem.next())
+			{
+				QMessageBox mbox;
+				mbox.setIcon(QMessageBox::Warning);
+				mbox.setText(QString("Item code already exist"));
+				mbox.exec();
+				return;
+			}
 			q = "INSERT INTO item (item_code, item_name, description, bar_code, item_image, unit, itemcategory_id, deleted) VALUES ('" + 
 				iCode + "','" + iName + "','" + iDesc +"','"+barCode+"','" + imagePath + "','" +unit+"',"+catId+ ", 0)";
 		}
