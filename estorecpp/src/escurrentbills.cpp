@@ -276,8 +276,17 @@ void ESCurrentBills::slotSearch()
 
 				break;
 			}
-
-			tableItem = new QTableWidgetItem(billId);
+			
+			bool secondDisplayOn = ES::Session::getInstance()->isSecondDisplayOn();
+			if (secondDisplayOn)
+			{
+				int id = billId.toInt() % 10000;
+				tableItem = new QTableWidgetItem(QString(id));
+			}
+			else
+			{
+				tableItem = new QTableWidgetItem(billId);
+			}
 			tableItem->setBackgroundColor(rowColor);
 			ui.tableWidget->setItem(row, 0, tableItem);
 			QDateTime datetime = QDateTime::fromString(allBillQuery.value("date").toString(), Qt::ISODate);
@@ -378,14 +387,12 @@ void ESCurrentBills::slotReprint(QString billIdStr)
 		{
 			userName = queryUser.value("display_name").toString();
 		}
-
-		bool secondDisplayOn = ES::Session::getInstance()->isSecondDisplayOn();
-
 		QString dateStr = "Date : ";
 		dateStr.append(QDateTime::currentDateTime().toString("yyyy-MM-dd"));
 		QString timeStr = "Time : ";
 		timeStr.append(QDateTime::currentDateTime().toString("hh : mm"));
 		QString billIdStr("Bill No : " + QString::number(billId));
+		bool secondDisplayOn = ES::Session::getInstance()->isSecondDisplayOn();
 		if (secondDisplayOn)
 		{
 			billIdStr = "Bill No : " + QString::number(billId % 10000);
