@@ -5,6 +5,7 @@
 #include <QtGui>
 #include <QPrinter>
 #include <KDReportsReport.h>
+#include "ui_stockreportcontainer.h"
 
 class ESStockReport : public QWidget
 {
@@ -12,6 +13,9 @@ class ESStockReport : public QWidget
 
 public:
 	ESStockReport(QWidget *parent = 0);
+
+	void displayResults();
+
 	~ESStockReport();
 
 	Ui::StockReportWidget& getUI() { return ui; };
