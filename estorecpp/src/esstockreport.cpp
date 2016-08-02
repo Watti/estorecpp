@@ -259,7 +259,17 @@ void ESStockReport::displayResults()
 		ui.tableWidget->removeRow(0);
 	}
 	QString maxRows = ui.maxRows->text();
-	QSqlQuery q("SELECT stock.qty, stock.min_qty, item.item_code FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0  AND stock.qty <= stock.min_qty LIMIT " + maxRows);
+	QString qStr;
+	if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
+		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
+	{
+		qStr = "SELECT stock.qty, stock.min_qty, item.item_code FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0  AND stock.qty <= stock.min_qty LIMIT " + maxRows;
+	}
+	else
+	{
+		qStr = "SELECT stock.qty, stock.min_qty, item.item_code FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0  AND stock.visible = 1 AND stock.qty <= stock.min_qty LIMIT " + maxRows;
+	}
+	QSqlQuery q(qStr);
 	while (q.next())
 	{
 		int row = ui.tableWidget->rowCount();

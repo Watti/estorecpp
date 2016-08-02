@@ -3,6 +3,8 @@
 #include "esreturnsummary.h"
 #include "espettycashsummary.h"
 #include "esoveralllsalessummary.h"
+#include "utility/session.h"
+#include "entities/user.h"
 
 ESStockReportContainer::ESStockReportContainer(QWidget *parent /*= 0*/) : QWidget(parent)
 {
@@ -12,8 +14,12 @@ ESStockReportContainer::ESStockReportContainer(QWidget *parent /*= 0*/) : QWidge
 	m_stockReport = new ESStockReport(ui.tabWidget);
 	ui.tabWidget->addTab(m_stockReport, "Stock Re-Order Report");
 
-	m_itemWiseSalesReport = new ESItemWiseSalesSummary(ui.tabWidget);
-	ui.tabWidget->addTab(m_itemWiseSalesReport, "Sold Items Summary");
+	if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
+		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
+	{
+		m_itemWiseSalesReport = new ESItemWiseSalesSummary(ui.tabWidget);
+		ui.tabWidget->addTab(m_itemWiseSalesReport, "Sold Items Summary");
+	}
 	onTabChanged(0);
 }
 
@@ -35,7 +41,11 @@ void ESStockReportContainer::onTabChanged(int tabIndex)
 		m_stockReport->displayResults();
 		break;
 	case 1:
-		m_itemWiseSalesReport->slotSearch();
+		if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
+			ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
+		{
+			m_itemWiseSalesReport->slotSearch();
+		}
 		break;
 	case 2:
 		/*m_pettyCashSummary->displayResults();*/
