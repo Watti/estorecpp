@@ -48,8 +48,9 @@ private:
 	int m_oldBillId;
 	double m_total;
 	bool m_hasInterest;
-
+	QString m_customerId;
 	ES::ReturnBill m_bill;
+	float m_billOutstanding;
 };
 
 #endif

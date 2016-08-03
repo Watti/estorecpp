@@ -20,7 +20,14 @@ public:
 
 	Ui::SinglePaymentWidget& getUI() { return ui; };
 	void setCustomerId(QString customerId);
+	float getInitialNetAmount() const;
+	void setInitialNetAmount(float val);
 
+	float getReturnTotal() const;
+	void setReturnTotal(float val);
+
+	float getReturnInterest() const;
+	void setReturnInterest(float val);
 	public slots:
 	void slotSearch();
 	void slotPaymentMethodSelected();
@@ -28,8 +35,6 @@ public:
 	void slotFinalizeBill();
 	void slotInterestChanged();
 	void slotPrint(QPrinter* printer);
-	float getInitialNetAmount() const;
-	void setInitialNetAmount(float val);
 	void slotDiscountPercentage();
 
 protected:
@@ -53,9 +58,12 @@ private:
 	float m_initialNetAmount;
 	QString m_paymentMethod;
 	ESReturnItems* m_returnItemsWidget;
-
+	float m_returnTotal;
+	float m_returnStartAmount;
+	float m_returnInterest;
+	long m_billId;
 	KDReports::Report report;
-
+	QString m_returnBillId;
 };
 
 

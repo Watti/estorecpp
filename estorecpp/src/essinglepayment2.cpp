@@ -77,6 +77,15 @@ QWidget(parent), m_returnItemsWidget(returnItemsWidget)
 	adjustSize();
 	ui.dateEdit->setDate(QDate::currentDate());
 	m_paymentMethod = "CASH";
+	m_billId = returnItemsWidget->getUI().billIdLbl->text().toLong();
+	m_returnTotal = returnItemsWidget->getUI().returnTotal->text().toFloat();
+	m_returnStartAmount = returnItemsWidget->getUI().returnSubTotal->text().toFloat();
+	m_initialNetAmount = returnItemsWidget->getUI().newTotal->text().toFloat() - m_returnTotal;
+	m_returnBillId = returnItemsWidget->getUI().billIdSearchText->text();
+	ui.netAmountLbl->setText(QString::number(m_initialNetAmount, 'f', 2));
+	ui.totalBillLbl->setText(QString::number(m_initialNetAmount, 'f', 2));
+	ui.noOfItemsLbl->setText(QString::number(returnItemsWidget->getUI().billTableWidget->rowCount()));
+
 }
 
 ESSinglePayment2::~ESSinglePayment2()
@@ -1284,6 +1293,26 @@ void ESSinglePayment2::slotDiscountPercentage()
 		netAmount = netAmount - discount;
 	}
 	ui.netAmountLbl->setText(QString::number(netAmount, 'f', 2));
+}
+
+float ESSinglePayment2::getReturnInterest() const
+{
+	return m_returnInterest;
+}
+
+void ESSinglePayment2::setReturnInterest(float val)
+{
+	m_returnInterest = val;
+}
+
+float ESSinglePayment2::getReturnTotal() const
+{
+	return m_returnTotal;
+}
+
+void ESSinglePayment2::setReturnTotal(float val)
+{
+	m_returnTotal = val;
 }
 
 

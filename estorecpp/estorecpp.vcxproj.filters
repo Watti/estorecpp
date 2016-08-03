@@ -539,6 +539,15 @@
     <ClCompile Include="src\esitemwisesalessummary.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\essinglepayment2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_essinglepayment2.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_essinglepayment2.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="esmainwindow.ui">
@@ -839,6 +848,9 @@
       <Filter>Form Files</Filter>
     </CustomBuild>
     <CustomBuild Include="includes\esitemwisesalessummary.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="includes\essinglepayment2.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
   </ItemGroup>

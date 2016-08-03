@@ -101,6 +101,9 @@ ESReturnItems::ESReturnItems(QWidget *parent /*= 0*/) : QWidget(parent), m_total
 	new QShortcut(QKeySequence(Qt::Key_F4), this, SLOT(slotShowAddItem()));
 	new QShortcut(QKeySequence(Qt::Key_F3), this, SLOT(slotStartBill()));
 
+	ui.commitBtn->setDisabled(true);
+	ui.newInterest->setHidden(true);
+	ui.label_10->setHidden(true);
 	//ui.billIdSearchText->setFocus();
 
 	setEnabled(false);
@@ -232,7 +235,6 @@ void ESReturnItems::slotPrintReturnBill()
 		m_total += unitPrice*qty;
 	}
 	float returnedTotal = 0;
-	float billOutstanding = ES::Utility::getOutstandingForBill(m_bill.getOldBillId());
 
 	row++; // sub total
 	{
@@ -264,7 +266,7 @@ void ESReturnItems::slotPrintReturnBill()
 		returnedTotal = ui.returnTotal->text().toFloat();
 		KDReports::Cell& total = dataTableElement.cell(row, 1);
 		//total.setColumnSpan(5);
-		KDReports::TextElement totalValue(QString::number(billOutstanding, 'f', 2));
+		KDReports::TextElement totalValue(QString::number(m_billOutstanding, 'f', 2));
 		totalValue.setPointSize(11);
 		totalValue.setBold(false);
 		total.addElement(totalValue, Qt::AlignRight);
@@ -334,7 +336,7 @@ void ESReturnItems::slotPrintReturnBill()
 		returnedTotal = ui.returnTotal->text().toFloat();
 		KDReports::Cell& total = dataTableElement.cell(row, 1);
 		//total.setColumnSpan(5);
-		KDReports::TextElement totalValue(QString::number(billOutstanding - returnedTotal, 'f', 2));
+		KDReports::TextElement totalValue(QString::number(m_billOutstanding - returnedTotal, 'f', 2));
 		totalValue.setPointSize(11);
 		totalValue.setBold(false);
 		total.addElement(totalValue, Qt::AlignRight);
@@ -512,6 +514,15 @@ void ESReturnItems::showTotal()
 
 	ui.newSubTotal->setText(QString::number(m_bill.getNewSubTotal(), 'f', 2));
 	ui.newTotal->setText(QString::number(m_bill.getNewTotal(), 'f', 2));
+
+	if (m_bill.getNewTotal() >= m_bill.getTotal())
+	{
+		ui.commitBtn->setEnabled(true);
+	}
+	else
+	{
+		ui.commitBtn->setDisabled(true);
+	}
 }
 
 void ESReturnItems::slotInterestChanged()
@@ -767,10 +778,25 @@ void ESReturnItems::slotCommit()
 	QPoint screen = QApplication::desktop()->screen()->rect().center();
 	payment->move(screen.x() - sz.width() / 2, screen.y() - sz.height() / 2);*/
 
-	ESSinglePayment2* singlePayment = new ESSinglePayment2(NULL, 0);
+	ESSinglePayment2* singlePayment = new ESSinglePayment2(this, 0);
 	singlePayment->setWindowState(Qt::WindowActive);
 	singlePayment->setWindowModality(Qt::ApplicationModal);
 	singlePayment->setAttribute(Qt::WA_DeleteOnClose);
+	float m_billOutstanding = ES::Utility::getOutstandingForBill(m_bill.getOldBillId());
+	QSqlQuery queryBill("SELECT * FROM bill WHERE bill_id = " + QString::number(m_bill.getOldBillId()));
+	if (queryBill.next())
+	{
+		m_customerId = queryBill.value("customer_id").toString();
+		QSqlQuery queryCustomer("SELECT * FROM customer WHERE deleted = 0 AND customer_id = "+m_customerId);
+		if (queryCustomer.next())
+		{
+			singlePayment->getUI().nameText->setText(queryCustomer.value("name").toString());
+			singlePayment->getUI().addressText->setText(queryCustomer.value("address").toString());
+			singlePayment->getUI().commentsText->setText(queryCustomer.value("comments").toString());
+		}
+		singlePayment->setCustomerId(m_customerId);
+	}
+	singlePayment->getUI().outstandingText->setText(QString::number(m_billOutstanding, 'f', 2));
 	//singlePayment->setCustomerId(m_customerId);
 
 	////outstanding start
