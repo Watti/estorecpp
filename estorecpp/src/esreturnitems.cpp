@@ -20,7 +20,7 @@
 #include "QDesktopWidget"
 #include "esaddbillitem2.h"
 #include "QShortcut"
-#include "espaymentwidget.h"
+#include "essinglepayment2.h"
 
 QString convertToQuantityFormat(QString text, int row, int col, QTableWidget* table)
 {
@@ -767,7 +767,34 @@ void ESReturnItems::slotCommit()
 	QPoint screen = QApplication::desktop()->screen()->rect().center();
 	payment->move(screen.x() - sz.width() / 2, screen.y() - sz.height() / 2);*/
 
-	slotPrintReturnBill();
+	ESSinglePayment2* singlePayment = new ESSinglePayment2(NULL, 0);
+	singlePayment->setWindowState(Qt::WindowActive);
+	singlePayment->setWindowModality(Qt::ApplicationModal);
+	singlePayment->setAttribute(Qt::WA_DeleteOnClose);
+	//singlePayment->setCustomerId(m_customerId);
+
+	////outstanding start
+	//float totalAmount = 0;
+	//int customerId = m_customerId.toInt();
+	//if (customerId > -1)
+	//{
+	//	totalAmount = ES::Utility::getTotalCreditOutstanding(m_customerId);
+	//}
+
+	//singlePayment->getUI().nameText->setText(m_name);
+	//singlePayment->getUI().outstandingText->setText(QString::number(totalAmount, 'f', 2));
+	//singlePayment->getUI().addressText->setText(m_address);
+	//singlePayment->getUI().commentsText->setText(m_comments);
+
+	//singlePayment->getUI().netAmountLbl->setText(m_netAmount);
+	//singlePayment->getUI().totalBillLbl->setText(m_totalAmount);
+	//singlePayment->setInitialNetAmount(m_netAmount.toFloat());
+	//singlePayment->getUI().noOfItemsLbl->setText(m_noOfItems);
+	//singlePayment->getUI().balanceLbl->setText(QString::number(totalAmount, 'f', 2));
+
+	singlePayment->show();
+
+	//slotPrintReturnBill();
 }
 
 void ESReturnItems::slotNewInterestChanged()
