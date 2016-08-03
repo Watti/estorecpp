@@ -33,6 +33,7 @@
 #include "espettycashsummary.h"
 #include "essalesreportcontainer.h"
 #include "eschequeinformation.h"
+#include "esstockreportcontainer.h"
 
 ESMainWindow::ESMainWindow(QWidget *parent)
 : QMainWindow(parent)
@@ -338,7 +339,7 @@ void ESMainWindow::slotSalesReports()
 
 void ESMainWindow::slotStocksReports()
 {
-	ESStockReport* stockReport = new ESStockReport(this);
+	ESStockReportContainer* stockReport = new ESStockReportContainer(this);
 	this->setCentralWidget(stockReport);
 	stockReport->show();
 }

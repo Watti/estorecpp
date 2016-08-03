@@ -521,6 +521,24 @@
     <ClCompile Include="GeneratedFiles\Release\moc_esaddbillitem2.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_esstockreportcontainer.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_esstockreportcontainer.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="src\esstockreportcontainer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_esitemwisesalessummary.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_esitemwisesalessummary.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="src\esitemwisesalessummary.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="esmainwindow.ui">
@@ -703,9 +721,6 @@
     <CustomBuild Include="includes\esstockreport.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="stockreport.ui">
-      <Filter>Form Files</Filter>
-    </CustomBuild>
     <CustomBuild Include="reminders.ui">
       <Filter>Form Files</Filter>
     </CustomBuild>
@@ -811,6 +826,21 @@
     <CustomBuild Include="includes\esaddbillitem2.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
+    <CustomBuild Include="includes\esstockreportcontainer.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="stockreport.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="stockreportcontainer.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="salessummarybyitems.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="includes\esitemwisesalessummary.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="includes\utility\esdbconnection.h">
@@ -912,9 +942,6 @@
     <ClInclude Include="GeneratedFiles\ui_returnitems.h">
       <Filter>Generated Files</Filter>
     </ClInclude>
-    <ClInclude Include="GeneratedFiles\ui_stockreport.h">
-      <Filter>Generated Files</Filter>
-    </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_reminders.h">
       <Filter>Generated Files</Filter>
     </ClInclude>
@@ -964,6 +991,15 @@
       <Filter>Header Files\enities</Filter>
     </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_chequeinformation.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GeneratedFiles\ui_stockreport.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GeneratedFiles\ui_stockreportcontainer.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GeneratedFiles\ui_salessummarybyitems.h">
       <Filter>Generated Files</Filter>
     </ClInclude>
   </ItemGroup>
