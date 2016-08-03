@@ -601,16 +601,16 @@ void ESReturnItems::slotShowAddItem()
 
 void ESReturnItems::setEnabled(bool enable)
 {
-	ui.billIdSearchText->setEnabled(true);
-	ui.itemCodeSearchText->setEnabled(true);
-	ui.selectBtn->setEnabled(true);
-	ui.tableWidget->setEnabled(true);
+	ui.billIdSearchText->setEnabled(enable);
+	ui.itemCodeSearchText->setEnabled(enable);
+	ui.selectBtn->setEnabled(enable);
+	ui.tableWidget->setEnabled(enable);
 	ui.billTableWidget->setEnabled(enable);
-	ui.returnInterest->setEnabled(true);
+	ui.returnInterest->setEnabled(enable);
 	ui.newInterest->setEnabled(enable);
-	ui.startBillBtn->setEnabled(enable);
+	//ui.startBillBtn->setEnabled(enable);
 	ui.addItemBtn->setEnabled(enable);
-	ui.commitBtn->setEnabled(true);
+	ui.commitBtn->setEnabled(enable);
 	ui.cancelBtn->setEnabled(enable);
 
 	if (enable)
