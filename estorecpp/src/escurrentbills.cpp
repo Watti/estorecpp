@@ -281,7 +281,7 @@ void ESCurrentBills::slotSearch()
 			if (secondDisplayOn)
 			{
 				int id = billId.toInt() % 10000;
-				tableItem = new QTableWidgetItem(QString(id));
+				tableItem = new QTableWidgetItem(QString::number(id));
 			}
 			else
 			{
