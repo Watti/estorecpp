@@ -36,6 +36,7 @@ public:
 	void slotInterestChanged();
 	void slotPrint(QPrinter* printer);
 	void slotDiscountPercentage();
+	void slotPrintReturnBill();
 
 protected:
 	void keyPressEvent(QKeyEvent * event);

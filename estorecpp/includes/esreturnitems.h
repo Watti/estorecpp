@@ -15,6 +15,9 @@ public:
 	~ESReturnItems();
 	Ui::ReturnItems& getUI();
 	void updateNewItemTable();
+	long getBillId() { return m_bill.getBillId(); }
+	long getOldBillId() { return m_bill.getOldBillId(); }
+	void updateDatabase();
 
 	public slots:
 	void slotSelect();
@@ -46,7 +49,6 @@ private:
 	int m_idGenerator;
 	KDReports::Report report;
 	int m_oldBillId;
-	double m_total;
 	bool m_hasInterest;
 	QString m_customerId;
 	ES::ReturnBill m_bill;

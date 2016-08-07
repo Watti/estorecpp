@@ -132,17 +132,17 @@ void ESSinglePayment2::slotFinalizeBill()
 	if (!validate())
 		return;
 
-	QString billIdStr = ES::Session::getInstance()->getBillId();
+	//QString billIdStr = ES::Session::getInstance()->getBillId();
 	QString netAmountStr = ui.netAmountLbl->text();
 	//QString paymentType = "CASH";// ui.paymentMethodCombo->currentText();
 	bool isValid = false;
 
 	double netAmount = netAmountStr.toDouble(&isValid);
-	if (!isValid || netAmount < 0)
+	if (!isValid /*|| netAmount < 0*/)
 	{
 		return;
 	}
-	int billId = billIdStr.toInt(&isValid);
+	int billId = m_billId;
 	if (!isValid)
 	{
 		return;
@@ -546,54 +546,7 @@ void ESSinglePayment2::finishBill(double netAmount, int billId)
 	}
 	else
 	{
-		// Update stock quantity
-		QSqlQuery saleQuantityQuery;
-		saleQuantityQuery.prepare("SELECT * FROM sale WHERE bill_id = ?");
-		saleQuantityQuery.addBindValue(billId);
-		if (saleQuantityQuery.exec())
-		{
-			while (saleQuantityQuery.next())
-			{
-				QString stockId = saleQuantityQuery.value("stock_id").toString();
-				double quantity = saleQuantityQuery.value("quantity").toDouble();
-
-				QSqlQuery q("SELECT * FROM stock WHERE stock_id = " + stockId);
-				if (q.next())
-				{
-					double stockQuantity = q.value("qty").toDouble();
-					double remainingQty = stockQuantity - quantity;
-					QSqlQuery stockUpdateQuery;
-					stockUpdateQuery.prepare("UPDATE stock SET qty = ? WHERE stock_id = ?");
-					stockUpdateQuery.addBindValue(remainingQty);
-					stockUpdateQuery.addBindValue(stockId);
-					stockUpdateQuery.exec();
-
-					// stock quantity has been updated, match the update of the stock quantity 
-					// with the PO items in stock_purchase_order_item for profit calculation
-					// if multiple records are present first one will be updated
-					double qty = quantity;
-					QSqlQuery qq("SELECT * FROM stock_purchase_order_item WHERE stock_id = " + stockId);
-					while (qq.next())
-					{
-						QString id = qq.value("stock_po_item_id").toString();
-						double currentQty = qq.value("remaining_qty").toDouble();
-						if (qty <= currentQty)
-						{
-							QSqlQuery qqq("UPDATE stock_purchase_order_item SET remaining_qty = " +
-								QString::number(currentQty - qty, 'f', 2) + " WHERE stock_po_item_id = " + id);
-							break;
-						}
-						else
-						{
-							QSqlQuery qqq("UPDATE stock_purchase_order_item SET remaining_qty = 0 WHERE stock_po_item_id = " + id);
-							qty -= currentQty;
-						}
-					}
-				}
-
-			}
-		}
-
+		
 // 		if (m_addBill)
 // 		{
 // 			m_addBill->resetBill();
@@ -619,612 +572,7 @@ void ESSinglePayment2::slotInterestChanged()
 
 void ESSinglePayment2::printBill(int billId, float total)
 {
-	QString billStr("SELECT user_id FROM bill WHERE bill_id = " + QString::number(billId));
-	QString userName = "";
-	QSqlQuery queryBill(billStr);
-	if (queryBill.next())
-	{
-		QString userId = queryBill.value("user_id").toString();
-		QString qStrUser("SELECT display_name FROM user WHERE user_id = " + userId);
-		QSqlQuery queryUser(qStrUser);
-		if (queryUser.next())
-		{
-			userName = queryUser.value("display_name").toString();
-		}
-	}
-
-	struct PaymentSummaryElement
-	{
-		QString type, amount, no, date, interest, netAmount;
-	};
-	QVector<std::shared_ptr<PaymentSummaryElement>> payamentSummaryTableInfo;
-
-	QSqlQuery queryPaymentType("SELECT * FROM payment WHERE bill_id = " + QString::number(billId));
-	QString paymentTypes = "";
-	float totalPayingAmount = 0;
-	while (queryPaymentType.next())
-	{
-		QString paymentType = queryPaymentType.value("payment_type").toString();
-		QString paymentId = queryPaymentType.value("payment_id").toString();
-		if (paymentType == "CARD")
-		{
-			QSqlQuery queryCard("SELECT * FROM card WHERE payment_id = " + paymentId);
-			if (queryCard.next())
-			{
-				float interest = queryCard.value("interest").toFloat();
-				float amount = queryCard.value("amount").toFloat();
-				float netAmount = amount;
-				amount = amount + (amount * interest) / 100;
-				totalPayingAmount += amount;
-				std::shared_ptr<PaymentSummaryElement> pse = std::make_shared<PaymentSummaryElement>();
-				pse->type = paymentType;
-				pse->no = queryCard.value("card_no").toString();
-				pse->date = "-";
-				pse->amount = QString::number(amount, 'f', 2);
-				pse->interest = QString::number(interest, 'f', 2) + "%";
-				pse->netAmount = QString::number(netAmount, 'f', 2);
-				payamentSummaryTableInfo.push_back(pse);
-			}
-		}
-		else if (paymentType == "CHEQUE")
-		{
-			QSqlQuery query("SELECT * FROM cheque WHERE payment_id = " + paymentId);
-			if (query.next())
-			{
-				float interest = query.value("interest").toFloat();
-				float amount = query.value("amount").toFloat();
-				float netAmount = amount;
-				amount = amount + (amount * interest) / 100;
-				totalPayingAmount += amount;
-
-				std::shared_ptr<PaymentSummaryElement> pse = std::make_shared<PaymentSummaryElement>();
-				pse->type = paymentType;
-				pse->no = query.value("cheque_number").toString();
-				pse->amount = QString::number(amount, 'f', 2);
-				pse->date = query.value("due_date").toString();
-				pse->interest = QString::number(interest, 'f', 2) + "%";
-				pse->netAmount = QString::number(netAmount, 'f', 2);
-				payamentSummaryTableInfo.push_back(pse);
-			}
-		}
-		else if (paymentType == "CREDIT")
-		{
-			QSqlQuery query("SELECT * FROM credit WHERE payment_id = " + paymentId);
-			if (query.next())
-			{
-				float interest = query.value("interest").toFloat();
-				float amount = query.value("amount").toFloat();
-				float netAmount = amount;
-				amount = amount + (amount * interest) / 100;
-				totalPayingAmount += amount;
-
-				std::shared_ptr<PaymentSummaryElement> pse = std::make_shared<PaymentSummaryElement>();
-				pse->type = paymentType;
-				pse->date = query.value("due_date").toString();
-				pse->no = "-";
-				pse->amount = QString::number(amount, 'f', 2);
-				payamentSummaryTableInfo.push_back(pse);
-				pse->interest = QString::number(interest, 'f', 2) + "%";
-				pse->netAmount = QString::number(netAmount, 'f', 2);
-			}
-		}
-		else if (paymentType == "CASH")
-		{
-			QSqlQuery query("SELECT * FROM cash WHERE payment_id = " + paymentId);
-			if (query.next())
-			{
-				float amount = query.value("amount").toFloat();
-				totalPayingAmount += amount;
-
-				std::shared_ptr<PaymentSummaryElement> pse = std::make_shared<PaymentSummaryElement>();
-				pse->type = paymentType;
-				pse->date = "-";
-				pse->no = "-";
-				pse->amount = QString::number(amount, 'f', 2);
-				pse->interest = "0%";
-				pse->netAmount = QString::number(amount, 'f', 2);
-				payamentSummaryTableInfo.push_back(pse);
-			}
-		}
-		else if (paymentType == "LOYALTY")
-		{
-		}
-	}
-
-	//KDReports::Report report;
-
-	bool secondDisplayOn = ES::Session::getInstance()->isSecondDisplayOn();
-
-	QString dateStr = "Date : ";
-	dateStr.append(QDateTime::currentDateTime().toString("yyyy-MM-dd"));
-	QString timeStr = "Time : ";
-	timeStr.append(QDateTime::currentDateTime().toString("hh : mm"));
-	QString billIdStr("Bill No : " + QString::number(billId));
-	if (secondDisplayOn)
-	{
-		billIdStr = "Bill No : " + QString::number(billId % 10000);
-	}
-
-	KDReports::TableElement infoTableElement;
-	infoTableElement.setHeaderRowCount(3);
-	infoTableElement.setHeaderColumnCount(2);
-	infoTableElement.setBorder(0);
-	infoTableElement.setWidth(100, KDReports::Percent);
-
-	{
-		KDReports::Cell& billIdCell = infoTableElement.cell(0, 0);
-		KDReports::TextElement t(billIdStr);
-		t.setPointSize(10);
-		billIdCell.addElement(t, Qt::AlignLeft);
-	}{
-		KDReports::Cell& userNameCell = infoTableElement.cell(1, 0);
-		KDReports::TextElement t("Customer : " + ui.nameText->text());
-		t.setPointSize(10);
-		userNameCell.addElement(t, Qt::AlignLeft);
-	}{
-		KDReports::Cell& userNameCell = infoTableElement.cell(2, 0);
-		KDReports::TextElement t("Cashier : " + userName);
-		t.setPointSize(10);
-		userNameCell.addElement(t, Qt::AlignLeft);
-	}{
-		KDReports::Cell& dateCell = infoTableElement.cell(0, 1);
-		KDReports::TextElement t(dateStr);
-		t.setPointSize(10);
-		dateCell.addElement(t, Qt::AlignRight);
-	}{
-		KDReports::Cell& timeCell = infoTableElement.cell(1, 1);
-		KDReports::TextElement t(timeStr);
-		t.setPointSize(10);
-		timeCell.addElement(t, Qt::AlignRight);
-	}
-
-	report.addElement(infoTableElement);
-
-	KDReports::HtmlElement htmlElem;
-	QString htm("<div><hr/></div>");
-	htmlElem.setHtml(htm);
-	report.addElement(htmlElem);
-
-
-	QString querySaleStr("SELECT * FROM sale WHERE bill_id = " + QString::number(billId) + " AND deleted = 0");
-	QSqlQuery querySale(querySaleStr);
-
-	KDReports::TableElement tableElement;
-	tableElement.setHeaderColumnCount(6);
-	if (secondDisplayOn)
-	{
-		tableElement.setHeaderColumnCount(5);
-	}
-	tableElement.setBorder(0);
-	tableElement.setWidth(100, KDReports::Percent);
-
-	KDReports::Cell& cICode = tableElement.cell(0, 0);
-	KDReports::TextElement tICode("Item Code");
-	tICode.setPointSize(11);
-	tICode.setBold(true);
-	cICode.addElement(tICode, Qt::AlignLeft);
-
-	KDReports::Cell& cIName = tableElement.cell(0, 1);
-	KDReports::TextElement tEItem("Item");
-	tEItem.setBold(true);
-	tEItem.setPointSize(11);
-	cIName.addElement(tEItem, Qt::AlignLeft);
-
-	KDReports::Cell& cPrice = tableElement.cell(0, 2);
-	KDReports::TextElement tEPrice("Unit Price");
-	tEPrice.setPointSize(11);
-	tEPrice.setBold(true);
-	cPrice.addElement(tEPrice, Qt::AlignRight);
-
-	if (secondDisplayOn)
-	{
-		KDReports::Cell& cQty = tableElement.cell(0, 3);
-		KDReports::TextElement tEQty("Qty");
-		tEQty.setPointSize(11);
-		tEQty.setBold(true);
-		cQty.addElement(tEQty, Qt::AlignRight);
-
-		KDReports::Cell& cTotal = tableElement.cell(0, 4);
-		KDReports::TextElement tETotal("Line Total");
-		tETotal.setPointSize(11);
-		tETotal.setBold(true);
-		cTotal.addElement(tETotal, Qt::AlignRight);
-	}
-	else
-	{
-		KDReports::Cell& cDiscount = tableElement.cell(0, 3);
-		KDReports::TextElement tEDiscount("Discount");
-		tEDiscount.setPointSize(11);
-		tEDiscount.setBold(true);
-		cDiscount.addElement(tEDiscount, Qt::AlignRight);
-
-		KDReports::Cell& cQty = tableElement.cell(0, 4);
-		KDReports::TextElement tEQty("Qty");
-		tEQty.setPointSize(11);
-		tEQty.setBold(true);
-		cQty.addElement(tEQty, Qt::AlignRight);
-
-		KDReports::Cell& cTotal = tableElement.cell(0, 5);
-		KDReports::TextElement tETotal("Line Total");
-		tETotal.setPointSize(11);
-		tETotal.setBold(true);
-		cTotal.addElement(tETotal, Qt::AlignRight);
-	}
-
-
-	int row = 1;
-	int noOfPcs = 0, noOfItems = 0;
-	while (querySale.next())
-	{
-		QString stockId = querySale.value("stock_id").toString();
-		QString discount = QString::number(querySale.value("discount").toDouble(), 'f', 2);
-		QString qty = querySale.value("quantity").toString();
-		noOfPcs += qty.toInt();
-		noOfItems++;
-		QString subTotal = QString::number(querySale.value("total").toDouble(), 'f', 2);
-		QString itemName = "";
-		QString unitPrice = "";
-		QString itemCode = "";
-
-		//get the item name from the item table
-		QString qItemStr("SELECT it.item_code, it.item_name , st.selling_price FROM stock st JOIN item it ON st.item_id = it.item_id AND st.stock_id = " + stockId);
-		QSqlQuery queryItem(qItemStr);
-		if (queryItem.next())
-		{
-			itemName = queryItem.value("item_name").toString();
-			unitPrice = QString::number(querySale.value("item_price").toDouble(), 'f', 2);
-			itemCode = queryItem.value("item_code").toString();
-		}
-		//columns (item_code, Description, UnitPrice, Discount, Qty, Sub Total)
-		printRow(tableElement, row, 0, itemCode);
-		printRow(tableElement, row, 1, itemName);
-		printRow(tableElement, row, 2, unitPrice, Qt::AlignRight);
-		if (secondDisplayOn)
-		{
-			printRow(tableElement, row, 3, qty, Qt::AlignRight);
-			printRow(tableElement, row, 4, subTotal, Qt::AlignRight);
-		}
-		else
-		{
-			printRow(tableElement, row, 3, discount, Qt::AlignRight);
-			printRow(tableElement, row, 4, qty, Qt::AlignRight);
-			printRow(tableElement, row, 5, subTotal, Qt::AlignRight);
-		}
-		row++;
-	}
-
-	{
-		KDReports::Cell& emptyCell = tableElement.cell(row, 0);
-		KDReports::HtmlElement htmlElem;
-		QString html("<div><hr/></div>");
-		htmlElem.setHtml(html);
-		emptyCell.setColumnSpan(6);
-		emptyCell.addElement(htmlElem);
-		row++;
-	}
-
-	// customer info	
-	if (m_customerId == "-1")
-	{
-		QString customer = "Customer Id";
-
-		KDReports::Cell& billToCell = tableElement.cell(row, 0);
-		KDReports::TextElement billTo(customer);
-		billTo.setPointSize(11);
-		billToCell.addElement(billTo, Qt::AlignLeft);
-	}
-	else
-	{
-		QString customer = "Customer Id";
-		QSqlQuery q("SELECT * FROM customer WHERE customer_id = " + m_customerId);
-
-		KDReports::Cell& billToCell = tableElement.cell(row, 0);
-		KDReports::TextElement billTo(customer);
-		billTo.setPointSize(10);
-		billToCell.addElement(billTo, Qt::AlignLeft);
-		if (q.next())
-		{
-			KDReports::Cell& cell = tableElement.cell(row, 1);
-			KDReports::TextElement te(q.value("customer_id").toString());
-			te.setPointSize(10);
-			te.setBold(false);
-			cell.addElement(te, Qt::AlignLeft);
-		}
-	}
-
-	if (secondDisplayOn)
-	{
-		KDReports::Cell& payableTextC = tableElement.cell(row, 3);
-		KDReports::TextElement payableTxt("Total ");
-		payableTxt.setPointSize(11);
-		payableTxt.setBold(true);
-		payableTextC.addElement(payableTxt, Qt::AlignRight);
-
-		KDReports::Cell& payableCell = tableElement.cell(row, 4);
-		KDReports::TextElement payableValue(QString::number(totalPayingAmount, 'f', 2));
-		payableValue.setPointSize(11);
-		payableValue.setBold(true);
-		payableCell.addElement(payableValue, Qt::AlignRight);
-	}
-	else
-	{
-
-		KDReports::Cell& payableTextC = tableElement.cell(row, 4);
-		KDReports::TextElement payableTxt("Total ");
-		payableTxt.setPointSize(11);
-		payableTxt.setBold(true);
-		payableTextC.addElement(payableTxt, Qt::AlignRight);
-
-		KDReports::Cell& payableCell = tableElement.cell(row, 5);
-		KDReports::TextElement payableValue(QString::number(totalPayingAmount, 'f', 2));
-		payableValue.setPointSize(11);
-		payableValue.setBold(true);
-		payableCell.addElement(payableValue, Qt::AlignRight);
-	}
-	row++;
-
-	double prevOutstanding = ui.outstandingText->text().toDouble();
-	{
-		KDReports::Cell& cell = tableElement.cell(row, 0);
-		KDReports::TextElement te("Prev. Due");
-		te.setPointSize(10);
-		te.setBold(false);
-		cell.addElement(te, Qt::AlignLeft);
-	}
-	{
-		KDReports::Cell& cell = tableElement.cell(row, 1);
-		KDReports::TextElement te(QString::number(prevOutstanding, 'f', 2));
-		te.setPointSize(10);
-		te.setBold(false);
-		cell.addElement(te, Qt::AlignLeft);
-	}
-
-	if (secondDisplayOn)
-	{
-		KDReports::Cell& countText = tableElement.cell(row, 3);
-		KDReports::TextElement noOfItemsTxt("# of Items ");
-		noOfItemsTxt.setPointSize(11);
-		noOfItemsTxt.setBold(true);
-		countText.addElement(noOfItemsTxt, Qt::AlignRight);
-
-		KDReports::Cell& countItemCell = tableElement.cell(row, 4);
-		KDReports::TextElement itemCountValue(QString::number(noOfItems));
-		itemCountValue.setPointSize(11);
-		itemCountValue.setBold(true);
-		countItemCell.addElement(itemCountValue, Qt::AlignRight);
-	}
-	else
-	{
-		KDReports::Cell& countText = tableElement.cell(row, 4);
-		KDReports::TextElement noOfItemsTxt("# of Items ");
-		noOfItemsTxt.setPointSize(11);
-		noOfItemsTxt.setBold(true);
-		countText.addElement(noOfItemsTxt, Qt::AlignRight);
-
-		KDReports::Cell& countItemCell = tableElement.cell(row, 5);
-		KDReports::TextElement itemCountValue(QString::number(noOfItems));
-		itemCountValue.setPointSize(11);
-		itemCountValue.setBold(true);
-		countItemCell.addElement(itemCountValue, Qt::AlignRight);
-	}
-
-	row++;
-
-	{
-		KDReports::Cell& cell = tableElement.cell(row, 0);
-		KDReports::TextElement te("Total Due");
-		te.setPointSize(10);
-		te.setBold(false);
-		cell.addElement(te, Qt::AlignLeft);
-	}
-	{
-		float billOutstanding = ES::Utility::getOutstandingForBill(billId);
-		double totalOutstanding = prevOutstanding + billOutstanding;
-		KDReports::Cell& cell = tableElement.cell(row, 1);
-		KDReports::TextElement te(QString::number(totalOutstanding, 'f', 2));
-		te.setPointSize(10);
-		te.setBold(false);
-		cell.addElement(te, Qt::AlignLeft);
-	}
-
-	if (secondDisplayOn)
-	{
-		KDReports::Cell& pcsText = tableElement.cell(row, 3);
-		KDReports::TextElement noOfPcsTxt("# of Pieces ");
-		noOfPcsTxt.setPointSize(11);
-		noOfPcsTxt.setBold(true);
-		pcsText.addElement(noOfPcsTxt, Qt::AlignRight);
-
-		KDReports::Cell& pcsItemCell = tableElement.cell(row, 4);
-		KDReports::TextElement itemPcsValue(QString::number(noOfPcs));
-		itemPcsValue.setPointSize(11);
-		itemPcsValue.setBold(true);
-		pcsItemCell.addElement(itemPcsValue, Qt::AlignRight);
-	}
-	else
-	{
-		KDReports::Cell& pcsText = tableElement.cell(row, 4);
-		KDReports::TextElement noOfPcsTxt("# of Pieces ");
-		noOfPcsTxt.setPointSize(11);
-		noOfPcsTxt.setBold(true);
-		pcsText.addElement(noOfPcsTxt, Qt::AlignRight);
-
-		KDReports::Cell& pcsItemCell = tableElement.cell(row, 5);
-		KDReports::TextElement itemPcsValue(QString::number(noOfPcs));
-		itemPcsValue.setPointSize(11);
-		itemPcsValue.setBold(true);
-		pcsItemCell.addElement(itemPcsValue, Qt::AlignRight);
-
-	}
-
-	report.addElement(tableElement);
-	report.addVerticalSpacing(1);
-
-	if (!secondDisplayOn)
-	{
-		KDReports::TableElement paymentSummaryElement;
-		paymentSummaryElement.setHeaderRowCount(payamentSummaryTableInfo.size());
-		paymentSummaryElement.setHeaderColumnCount(6);
-		paymentSummaryElement.setBorder(1);
-		paymentSummaryElement.setWidth(100, KDReports::Percent);
-		int pointSizeForPayement = 9;
-		{
-			KDReports::Cell& cell = paymentSummaryElement.cell(0, 0);
-			KDReports::TextElement textElm("Type");
-			textElm.setPointSize(pointSizeForPayement);
-			textElm.setBold(true);
-			cell.addElement(textElm, Qt::AlignCenter);
-		}
-		{
-			KDReports::Cell& cell = paymentSummaryElement.cell(0, 1);
-			KDReports::TextElement textElm("Net Amount");
-			textElm.setPointSize(pointSizeForPayement);
-			textElm.setBold(true);
-			cell.addElement(textElm, Qt::AlignCenter);
-		}
-		{
-			KDReports::Cell& cell = paymentSummaryElement.cell(0, 2);
-			KDReports::TextElement textElm("Interest");
-			textElm.setPointSize(pointSizeForPayement);
-			textElm.setBold(true);
-			cell.addElement(textElm, Qt::AlignCenter);
-		}
-		{
-			KDReports::Cell& cell = paymentSummaryElement.cell(0, 3);
-			KDReports::TextElement textElm("Line Total");
-			textElm.setPointSize(pointSizeForPayement);
-			textElm.setBold(true);
-			cell.addElement(textElm, Qt::AlignCenter);
-		}
-		{
-			KDReports::Cell& cell = paymentSummaryElement.cell(0, 4);
-			KDReports::TextElement textElm("Cheque/Card No");
-			textElm.setPointSize(pointSizeForPayement);
-			textElm.setBold(true);
-			cell.addElement(textElm, Qt::AlignCenter);
-		}
-		{
-			KDReports::Cell& cell = paymentSummaryElement.cell(0, 5);
-			KDReports::TextElement textElm("Payment Date");
-			textElm.setPointSize(pointSizeForPayement);
-			textElm.setBold(true);
-			cell.addElement(textElm, Qt::AlignCenter);
-		}
-		int count = 1;
-		for (std::shared_ptr<PaymentSummaryElement> pse : payamentSummaryTableInfo)
-		{
-			{
-				KDReports::Cell& cell = paymentSummaryElement.cell(count, 0);
-				KDReports::TextElement textElm(pse->type);
-				textElm.setPointSize(pointSizeForPayement);
-				textElm.setBold(false);
-				cell.addElement(textElm, Qt::AlignLeft);
-			}
-			{
-			KDReports::Cell& cell = paymentSummaryElement.cell(count, 1);
-			KDReports::TextElement textElm(pse->netAmount);
-			textElm.setPointSize(pointSizeForPayement);
-			textElm.setBold(false);
-			cell.addElement(textElm, Qt::AlignRight);
-		}
-			{
-				KDReports::Cell& cell = paymentSummaryElement.cell(count, 2);
-				KDReports::TextElement textElm(pse->interest);
-				textElm.setPointSize(pointSizeForPayement);
-				textElm.setBold(false);
-				cell.addElement(textElm, Qt::AlignRight);
-			}
-			{
-				KDReports::Cell& cell = paymentSummaryElement.cell(count, 3);
-				KDReports::TextElement textElm(pse->amount);
-				textElm.setPointSize(pointSizeForPayement);
-				textElm.setBold(false);
-				cell.addElement(textElm, Qt::AlignRight);
-			}
-			{
-				KDReports::Cell& cell = paymentSummaryElement.cell(count, 4);
-				KDReports::TextElement textElm(pse->no);
-				textElm.setPointSize(pointSizeForPayement);
-				textElm.setBold(false);
-				cell.addElement(textElm, Qt::AlignLeft);
-			}
-			{
-				KDReports::Cell& cell = paymentSummaryElement.cell(count, 5);
-				KDReports::TextElement textElm(pse->date);
-				textElm.setPointSize(pointSizeForPayement);
-				textElm.setBold(false);
-				cell.addElement(textElm, Qt::AlignLeft);
-			}
-			count++;
-		}
-		report.addElement(paymentSummaryElement);
-	}
-
-	report.addVerticalSpacing(1);
-
-	KDReports::TextElement customerInfo2("Thank You!");
-	customerInfo2.setPointSize(11);
-	report.addElement(customerInfo2, Qt::AlignCenter);
-
-	QPrinter printer;
-	printer.setPaperSize(QPrinter::Custom);
-
-	printer.setFullPage(false);
-	printer.setOrientation(QPrinter::Portrait);
-
-	//preview start
-// 	QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
-// 	QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
-// 	dialog->setWindowTitle(tr("Print Document"));
-// 	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
-// 	dialog->exec();
-	//preview end
-
-	KDReports::Header& header2 = report.header(KDReports::FirstPage);
-
-	QString titleStr = ES::Session::getInstance()->getBillTitle();
-	KDReports::TextElement titleElement(titleStr);
-	titleElement.setPointSize(14);
-	titleElement.setBold(true);
-	header2.addElement(titleElement, Qt::AlignCenter);
-
-	QString addressStr = ES::Session::getInstance()->getBillAddress();
-	KDReports::TextElement addressElement(addressStr);
-	addressElement.setPointSize(10);
-	addressElement.setBold(false);
-	header2.addElement(addressElement, Qt::AlignCenter);
-
-	QString phoneStr = ES::Session::getInstance()->getBillPhone();
-	KDReports::TextElement telElement(phoneStr);
-	telElement.setPointSize(10);
-	telElement.setBold(false);
-	header2.addElement(telElement, Qt::AlignCenter);
-
-	QString emailStr = ES::Session::getInstance()->getBillEmail();
-	if (emailStr != "")
-	{
-		KDReports::TextElement emailElement(emailStr);
-		emailElement.setPointSize(10);
-		emailElement.setBold(false);
-		header2.addElement(emailElement, Qt::AlignCenter);
-	}
-
-	KDReports::Header& header1 = report.header(KDReports::AllPages);
-
-	KDReports::TextElement billIdHead("Bill No : " + QString::number(billId));
-	billIdHead.setPointSize(11);
-	billIdHead.setBold(true);
-	header1.addElement(billIdHead);
-
-	report.setMargins(10, 15, 10, 15);
-
-	//report.print(&printer);
-
-	QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
-	QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
-	dialog->setWindowTitle(tr("Print Document"));
-	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
-	dialog->exec();
+	slotPrintReturnBill();
 }
 
 void ESSinglePayment2::slotPrint(QPrinter* printer)
@@ -1315,42 +663,348 @@ void ESSinglePayment2::setReturnTotal(float val)
 	m_returnTotal = val;
 }
 
+void ESSinglePayment2::slotPrintReturnBill()
+{
+	QString billedUser = "Billed Cashier : ";
+	QString qStrUserQry("SELECT display_name FROM user JOIN bill ON user.user_id = bill.user_id WHERE bill.bill_id = " + 
+		QString::number(m_returnItemsWidget->getOldBillId()));
+	QSqlQuery q(qStrUserQry);
+	if (q.next())
+	{
+		billedUser.append(q.value("display_name").toString());
+	}
+	QString titleStr = "Return Bill";
+	KDReports::TextElement titleElement(titleStr);
+	titleElement.setPointSize(14);
+	titleElement.setBold(true);
+	report.addElement(titleElement, Qt::AlignHCenter);
+	
+	QString dateStr = "Date : ";
+	dateStr.append(QDateTime::currentDateTime().toString("yyyy-MM-dd"));
+	QString timeStr = "Time : ";
+	timeStr.append(QDateTime::currentDateTime().toString("hh : mm"));
 
-// float ESSinglePayment::getTotalOutstanding(QString customerId)
-// {
-// 	float totalAmount = 0.f;
-// 	QString query;
-// 	query.append("SELECT * FROM customer_outstanding WHERE customer_id = ");
-// 	query.append(customerId);
-// 	query.append(" AND settled = 0");
-// 
-// 	QSqlQuery q(query);
-// 	while (q.next())
-// 	{
-// 		QString paymentId = q.value("payment_id").toString();
-// 		QSqlQuery qry("SELECT * FROM payment WHERE payment_id = " + paymentId);
-// 		QString pm = q.value("payment_method").toString();
-// 		float interest = 0;
-// 		if (pm == "CREDIT")
-// 		{
-// 			QSqlQuery qq("SELECT * FROM credit WHERE credit_id = " + q.value("table_id").toString());
-// 			if (qq.next())
-// 			{
-// 				interest = qq.value("interest").toFloat();
-// 				float amount = qq.value("amount").toFloat();
-// 				totalAmount += (amount * (100 + interest) / 100);
-// 			}
-// 		}
-// 		else if (pm == "CHEQUE")
-// 		{
-// 			QSqlQuery qq("SELECT * FROM cheque WHERE cheque_id = " + q.value("table_id").toString());
-// 			if (qq.next())
-// 			{
-// 				interest = qq.value("interest").toFloat();
-// 				float amount = qq.value("amount").toFloat();
-// 				totalAmount += (amount * (100 + interest) / 100);
-// 			}
-// 		}
-// 	}
-// 	return totalAmount;
-// }
+	KDReports::TableElement infoTableElement;
+	infoTableElement.setHeaderRowCount(3);
+	infoTableElement.setHeaderColumnCount(2);
+	infoTableElement.setBorder(0);
+	infoTableElement.setWidth(100, KDReports::Percent);
+	{
+		KDReports::Cell& oldBillNoCell = infoTableElement.cell(0, 0);
+		KDReports::TextElement t("Orig.Bill No : " + QString::number(m_returnItemsWidget->getOldBillId()));
+		t.setPointSize(10);
+		oldBillNoCell.addElement(t, Qt::AlignLeft);
+	}{
+		KDReports::Cell& userNameCell = infoTableElement.cell(1, 0);
+		KDReports::TextElement t("Cashier : " + ES::Session::getInstance()->getUser()->getName());
+		t.setPointSize(10);
+		userNameCell.addElement(t, Qt::AlignLeft);
+	}{
+		KDReports::Cell& userNameCell = infoTableElement.cell(2, 0);
+		KDReports::TextElement t(billedUser);
+		t.setPointSize(10);
+		userNameCell.addElement(t, Qt::AlignLeft);
+	}{
+		KDReports::Cell& returnBillNoCell = infoTableElement.cell(0, 1);
+		KDReports::TextElement t("Bill No : " + QString::number(m_returnItemsWidget->getBillId()));
+		t.setPointSize(10);
+		returnBillNoCell.addElement(t, Qt::AlignRight);
+	}{
+		KDReports::Cell& dateCell = infoTableElement.cell(1, 1);
+		KDReports::TextElement t(dateStr);
+		t.setPointSize(10);
+		dateCell.addElement(t, Qt::AlignRight);
+	}{
+		KDReports::Cell& timeCell = infoTableElement.cell(2, 1);
+		KDReports::TextElement t(timeStr);
+		t.setPointSize(10);
+		timeCell.addElement(t, Qt::AlignRight);
+	}
+
+	report.addElement(infoTableElement);
+	report.addVerticalSpacing(1);
+
+	KDReports::TextElement retItemsElem("Return Items");
+	retItemsElem.setPointSize(11);
+	retItemsElem.setBold(false);
+	report.addElement(retItemsElem, Qt::AlignLeft);
+
+	KDReports::HtmlElement htmlElem1;
+	QString htm1("<div><hr/></div>");
+	htmlElem1.setHtml(htm1);
+	report.addElement(htmlElem1);
+	//report.addVerticalSpacing(1);
+
+	//////////////////////////////////////////////////////////////////////////
+	KDReports::TableElement dataTableElement;
+	dataTableElement.setHeaderRowCount(2);
+	dataTableElement.setHeaderColumnCount(5);
+	dataTableElement.setBorder(0);
+	dataTableElement.setWidth(100, KDReports::Percent);
+	double unitPrice = 0, qty = 0, retTotal = 0;
+	int row = 0;
+	for (int i = 0; i < m_returnItemsWidget->getUI().tableWidget->rowCount(); ++i)
+	{
+		row = i;
+		{
+			KDReports::Cell& cell = dataTableElement.cell(i, 0);
+			QString code = m_returnItemsWidget->getUI().tableWidget->item(i, 0)->text();
+			KDReports::TextElement t(code);
+			t.setPointSize(10);
+			cell.addElement(t, Qt::AlignLeft);
+		}{
+			KDReports::Cell& cell = dataTableElement.cell(i, 1);
+			QString name = m_returnItemsWidget->getUI().tableWidget->item(i, 1)->text();
+			KDReports::TextElement t(name);
+			t.setPointSize(10);
+			cell.addElement(t, Qt::AlignLeft);
+		}{
+			QString qtyStr = m_returnItemsWidget->getUI().tableWidget->item(i, 2)->text();
+			qty = qtyStr.toDouble();
+			KDReports::Cell& cell = dataTableElement.cell(i, 2);
+			KDReports::TextElement t(qtyStr);
+			t.setPointSize(10);
+			cell.addElement(t, Qt::AlignRight);
+		}{
+			KDReports::Cell& cell = dataTableElement.cell(i, 3);
+			QString billedPrice = m_returnItemsWidget->getUI().tableWidget->item(i, 3)->text();
+			KDReports::TextElement t(billedPrice);
+			t.setPointSize(10);
+			cell.addElement(t, Qt::AlignRight);
+		}{
+			QString paidPrice = m_returnItemsWidget->getUI().tableWidget->item(i, 4)->text();
+			unitPrice = paidPrice.toDouble();
+			double total = qty * unitPrice;
+			KDReports::Cell& cell = dataTableElement.cell(i, 4);
+			KDReports::TextElement t(QString::number(total, 'f', 2));
+			t.setPointSize(10);
+			cell.addElement(t, Qt::AlignRight);
+		}
+
+		retTotal += unitPrice*qty;
+	}
+
+	float returnedTotal = 0;
+
+	row++; // sub total
+	{
+		KDReports::Cell& total = dataTableElement.cell(row, 3);
+		//total.setColumnSpan(5);
+		KDReports::TextElement totalTxt("Sub Total(RTN) :");
+		totalTxt.setPointSize(10);
+		totalTxt.setBold(true);
+		total.addElement(totalTxt, Qt::AlignRight);
+	}
+	{
+		KDReports::Cell& total = dataTableElement.cell(row, 4);
+		//total.setColumnSpan(5);
+		QString totalStr = QString::number(retTotal, 'f', 2);
+		KDReports::TextElement totalValue(totalStr);
+		totalValue.setPointSize(10);
+		totalValue.setBold(true);
+		total.addElement(totalValue, Qt::AlignRight);
+	}
+
+	row++; // interest
+	{
+		KDReports::Cell& total = dataTableElement.cell(row, 3);
+		//total.setColumnSpan(5);
+		KDReports::TextElement totalTxt("Interest :");
+		totalTxt.setPointSize(10);
+		totalTxt.setBold(true);
+		total.addElement(totalTxt, Qt::AlignRight);
+	}
+	{
+		KDReports::Cell& total = dataTableElement.cell(row, 4);
+		//total.setColumnSpan(5);
+		double interest = m_returnItemsWidget->getUI().returnInterest->text().toDouble();
+		KDReports::TextElement totalValue(QString::number(interest, 'f', 2));
+		totalValue.setPointSize(10);
+		totalValue.setBold(true);
+		total.addElement(totalValue, Qt::AlignRight);
+	}
+
+	report.addElement(dataTableElement);
+	report.addVerticalSpacing(2);
+
+	KDReports::TextElement newItemsElem("New Items");
+	newItemsElem.setPointSize(11);
+	newItemsElem.setBold(false);
+	report.addElement(newItemsElem, Qt::AlignLeft);
+	report.addElement(htmlElem1);
+
+	//////////////////////////////////////////////////////////////////////////
+	KDReports::TableElement newdataTableElement;
+	newdataTableElement.setHeaderRowCount(2);
+	newdataTableElement.setHeaderColumnCount(5);
+	newdataTableElement.setBorder(0);
+	newdataTableElement.setWidth(100, KDReports::Percent);
+	double unitPrice2 = 0, qty2 = 0, retTotal2 = 0;
+	int row2 = 0;
+	for (int i = 0; i < m_returnItemsWidget->getUI().billTableWidget->rowCount(); ++i)
+	{
+		row2 = i;
+		{
+			KDReports::Cell& cell = newdataTableElement.cell(i, 0);
+			QString code = m_returnItemsWidget->getUI().billTableWidget->item(i, 0)->text();
+			KDReports::TextElement t(code);
+			t.setPointSize(10);
+			cell.addElement(t, Qt::AlignLeft);
+		}{
+			KDReports::Cell& cell = newdataTableElement.cell(i, 1);
+			QString name = m_returnItemsWidget->getUI().billTableWidget->item(i, 1)->text();
+			KDReports::TextElement t(name);
+			t.setPointSize(10);
+			cell.addElement(t, Qt::AlignLeft);
+		}{
+			QString qtyStr = m_returnItemsWidget->getUI().billTableWidget->item(i, 3)->text();
+			qty2 = qtyStr.toDouble();
+			KDReports::Cell& cell = newdataTableElement.cell(i, 2);
+			KDReports::TextElement t(qtyStr);
+			t.setPointSize(10);
+			cell.addElement(t, Qt::AlignRight);
+		}{
+			KDReports::Cell& cell = newdataTableElement.cell(i, 3);
+			QString billedPrice = m_returnItemsWidget->getUI().billTableWidget->item(i, 2)->text();
+			KDReports::TextElement t(billedPrice);
+			t.setPointSize(10);
+			cell.addElement(t, Qt::AlignRight);
+		}{
+			QString paidPrice = m_returnItemsWidget->getUI().billTableWidget->item(i, 2)->text();
+			unitPrice2 = paidPrice.toDouble();
+			double total = qty2 * unitPrice2;
+			KDReports::Cell& cell = newdataTableElement.cell(i, 4);
+			KDReports::TextElement t(QString::number(total, 'f', 2));
+			t.setPointSize(10);
+			cell.addElement(t, Qt::AlignRight);
+		}
+
+		retTotal2 += unitPrice2 * qty2;
+	}
+
+	row2++; // sub total
+	{
+		KDReports::Cell& total = newdataTableElement.cell(row2, 3);
+		//total.setColumnSpan(5);
+		KDReports::TextElement totalTxt("Sub Total(NEW) :");
+		totalTxt.setPointSize(10);
+		totalTxt.setBold(true);
+		total.addElement(totalTxt, Qt::AlignRight);
+	}
+	{
+		KDReports::Cell& total = newdataTableElement.cell(row2, 4);
+		//total.setColumnSpan(5);
+		QString totalStr = QString::number(retTotal2, 'f', 2);
+		KDReports::TextElement totalValue(totalStr);
+		totalValue.setPointSize(10);
+		totalValue.setBold(true);
+		total.addElement(totalValue, Qt::AlignRight);
+	}
+	
+	//////////////////////////////////////////////////////////////////////////
+
+	row2+=2; // sub total
+	{
+		KDReports::Cell& total = newdataTableElement.cell(row2, 0);
+		//total.setColumnSpan(5);
+		KDReports::TextElement totalTxt("Orig.Bill Total :");
+		totalTxt.setPointSize(10);
+		totalTxt.setBold(true);
+		total.addElement(totalTxt, Qt::AlignLeft);
+	}
+	{
+		double oldTotal;
+		QSqlQuery billAmount("SELECT amount FROM bill WHERE bill_id =" + QString::number(m_returnItemsWidget->getOldBillId()));
+		if (billAmount.next())
+		{
+			oldTotal = billAmount.value("amount").toDouble();
+		}
+		KDReports::Cell& total = newdataTableElement.cell(row2, 1);
+		//total.setColumnSpan(5);
+		KDReports::TextElement totalTxt(QString::number(oldTotal, 'f', 2));
+		totalTxt.setPointSize(10);
+		totalTxt.setBold(true);
+		total.addElement(totalTxt, Qt::AlignLeft);
+	}
+	{
+		KDReports::Cell& total = newdataTableElement.cell(row2, 3);
+		//total.setColumnSpan(5);
+		KDReports::TextElement totalTxt("Sub Total :");
+		totalTxt.setPointSize(10);
+		totalTxt.setBold(true);
+		total.addElement(totalTxt, Qt::AlignRight);
+	}
+	{
+		double interest = m_returnItemsWidget->getUI().returnInterest->text().toDouble();
+		double subTotal = (retTotal + retTotal * interest * 0.01) * -1 + retTotal2;
+
+		KDReports::Cell& total = newdataTableElement.cell(row2, 4);
+		//total.setColumnSpan(5);
+		QString totalStr = QString::number(subTotal, 'f', 2);
+		KDReports::TextElement totalValue(totalStr);
+		totalValue.setPointSize(10);
+		totalValue.setBold(true);
+		total.addElement(totalValue, Qt::AlignRight);
+	}
+	row2++;
+	{
+		KDReports::Cell& total = newdataTableElement.cell(row2, 0);
+		//total.setColumnSpan(5);
+		KDReports::TextElement totalTxt("Outstanding :");
+		totalTxt.setPointSize(10);
+		totalTxt.setBold(true);
+		total.addElement(totalTxt, Qt::AlignLeft);
+	}
+	{
+		KDReports::Cell& total = newdataTableElement.cell(row2, 1);
+		//total.setColumnSpan(5);
+		KDReports::TextElement totalTxt(ui.outstandingText->text());
+		totalTxt.setPointSize(10);
+		totalTxt.setBold(true);
+		total.addElement(totalTxt, Qt::AlignLeft);
+	}
+	if (m_paymentMethod == "CREDIT")
+	{
+		{
+			KDReports::Cell& total = newdataTableElement.cell(row2, 3);
+			//total.setColumnSpan(5);
+			KDReports::TextElement totalTxt("Not Paid :");
+			totalTxt.setPointSize(10);
+			totalTxt.setBold(true);
+			total.addElement(totalTxt, Qt::AlignLeft);
+		}
+		{
+			KDReports::Cell& total = newdataTableElement.cell(row2, 4);
+			//total.setColumnSpan(5);
+			double interest = m_returnItemsWidget->getUI().returnInterest->text().toDouble();
+			double subTotal = (retTotal + retTotal * interest * 0.01) * -1 + retTotal2;
+			double notPaid = ui.outstandingText->text().toDouble() + subTotal;
+			KDReports::TextElement totalTxt(QString::number(notPaid, 'f', 2));
+			totalTxt.setPointSize(10);
+			totalTxt.setBold(true);
+			total.addElement(totalTxt, Qt::AlignLeft);
+		}
+	}
+
+	report.addElement(newdataTableElement);
+	report.addVerticalSpacing(2);
+
+	//////////////////////////////////////////////////////////////////////////
+
+	// Update database
+	m_returnItemsWidget->updateDatabase();
+
+	QPrinter printer;
+	printer.setPaperSize(QPrinter::A4);
+
+	printer.setFullPage(false);
+	printer.setOrientation(QPrinter::Portrait);
+
+	QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
+	QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
+	dialog->setWindowTitle(tr("Print Document"));
+	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
+	dialog->exec();
+
+	//report.print(&printer);
+}

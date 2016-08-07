@@ -29,7 +29,7 @@ QString convertToQuantityFormat(QString text, int row, int col, QTableWidget* ta
 	return text;
 }
 
-ESReturnItems::ESReturnItems(QWidget *parent /*= 0*/) : QWidget(parent), m_total(0), m_hasInterest(false)
+ESReturnItems::ESReturnItems(QWidget *parent /*= 0*/) : QWidget(parent), m_hasInterest(false)
 {
 	ui.setupUi(this);
 
@@ -140,47 +140,56 @@ void ESReturnItems::slotPrintReturnBill()
 	titleElement.setBold(true);
 	report.addElement(titleElement, Qt::AlignHCenter);
 
-	QString billIdStr = "Bill ID : ";
-	billIdStr.append(QString::number(m_bill.getOldBillId()));
-	KDReports::TextElement addressElement(billIdStr);
-	addressElement.setPointSize(11);
-	addressElement.setBold(false);
-	report.addElement(addressElement, Qt::AlignLeft);
-
 	QString dateStr = "Date : ";
 	dateStr.append(QDateTime::currentDateTime().toString("yyyy-MM-dd"));
 	QString timeStr = "Time : ";
 	timeStr.append(QDateTime::currentDateTime().toString("hh : mm"));
 
 	KDReports::TableElement infoTableElement;
-	infoTableElement.setHeaderRowCount(2);
+	infoTableElement.setHeaderRowCount(3);
 	infoTableElement.setHeaderColumnCount(2);
 	infoTableElement.setBorder(0);
 	infoTableElement.setWidth(100, KDReports::Percent);
 	{
-		KDReports::Cell& userNameCell = infoTableElement.cell(0, 0);
+		KDReports::Cell& oldBillNoCell = infoTableElement.cell(0, 0);
+		KDReports::TextElement t("Orig.Bill No : " + m_bill.getOldBillId());
+		t.setPointSize(10);
+		oldBillNoCell.addElement(t, Qt::AlignLeft);
+	}{
+		KDReports::Cell& userNameCell = infoTableElement.cell(1, 0);
 		KDReports::TextElement t("Cashier : " + ES::Session::getInstance()->getUser()->getName());
 		t.setPointSize(10);
 		userNameCell.addElement(t, Qt::AlignLeft);
 	}{
-		KDReports::Cell& userNameCell = infoTableElement.cell(1, 0);
+		KDReports::Cell& userNameCell = infoTableElement.cell(2, 0);
 		KDReports::TextElement t(billedUser);
 		t.setPointSize(10);
 		userNameCell.addElement(t, Qt::AlignLeft);
 	}{
-		KDReports::Cell& dateCell = infoTableElement.cell(0, 1);
+		KDReports::Cell& returnBillNoCell = infoTableElement.cell(0, 1);
+		KDReports::TextElement t("Bill No : "+ m_bill.getBillId());
+		t.setPointSize(10);
+		returnBillNoCell.addElement(t, Qt::AlignRight);
+	}{
+		KDReports::Cell& dateCell = infoTableElement.cell(1, 1);
 		KDReports::TextElement t(dateStr);
 		t.setPointSize(10);
 		dateCell.addElement(t, Qt::AlignRight);
 	}{
-		KDReports::Cell& timeCell = infoTableElement.cell(1, 1);
+		KDReports::Cell& timeCell = infoTableElement.cell(2, 1);
 		KDReports::TextElement t(timeStr);
 		t.setPointSize(10);
 		timeCell.addElement(t, Qt::AlignRight);
 	}
+	
 	report.addElement(infoTableElement);
 
-	//report.addVerticalSpacing(1);
+	KDReports::TextElement retItemsElem("Return Items");
+	retItemsElem.setPointSize(11);
+	retItemsElem.setBold(false);
+	report.addElement(retItemsElem, Qt::AlignLeft);
+
+	report.addVerticalSpacing(1);
 	KDReports::HtmlElement htmlElem1;
 	QString htm1("<div><hr/></div>");
 	htmlElem1.setHtml(htm1);
@@ -193,7 +202,7 @@ void ESReturnItems::slotPrintReturnBill()
 	dataTableElement.setHeaderColumnCount(5);
 	dataTableElement.setBorder(0);
 	dataTableElement.setWidth(100, KDReports::Percent);
-	double unitPrice, qty = 0;
+	double unitPrice = 0, qty = 0, retTotal= 0;
 	int row = 0;
 	for (int i = 0; i < ui.tableWidget->rowCount(); ++i)
 	{
@@ -232,15 +241,17 @@ void ESReturnItems::slotPrintReturnBill()
 			t.setPointSize(10);
 			cell.addElement(t, Qt::AlignRight);
 		}
-		m_total += unitPrice*qty;
+		
+		retTotal += unitPrice*qty;
 	}
+
 	float returnedTotal = 0;
 
 	row++; // sub total
 	{
 		KDReports::Cell& total = dataTableElement.cell(row, 3);
 		//total.setColumnSpan(5);
-		KDReports::TextElement totalTxt("Sub Total ");
+		KDReports::TextElement totalTxt("Sub Total (RTN) : ");
 		totalTxt.setPointSize(11);
 		totalTxt.setBold(true);
 		total.addElement(totalTxt, Qt::AlignRight);
@@ -248,34 +259,18 @@ void ESReturnItems::slotPrintReturnBill()
 	{
 		KDReports::Cell& total = dataTableElement.cell(row, 4);
 		//total.setColumnSpan(5);
-		QString totalStr = QString::number(m_total, 'f', 2);
+		QString totalStr = QString::number(retTotal, 'f', 2);
 		KDReports::TextElement totalValue(totalStr);
 		totalValue.setPointSize(11);
 		totalValue.setBold(true);
 		total.addElement(totalValue, Qt::AlignRight);
 	}
-	{
-		KDReports::Cell& total = dataTableElement.cell(row, 0);
-		//total.setColumnSpan(5);
-		KDReports::TextElement totalTxt("Bill Outstanding");
-		totalTxt.setPointSize(11);
-		totalTxt.setBold(false);
-		total.addElement(totalTxt, Qt::AlignRight);
-	}
-	{
-		returnedTotal = ui.returnTotal->text().toFloat();
-		KDReports::Cell& total = dataTableElement.cell(row, 1);
-		//total.setColumnSpan(5);
-		KDReports::TextElement totalValue(QString::number(m_billOutstanding, 'f', 2));
-		totalValue.setPointSize(11);
-		totalValue.setBold(false);
-		total.addElement(totalValue, Qt::AlignRight);
-	}
+
 	row++; // interest
 	{
 		KDReports::Cell& total = dataTableElement.cell(row, 3);
 		//total.setColumnSpan(5);
-		KDReports::TextElement totalTxt("Interest ");
+		KDReports::TextElement totalTxt("Interest : ");
 		totalTxt.setPointSize(11);
 		totalTxt.setBold(true);
 		total.addElement(totalTxt, Qt::AlignRight);
@@ -289,61 +284,16 @@ void ESReturnItems::slotPrintReturnBill()
 		totalValue.setBold(true);
 		total.addElement(totalValue, Qt::AlignRight);
 	}
-	{
-		KDReports::Cell& total = dataTableElement.cell(row, 0);
-		//total.setColumnSpan(5);
-		KDReports::TextElement totalTxt("Return Total");
-		totalTxt.setPointSize(11);
-		totalTxt.setBold(false);
-		total.addElement(totalTxt, Qt::AlignRight);
-	}
-	{
-		returnedTotal = ui.returnTotal->text().toFloat();
-		KDReports::Cell& total = dataTableElement.cell(row, 1);
-		//total.setColumnSpan(5);
-		KDReports::TextElement totalValue("-" + QString::number(returnedTotal, 'f', 2));
-		totalValue.setPointSize(11);
-		totalValue.setBold(false);
-		total.addElement(totalValue, Qt::AlignRight);
-	}
-	row++; // return total
-	{
-		KDReports::Cell& total = dataTableElement.cell(row, 3);
-		//total.setColumnSpan(5);
-		KDReports::TextElement totalTxt("Return Total");
-		totalTxt.setPointSize(11);
-		totalTxt.setBold(true);
-		total.addElement(totalTxt, Qt::AlignRight);
-	}
-	{
-		returnedTotal  = ui.returnTotal->text().toFloat();
-		KDReports::Cell& total = dataTableElement.cell(row, 4);
-		//total.setColumnSpan(5);
-		KDReports::TextElement totalValue(ui.returnTotal->text());
-		totalValue.setPointSize(11);
-		totalValue.setBold(true);
-		total.addElement(totalValue, Qt::AlignRight);
-	}	
-	{
-		KDReports::Cell& total = dataTableElement.cell(row, 0);
-		//total.setColumnSpan(5);
-		KDReports::TextElement totalTxt("Current Due");
-		totalTxt.setPointSize(11);
-		totalTxt.setBold(false);
-		total.addElement(totalTxt, Qt::AlignRight);
-	}
-	{
-		returnedTotal = ui.returnTotal->text().toFloat();
-		KDReports::Cell& total = dataTableElement.cell(row, 1);
-		//total.setColumnSpan(5);
-		KDReports::TextElement totalValue(QString::number(m_billOutstanding - returnedTotal, 'f', 2));
-		totalValue.setPointSize(11);
-		totalValue.setBold(false);
-		total.addElement(totalValue, Qt::AlignRight);
-	}
+
 	report.addElement(dataTableElement);
-	//report.addElement(htmlElem1);
-	report.addVerticalSpacing(1);
+	report.addVerticalSpacing(2);
+
+	KDReports::TextElement newItemsElem("New Items");
+	newItemsElem.setPointSize(11);
+	newItemsElem.setBold(false);
+	report.addElement(newItemsElem, Qt::AlignLeft);
+	report.addElement(htmlElem1);
+
 	//////////////////////////////////////////////////////////////////////////
 
 	// Update database
@@ -515,14 +465,14 @@ void ESReturnItems::showTotal()
 	ui.newSubTotal->setText(QString::number(m_bill.getNewSubTotal(), 'f', 2));
 	ui.newTotal->setText(QString::number(m_bill.getNewTotal(), 'f', 2));
 
-	if (m_bill.getNewTotal() >= m_bill.getTotal())
-	{
-		ui.commitBtn->setEnabled(true);
-	}
-	else
-	{
-		ui.commitBtn->setDisabled(true);
-	}
+// 	if (m_bill.getNewTotal() >= m_bill.getTotal())
+// 	{
+// 		ui.commitBtn->setEnabled(true);
+// 	}
+// 	else
+// 	{
+// 		ui.commitBtn->setDisabled(true);
+// 	}
 }
 
 void ESReturnItems::slotInterestChanged()
@@ -761,28 +711,11 @@ void ESReturnItems::slotRemoveNewItem(int id)
 
 void ESReturnItems::slotCommit()
 {
-	/*ESPayment* payment = new ESPayment(NULL, 0, true);
-
-	payment->setWindowState(Qt::WindowActive);
-	payment->setWindowModality(Qt::ApplicationModal);
-	payment->setAttribute(Qt::WA_DeleteOnClose);
-	//payment->setWindowFlags(Qt::CustomizeWindowHint | Qt::Window);
-	payment->show();
-
-	//payment->setNetAmount(QString::number(ui.netAmountLabel->text().toDouble(), 'f', 2));
-	//payment->setNoOfItems(ui.noOfItemLabel->text());
-	//payment->setTotalAmount(QString::number(ui.grossAmountLabel->text().toDouble(), 'f', 2));
-	//payment->getUI().balanceLbl->setText("0.00");
-
-	QSize sz = payment->size();
-	QPoint screen = QApplication::desktop()->screen()->rect().center();
-	payment->move(screen.x() - sz.width() / 2, screen.y() - sz.height() / 2);*/
-
 	ESSinglePayment2* singlePayment = new ESSinglePayment2(this, 0);
 	singlePayment->setWindowState(Qt::WindowActive);
 	singlePayment->setWindowModality(Qt::ApplicationModal);
 	singlePayment->setAttribute(Qt::WA_DeleteOnClose);
-	float m_billOutstanding = ES::Utility::getOutstandingForBill(m_bill.getOldBillId());
+
 	QSqlQuery queryBill("SELECT * FROM bill WHERE bill_id = " + QString::number(m_bill.getOldBillId()));
 	if (queryBill.next())
 	{
@@ -796,7 +729,8 @@ void ESReturnItems::slotCommit()
 		}
 		singlePayment->setCustomerId(m_customerId);
 	}
-	singlePayment->getUI().outstandingText->setText(QString::number(m_billOutstanding, 'f', 2));
+	float outstanding = ES::Utility::getTotalCreditOutstanding(m_customerId);
+	singlePayment->getUI().outstandingText->setText(QString::number(outstanding, 'f', 2));
 	//singlePayment->setCustomerId(m_customerId);
 
 	////outstanding start
@@ -827,4 +761,78 @@ void ESReturnItems::slotNewInterestChanged()
 {
 	m_bill.setNewInterest(ui.newInterest->text());
 	showTotal();
+}
+
+void ESReturnItems::updateDatabase()
+{
+	int uId = ES::Session::getInstance()->getUser()->getId();
+	QString itemId = "";
+	float returnQty = 0;
+
+	// process return items
+	for (int i = 0; i < ui.tableWidget->rowCount(); ++i)
+	{
+		QTableWidgetItem* item = ui.tableWidget->item(i, 0);
+		QSqlQuery itemQuery("SELECT item_id FROM item WHERE item_code = '" + item->text() + "'");
+		if (itemQuery.next())
+		{
+			returnQty = ui.tableWidget->item(i, 2)->text().toFloat();
+			float paidPrice = ui.tableWidget->item(i, 4)->text().toFloat();
+			float interest = ui.returnInterest->text().toFloat();
+			itemId = itemQuery.value("item_id").toString();
+			double total = returnQty * paidPrice * (100 + interest) / 100;
+			// bill_id, item_id, qty, paid_price, return_total, user_id
+			QSqlQuery q("INSERT INTO return_item (old_bill_id, new_bill_id, item_id, qty, paid_price, return_total, user_id) VALUES (" +
+				QString::number(m_bill.getOldBillId()) + "," +
+				QString::number(m_bill.getBillId()) + "," +
+				itemQuery.value("item_id").toString() + "," +
+				QString::number(returnQty) + "," +
+				ui.tableWidget->item(i, 4)->text() + "," +
+				QString::number(total) + "," +
+				QString::number(uId) + ")"
+				);
+
+			//inserting to stock
+			QSqlQuery qStock("SELECT * FROM stock WHERE item_id = " + itemId);
+			if (qStock.next())
+			{
+				float currentQty = qStock.value("qty").toFloat();
+				float newQty = currentQty + returnQty;
+				QString stockId = qStock.value("stock_id").toString();
+				QSqlQuery qStockUpdate("UPDATE stock SET qty = " + QString::number(newQty) + " WHERE stock_id = " + stockId);
+			}
+		}
+
+		// process new items
+		const std::map<int, ES::ReturnBill::NewItemInfo>& newItems = m_bill.getNewItemTable();
+		std::map<int, ES::ReturnBill::NewItemInfo>::const_iterator iter = newItems.begin();
+		std::map<int, ES::ReturnBill::NewItemInfo>::const_iterator iterEnd = newItems.end();
+		for (; iter != iterEnd; ++iter)
+		{
+			const ES::ReturnBill::NewItemInfo& ni = iter->second;
+		
+			double price = ni.itemPrice - ni.itemPrice * ni.discount * 0.01;
+			double netTotal = price * ni.quantity;
+			// stock_id 	bill_id 	quantity 	discount 	item_price 	total 	deleted 	date 
+			QString q = "INSERT INTO sale (stock_id, bill_id, quantity, discount, item_price, total) VALUES(" +
+				QString::number(ni.stockId) + ", " + 
+				QString::number(m_bill.getBillId()) + ", " +
+				QString::number(ni.quantity) + ", " +
+				QString::number(ni.discount, 'f', 2) + ", " + 
+				QString::number(ni.itemPrice, 'f', 2) + ", " +
+				QString::number(netTotal, 'f', 2) + ")";
+			QSqlQuery query;
+			if (query.exec(q))
+			{
+				QSqlQuery qStock("SELECT * FROM stock WHERE stock_id = " + ni.stockId);
+				if (qStock.next())
+				{
+					float currentQty = qStock.value("qty").toFloat();
+					float newQty = currentQty - ni.quantity;
+					QSqlQuery qStockUpdate("UPDATE stock SET qty = " + QString::number(newQty) + " WHERE stock_id = " + ni.stockId);
+				}
+			}
+		}
+
+	}
 }

@@ -60,7 +60,7 @@ void ESReturnSummary::slotSearch()
 	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
 	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
 
-	QSqlQuery q("SELECT user_id, COUNT(bill_id) AS bills, SUM(return_total) AS total FROM return_item WHERE DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'" + "GROUP BY(user_id)");
+	QSqlQuery q("SELECT user_id, COUNT(old_bill_id) AS bills, SUM(return_total) AS total FROM return_item WHERE DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'" + "GROUP BY(user_id)");
 	while (q.next())
 	{
 		QString userId = q.value("user_id").toString();
@@ -215,7 +215,7 @@ void ESReturnSummary::slotGenerateReport()
 		if (userQuery.next())
 		{
 			QString userName = userQuery.value("display_name").toString();
-			QString billId = q.value("bill_id").toString();
+			QString billId = q.value("old_bill_id").toString();
 			QString itemId = q.value("item_id").toString();
 			QString qty = q.value("qty").toString();
 			float subTotal = q.value("return_total").toDouble();
@@ -383,7 +383,7 @@ void ESReturnSummary::slotGenerateReportForGivenUser(QString userId)
 		float lineTotal = qReturnItems.value("return_total").toFloat();
 		total += lineTotal;
 		QString dateStr = qReturnItems.value("date").toDateTime().date().toString("yyyy-MM-dd");
-		QString billId = qReturnItems.value("bill_id").toString();
+		QString billId = qReturnItems.value("old_bill_id").toString();
 		QString itemId = qReturnItems.value("item_id").toString();
 		printRow(tableElement, row, 0, dateStr);
 		printRow(tableElement, row, 1, billId);
