@@ -782,7 +782,7 @@ void ESReturnItems::updateDatabase()
 			itemId = itemQuery.value("item_id").toString();
 			double total = returnQty * paidPrice * (100 + interest) / 100;
 			// bill_id, item_id, qty, paid_price, return_total, user_id
-			QSqlQuery q("INSERT INTO return_item (old_bill_id, new_bill_id, item_id, qty, paid_price, return_total, user_id) VALUES (" +
+			QSqlQuery q("INSERT INTO return_item (bill_id, new_bill_id, item_id, qty, paid_price, return_total, user_id) VALUES (" +
 				QString::number(m_bill.getOldBillId()) + "," +
 				QString::number(m_bill.getBillId()) + "," +
 				itemQuery.value("item_id").toString() + "," +
