@@ -781,10 +781,15 @@ void ESSinglePayment2::slotPrintReturnBill()
 			cell.addElement(t, Qt::AlignRight);
 		}
 
-		retTotal += unitPrice*qty;
+		retTotal += unitPrice * qty;
 	}
 
-	float returnedTotal = 0;
+	QString returnInterestStr = m_returnItemsWidget->getUI().returnInterest->text();
+	double returnInterest = returnInterestStr.toDouble();
+	if (returnInterest > 0)
+	{
+		retTotal = retTotal + (retTotal * returnInterest * 0.01);
+	}
 
 	row++; // sub total
 	{
@@ -817,8 +822,7 @@ void ESSinglePayment2::slotPrintReturnBill()
 	{
 		KDReports::Cell& total = dataTableElement.cell(row, 4);
 		//total.setColumnSpan(5);
-		double interest = m_returnItemsWidget->getUI().returnInterest->text().toDouble();
-		KDReports::TextElement totalValue(QString::number(interest, 'f', 2));
+		KDReports::TextElement totalValue(QString::number(returnInterest, 'f', 2));
 		totalValue.setPointSize(10);
 		totalValue.setBold(true);
 		total.addElement(totalValue, Qt::AlignRight);
@@ -971,7 +975,7 @@ void ESSinglePayment2::slotPrintReturnBill()
 			KDReports::TextElement totalTxt("Not Paid :");
 			totalTxt.setPointSize(10);
 			totalTxt.setBold(true);
-			total.addElement(totalTxt, Qt::AlignLeft);
+			total.addElement(totalTxt, Qt::AlignRight);
 		}
 		{
 			KDReports::Cell& total = newdataTableElement.cell(row2, 4);
@@ -982,7 +986,7 @@ void ESSinglePayment2::slotPrintReturnBill()
 			KDReports::TextElement totalTxt(QString::number(notPaid, 'f', 2));
 			totalTxt.setPointSize(10);
 			totalTxt.setBold(true);
-			total.addElement(totalTxt, Qt::AlignLeft);
+			total.addElement(totalTxt, Qt::AlignRight);
 		}
 	}
 
