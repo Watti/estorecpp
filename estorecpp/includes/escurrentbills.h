@@ -28,6 +28,8 @@ public:
 private:
 	void printRow(KDReports::TableElement& tableElement, int row, int col, 
 		QString elementStr, Qt::AlignmentFlag alignment = Qt::AlignLeft);
+	void printReturnBill(QString billIdStr);
+
 	Ui::CurrentBills ui;
 	QSignalMapper* m_proceedButtonSignalMapper;
 	QSignalMapper* m_voidBillButtonSignalMapper;
