@@ -769,6 +769,11 @@ void ESReturnItems::updateDatabase()
 	QString itemId = "";
 	float returnQty = 0;
 
+	// update return_bill table
+	QSqlQuery rbQuery("INSERT INTO return_bill (return_bill_id, bill_id, ts) VALUES (" + 
+		QString::number(m_bill.getBillId()) + "," + 
+		QString::number(m_bill.getOldBillId()) + ", NOW())");
+
 	// process return items
 	for (int i = 0; i < ui.tableWidget->rowCount(); ++i)
 	{
