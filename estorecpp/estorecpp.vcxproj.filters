@@ -407,9 +407,6 @@
     <ClCompile Include="GeneratedFiles\Release\moc_tabletextwidget.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
-    <ClCompile Include="GeneratedFiles\qrc_test.cpp">
-      <Filter>Generated Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\esauthentication.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -547,6 +544,15 @@
     </ClCompile>
     <ClCompile Include="GeneratedFiles\Release\moc_essinglepayment2.cpp">
       <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_overallstockitemreport.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_overallstockitemreport.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="src\overallstockitemreport.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -763,9 +769,6 @@
     <CustomBuild Include="includes\entities\tabletextwidget.h">
       <Filter>Header Files\enities</Filter>
     </CustomBuild>
-    <CustomBuild Include="test.qrc">
-      <Filter>Resource Files</Filter>
-    </CustomBuild>
     <CustomBuild Include="authentication.ui">
       <Filter>Form Files</Filter>
     </CustomBuild>
@@ -851,6 +854,12 @@
       <Filter>Header Files</Filter>
     </CustomBuild>
     <CustomBuild Include="includes\essinglepayment2.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="overallstockitemreport.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="includes\overallstockitemreport.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
   </ItemGroup>
@@ -1012,6 +1021,9 @@
       <Filter>Generated Files</Filter>
     </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_salessummarybyitems.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GeneratedFiles\ui_overallstockitemreport.h">
       <Filter>Generated Files</Filter>
     </ClInclude>
   </ItemGroup>

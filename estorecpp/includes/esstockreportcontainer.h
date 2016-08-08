@@ -8,6 +8,7 @@
 #include "esstockreport.h"
 #include <memory>
 #include "esitemwisesalessummary.h"
+#include "overallstockitemreport.h"
 
 class ESStockReportContainer : public QWidget
 {
@@ -26,6 +27,7 @@ public:
 private:
 	Ui::StockReportContainerWidget ui;
 	ESStockReport* m_stockReport;
+	ESOverallStockItemReport* m_overallStockItemReport;
 	ESItemWiseSalesSummary* m_itemWiseSalesReport;
 
 

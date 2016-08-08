@@ -31,7 +31,7 @@ ESStockReport::ESStockReport(QWidget *parent /*= 0*/) : QWidget(parent)
 	ui.tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
 
 	QObject::connect(ui.generateButton, SIGNAL(clicked()), this, SLOT(slotGenerate()));
-	
+
 	displayResults();
 
 }
@@ -46,21 +46,21 @@ void ESStockReport::slotGenerate()
 	QString reportName = "stock_status_report_";
 	QSqlQuery qq("SELECT * FROM report_text WHERE report_name = 'stock_status_report'");
 
-	if (qq.next())
+	//if (qq.next())
 	{
 		// Create a report
 
-		int reportNo = qq.value("report_number").toInt();
-		reportNo++;
-
-		reportName.append(QString::number(reportNo).rightJustified(8, '0'));
-
-		QSqlQuery qUpdate("UPDATE report_text SET report_number = " + QString::number(reportNo) + " WHERE report_name = 'stock_status_report'");
-
-		QString reportNoStr = qq.value("report_number_text").toString() + " : " + qq.value("report_no_prefix").toString() + QString::number(reportNo).rightJustified(8, '0');
-		KDReports::TextElement rpNo(reportNoStr);
-		report.addElement(rpNo, Qt::AlignLeft);
-		report.addVerticalSpacing(1);
+		// 		int reportNo = qq.value("report_number").toInt();
+		// 		reportNo++;
+		// 
+		// 		reportName.append(QString::number(reportNo).rightJustified(8, '0'));
+		// 
+		// 		QSqlQuery qUpdate("UPDATE report_text SET report_number = " + QString::number(reportNo) + " WHERE report_name = 'stock_status_report'");
+		// 
+		// 		QString reportNoStr = qq.value("report_number_text").toString() + " : " + qq.value("report_no_prefix").toString() + QString::number(reportNo).rightJustified(8, '0');
+		// 		KDReports::TextElement rpNo(reportNoStr);
+		// 		report.addElement(rpNo, Qt::AlignLeft);
+		// 		report.addVerticalSpacing(1);
 
 		// Add a text element for the title
 		KDReports::TextElement titleElement("Stock Item Re-Order Report");
@@ -91,7 +91,39 @@ void ESStockReport::slotGenerate()
 		//////////////////////////////////////////////////////////////////////////
 
 		int row = 0;
-		bool headerPrinted = false;
+		QString cols = qq.value("columns").toString();
+		qDebug() << cols;
+		QStringList colList = cols.split(",");
+
+		KDReports::Cell& c1 = tableElement.cell(row, 0);
+		KDReports::TextElement t1("Code");
+		t1.setPointSize(12);
+		//t1.setTextColor(Qt::gray);
+		c1.addElement(t1);
+
+		KDReports::Cell& c21 = tableElement.cell(row, 1);
+		KDReports::TextElement t21("Item");
+		t21.setPointSize(12);
+		//t2.setTextColor(Qt::gray);
+		c21.addElement(t21);
+
+		KDReports::Cell& c2 = tableElement.cell(row, 2);
+		KDReports::TextElement t2("Qty");
+		t2.setPointSize(12);
+		//t2.setTextColor(Qt::gray);
+		c2.addElement(t2);
+
+		KDReports::Cell& c3 = tableElement.cell(row, 3);
+		KDReports::TextElement t3("Min. Qty");
+		t3.setPointSize(12);
+		//t3.setTextColor(Qt::gray);
+		c3.addElement(t3);
+
+		KDReports::Cell& c4 = tableElement.cell(row, 4);
+		KDReports::TextElement t4("Status");
+		t4.setPointSize(12);
+		//t4.setTextColor(Qt::gray);
+		c4.addElement(t4);
 
 		QString maxRows = ui.maxRows->text();
 		QString qStr;
@@ -102,55 +134,12 @@ void ESStockReport::slotGenerate()
 		}
 		else
 		{
-			qStr = "SELECT stock.qty, stock.min_qty, item.item_code, item.item_name FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 AND stock.visible = '0' AND stock.qty <= stock.min_qty";
+			qStr = "SELECT stock.qty, stock.min_qty, item.item_code, item.item_name FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 AND stock.visible = 1 AND stock.qty <= stock.min_qty";
 		}
 		QSqlQuery q(qStr);
 		while (q.next())
 		{
-			if (!headerPrinted)
-			{
-				QString cols = qq.value("columns").toString();
-				qDebug() << cols;
-				QStringList colList = cols.split(",");
-
-				KDReports::Cell& c1 = tableElement.cell(row, 0);
-				KDReports::TextElement t1("Code");
-				t1.setPointSize(12);
-				//t1.setTextColor(Qt::gray);
-				c1.addElement(t1);
-
-				KDReports::Cell& c21 = tableElement.cell(row, 1);
-				KDReports::TextElement t21("Item");
-				t21.setPointSize(12);
-				//t2.setTextColor(Qt::gray);
-				c21.addElement(t21);
-
-				KDReports::Cell& c2 = tableElement.cell(row, 2);
-				KDReports::TextElement t2("Qty");
-				t2.setPointSize(12);
-				//t2.setTextColor(Qt::gray);
-				c2.addElement(t2);
-
-				KDReports::Cell& c3 = tableElement.cell(row, 3);
-				KDReports::TextElement t3("Min. Qty");
-				t3.setPointSize(12);
-				//t3.setTextColor(Qt::gray);
-				c3.addElement(t3);
-
-				KDReports::Cell& c4 = tableElement.cell(row, 4);
-				KDReports::TextElement t4("Status");
-				t4.setPointSize(12);
-				//t4.setTextColor(Qt::gray);
-				c4.addElement(t4);
-
-// 				KDReports::Cell& c5 = tableElement.cell(row, 5);
-// 				KDReports::TextElement t5(colList.at(5));
-// 				t5.setPointSize(12);
-// 				c5.addElement(t5);
-
-				headerPrinted = true;
-			}
-			else
+			//else
 			{
 
 				double qty = q.value("qty").toDouble();
@@ -206,11 +195,11 @@ void ESStockReport::slotGenerate()
 				t4.setPointSize(12);
 				if (excess < 0) t4.setTextColor(Qt::red);
 				c4.addElement(t4);
-// 				KDReports::Cell& c5 = tableElement.cell(row, 5);
-// 				KDReports::TextElement t5(reorder);
-// 				t5.setPointSize(12);
-// 				if (excess < 0) t5.setTextColor(Qt::red);
-// 				c5.addElement(t5);
+				// 				KDReports::Cell& c5 = tableElement.cell(row, 5);
+				// 				KDReports::TextElement t5(reorder);
+				// 				t5.setPointSize(12);
+				// 				if (excess < 0) t5.setTextColor(Qt::red);
+				// 				c5.addElement(t5);
 			}
 			row++;
 		}
@@ -218,36 +207,28 @@ void ESStockReport::slotGenerate()
 		report.addElement(tableElement);
 
 		QPrinter printer;
-		//printer.setOutputFormat(QPrinter::PdfFormat);
-		//printer.setOutputFileName("reports/" + reportName + ".pdf");
+
 		printer.setPaperSize(QPrinter::A4);
-		
+
 		printer.setFullPage(false);
-		//printer.setResolution(QPrinter::HighResolution);
 		printer.setOrientation(QPrinter::Portrait);
 
 		QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
 		QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
 		dialog->setWindowTitle(tr("Print Document"));
-		//if (dialog->exec() != QDialog::Accepted)
-		//	return;
-		//report.printWithDialog(dialog);
 		ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
-		//dialog->show();
 		dialog->exec();
-
-		//report.print(&printer, 0);
 	}
 }
 
 void ESStockReport::slotPrint(QPrinter* printer)
 {
-// 	QPainter painter(printer);
-// 	painter.setRenderHints(QPainter::Antialiasing |
-// 		QPainter::TextAntialiasing |
-// 		QPainter::SmoothPixmapTransform, true);
-// 
-// 	report.paintPage(1, painter);
+	// 	QPainter painter(printer);
+	// 	painter.setRenderHints(QPainter::Antialiasing |
+	// 		QPainter::TextAntialiasing |
+	// 		QPainter::SmoothPixmapTransform, true);
+	// 
+	// 	report.paintPage(1, painter);
 	report.print(printer);
 	//report.p
 }
