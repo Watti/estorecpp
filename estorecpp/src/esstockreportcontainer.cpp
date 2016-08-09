@@ -20,6 +20,8 @@ ESStockReportContainer::ESStockReportContainer(QWidget *parent /*= 0*/) : QWidge
 		m_itemWiseSalesReport = new ESItemWiseSalesSummary(ui.tabWidget);
 		ui.tabWidget->addTab(m_itemWiseSalesReport, "Sold Items Summary");
 	}
+	m_overallStockItemReport = new ESOverallStockItemReport(ui.tabWidget);
+	ui.tabWidget->addTab(m_overallStockItemReport, "Stock Item Summary");
 	onTabChanged(0);
 }
 
@@ -48,7 +50,7 @@ void ESStockReportContainer::onTabChanged(int tabIndex)
 		}
 		break;
 	case 2:
-		/*m_pettyCashSummary->displayResults();*/
+		m_overallStockItemReport->displayResults();
 		break;
 	case 3:
 		/*m_overallSalesSummary->slotSearch();*/

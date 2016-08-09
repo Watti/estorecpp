@@ -104,7 +104,7 @@
       <number>0</number>
      </property>
      <property name="columnCount">
-      <number>5</number>
+      <number>4</number>
      </property>
      <attribute name="horizontalHeaderVisible">
       <bool>true</bool>
@@ -115,7 +115,6 @@
      <attribute name="verticalHeaderVisible">
       <bool>true</bool>
      </attribute>
-     <column/>
      <column/>
      <column/>
      <column/>

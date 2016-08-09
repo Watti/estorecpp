@@ -19,11 +19,11 @@ ESItemWiseSalesSummary::ESItemWiseSalesSummary(QWidget *parent /*= 0*/) : QWidge
 
 
 	QStringList headerLabels;
+	headerLabels.append("Item Code");
 	headerLabels.append("Item");
-	headerLabels.append("Qty");
-	headerLabels.append("Unit Price");
-	headerLabels.append("Discount");
-	headerLabels.append("Line Total");
+	headerLabels.append("Sold Qty");
+	headerLabels.append("Returned Qty");
+	//headerLabels.append("Line Total");
 
 	ui.tableWidgetByItems->setHorizontalHeaderLabels(headerLabels);
 	ui.tableWidgetByItems->horizontalHeader()->setStretchLastSection(true);
@@ -69,6 +69,7 @@ void ESItemWiseSalesSummary::slotSearch()
 		float grandtotal = (price.toFloat() * ((100 - discount) / 100))*qty.toFloat();
 		QString totalPrice = QString::number(grandtotal,'f',2);
 		QString name = "";
+		QString itemCode = "";
 
 		int row = ui.tableWidgetByItems->rowCount();
 		ui.tableWidgetByItems->insertRow(row);
@@ -77,26 +78,36 @@ void ESItemWiseSalesSummary::slotSearch()
 		if (stockItemQry.next())
 		{
 			name = stockItemQry.value("item_name").toString();
+			itemCode = stockItemQry.value("item_code").toString();
+			QString itemId = stockItemQry.value("item_id").toString();
+			QString qryStrReturn("SELECT SUM(qty) as retTotal FROM return_item WHERE item_id = " + itemId + " AND date BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+			QSqlQuery qryReturn;
+			if (qryReturn.exec(qryStrReturn))
+			{
+				if (qryReturn.next())
+				{
+					float retQty = qryReturn.value("retTotal").toFloat();
+					float netSoldQty = qty.toFloat() - retQty;
+					//qty = QString::number(netSoldQty, 'f', 2);
+
+					QTableWidgetItem* returnedItem = new QTableWidgetItem(QString::number(retQty, 'f', 2));
+					returnedItem->setTextAlignment(Qt::AlignRight);
+					ui.tableWidgetByItems->setItem(row, 3, returnedItem);
+				}
+			}
 		}
+
+		QTableWidgetItem* iCode = new QTableWidgetItem(itemCode);
+		iCode->setTextAlignment(Qt::AlignLeft);
+		ui.tableWidgetByItems->setItem(row, 0, iCode);
+
 		QTableWidgetItem* itemName = new QTableWidgetItem(name);
 		itemName->setTextAlignment(Qt::AlignLeft);
-		ui.tableWidgetByItems->setItem(row, 0, itemName);
+		ui.tableWidgetByItems->setItem(row, 1, itemName);
 
 		QTableWidgetItem* qtyItem = new QTableWidgetItem(qty);
 		qtyItem->setTextAlignment(Qt::AlignRight);
-		ui.tableWidgetByItems->setItem(row, 1, qtyItem);
-
-		QTableWidgetItem* priceItem = new QTableWidgetItem(price);
-		priceItem->setTextAlignment(Qt::AlignRight);
-		ui.tableWidgetByItems->setItem(row, 2, priceItem);
-
-		QTableWidgetItem* discountItem = new QTableWidgetItem(QString::number(discount,'f',2));
-		discountItem->setTextAlignment(Qt::AlignRight);
-		ui.tableWidgetByItems->setItem(row, 3, discountItem);
-
-		QTableWidgetItem* totalPriceItem = new QTableWidgetItem(totalPrice);
-		totalPriceItem->setTextAlignment(Qt::AlignRight);
-		ui.tableWidgetByItems->setItem(row, 4, totalPriceItem);
+		ui.tableWidgetByItems->setItem(row, 2, qtyItem);
 	}
 
 	ui.itemTotal->setText(QString::number(itemCount));
@@ -141,41 +152,33 @@ void ESItemWiseSalesSummary::slotGenerateReport()
 	report.addVerticalSpacing(5);
 
 	KDReports::TableElement tableElement;
-	tableElement.setHeaderColumnCount(5);
+	tableElement.setHeaderColumnCount(4);
 	tableElement.setBorder(1);
 	tableElement.setWidth(100, KDReports::Percent);
-
 	{
 		KDReports::Cell& cell = tableElement.cell(0, 0);
-		KDReports::TextElement cTextElement("Item");
+		KDReports::TextElement cTextElement("Item Code");
 		cTextElement.setPointSize(11);
 		cTextElement.setBold(true);
 		cell.addElement(cTextElement, Qt::AlignCenter);
 	}
 	{
 		KDReports::Cell& cell = tableElement.cell(0, 1);
-		KDReports::TextElement cTextElement("Qty");
+		KDReports::TextElement cTextElement("Item");
 		cTextElement.setPointSize(11);
 		cTextElement.setBold(true);
 		cell.addElement(cTextElement, Qt::AlignCenter);
 	}
 	{
 		KDReports::Cell& cell = tableElement.cell(0, 2);
-		KDReports::TextElement cTextElement("Unit Price");
+		KDReports::TextElement cTextElement("Sold Qty");
 		cTextElement.setPointSize(11);
 		cTextElement.setBold(true);
 		cell.addElement(cTextElement, Qt::AlignCenter);
 	}
 	{
 		KDReports::Cell& cell = tableElement.cell(0, 3);
-		KDReports::TextElement cTextElement("Discount");
-		cTextElement.setPointSize(11);
-		cTextElement.setBold(true);
-		cell.addElement(cTextElement, Qt::AlignCenter);
-	}
-	{
-		KDReports::Cell& cell = tableElement.cell(0, 4);
-		KDReports::TextElement cTextElement("Line Total");
+		KDReports::TextElement cTextElement("Returned Qty");
 		cTextElement.setPointSize(11);
 		cTextElement.setBold(true);
 		cell.addElement(cTextElement, Qt::AlignCenter);
@@ -192,24 +195,33 @@ void ESItemWiseSalesSummary::slotGenerateReport()
 		QString price = QString::number(q.value("item_price").toFloat(), 'f', 2);
 		float grandtotal = (price.toFloat() * ((100 - discount) / 100))*qty.toFloat();
 		QString totalPrice = QString::number(grandtotal, 'f', 2);
-		QString name = "";
-
+		QString name = "", itemCode = "";
 		QSqlQuery stockItemQry("SELECT * FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.stock_id = " + stock_id);
 		if (stockItemQry.next())
 		{
 			name = stockItemQry.value("item_name").toString();
-			ES::Utility::printRow(tableElement, row, 0, name);
-			ES::Utility::printRow(tableElement, row, 1, qty);
-			ES::Utility::printRow(tableElement, row, 2, price);
-			ES::Utility::printRow(tableElement, row, 3, QString::number(discount,'f',2));
-			ES::Utility::printRow(tableElement, row, 4, totalPrice);
+			itemCode = stockItemQry.value("item_code").toString();
+
+			QString itemId = stockItemQry.value("item_id").toString();
+			QString qryStrReturn("SELECT SUM(qty) as retTotal FROM return_item WHERE item_id = " + itemId + " AND date BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+			QSqlQuery qryReturn;
+			if (qryReturn.exec(qryStrReturn))
+			{
+				if (qryReturn.next())
+				{
+					float retQty = qryReturn.value("retTotal").toFloat();
+					float netSoldQty = qty.toFloat() - retQty;
+					//qty = QString::number(netSoldQty, 'f', 2);
+					ES::Utility::printRow(tableElement, row, 3, QString::number(retQty, 'f', 2));
+				}
+			}
+			ES::Utility::printRow(tableElement, row, 0, itemCode);
+			ES::Utility::printRow(tableElement, row, 1, name);
+			ES::Utility::printRow(tableElement, row, 2, qty);
 			row++;
 		}
 	}
-
-	ES::Utility::printRow(tableElement, row, 3, "# Items", Qt::AlignRight);
-	ES::Utility::printRow(tableElement, row, 4, QString::number(itemCount), Qt::AlignRight);
-
+	
 	report.addElement(tableElement);
 
 	QPrinter printer;
