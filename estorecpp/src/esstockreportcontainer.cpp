@@ -14,8 +14,16 @@ ESStockReportContainer::ESStockReportContainer(QWidget *parent /*= 0*/) : QWidge
 	m_stockReport = new ESStockReport(ui.tabWidget);
 	ui.tabWidget->addTab(m_stockReport, "Stock Re-Order Report");
 
-	if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
-		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
+	if (ES::Session::getInstance()->isSecondDisplayOn())
+	{
+		if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
+			ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
+		{
+			m_itemWiseSalesReport = new ESItemWiseSalesSummary(ui.tabWidget);
+			ui.tabWidget->addTab(m_itemWiseSalesReport, "Sold Items Summary");
+		}
+	}
+	else
 	{
 		m_itemWiseSalesReport = new ESItemWiseSalesSummary(ui.tabWidget);
 		ui.tabWidget->addTab(m_itemWiseSalesReport, "Sold Items Summary");
@@ -43,8 +51,15 @@ void ESStockReportContainer::onTabChanged(int tabIndex)
 		m_stockReport->displayResults();
 		break;
 	case 1:
-		if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
-			ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
+		if (ES::Session::getInstance()->isSecondDisplayOn())
+		{
+			if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
+				ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
+			{
+				m_itemWiseSalesReport->slotSearch();
+			}
+		}
+		else
 		{
 			m_itemWiseSalesReport->slotSearch();
 		}

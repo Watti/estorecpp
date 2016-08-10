@@ -63,6 +63,7 @@ private:
 	float m_returnStartAmount;
 	float m_returnInterest;
 	long m_billId;
+	float m_newBillTotal;
 	KDReports::Report report;
 	QString m_returnBillId;
 };

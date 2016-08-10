@@ -102,7 +102,6 @@ ESReturnItems::ESReturnItems(QWidget *parent /*= 0*/) : QWidget(parent), m_hasIn
 	new QShortcut(QKeySequence(Qt::Key_F3), this, SLOT(slotStartBill()));
 
 	ui.commitBtn->setDisabled(true);
-	ui.newInterest->setHidden(true);
 	ui.label_10->setHidden(true);
 	//ui.billIdSearchText->setFocus();
 
