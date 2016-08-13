@@ -95,6 +95,7 @@ void ESLatePayment::slotOk()
 		QString updateQryStr("UPDATE customer_outstanding SET current_outstanding = " + QString::number(newOutstanding) + " WHERE customer_id = " + m_customerId);
 		if (qOutstandingUpdate.exec(updateQryStr))
 		{
+			QString payByCash = "1";
 			if (isCheque)
 			{
 				QString qStr("INSERT INTO cheque_information (customer_id, cheque_number, bank, due_date, amount) VALUES (" +
@@ -107,7 +108,10 @@ void ESLatePayment::slotOk()
 					mbox.setText(QString("Insertion to cheque_information has been failed ! ! !"));
 					mbox.exec();
 				}
+				payByCash = "0";
 			}
+			QString OSettleQryStr("INSERT INTO customer_outstanding_settlement (customer_id, amount, settled_by_cash) VALUES (" + m_customerId + "," + QString::number(payingAmount)+","+payByCash+")");
+			QSqlQuery queryOutstandingSettlement(OSettleQryStr);
 			//print the bill
 
 			QString dateStr = "Date : ";
