@@ -28,7 +28,7 @@ ESSalesReportContainer::ESSalesReportContainer(QWidget *parent /*= 0*/) : QWidge
 		m_mdfSalesSummary = new MDFSalesSummary(ui.tabWidget);
 		ui.tabWidget->addTab(m_mdfSalesSummary, "MDF Sales Summary");
 	}
-	onTabChanged(0);
+	//onTabChanged(0);
 }
 
 ESSalesReportContainer::~ESSalesReportContainer()
