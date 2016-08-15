@@ -554,6 +554,18 @@
     <ClCompile Include="src\overallstockitemreport.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GeneratedFiles\qrc_test.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\esmdfsalessummary.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_esmdfsalessummary.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_esmdfsalessummary.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="esmainwindow.ui">
@@ -862,6 +874,15 @@
     <CustomBuild Include="includes\overallstockitemreport.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
+    <CustomBuild Include="test.qrc">
+      <Filter>Resource Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="mdfsalessummary.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="includes\esmdfsalessummary.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="includes\utility\esdbconnection.h">
@@ -1026,6 +1047,9 @@
     <ClInclude Include="GeneratedFiles\ui_overallstockitemreport.h">
       <Filter>Generated Files</Filter>
     </ClInclude>
+    <ClInclude Include="GeneratedFiles\ui_mdfsalessummary.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="icons\manage_item_categories.png">
@@ -1050,6 +1074,9 @@
       <Filter>Icons</Filter>
     </Image>
     <Image Include="icons\usb.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="icons\powered by.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

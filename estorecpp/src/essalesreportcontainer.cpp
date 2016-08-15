@@ -3,6 +3,8 @@
 #include "esreturnsummary.h"
 #include "espettycashsummary.h"
 #include "esoveralllsalessummary.h"
+#include "utility/session.h"
+#include "utility/utility.h"
 
 ESSalesReportContainer::ESSalesReportContainer(QWidget *parent /*= 0*/) : QWidget(parent)
 {
@@ -21,6 +23,11 @@ ESSalesReportContainer::ESSalesReportContainer(QWidget *parent /*= 0*/) : QWidge
 	m_overallSalesSummary = new OverallSalesSummary(ui.tabWidget);
 	ui.tabWidget->addTab(m_overallSalesSummary, "Overall Sales Summary");
 
+	if (!ES::Session::getInstance()->isSecondDisplayOn())
+	{
+		m_mdfSalesSummary = new MDFSalesSummary(ui.tabWidget);
+		ui.tabWidget->addTab(m_mdfSalesSummary, "MDF Sales Summary");
+	}
 	onTabChanged(0);
 }
 
@@ -49,6 +56,9 @@ void ESSalesReportContainer::onTabChanged(int tabIndex)
 		break;
 	case 3:
 		m_overallSalesSummary->slotSearch();
+		break;
+	case 4:
+		m_mdfSalesSummary->slotSearch();
 		break;
 	default:
 		break;
