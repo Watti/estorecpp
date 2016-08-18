@@ -20,9 +20,11 @@ MDFSalesSummary::MDFSalesSummary(QWidget *parent /*= 0*/) : QWidget(parent)
 	ui.toDate->setDate(QDate::currentDate().addDays(1));
 
 	QStringList headerLabels;
-	headerLabels.append("Current Price");
+	headerLabels.append("Item Cost");
 	headerLabels.append("Current Discount");
 	headerLabels.append("Avg. Sold Price");
+	headerLabels.append("# of Sold");
+	headerLabels.append("# of Returned");
 	headerLabels.append("# of items");
 	headerLabels.append("Line Total");
 	headerLabels.append("Approximate Profit");
@@ -39,23 +41,6 @@ MDFSalesSummary::MDFSalesSummary(QWidget *parent /*= 0*/) : QWidget(parent)
 	ui.tableWidgetByCategory->setSelectionBehavior(QAbstractItemView::SelectRows);
 	ui.tableWidgetByCategory->setSelectionMode(QAbstractItemView::SingleSelection);
 	ui.tableWidgetByCategory->verticalHeader()->setMinimumWidth(200);
-
-	QStringList headerLabels2;
-	headerLabels2.append("Cash");
-	headerLabels2.append("Credit");
-	headerLabels2.append("Cheque");
-	headerLabels2.append("Card");
-	headerLabels2.append("Return");
-	headerLabels2.append("P/C Income");
-	headerLabels2.append("P/C Expenses");
-
-	ui.tableWidgetTotal->setHorizontalHeaderLabels(headerLabels2);
-	ui.tableWidgetTotal->horizontalHeader()->setStretchLastSection(true);
-	ui.tableWidgetTotal->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-	ui.tableWidgetTotal->setEditTriggers(QAbstractItemView::NoEditTriggers);
-	ui.tableWidgetTotal->setSelectionBehavior(QAbstractItemView::SelectRows);
-	ui.tableWidgetTotal->setSelectionMode(QAbstractItemView::SingleSelection);
-	ui.tableWidgetTotal->verticalHeader()->setMinimumWidth(200);
 
 	QObject::connect(ui.generateButton, SIGNAL(clicked()), this, SLOT(slotGenerateReport()));
 	QObject::connect(ui.fromDate, SIGNAL(dateChanged(const QDate &)), this, SLOT(slotSearch()));
@@ -85,7 +70,7 @@ void MDFSalesSummary::slotSearch()
 
 	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
 	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
-
+	double totalProfit = 0;
 	QSqlQuery categoryQry("SELECT * FROM Item JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id WHERE item.deleted = 0 AND item_category.itemcategory_name ='MDF' GROUP BY item.itemcategory_id");
 	while (categoryQry.next())
 	{
@@ -98,32 +83,40 @@ void MDFSalesSummary::slotSearch()
 			QString stockId = qryStock.value("stock_id").toString();
 			float sellingPrice = qryStock.value("selling_price").toFloat();
 			float currentDiscount = qryStock.value("discount").toFloat();
-			float purchasedPrice = qryStock.value("purchasing_price").toFloat();
+			float purchasingPrice = qryStock.value("purchasing_price").toFloat();
 
 			int row = ui.tableWidgetByCategory->rowCount();
 			ui.tableWidgetByCategory->insertRow(row);
 
 			QTableWidgetItem* nameItem = new QTableWidgetItem(itemName);
 			ui.tableWidgetByCategory->setVerticalHeaderItem(row, nameItem);
-			float itemPrice = 0, quantity = 0, discount = 0, subTotal = 0;
+			float itemPrice = 0, balanceQty = 0, discount = 0, subTotal = 0, soldQty = 0, totalRetunedQty = 0;
 			QString salesQryStr = "SELECT discount, item_price, quantity FROM sale WHERE stock_id = " + stockId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
 			QSqlQuery salesQry(salesQryStr);
 			while (salesQry.next())
 			{
 				itemPrice = salesQry.value("item_price").toFloat();
-				quantity = salesQry.value("quantity").toFloat();
+				balanceQty = salesQry.value("quantity").toFloat();
+				soldQty = salesQry.value("quantity").toFloat();
 				discount = salesQry.value("discount").toFloat();
-				subTotal = itemPrice*((100 - discount) / 100)*quantity;
+
+				QSqlQuery queryReturn("SELECT * FROM return_item WHERE item_id = " + itemId + " AND deleted = 0 AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+				while (queryReturn.next())
+				{
+					float retQty = queryReturn.value("qty").toFloat();
+					totalRetunedQty += retQty;
+				}
+				balanceQty -= totalRetunedQty;
+				subTotal = itemPrice*((100 - discount) / 100)*balanceQty;
 				totalAmount += subTotal;
-				totalQty += quantity;
 
 			}
-			if (totalQty>0)
+			if (balanceQty>0)
 			{
-				averagePrice = totalAmount / totalQty;
+				averagePrice = totalAmount / balanceQty;
 			}
 			
-			QTableWidgetItem *purchasePriceWidget = new QTableWidgetItem(QString::number(purchasedPrice, 'f', 2));
+			QTableWidgetItem *purchasePriceWidget = new QTableWidgetItem(QString::number(purchasingPrice, 'f', 2));
 			purchasePriceWidget->setTextAlignment(Qt::AlignRight);
 			ui.tableWidgetByCategory->setItem(row, 0, purchasePriceWidget);
 
@@ -135,46 +128,30 @@ void MDFSalesSummary::slotSearch()
 			avgPriceWidget->setTextAlignment(Qt::AlignRight);
 			ui.tableWidgetByCategory->setItem(row, 2, avgPriceWidget);
 
-			QTableWidgetItem *totalQtyWidget = new QTableWidgetItem(QString::number(totalQty));
+			QTableWidgetItem *totalQtyWidget = new QTableWidgetItem(QString::number(soldQty));
 			totalQtyWidget->setTextAlignment(Qt::AlignRight);
 			ui.tableWidgetByCategory->setItem(row, 3, totalQtyWidget);
 
+
+			QTableWidgetItem *returnedQtyWidget = new QTableWidgetItem(QString::number(totalRetunedQty));
+			returnedQtyWidget->setTextAlignment(Qt::AlignRight);
+			ui.tableWidgetByCategory->setItem(row, 4, returnedQtyWidget);
+
+
+			QTableWidgetItem *totalBalanceQtyWidget = new QTableWidgetItem(QString::number(balanceQty));
+			totalBalanceQtyWidget->setTextAlignment(Qt::AlignRight);
+			ui.tableWidgetByCategory->setItem(row, 5, totalBalanceQtyWidget);
+
 			QTableWidgetItem *totalAmountWidget = new QTableWidgetItem(QString::number(totalAmount, 'f', 2));
 			totalAmountWidget->setTextAlignment(Qt::AlignRight);
-			ui.tableWidgetByCategory->setItem(row, 4, totalAmountWidget);
+			ui.tableWidgetByCategory->setItem(row, 6, totalAmountWidget);
 
-			double approximateProfit = totalAmount - (purchasedPrice*((100-currentDiscount)/100)*totalQty);
+			double approximateProfit = totalAmount - (purchasingPrice*((100-currentDiscount)/100)*balanceQty);
+			totalProfit += approximateProfit;
 			QTableWidgetItem *profitWidget = new QTableWidgetItem(QString::number(approximateProfit, 'f', 2));
 			profitWidget->setTextAlignment(Qt::AlignRight);
-			ui.tableWidgetByCategory->setItem(row, 5, profitWidget);
-
-			// 			double income = 0, expense = 0;
-			// 			QSqlQuery queryPettyCash("SELECT * FROM petty_cash WHERE user_id = " + itemId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
-			// 			while (queryPettyCash.next())
-			// 			{
-			// 				QString uId = queryPettyCash.value("user_id").toString();
-			// 					int type = queryPettyCash.value("type").toInt();
-			// 					double amount = queryPettyCash.value("amount").toDouble();
-			// 					if (type == 1)
-			// 					{
-			// 						//income
-			// 						income += amount;
-			// 					}
-			// 					else if (type == 0)
-			// 					{
-			// 						//expense
-			// 						expense += amount;
-			// 					}
-			// 			}
-			// 			QTableWidgetItem* incomeWidgetItem = new QTableWidgetItem(QString::number(income, 'f', 2));
-			// 			incomeWidgetItem->setTextAlignment(Qt::AlignRight);
-			// 			ui.tableWidgetByCategory->setItem(row, 5, incomeWidgetItem);
-			// 
-			// 			QTableWidgetItem* expenseWidgetItem = new QTableWidgetItem(QString::number(expense, 'f', 2));
-			// 			expenseWidgetItem->setTextAlignment(Qt::AlignRight);
-			// 			ui.tableWidgetByCategory->setItem(row, 6, expenseWidgetItem);
-			// todo :loyalty
-
+			ui.tableWidgetByCategory->setItem(row, 7, profitWidget);
+			
 			QWidget* base = new QWidget(ui.tableWidgetByCategory);
 
 			QPushButton* generateReportBtn = new QPushButton(base);
@@ -190,147 +167,12 @@ void MDFSalesSummary::slotSearch()
 			layout->addWidget(generateReportBtn);
 			layout->insertStretch(2);
 			base->setLayout(layout);
-			ui.tableWidgetByCategory->setCellWidget(row, 6, base);
+			ui.tableWidgetByCategory->setCellWidget(row, 8, base);
 			base->show();
 		}
 	}
 
-
-	while (ui.tableWidgetTotal->rowCount() > 0)
-	{
-		ui.tableWidgetTotal->removeRow(0);
-	}
-
-	int row = ui.tableWidgetTotal->rowCount();
-	ui.tableWidgetTotal->insertRow(row);
-	ui.tableWidgetTotal->setVerticalHeaderItem(row, new QTableWidgetItem("Total"));
-	float cashSales = 0, creditSales = 0, chequeSales = 0, cardSales = 0;
-	QString qBillQryStr;
-	if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
-		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
-	{
-		qBillQryStr = "SELECT* FROM bill WHERE deleted = 0 AND status = 1 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
-	}
-	else
-	{
-		qBillQryStr = "SELECT* FROM bill WHERE deleted = 0 AND visible = 1 AND status = 1 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
-	}
-	QSqlQuery totalBillQry(qBillQryStr);
-	while (totalBillQry.next())
-	{
-		QSqlQuery queryUserType("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE user.active = 1 AND user.user_id = " + totalBillQry.value("user_id").toString() + " AND usertype.usertype_name <> 'DEV'");
-		if (queryUserType.next())
-		{
-			QSqlQuery paymentQry("SELECT * FROM payment WHERE valid = 1 AND bill_id = " + totalBillQry.value("bill_id").toString());
-			while (paymentQry.next())
-			{
-				QString paymentType = paymentQry.value("payment_type").toString();
-				QString paymentId = paymentQry.value("payment_id").toString();
-				double tot = paymentQry.value("total_amount").toDouble();
-				if (paymentType == "CASH")
-				{
-					cashSales += tot;
-				}
-				else if (paymentType == "CREDIT")
-				{
-					QSqlQuery creditSaleQry("SELECT * FROM credit WHERE payment_id = " + paymentId);
-					while (creditSaleQry.next())
-					{
-						double amount = creditSaleQry.value("amount").toDouble();
-						double interest = creditSaleQry.value("interest").toDouble();
-						amount = (amount * (100 + interest) / 100);
-						creditSales += amount;
-					}
-				}
-				else if (paymentType == "CHEQUE")
-				{
-					QSqlQuery chequeSaleQry("SELECT * FROM cheque WHERE payment_id = " + paymentId);
-					while (chequeSaleQry.next())
-					{
-						double amount = chequeSaleQry.value("amount").toDouble();
-						double interest = chequeSaleQry.value("interest").toDouble();
-						amount = (amount * (100 + interest) / 100);
-						chequeSales += amount;
-					}
-				}
-				else if (paymentType == "CARD")
-				{
-					QSqlQuery cardSaleQry("SELECT * FROM card WHERE payment_id = " + paymentId);
-					while (cardSaleQry.next())
-					{
-						double amount = cardSaleQry.value("amount").toDouble();
-						double interest = cardSaleQry.value("interest").toDouble();
-						amount = (amount * (100 + interest) / 100);
-						cardSales += amount;
-					}
-				}
-				else if (paymentType == "LOYALTY")
-				{
-				}
-			}
-		}
-	}
-
-	QTableWidgetItem* cashSalesWidget = new QTableWidgetItem(QString::number(cashSales, 'f', 2));
-	cashSalesWidget->setTextAlignment(Qt::AlignRight);
-	ui.tableWidgetTotal->setItem(row, 0, cashSalesWidget);
-
-	QTableWidgetItem* creditSalesWidget = new QTableWidgetItem(QString::number(creditSales, 'f', 2));
-	creditSalesWidget->setTextAlignment(Qt::AlignRight);
-	ui.tableWidgetTotal->setItem(row, 1, creditSalesWidget);
-
-	QTableWidgetItem* chequeSalesWidget = new QTableWidgetItem(QString::number(chequeSales, 'f', 2));
-	chequeSalesWidget->setTextAlignment(Qt::AlignRight);
-	ui.tableWidgetTotal->setItem(row, 2, chequeSalesWidget);
-
-	QTableWidgetItem* cardSalesWidget = new QTableWidgetItem(QString::number(cardSales, 'f', 2));
-	cardSalesWidget->setTextAlignment(Qt::AlignRight);
-	ui.tableWidgetTotal->setItem(row, 3, cardSalesWidget);
-
-	QSqlQuery queryReturn("SELECT * FROM return_item WHERE DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
-	double returnTotal = 0;
-	if (queryReturn.next())
-	{
-		QString uId = queryReturn.value("user_id").toString();
-		QSqlQuery queryUserType("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE user.active = 1 AND user.user_id = " + uId + " AND usertype.usertype_name <> 'DEV'");
-		if (queryUserType.next())
-		{
-			returnTotal = queryReturn.value("rTotal").toDouble();
-		}
-	}
-	QTableWidgetItem *cardReturnWidget = new QTableWidgetItem(QString::number(returnTotal, 'f', 2));
-	cardReturnWidget->setTextAlignment(Qt::AlignRight);
-	ui.tableWidgetTotal->setItem(row, 4, cardReturnWidget);
-
-	double income = 0, expense = 0;
-	QSqlQuery queryPettyCash("SELECT * FROM petty_cash WHERE DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
-	while (queryPettyCash.next())
-	{
-		QString uId = queryPettyCash.value("user_id").toString();
-		QSqlQuery queryUserType("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE user.active = 1 AND user.user_id = " + uId + " AND usertype.usertype_name <> 'DEV'");
-		if (queryUserType.next())
-		{
-			int type = queryPettyCash.value("type").toInt();
-			double amount = queryPettyCash.value("amount").toDouble();
-			if (type == 1)
-			{
-				//income
-				income += amount;
-			}
-			else if (type == 0)
-			{
-				//expense
-				expense += amount;
-			}
-		}
-	}
-	QTableWidgetItem* incomeWidgetItem = new QTableWidgetItem(QString::number(income, 'f', 2));
-	incomeWidgetItem->setTextAlignment(Qt::AlignRight);
-	ui.tableWidgetTotal->setItem(row, 5, incomeWidgetItem);
-
-	QTableWidgetItem* expenseWidgetItem = new QTableWidgetItem(QString::number(expense, 'f', 2));
-	expenseWidgetItem->setTextAlignment(Qt::AlignRight);
-	ui.tableWidgetTotal->setItem(row, 6, expenseWidgetItem);
+	ui.totalProfitLbl->setText(QString::number(totalProfit,'f',2));
 }
 
 void MDFSalesSummary::printRow(KDReports::TableElement& tableElement, int row, int col, QString elementStr, Qt::AlignmentFlag alignment /*= Qt::AlignLeft*/)
