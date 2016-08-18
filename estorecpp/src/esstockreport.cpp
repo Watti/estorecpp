@@ -12,7 +12,7 @@
 #include "utility/esmainwindowholder.h"
 #include "esmainwindow.h"
 
-ESStockReport::ESStockReport(QWidget *parent /*= 0*/) : QWidget(parent)
+ESStockReport::ESStockReport(QWidget *parent /*= 0*/) : QWidget(parent), m_report(NULL)
 {
 	ui.setupUi(this);
 
@@ -63,11 +63,12 @@ void ESStockReport::slotGenerate()
 		// 		report.addVerticalSpacing(1);
 
 		// Add a text element for the title
+		m_report = new KDReports::Report;
 		KDReports::TextElement titleElement("Stock Item Re-Order Report");
 		titleElement.setPointSize(15);
-		report.addElement(titleElement, Qt::AlignHCenter);
+		m_report->addElement(titleElement, Qt::AlignHCenter);
 
-		report.addVerticalSpacing(2);
+		m_report->addVerticalSpacing(2);
 
 		QString dateStr = "Date : ";
 		dateStr.append(QDateTime::currentDateTime().toString("yyyy-MM-dd"));
@@ -75,12 +76,12 @@ void ESStockReport::slotGenerate()
 		timeStr.append(QDateTime::currentDateTime().toString("hh : mm"));
 
 		KDReports::TextElement date(dateStr);
-		report.addElement(date, Qt::AlignLeft);
+		m_report->addElement(date, Qt::AlignLeft);
 		KDReports::TextElement time(timeStr);
-		report.addElement(time, Qt::AlignLeft);
+		m_report->addElement(time, Qt::AlignLeft);
 
 		// add 20 mm of vertical space:
-		report.addVerticalSpacing(10);
+		m_report->addVerticalSpacing(10);
 
 		KDReports::TableElement tableElement;
 		tableElement.setHeaderRowCount(5);
@@ -204,7 +205,7 @@ void ESStockReport::slotGenerate()
 			row++;
 		}
 
-		report.addElement(tableElement);
+		m_report->addElement(tableElement);
 
 		QPrinter printer;
 
@@ -229,7 +230,7 @@ void ESStockReport::slotPrint(QPrinter* printer)
 	// 		QPainter::SmoothPixmapTransform, true);
 	// 
 	// 	report.paintPage(1, painter);
-	report.print(printer);
+	m_report->print(printer);
 	//report.p
 }
 

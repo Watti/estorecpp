@@ -26,7 +26,7 @@ public:
 	
 private:
 	Ui::StockReportWidget ui;
-	KDReports::Report report;
+	KDReports::Report* m_report;
 
 };
 
