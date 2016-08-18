@@ -24,14 +24,14 @@ public:
 	public slots:
 	void slotPrint(QPrinter* printer);
 	void slotSearch();
-	void slotGenerateReportForGivenUser(QString userId);
+	void slotGenerateReportForGivenItem(QString itemId);
 	void slotGenerateReport();
 private:
 	Ui::MDFSalesSummary ui;
 
 	void printRow(KDReports::TableElement& tableElement, int row, int col,
 		QString elementStr, Qt::AlignmentFlag alignment = Qt::AlignLeft);
-	KDReports::Report report;
+	KDReports::Report* report;
 	QSignalMapper* m_generateReportSignalMapper;
 };
 
