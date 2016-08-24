@@ -32,6 +32,9 @@ ESSalesReportContainer::ESSalesReportContainer(QWidget *parent /*= 0*/) : QWidge
 
 	m_revenueMasterSummary = new ESRevenueMasterReport(ui.tabWidget);
 	ui.tabWidget->addTab(m_revenueMasterSummary, "Revenue Master Report");
+
+	m_customerOutstandingSummary = new ESCustomerOutstandingSummary(ui.tabWidget);
+	ui.tabWidget->addTab(m_customerOutstandingSummary, "Customer Outstanding");
 	//onTabChanged(0);
 }
 
@@ -66,6 +69,9 @@ void ESSalesReportContainer::onTabChanged(int tabIndex)
 		break;
 	case 5:
 		m_revenueMasterSummary->slotSearch();
+		break;
+	case 6:
+		m_customerOutstandingSummary->slotSearch();
 		break;
 	default:
 		break;

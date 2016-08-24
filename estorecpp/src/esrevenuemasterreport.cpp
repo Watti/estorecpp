@@ -40,7 +40,6 @@ ESRevenueMasterReport::ESRevenueMasterReport(QWidget *parent /*= 0*/) : QWidget(
 	ui.tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
 	//ui.tableWidget->verticalHeader()->setMinimumWidth(200);
 
-	QObject::connect(ui.generateButton, SIGNAL(clicked()), this, SLOT(slotGenerateReport()));
 	QObject::connect(ui.fromDate, SIGNAL(dateChanged(const QDate &)), this, SLOT(slotSearch()));
 	QObject::connect(ui.toDate, SIGNAL(dateChanged(const QDate &)), this, SLOT(slotSearch()));
 	QObject::connect(ui.generateButton, SIGNAL(clicked()), this, SLOT(slotGenerateReport()));
