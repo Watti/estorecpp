@@ -566,6 +566,15 @@
     <ClCompile Include="GeneratedFiles\Release\moc_esmdfsalessummary.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_esrevenuemasterreport.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_esrevenuemasterreport.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="src\esrevenuemasterreport.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="esmainwindow.ui">
@@ -883,6 +892,12 @@
     <CustomBuild Include="includes\esmdfsalessummary.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
+    <CustomBuild Include="revenuemasterreport.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="includes\esrevenuemasterreport.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="includes\utility\esdbconnection.h">
@@ -1048,6 +1063,9 @@
       <Filter>Generated Files</Filter>
     </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_mdfsalessummary.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GeneratedFiles\ui_revenuemasterreport.h">
       <Filter>Generated Files</Filter>
     </ClInclude>
   </ItemGroup>

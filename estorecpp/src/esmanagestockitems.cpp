@@ -43,6 +43,7 @@ ESManageStockItems::ESManageStockItems(QWidget *parent /*= 0*/)
 	ui.tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
 	ui.tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
 	ui.tableWidget->hideColumn(0);
+	ui.tableWidget->hideColumn(9);
 	ui.prevBtn->setDisabled(true);
 	ui.nextBtn->setDisabled(true);
 

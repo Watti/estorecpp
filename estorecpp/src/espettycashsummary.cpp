@@ -84,7 +84,6 @@ void PettyCashSummary::displayResults()
 	QSqlQuery queryUserType("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE user.active = 1 AND usertype.usertype_name <> 'DEV'");
 	while (queryUserType.next())
 	{
-		double income = 0, expense = 0;
 		QString uId = queryUserType.value("user_id").toString();
 		QString uName = queryUserType.value("display_name").toString();
 
@@ -93,6 +92,7 @@ void PettyCashSummary::displayResults()
 		QTableWidgetItem* nameItem = new QTableWidgetItem(uName);
 		ui.tableWidgetByUser->setVerticalHeaderItem(row, nameItem);
 
+		double income = 0, expense = 0;
 		QSqlQuery queryPettyCash("SELECT * FROM petty_cash WHERE user_id = " + uId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
 		while (queryPettyCash.next())
 		{

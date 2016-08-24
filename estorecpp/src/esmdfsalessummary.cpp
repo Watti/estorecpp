@@ -343,7 +343,7 @@ void MDFSalesSummary::slotGenerateReportForGivenItem(QString itemId)
 		printer.setPaperSize(QPrinter::A4);
 
 		printer.setFullPage(false);
-		printer.setOrientation(QPrinter::Portrait);
+		printer.setOrientation(QPrinter::Landscape);
 
 		QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
 		QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
@@ -387,61 +387,67 @@ void MDFSalesSummary::slotGenerateReport()
 	report->addVerticalSpacing(5);
 
 	KDReports::TableElement tableElement;
-	tableElement.setHeaderColumnCount(7);
+	tableElement.setHeaderColumnCount(8);
 	tableElement.setBorder(1);
 	tableElement.setWidth(100, KDReports::Percent);
-
 	{
 		KDReports::Cell& cell = tableElement.cell(0, 0);
-		KDReports::TextElement cTextElement("Cost");
+		KDReports::TextElement cTextElement("Item");
 		cTextElement.setPointSize(11);
 		cTextElement.setBold(true);
 		cell.addElement(cTextElement, Qt::AlignCenter);
 	}
 	{
 		KDReports::Cell& cell = tableElement.cell(0, 1);
-		KDReports::TextElement cTextElement("Discount");
+		KDReports::TextElement cTextElement("Cost");
 		cTextElement.setPointSize(11);
 		cTextElement.setBold(true);
 		cell.addElement(cTextElement, Qt::AlignCenter);
 	}
 	{
 		KDReports::Cell& cell = tableElement.cell(0, 2);
-		KDReports::TextElement cTextElement("Avg. Sold Price");
+		KDReports::TextElement cTextElement("Discount");
 		cTextElement.setPointSize(11);
 		cTextElement.setBold(true);
 		cell.addElement(cTextElement, Qt::AlignCenter);
 	}
 	{
 		KDReports::Cell& cell = tableElement.cell(0, 3);
-		KDReports::TextElement cTextElement("Sold Qty");
+		KDReports::TextElement cTextElement("Avg. Sold Price");
 		cTextElement.setPointSize(11);
 		cTextElement.setBold(true);
 		cell.addElement(cTextElement, Qt::AlignCenter);
 	}
 	{
 		KDReports::Cell& cell = tableElement.cell(0, 4);
-		KDReports::TextElement cTextElement("Returned Qty");
+		KDReports::TextElement cTextElement("Sold Qty");
 		cTextElement.setPointSize(11);
 		cTextElement.setBold(true);
 		cell.addElement(cTextElement, Qt::AlignCenter);
 	}
 	{
 		KDReports::Cell& cell = tableElement.cell(0, 5);
-		KDReports::TextElement cTextElement("Net sold Qty");
+		KDReports::TextElement cTextElement("Returned Qty");
 		cTextElement.setPointSize(11);
 		cTextElement.setBold(true);
 		cell.addElement(cTextElement, Qt::AlignCenter);
 	}
 	{
 		KDReports::Cell& cell = tableElement.cell(0, 6);
-		KDReports::TextElement cTextElement("Line Total");
+		KDReports::TextElement cTextElement("Net sold Qty");
 		cTextElement.setPointSize(11);
 		cTextElement.setBold(true);
 		cell.addElement(cTextElement, Qt::AlignCenter);
 	}
 	{
 		KDReports::Cell& cell = tableElement.cell(0, 7);
+		KDReports::TextElement cTextElement("Line Total");
+		cTextElement.setPointSize(11);
+		cTextElement.setBold(true);
+		cell.addElement(cTextElement, Qt::AlignCenter);
+	}
+	{
+		KDReports::Cell& cell = tableElement.cell(0, 8);
 		KDReports::TextElement cTextElement("Approx. Profit");
 		cTextElement.setPointSize(11);
 		cTextElement.setBold(true);
@@ -498,19 +504,20 @@ void MDFSalesSummary::slotGenerateReport()
 		double approximateProfit = totalAmount - (purchasingPrice*((100 - currentDiscount) / 100)*balanceQty);
 		totalProfit += approximateProfit;
 
-		printRow(tableElement, row, 0, QString::number(purchasingPrice, 'f', 2));
-		printRow(tableElement, row, 1, QString::number(currentDiscount, 'f', 2));
-		printRow(tableElement, row, 2, QString::number(averagePrice, 'f', 2));
-		printRow(tableElement, row, 3, QString::number(totalQty));
-		printRow(tableElement, row, 4, QString::number(totalRetunedQty));
-		printRow(tableElement, row, 5, QString::number(balanceQty));
-		printRow(tableElement, row, 6, QString::number(totalAmount, 'f', 2));
-		printRow(tableElement, row, 7, QString::number(approximateProfit, 'f', 2));
+		printRow(tableElement, row, 0, itemName);
+		printRow(tableElement, row, 1, QString::number(purchasingPrice, 'f', 2));
+		printRow(tableElement, row, 2, QString::number(currentDiscount, 'f', 2));
+		printRow(tableElement, row, 3, QString::number(averagePrice, 'f', 2));
+		printRow(tableElement, row, 4, QString::number(totalQty));
+		printRow(tableElement, row, 5, QString::number(totalRetunedQty));
+		printRow(tableElement, row, 6, QString::number(balanceQty));
+		printRow(tableElement, row, 7, QString::number(totalAmount, 'f', 2));
+		printRow(tableElement, row, 8, QString::number(approximateProfit, 'f', 2));
 		row++;
 	}
 
-	printRow(tableElement, row, 6, "Total Profit");
-	printRow(tableElement, row, 7, QString::number(totalProfit, 'f', 2));
+	printRow(tableElement, row, 7, "Total Profit");
+	printRow(tableElement, row, 8, QString::number(totalProfit, 'f', 2));
 
 	report->addElement(tableElement);
 
@@ -518,7 +525,7 @@ void MDFSalesSummary::slotGenerateReport()
 	printer.setPaperSize(QPrinter::A4);
 
 	printer.setFullPage(false);
-	printer.setOrientation(QPrinter::Portrait);
+	printer.setOrientation(QPrinter::Landscape);
 
 	QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
 	QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
