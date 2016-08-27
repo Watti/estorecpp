@@ -34,10 +34,8 @@ ESCustomerOutstandingSummary::ESCustomerOutstandingSummary(QWidget *parent /*= 0
 	ui.tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	ui.tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
 	ui.tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
-	//ui.tableWidget->verticalHeader()->setMinimumWidth(200);
 
 	QObject::connect(ui.generateButton, SIGNAL(clicked()), this, SLOT(slotGenerateReport()));
-	//slotSearch();
 }
 
 ESCustomerOutstandingSummary::~ESCustomerOutstandingSummary()

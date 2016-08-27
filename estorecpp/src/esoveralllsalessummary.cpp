@@ -181,7 +181,7 @@ void OverallSalesSummary::slotSearch()
 			cardSalesWidget->setTextAlignment(Qt::AlignRight);
 			ui.tableWidgetByUser->setItem(row, 3, cardSalesWidget);
 
-			QSqlQuery queryReturn("SELECT SUM(return_total) as rTotal FROM return_item WHERE user_id=" + uId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+			QSqlQuery queryReturn("SELECT SUM(return_total) as rTotal FROM return_item WHERE user_id=" + uId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "' AND deleted = 0");
 			if (queryReturn.next())
 			{
 				double returnTotal = queryReturn.value("rTotal").toDouble();
@@ -551,7 +551,7 @@ void OverallSalesSummary::slotGenerateReportForGivenUser(QString userId)
 			}
 		}
 		double returnTotal = 0;
-		QSqlQuery queryReturn("SELECT SUM(return_total) as rTotal FROM return_item WHERE user_id=" + userId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+		QSqlQuery queryReturn("SELECT SUM(return_total) as rTotal FROM return_item WHERE user_id=" + userId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "' AND deleted =0");
 		if (queryReturn.next())
 		{
 			returnTotal = queryReturn.value("rTotal").toDouble();
@@ -757,7 +757,7 @@ void OverallSalesSummary::slotGenerateReport()
 		}
 	}
 
-	QSqlQuery queryReturn("SELECT * FROM return_item WHERE DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+	QSqlQuery queryReturn("SELECT * FROM return_item WHERE DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "' AND deleted = 0");
 	double returnTotal = 0;
 	if (queryReturn.next())
 	{

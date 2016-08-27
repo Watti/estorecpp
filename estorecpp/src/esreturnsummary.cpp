@@ -60,7 +60,7 @@ void ESReturnSummary::slotSearch()
 	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
 	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
 
-	QSqlQuery q("SELECT user_id, COUNT(bill_id) AS bills, SUM(return_total) AS total FROM return_item WHERE DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'" + "GROUP BY(user_id)");
+	QSqlQuery q("SELECT user_id, COUNT(bill_id) AS bills, SUM(return_total) AS total FROM return_item WHERE DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "' AND deleted = 0 " + "GROUP BY(user_id)");
 	while (q.next())
 	{
 		QString userId = q.value("user_id").toString();
@@ -378,7 +378,7 @@ void ESReturnSummary::slotGenerateReportForGivenUser(QString userId)
 		cell.addElement(cTextElement, Qt::AlignCenter);
 	}
 
-	QString pReturnQStr("SELECT * FROM return_item WHERE user_id = " + userId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+	QString pReturnQStr("SELECT * FROM return_item WHERE user_id = " + userId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "' AND deleted = 0");
 	QSqlQuery qReturnItems(pReturnQStr);
 	float total = 0;
 	int row = 1;

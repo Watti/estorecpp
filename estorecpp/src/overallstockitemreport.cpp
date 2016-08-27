@@ -11,6 +11,7 @@
 #include "utility/esmainwindowholder.h"
 #include "esmainwindow.h"
 #include "overallstockitemreport.h"
+#include "utility/utility.h"
 
 ESOverallStockItemReport::ESOverallStockItemReport(QWidget *parent /*= 0*/) : QWidget(parent),
 m_startingLimit(0), m_pageOffset(50), m_nextCounter(0), m_maxNextCount(0), m_report(NULL)
@@ -22,7 +23,8 @@ m_startingLimit(0), m_pageOffset(50), m_nextCounter(0), m_maxNextCount(0), m_rep
 	headerLabels.append("Item");
 	headerLabels.append("Current Stock Qty");
 	headerLabels.append("Minimum Qty");
-	headerLabels.append("Floor No");
+	headerLabels.append("Floor");
+	headerLabels.append("Stock Value");
 
 	ui.tableWidget->setHorizontalHeaderLabels(headerLabels);
 	ui.tableWidget->horizontalHeader()->setStretchLastSection(true);
@@ -90,7 +92,7 @@ void ESOverallStockItemReport::slotGenerate()
 
 	KDReports::TableElement tableElement;
 	tableElement.setHeaderRowCount(5);
-	tableElement.setHeaderColumnCount(5);
+	tableElement.setHeaderColumnCount(6);
 	tableElement.setBorder(1);
 	tableElement.setWidth(100, KDReports::Percent);
 
@@ -119,20 +121,25 @@ void ESOverallStockItemReport::slotGenerate()
 		c3.addElement(t3);
 
 		KDReports::Cell& c4 = tableElement.cell(row, 4);
-		KDReports::TextElement t4("Floor No");
+		KDReports::TextElement t4("Floor");
 		t4.setPointSize(12);
 		c4.addElement(t4);
+
+		KDReports::Cell& c5 = tableElement.cell(row, 5);
+		KDReports::TextElement t5("Stock Value");
+		t5.setPointSize(12);
+		c5.addElement(t5);
 	}
 	row++;
 	QString qStr;
 	if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
 		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
 	{
-		qStr = "SELECT stock.qty, stock.min_qty, stock.floor, item.item_code, item.item_name FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0";
+		qStr = "SELECT stock.qty, stock.min_qty, stock.floor, stock.selling_price, item.item_code, item.item_name FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0";
 	}
 	else
 	{
-		qStr = "SELECT stock.qty, stock.min_qty, stock.floor, item.item_code, item.item_name FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 AND stock.visible = 1";
+		qStr = "SELECT stock.qty, stock.min_qty, stock.floor, stock.selling_price, item.item_code, item.item_name FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 AND stock.visible = 1";
 	}
 	//pagination start
 	qStr.append(" LIMIT ").append(QString::number(m_startingLimit));
@@ -145,6 +152,7 @@ void ESOverallStockItemReport::slotGenerate()
 		double qty = q.value("qty").toDouble();
 		double minQty = q.value("min_qty").toDouble();
 		double excess = qty - minQty;
+		double sellingPrice = q.value("selling_price").toDouble();
 
 		QString itemCode = q.value("item_code").toString();
 		QString itemName = q.value("item_name").toString();
@@ -152,30 +160,14 @@ void ESOverallStockItemReport::slotGenerate()
 		QString qtyStr = QString::number(qty, 'f', 2);
 		QString minQtyStr = QString::number(minQty, 'f', 2);
 
-		KDReports::Cell& c1 = tableElement.cell(row, 0);
-		KDReports::TextElement t1(itemCode);
-		t1.setPointSize(12);
-		c1.addElement(t1);
+		ES::Utility::printRow(tableElement, row, 0, itemCode);
+		ES::Utility::printRow(tableElement, row, 1, itemName);
+		ES::Utility::printRow(tableElement, row, 2, qtyStr);
+		ES::Utility::printRow(tableElement, row, 3, minQtyStr);
+		ES::Utility::printRow(tableElement, row, 4, floorNo);
 
-		KDReports::Cell& c21 = tableElement.cell(row, 1);
-		KDReports::TextElement t21(itemName);
-		t21.setPointSize(12);
-		c21.addElement(t21);
-
-		KDReports::Cell& c2 = tableElement.cell(row, 2);
-		KDReports::TextElement t2(qtyStr);
-		t2.setPointSize(12);
-		c2.addElement(t2);
-
-		KDReports::Cell& c3 = tableElement.cell(row, 3);
-		KDReports::TextElement t3(minQtyStr);
-		t3.setPointSize(12);
-		c3.addElement(t3);
-
-		KDReports::Cell& c4 = tableElement.cell(row, 4);
-		KDReports::TextElement t4(floorNo);
-		t4.setPointSize(12);
-		c4.addElement(t4);
+		double stockValue = sellingPrice* qty;
+		ES::Utility::printRow(tableElement, row, 5, QString::number(stockValue, 'f', 2));
 		row++;
 	}
 
@@ -217,7 +209,7 @@ void ESOverallStockItemReport::displayResults()
 	}
 	else
 	{
-		qStr = "SELECT stock.qty, stock.min_qty, stock.floor, item.item_code, item.item_name FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0  AND stock.visible = 1";
+		qStr = "SELECT stock.qty, stock.min_qty, stock.floor, stock.selling_price, item.item_code, item.item_name FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0  AND stock.visible = 1";
 		qRecordCountStr = "SELECT COUNT(*) as c FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0  AND stock.visible = 1";
 	}
 	QSqlQuery queryRecordCount(qRecordCountStr);
@@ -255,27 +247,34 @@ void ESOverallStockItemReport::displayResults()
 			QColor red(245, 169, 169);
 			double qty = q.value("qty").toDouble();
 			double minQty = q.value("min_qty").toDouble();
+			double sellingPrice = q.value("selling_price").toDouble();
 			double excess = qty - minQty;
-
+			
 			QTableWidgetItem* item = NULL;
 			item = new QTableWidgetItem(q.value("item_code").toString());
+			item->setTextAlignment(Qt::AlignLeft);
 			ui.tableWidget->setItem(row, 0, item);
 
 			item = new QTableWidgetItem(q.value("item_name").toString());
 			item->setTextAlignment(Qt::AlignLeft);
 			ui.tableWidget->setItem(row, 1, item);
 
-			item = new QTableWidgetItem(QString::number(qty, 'f', 2));
+			item = new QTableWidgetItem(QString::number(qty));
 			item->setTextAlignment(Qt::AlignRight);
 			ui.tableWidget->setItem(row, 2, item);
 
-			item = new QTableWidgetItem(QString::number(minQty, 'f', 2));
+			item = new QTableWidgetItem(QString::number(minQty));
 			item->setTextAlignment(Qt::AlignRight);
 			ui.tableWidget->setItem(row, 3, item);
 
 			item = new QTableWidgetItem(q.value("floor").toString());
 			item->setTextAlignment(Qt::AlignRight);
 			ui.tableWidget->setItem(row, 4, item);
+
+			double stockValue = sellingPrice* qty;
+			item = new QTableWidgetItem(QString::number(stockValue,'f',2));
+			item->setTextAlignment(Qt::AlignRight);
+			ui.tableWidget->setItem(row, 5, item);
 		}
 	}
 }
