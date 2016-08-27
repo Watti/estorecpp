@@ -98,7 +98,7 @@ void MDFSalesSummary::slotSearch()
 			{
 				itemPrice = salesQry.value("item_price").toFloat();
 				balanceQty += salesQry.value("quantity").toFloat();
-				soldQty +=salesQry.value("quantity").toFloat();
+				soldQty += salesQry.value("quantity").toFloat();
 				discount = salesQry.value("discount").toFloat();
 			}
 			totalRetunedQty = 0;
@@ -294,11 +294,14 @@ void MDFSalesSummary::slotGenerateReportForGivenItem(QString itemId)
 		QSqlQuery qryStock("SELECT * FROM stock_purchase_order_item JOIN stock ON stock_purchase_order_item.stock_id = stock.stock_id WHERE stock.deleted = 0 AND stock.item_id = " + itemId);
 		if (qryStock.next())
 		{
+			totalAmount = 0;
+			averagePrice = 0;
+
 			QString stockId = qryStock.value("stock_id").toString();
 			sellingPrice = qryStock.value("selling_price").toFloat();
 			currentDiscount = qryStock.value("discount").toFloat();
 			purchasingPrice = qryStock.value("purchasing_price").toFloat();
-			
+
 			QTableWidgetItem* nameItem = new QTableWidgetItem(itemName);
 			ui.tableWidgetByCategory->setVerticalHeaderItem(row, nameItem);
 			QString salesQryStr = "SELECT discount, item_price, quantity FROM sale WHERE stock_id = " + stockId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
@@ -306,21 +309,23 @@ void MDFSalesSummary::slotGenerateReportForGivenItem(QString itemId)
 			while (salesQry.next())
 			{
 				itemPrice = salesQry.value("item_price").toFloat();
-				balanceQty = salesQry.value("quantity").toFloat();
-				soldQty = salesQry.value("quantity").toFloat();
+				balanceQty += salesQry.value("quantity").toFloat();
+				soldQty += salesQry.value("quantity").toFloat();
 				discount = salesQry.value("discount").toFloat();
 
-				QSqlQuery queryReturn("SELECT * FROM return_item WHERE item_id = " + itemId + " AND deleted = 0 AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
-				while (queryReturn.next())
-				{
-					float retQty = queryReturn.value("qty").toFloat();
-					totalRetunedQty += retQty;
-				}
-				balanceQty -= totalRetunedQty;
-				subTotal = itemPrice*((100 - discount) / 100)*balanceQty;
-				totalAmount += subTotal;
 
 			}
+			totalRetunedQty = 0;
+			QSqlQuery queryReturn("SELECT * FROM return_item WHERE item_id = " + itemId + " AND deleted = 0 AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+			while (queryReturn.next())
+			{
+				float retQty = queryReturn.value("qty").toFloat();
+				totalRetunedQty += retQty;
+			}
+			balanceQty -= totalRetunedQty;
+			subTotal = itemPrice*((100 - discount) / 100)*balanceQty;
+			totalAmount += subTotal;
+
 			if (balanceQty > 0)
 			{
 				averagePrice = totalAmount / balanceQty;
@@ -332,7 +337,7 @@ void MDFSalesSummary::slotGenerateReportForGivenItem(QString itemId)
 		printRow(tableElement, row, 0, QString::number(purchasingPrice, 'f', 2));
 		printRow(tableElement, row, 1, QString::number(currentDiscount, 'f', 2));
 		printRow(tableElement, row, 2, QString::number(averagePrice, 'f', 2));
-		printRow(tableElement, row, 3, QString::number(totalQty));
+		printRow(tableElement, row, 3, QString::number(soldQty));
 		printRow(tableElement, row, 4, QString::number(totalRetunedQty));
 		printRow(tableElement, row, 5, QString::number(balanceQty));
 		printRow(tableElement, row, 6, QString::number(totalAmount, 'f', 2));
@@ -456,7 +461,7 @@ void MDFSalesSummary::slotGenerateReport()
 	}
 
 	int row = 1;
-	
+
 	float grandTotal = 0, totalQty = 0, totalProfit = 0;
 	QSqlQuery categoryQry("SELECT * FROM Item JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id WHERE item.deleted = 0 AND item_category.itemcategory_name ='MDF' GROUP BY item.itemcategory_id");
 	while (categoryQry.next())
@@ -465,11 +470,12 @@ void MDFSalesSummary::slotGenerateReport()
 		QString itemId = categoryQry.value("item_id").toString();
 		QString itemName = categoryQry.value("item_name").toString();
 		float sellingPrice = 0, currentDiscount = 0, purchasingPrice = 0;
-		float itemPrice = 0, balanceQty = 0, discount = 0, subTotal = 0, soldQty = 0, totalRetunedQty = 0;
 		QSqlQuery qryStock("SELECT * FROM stock_purchase_order_item JOIN stock ON stock_purchase_order_item.stock_id = stock.stock_id WHERE stock.deleted = 0 AND stock.item_id = " + itemId);
 		if (qryStock.next())
 		{
+			float itemPrice = 0, balanceQty = 0, discount = 0, subTotal = 0, soldQty = 0, totalRetunedQty = 0;
 			totalAmount = 0;
+			averagePrice = 0;
 			QString stockId = qryStock.value("stock_id").toString();
 			sellingPrice = qryStock.value("selling_price").toFloat();
 			currentDiscount = qryStock.value("discount").toFloat();
@@ -482,39 +488,38 @@ void MDFSalesSummary::slotGenerateReport()
 			while (salesQry.next())
 			{
 				itemPrice = salesQry.value("item_price").toFloat();
-				balanceQty = salesQry.value("quantity").toFloat();
-				soldQty = salesQry.value("quantity").toFloat();
+				balanceQty += salesQry.value("quantity").toFloat();
+				soldQty += salesQry.value("quantity").toFloat();
 				discount = salesQry.value("discount").toFloat();
-
-				QSqlQuery queryReturn("SELECT * FROM return_item WHERE item_id = " + itemId + " AND deleted = 0 AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
-				while (queryReturn.next())
-				{
-					float retQty = queryReturn.value("qty").toFloat();
-					totalRetunedQty += retQty;
-				}
-				balanceQty -= totalRetunedQty;
-				subTotal = itemPrice*((100 - discount) / 100)*balanceQty;
-				totalAmount += subTotal;
-
 			}
+			totalRetunedQty = 0;
+			QSqlQuery queryReturn("SELECT * FROM return_item WHERE item_id = " + itemId + " AND deleted = 0 AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+			while (queryReturn.next())
+			{
+				float retQty = queryReturn.value("qty").toFloat();
+				totalRetunedQty += retQty;
+			}
+			balanceQty -= totalRetunedQty;
+			subTotal = itemPrice*((100 - discount) / 100)*balanceQty;
+			totalAmount += subTotal;
 			if (balanceQty > 0)
 			{
 				averagePrice = totalAmount / balanceQty;
 			}
-		}
-		double approximateProfit = totalAmount - (purchasingPrice*((100 - currentDiscount) / 100)*balanceQty);
-		totalProfit += approximateProfit;
+			double approximateProfit = totalAmount - (purchasingPrice*((100 - currentDiscount) / 100)*balanceQty);
+			totalProfit += approximateProfit;
 
-		printRow(tableElement, row, 0, itemName);
-		printRow(tableElement, row, 1, QString::number(purchasingPrice, 'f', 2));
-		printRow(tableElement, row, 2, QString::number(currentDiscount, 'f', 2));
-		printRow(tableElement, row, 3, QString::number(averagePrice, 'f', 2));
-		printRow(tableElement, row, 4, QString::number(totalQty));
-		printRow(tableElement, row, 5, QString::number(totalRetunedQty));
-		printRow(tableElement, row, 6, QString::number(balanceQty));
-		printRow(tableElement, row, 7, QString::number(totalAmount, 'f', 2));
-		printRow(tableElement, row, 8, QString::number(approximateProfit, 'f', 2));
-		row++;
+			printRow(tableElement, row, 0, itemName);
+			printRow(tableElement, row, 1, QString::number(purchasingPrice, 'f', 2));
+			printRow(tableElement, row, 2, QString::number(currentDiscount, 'f', 2));
+			printRow(tableElement, row, 3, QString::number(averagePrice, 'f', 2));
+			printRow(tableElement, row, 4, QString::number(soldQty));
+			printRow(tableElement, row, 5, QString::number(totalRetunedQty));
+			printRow(tableElement, row, 6, QString::number(balanceQty));
+			printRow(tableElement, row, 7, QString::number(totalAmount, 'f', 2));
+			printRow(tableElement, row, 8, QString::number(approximateProfit, 'f', 2));
+			row++;
+		}
 	}
 
 	printRow(tableElement, row, 7, "Total Profit");
