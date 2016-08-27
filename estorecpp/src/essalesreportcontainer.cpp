@@ -29,12 +29,27 @@ ESSalesReportContainer::ESSalesReportContainer(QWidget *parent /*= 0*/) : QWidge
 		m_mdfSalesSummary = new MDFSalesSummary(ui.tabWidget);
 		ui.tabWidget->addTab(m_mdfSalesSummary, "MDF Sales Summary");
 	}
+	bool display = false;
+	if (ES::Session::getInstance()->isSecondDisplayOn())
+	{
+		if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
+			ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
+		{
+			display = true;
+		}
+	}
+	else
+	{
+		display = true;
+	}
+	if (display)
+	{
+		m_revenueMasterSummary = new ESRevenueMasterReport(ui.tabWidget);
+		ui.tabWidget->addTab(m_revenueMasterSummary, "Revenue Master Report");
 
-	m_revenueMasterSummary = new ESRevenueMasterReport(ui.tabWidget);
-	ui.tabWidget->addTab(m_revenueMasterSummary, "Revenue Master Report");
-
-	m_customerOutstandingSummary = new ESCustomerOutstandingSummary(ui.tabWidget);
-	ui.tabWidget->addTab(m_customerOutstandingSummary, "Customer Outstanding");
+		m_customerOutstandingSummary = new ESCustomerOutstandingSummary(ui.tabWidget);
+		ui.tabWidget->addTab(m_customerOutstandingSummary, "Customer Outstanding");
+	}
 	//onTabChanged(0);
 }
 

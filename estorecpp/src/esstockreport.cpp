@@ -84,7 +84,7 @@ void ESStockReport::slotGenerate()
 		m_report->addVerticalSpacing(10);
 
 		KDReports::TableElement tableElement;
-		tableElement.setHeaderRowCount(5);
+		tableElement.setHeaderRowCount(1);
 		tableElement.setHeaderColumnCount(4);
 		tableElement.setBorder(1);
 		tableElement.setWidth(100, KDReports::Percent);
@@ -126,6 +126,7 @@ void ESStockReport::slotGenerate()
 		//t4.setTextColor(Qt::gray);
 		c4.addElement(t4);
 
+		row++;
 		QString maxRows = ui.maxRows->text();
 		QString qStr;
 		if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
@@ -140,68 +141,60 @@ void ESStockReport::slotGenerate()
 		QSqlQuery q(qStr);
 		while (q.next())
 		{
-			//else
+
+			double qty = q.value("qty").toDouble();
+			double minQty = q.value("min_qty").toDouble();
+			double excess = qty - minQty;
+
+			QString itemCode = q.value("item_code").toString();
+			QString itemName = q.value("item_name").toString();
+			QString qtyStr = QString::number(qty, 'f', 2);
+			QString minQtyStr = QString::number(minQty, 'f', 2);
+			QString s, reorder = "No";
+
+			if (excess > 0)
 			{
-
-				double qty = q.value("qty").toDouble();
-				double minQty = q.value("min_qty").toDouble();
-				double excess = qty - minQty;
-
-				QString itemCode = q.value("item_code").toString();
-				QString itemName = q.value("item_name").toString();
-				QString qtyStr = QString::number(qty, 'f', 2);
-				QString minQtyStr = QString::number(minQty, 'f', 2);
-				QString s, reorder = "No";
-
-				if (excess > 0)
-				{
-					s = QString::number(excess, 'f', 2);
-					s.prepend("(+) ");
-				}
-				else if (excess < 0)
-				{
-					s = QString::number(-excess, 'f', 2);
-					s.prepend("(-) ");
-					reorder = "Yes";
-				}
-				else
-				{
-					s = QString::number(excess, 'f', 2);
-				}
-
-				KDReports::Cell& c1 = tableElement.cell(row, 0);
-				KDReports::TextElement t1(itemCode);
-				t1.setPointSize(12);
-				if (excess < 0) t1.setTextColor(Qt::red);
-				c1.addElement(t1);
-
-				KDReports::Cell& c21 = tableElement.cell(row, 1);
-				KDReports::TextElement t21(itemName);
-				t21.setPointSize(12);
-				if (excess < 0) t21.setTextColor(Qt::red);
-				c21.addElement(t21);
-
-				KDReports::Cell& c2 = tableElement.cell(row, 2);
-				KDReports::TextElement t2(qtyStr);
-				t2.setPointSize(12);
-				if (excess < 0) t2.setTextColor(Qt::red);
-				c2.addElement(t2);
-				KDReports::Cell& c3 = tableElement.cell(row, 3);
-				KDReports::TextElement t3(minQtyStr);
-				t3.setPointSize(12);
-				if (excess < 0) t3.setTextColor(Qt::red);
-				c3.addElement(t3);
-				KDReports::Cell& c4 = tableElement.cell(row, 4);
-				KDReports::TextElement t4(s);
-				t4.setPointSize(12);
-				if (excess < 0) t4.setTextColor(Qt::red);
-				c4.addElement(t4);
-				// 				KDReports::Cell& c5 = tableElement.cell(row, 5);
-				// 				KDReports::TextElement t5(reorder);
-				// 				t5.setPointSize(12);
-				// 				if (excess < 0) t5.setTextColor(Qt::red);
-				// 				c5.addElement(t5);
+				s = QString::number(excess, 'f', 2);
+				s.prepend("(+) ");
 			}
+			else if (excess < 0)
+			{
+				s = QString::number(-excess, 'f', 2);
+				s.prepend("(-) ");
+				reorder = "Yes";
+			}
+			else
+			{
+				s = QString::number(excess, 'f', 2);
+			}
+
+			KDReports::Cell& c1 = tableElement.cell(row, 0);
+			KDReports::TextElement t1(itemCode);
+			t1.setPointSize(12);
+			//if (excess < 0) t1.setTextColor(Qt::red);
+			c1.addElement(t1);
+
+			KDReports::Cell& c21 = tableElement.cell(row, 1);
+			KDReports::TextElement t21(itemName);
+			t21.setPointSize(12);
+			//if (excess < 0) t21.setTextColor(Qt::red);
+			c21.addElement(t21);
+
+			KDReports::Cell& c2 = tableElement.cell(row, 2);
+			KDReports::TextElement t2(qtyStr);
+			t2.setPointSize(12);
+			//if (excess < 0) t2.setTextColor(Qt::red);
+			c2.addElement(t2);
+			KDReports::Cell& c3 = tableElement.cell(row, 3);
+			KDReports::TextElement t3(minQtyStr);
+			t3.setPointSize(12);
+			//if (excess < 0) t3.setTextColor(Qt::red);
+			c3.addElement(t3);
+			KDReports::Cell& c4 = tableElement.cell(row, 4);
+			KDReports::TextElement t4(s);
+			t4.setPointSize(12);
+			//if (excess < 0) t4.setTextColor(Qt::red);
+			c4.addElement(t4);
 			row++;
 		}
 

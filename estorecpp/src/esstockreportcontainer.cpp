@@ -10,7 +10,7 @@ ESStockReportContainer::ESStockReportContainer(QWidget *parent /*= 0*/) : QWidge
 {
 	ui.setupUi(this);
 	connect(ui.tabWidget, SIGNAL(currentChanged(int)), this, SLOT(onTabChanged(int)));
-
+	bool display = false;
 	m_stockReport = new ESStockReport(ui.tabWidget);
 	ui.tabWidget->addTab(m_stockReport, "Stock Re-Order Report");
 
@@ -19,17 +19,21 @@ ESStockReportContainer::ESStockReportContainer(QWidget *parent /*= 0*/) : QWidge
 		if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
 			ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
 		{
-			m_itemWiseSalesReport = new ESItemWiseSalesSummary(ui.tabWidget);
-			ui.tabWidget->addTab(m_itemWiseSalesReport, "Sold Items Summary");
+			display = true;
 		}
 	}
 	else
 	{
+		display = true;
+	}
+	if (display)
+	{
+		m_overallStockItemReport = new ESOverallStockItemReport(ui.tabWidget);
+		ui.tabWidget->addTab(m_overallStockItemReport, "Stock Item Summary");
+
 		m_itemWiseSalesReport = new ESItemWiseSalesSummary(ui.tabWidget);
 		ui.tabWidget->addTab(m_itemWiseSalesReport, "Sold Items Summary");
 	}
-	m_overallStockItemReport = new ESOverallStockItemReport(ui.tabWidget);
-	ui.tabWidget->addTab(m_overallStockItemReport, "Stock Item Summary");
 	onTabChanged(0);
 }
 
