@@ -79,6 +79,8 @@ void MDFSalesSummary::slotSearch()
 		QSqlQuery qryStock("SELECT * FROM stock_purchase_order_item JOIN stock ON stock_purchase_order_item.stock_id = stock.stock_id WHERE stock.deleted = 0 AND stock.item_id = " + itemId);
 		if (qryStock.next())
 		{
+			totalAmount = 0;
+			averagePrice = 0;
 			QString stockId = qryStock.value("stock_id").toString();
 			float sellingPrice = qryStock.value("selling_price").toFloat();
 			float currentDiscount = qryStock.value("discount").toFloat();
@@ -90,26 +92,26 @@ void MDFSalesSummary::slotSearch()
 			QTableWidgetItem* nameItem = new QTableWidgetItem(itemName);
 			ui.tableWidgetByCategory->setVerticalHeaderItem(row, nameItem);
 			float itemPrice = 0, balanceQty = 0, discount = 0, subTotal = 0, soldQty = 0, totalRetunedQty = 0;
-			QString salesQryStr = "SELECT discount, item_price, quantity FROM sale WHERE stock_id = " + stockId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+			QString salesQryStr = "SELECT discount, item_price, quantity FROM sale WHERE stock_id = " + stockId + " AND deleted = 0 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
 			QSqlQuery salesQry(salesQryStr);
 			while (salesQry.next())
 			{
 				itemPrice = salesQry.value("item_price").toFloat();
-				balanceQty = salesQry.value("quantity").toFloat();
-				soldQty = salesQry.value("quantity").toFloat();
+				balanceQty += salesQry.value("quantity").toFloat();
+				soldQty +=salesQry.value("quantity").toFloat();
 				discount = salesQry.value("discount").toFloat();
-
-				QSqlQuery queryReturn("SELECT * FROM return_item WHERE item_id = " + itemId + " AND deleted = 0 AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
-				while (queryReturn.next())
-				{
-					float retQty = queryReturn.value("qty").toFloat();
-					totalRetunedQty += retQty;
-				}
-				balanceQty -= totalRetunedQty;
-				subTotal = itemPrice*((100 - discount) / 100)*balanceQty;
-				totalAmount += subTotal;
-
 			}
+			totalRetunedQty = 0;
+			QSqlQuery queryReturn("SELECT * FROM return_item WHERE item_id = " + itemId + " AND deleted = 0 AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+			while (queryReturn.next())
+			{
+				float retQty = queryReturn.value("qty").toFloat();
+				totalRetunedQty += retQty;
+			}
+			balanceQty -= totalRetunedQty;
+			subTotal = itemPrice*((100 - discount) / 100)*balanceQty;
+			totalAmount += subTotal;
+
 			if (balanceQty > 0)
 			{
 				averagePrice = totalAmount / balanceQty;
