@@ -652,6 +652,11 @@ void ESAddBill::slotSellingPriceUpdated(QString txt, int row, int col)
 
 			calculateAndDisplayTotal();
 		}
+
+		if (ES::MainWindowHolder::instance()->getSecondaryDisplay())
+		{
+			ES::MainWindowHolder::instance()->getSecondaryDisplay()->update();
+		}
 	}
 }
 
