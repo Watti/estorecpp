@@ -48,6 +48,16 @@ void ESSecondaryDisplay::endBill()
 {
 	ui.baseWidget->hide();
 	ui.thankYouLabel->show();
+
+	ui.grossAmountLbl->setText("0.00");
+	ui.netAmountLbl->setText("0.00");
+	ui.onOfItemsLbl->setText("0.00");
+
+	while (ui.tableWidget->rowCount() > 0)
+	{
+		ui.tableWidget->removeRow(0);
+	}
+
 	ui.tableWidget->clearContents();
 }
 
