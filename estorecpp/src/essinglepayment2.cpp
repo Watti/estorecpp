@@ -1035,6 +1035,42 @@ void ESSinglePayment2::slotPrintReturnBill()
 	report.addElement(newdataTableElement);
 	report.addVerticalSpacing(2);
 
+	KDReports::Header& header2 = report.header(KDReports::FirstPage);
+
+	QString titleStr2 = ES::Session::getInstance()->getBillTitle();
+	KDReports::TextElement titleElement2(titleStr2);
+	titleElement2.setPointSize(14);
+	titleElement2.setBold(true);
+	header2.addElement(titleElement2, Qt::AlignCenter);
+
+	QString addressStr = ES::Session::getInstance()->getBillAddress();
+	KDReports::TextElement addressElement(addressStr);
+	addressElement.setPointSize(10);
+	addressElement.setBold(false);
+	header2.addElement(addressElement, Qt::AlignCenter);
+
+	QString phoneStr = ES::Session::getInstance()->getBillPhone();
+	KDReports::TextElement telElement(phoneStr);
+	telElement.setPointSize(10);
+	telElement.setBold(false);
+	header2.addElement(telElement, Qt::AlignCenter);
+
+	QString emailStr = ES::Session::getInstance()->getBillEmail();
+	if (emailStr != "")
+	{
+		KDReports::TextElement emailElement(emailStr);
+		emailElement.setPointSize(10);
+		emailElement.setBold(false);
+		header2.addElement(emailElement, Qt::AlignCenter);
+	}
+
+	KDReports::Header& header1 = report.header(KDReports::AllPages);
+
+	KDReports::TextElement billIdHead("Bill No : " + QString::number(m_returnItemsWidget->getBillId()));
+	billIdHead.setPointSize(11);
+	billIdHead.setBold(true);
+	header1.addElement(billIdHead);
+
 	//////////////////////////////////////////////////////////////////////////
 
 	// Update database
