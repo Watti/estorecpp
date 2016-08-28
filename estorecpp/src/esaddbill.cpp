@@ -388,9 +388,43 @@ void ESAddBill::slotSuspend()
 
 void ESAddBill::slotCancel()
 {
-	QString pendingBill = "SELECT * FROM bill WHERE deleted = 0 AND status = 2";
+	// Add items back to stock
+// 	if (ES::Session::getInstance()->isBillStarted())
+// 	{
+// 		QString billId = ES::Session::getInstance()->getBillId();
+// 
+// 		QSqlQuery saleQuantityQuery;
+// 		saleQuantityQuery.prepare("SELECT * FROM sale WHERE bill_id = ?");
+// 		saleQuantityQuery.addBindValue(billId);
+// 		if (saleQuantityQuery.exec())
+// 		{
+// 			while (saleQuantityQuery.next())
+// 			{
+// 				QString stockId = saleQuantityQuery.value("stock_id").toString();
+// 				double quantity = saleQuantityQuery.value("quantity").toDouble();
+// 
+// 				QSqlQuery q("SELECT * FROM stock WHERE stock_id = " + stockId);
+// 				if (q.next())
+// 				{
+// 					double stockQuantity = q.value("qty").toDouble();
+// 					double newStockQuantity = stockQuantity + quantity;
+// 					QSqlQuery stockUpdateQuery;
+// 					stockUpdateQuery.prepare("UPDATE stock SET qty = ? WHERE stock_id = ?");
+// 					stockUpdateQuery.addBindValue(newStockQuantity);
+// 					stockUpdateQuery.addBindValue(stockId);
+// 					stockUpdateQuery.exec();
+// 				}
+// 			}
+// 		}
+// 	}
+
+	// --------------------------------------------------------------------------------
+	// Commented below code as I'm not clear about what the purpose of that code - Shan
+	// --------------------------------------------------------------------------------
+
+	/*QString pendingBill = "SELECT * FROM bill WHERE deleted = 0 AND status = 2";
 	QSqlQuery pendingBillQry(pendingBill);
-	if (pendingBillQry.next()/*ES::Session::getInstance()->isBillStarted()*/)
+	if (pendingBillQry.next())
 	{
 		if (pendingBillQry.value("status").toInt() == 2)
 		{
@@ -399,9 +433,10 @@ void ESAddBill::slotCancel()
 			QString netAmount = ui.netAmountLabel->text();
 			QString queryUpdateStr("UPDATE bill set amount = " + netAmount + ", status = 3 WHERE bill_id = " + billId);
 			QSqlQuery query(queryUpdateStr);
-			resetBill();
 		}
-	}
+	}*/
+
+	resetBill();
 }
 
 void ESAddBill::resetBill()
