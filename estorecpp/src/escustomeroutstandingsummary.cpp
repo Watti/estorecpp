@@ -56,7 +56,7 @@ void ESCustomerOutstandingSummary::slotSearch()
 		ui.tableWidget->removeRow(0);
 	}
 	double totalOutstanding = 0;
-	QSqlQuery customerQry("SELECT * FROM customer WHERE deleted = 0");
+	QSqlQuery customerQry("SELECT * FROM customer WHERE deleted = 0  ORDER BY name");
 	while (customerQry.next())
 	{
 		QString customerId = customerQry.value("customer_id").toString();
@@ -72,15 +72,15 @@ void ESCustomerOutstandingSummary::slotSearch()
 
 
 		QTableWidgetItem *nameWidget = new QTableWidgetItem(cName);
-		nameWidget->setTextAlignment(Qt::AlignRight);
+		nameWidget->setTextAlignment(Qt::AlignLeft);
 		ui.tableWidget->setItem(row, 0, nameWidget);
 
 		QTableWidgetItem *phoneWidget = new QTableWidgetItem(phone);
-		phoneWidget->setTextAlignment(Qt::AlignRight);
+		phoneWidget->setTextAlignment(Qt::AlignLeft);
 		ui.tableWidget->setItem(row, 1, phoneWidget);
 
 		QTableWidgetItem *addressWidget = new QTableWidgetItem(address);
-		addressWidget->setTextAlignment(Qt::AlignRight);
+		addressWidget->setTextAlignment(Qt::AlignLeft);
 		ui.tableWidget->setItem(row, 2, addressWidget);
 
 		QTableWidgetItem *outstandingWidget = new QTableWidgetItem(QString::number(outstandingAmount, 'f', 2));
@@ -168,7 +168,7 @@ void ESCustomerOutstandingSummary::slotGenerateReport()
 		cell.addElement(cTextElement, Qt::AlignCenter);
 	}
 
-	QSqlQuery customerQry("SELECT * FROM customer WHERE deleted = 0");
+	QSqlQuery customerQry("SELECT * FROM customer WHERE deleted = 0 ORDER BY name");
 	int row = 1;
 	double totalOutstanding = 0;
 	while (customerQry.next())

@@ -49,6 +49,10 @@ ESSalesReportContainer::ESSalesReportContainer(QWidget *parent /*= 0*/) : QWidge
 
 		m_customerOutstandingSummary = new ESCustomerOutstandingSummary(ui.tabWidget);
 		ui.tabWidget->addTab(m_customerOutstandingSummary, "Customer Outstanding");
+
+ 		m_customerWiseSalesSummary = new ESCustomerWiseSalesSummary(ui.tabWidget);
+ 		ui.tabWidget->addTab(m_customerWiseSalesSummary, "Customer Wise Sales Summary");
+
 	}
 	//onTabChanged(0);
 }
@@ -100,7 +104,17 @@ void ESSalesReportContainer::onTabChanged(int tabIndex)
 		}
 		break;
 	case 6:
-		m_customerOutstandingSummary->slotSearch();
+		if (!ES::Session::getInstance()->isSecondDisplayOn())
+		{
+			m_customerOutstandingSummary->slotSearch();
+		}
+		else
+		{
+			m_customerWiseSalesSummary->slotSearch();
+		}
+		break;
+	case 7:
+		m_customerWiseSalesSummary->slotSearch();
 		break;
 	default:
 		break;

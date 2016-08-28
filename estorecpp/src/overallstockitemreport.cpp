@@ -24,6 +24,7 @@ m_startingLimit(0), m_pageOffset(100), m_nextCounter(0), m_maxNextCount(0), m_re
 	headerLabels.append("Current Stock Qty");
 	headerLabels.append("Minimum Qty");
 	headerLabels.append("Floor");
+	headerLabels.append("Purchasing Price");
 	headerLabels.append("Stock Value");
 
 	ui.tableWidget->setHorizontalHeaderLabels(headerLabels);
@@ -94,8 +95,8 @@ void ESOverallStockItemReport::slotGenerate()
 	m_report->addVerticalSpacing(10);
 
 	KDReports::TableElement tableElement;
-	tableElement.setHeaderRowCount(5);
-	tableElement.setHeaderColumnCount(6);
+	tableElement.setHeaderRowCount(1);
+	tableElement.setHeaderColumnCount(7);
 	tableElement.setBorder(1);
 	tableElement.setWidth(100, KDReports::Percent);
 
@@ -128,9 +129,14 @@ void ESOverallStockItemReport::slotGenerate()
 		c4.addElement(t4);
 
 		KDReports::Cell& c5 = tableElement.cell(row, 5);
-		KDReports::TextElement t5("Stock Value");
+		KDReports::TextElement t5("Purchasing Price");
 		t5.setPointSize(12);
 		c5.addElement(t5);
+
+		KDReports::Cell& c6 = tableElement.cell(row, 6);
+		KDReports::TextElement t6("Stock Value");
+		t6.setPointSize(12);
+		c6.addElement(t6);
 	}
 	row++;
 	double subTotal = 0;
@@ -138,11 +144,11 @@ void ESOverallStockItemReport::slotGenerate()
 	if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
 		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
 	{
-		qStr = "SELECT stock.qty, stock.min_qty, stock.floor, stock.selling_price, item.item_code, item.item_name FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0";
+		qStr = "SELECT stock.stock_id, stock.qty, stock.min_qty, stock.floor, stock.selling_price, item.item_code, item.item_name FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0";
 	}
 	else
 	{
-		qStr = "SELECT stock.qty, stock.min_qty, stock.floor, stock.selling_price, item.item_code, item.item_name FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 AND stock.visible = 1";
+		qStr = "SELECT stock.stock_id, stock.qty, stock.min_qty, stock.floor, stock.selling_price, item.item_code, item.item_name FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 AND stock.visible = 1";
 	}
 	//pagination start
 	qStr.append(" LIMIT ").append(QString::number(m_startingLimit));
@@ -151,12 +157,17 @@ void ESOverallStockItemReport::slotGenerate()
 	QSqlQuery q(qStr);
 	while (q.next())
 	{
-
 		double qty = q.value("qty").toDouble();
 		double minQty = q.value("min_qty").toDouble();
 		double excess = qty - minQty;
 		double sellingPrice = q.value("selling_price").toDouble();
-
+		double purchasingPrice = 0;
+		QString stockId = q.value("stock_id").toString();
+		QSqlQuery qryPurchaseOrder("SELECT * FROM stock_purchase_order_item JOIN stock ON stock_purchase_order_item.stock_id = stock.stock_id WHERE stock.deleted = 0 AND stock.stock_id = " + stockId);
+		if (qryPurchaseOrder.next())
+		{
+			purchasingPrice = qryPurchaseOrder.value("purchasing_price").toDouble();
+		}
 		QString itemCode = q.value("item_code").toString();
 		QString itemName = q.value("item_name").toString();
 		QString floorNo = q.value("floor").toString();
@@ -165,17 +176,18 @@ void ESOverallStockItemReport::slotGenerate()
 
 		ES::Utility::printRow(tableElement, row, 0, itemCode);
 		ES::Utility::printRow(tableElement, row, 1, itemName);
-		ES::Utility::printRow(tableElement, row, 2, qtyStr);
-		ES::Utility::printRow(tableElement, row, 3, minQtyStr);
-		ES::Utility::printRow(tableElement, row, 4, floorNo);
+		ES::Utility::printRow(tableElement, row, 2, qtyStr, Qt::AlignRight);
+		ES::Utility::printRow(tableElement, row, 3, minQtyStr, Qt::AlignRight);
+		ES::Utility::printRow(tableElement, row, 4, floorNo, Qt::AlignRight);
+		ES::Utility::printRow(tableElement, row, 5, QString::number(purchasingPrice, 'f', 2), Qt::AlignRight);
 
-		double stockValue = sellingPrice* qty;
+		double stockValue = purchasingPrice* qty;
 		subTotal += stockValue;
-		ES::Utility::printRow(tableElement, row, 5, QString::number(stockValue, 'f', 2));
+		ES::Utility::printRow(tableElement, row, 6, QString::number(stockValue, 'f', 2), Qt::AlignRight);
 		row++;
 	}
-	ES::Utility::printRow(tableElement, row, 4, "Sub Total ");
-	ES::Utility::printRow(tableElement, row, 5, QString::number(subTotal, 'f', 2));
+	ES::Utility::printRow(tableElement, row, 5, "Sub Total ");
+	ES::Utility::printRow(tableElement, row, 6, QString::number(subTotal, 'f', 2), Qt::AlignRight);
 
 	m_report->addElement(tableElement);
 
@@ -210,12 +222,12 @@ void ESOverallStockItemReport::displayResults()
 	if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
 		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
 	{
-		qStr = "SELECT stock.qty, stock.min_qty, stock.floor, item.item_code, item.item_name , stock.selling_price FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0";
+		qStr = "SELECT stock.stock_id, stock.qty, stock.min_qty, stock.floor, item.item_code, item.item_name , stock.selling_price FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0";
 		qRecordCountStr = "SELECT COUNT(*) as c FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0";
 	}
 	else
 	{
-		qStr = "SELECT stock.qty, stock.min_qty, stock.floor, stock.selling_price, item.item_code, item.item_name FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0  AND stock.visible = 1";
+		qStr = "SELECT stock.stock_id, stock.qty, stock.min_qty, stock.floor, stock.selling_price, item.item_code, item.item_name FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0  AND stock.visible = 1";
 		qRecordCountStr = "SELECT COUNT(*) as c FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0  AND stock.visible = 1";
 	}
 	QSqlQuery queryRecordCount(qRecordCountStr);
@@ -255,7 +267,13 @@ void ESOverallStockItemReport::displayResults()
 			double minQty = q.value("min_qty").toDouble();
 			double sellingPrice = q.value("selling_price").toDouble();
 			double excess = qty - minQty;
-			
+			double purchasingPrice = 0;
+			QString stockId = q.value("stock_id").toString();
+			QSqlQuery qryPurchaseOrder("SELECT * FROM stock_purchase_order_item JOIN stock ON stock_purchase_order_item.stock_id = stock.stock_id WHERE stock.deleted = 0 AND stock.stock_id = " + stockId);
+			if (qryPurchaseOrder.next())
+			{
+				purchasingPrice = qryPurchaseOrder.value("purchasing_price").toDouble();
+			}
 			QTableWidgetItem* item = NULL;
 			item = new QTableWidgetItem(q.value("item_code").toString());
 			item->setTextAlignment(Qt::AlignLeft);
@@ -277,10 +295,14 @@ void ESOverallStockItemReport::displayResults()
 			item->setTextAlignment(Qt::AlignRight);
 			ui.tableWidget->setItem(row, 4, item);
 
-			double stockValue = sellingPrice* qty;
-			item = new QTableWidgetItem(QString::number(stockValue,'f',2));
+			item = new QTableWidgetItem(QString::number(purchasingPrice,'f',2));
 			item->setTextAlignment(Qt::AlignRight);
 			ui.tableWidget->setItem(row, 5, item);
+
+			double stockValue = purchasingPrice* qty;
+			item = new QTableWidgetItem(QString::number(stockValue,'f',2));
+			item->setTextAlignment(Qt::AlignRight);
+			ui.tableWidget->setItem(row, 6, item);
 		}
 	}
 }
