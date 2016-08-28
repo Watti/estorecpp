@@ -18,6 +18,7 @@ public:
 	long getBillId() { return m_bill.getBillId(); }
 	long getOldBillId() { return m_bill.getOldBillId(); }
 	void updateDatabase();
+	void finishBill();
 
 	public slots:
 	void slotSelect();

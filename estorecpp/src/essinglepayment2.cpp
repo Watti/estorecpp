@@ -171,6 +171,7 @@ void ESSinglePayment2::slotFinalizeBill()
 	}
 
 	this->close();
+	m_returnItemsWidget->finishBill();
 }
 
 bool ESSinglePayment2::validate()

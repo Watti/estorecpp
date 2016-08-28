@@ -840,3 +840,8 @@ void ESReturnItems::updateDatabase()
 
 	}
 }
+
+void ESReturnItems::finishBill()
+{
+	m_bill.end();
+}
