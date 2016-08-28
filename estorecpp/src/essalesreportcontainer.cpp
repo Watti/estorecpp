@@ -80,10 +80,24 @@ void ESSalesReportContainer::onTabChanged(int tabIndex)
 		m_overallSalesSummary->slotSearch();
 		break;
 	case 4:
-		m_mdfSalesSummary->slotSearch();
+		if (!ES::Session::getInstance()->isSecondDisplayOn())
+		{
+			m_mdfSalesSummary->slotSearch();
+		}
+		else
+		{
+			m_revenueMasterSummary->slotSearch();
+		}
 		break;
 	case 5:
-		m_revenueMasterSummary->slotSearch();
+		if (!ES::Session::getInstance()->isSecondDisplayOn())
+		{
+			m_revenueMasterSummary->slotSearch();
+		}
+		else
+		{
+			m_customerOutstandingSummary->slotSearch();
+		}
 		break;
 	case 6:
 		m_customerOutstandingSummary->slotSearch();

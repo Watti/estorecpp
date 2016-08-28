@@ -14,7 +14,7 @@
 #include "utility/utility.h"
 
 ESOverallStockItemReport::ESOverallStockItemReport(QWidget *parent /*= 0*/) : QWidget(parent),
-m_startingLimit(0), m_pageOffset(50), m_nextCounter(0), m_maxNextCount(0), m_report(NULL)
+m_startingLimit(0), m_pageOffset(100), m_nextCounter(0), m_maxNextCount(0), m_report(NULL)
 {
 	ui.setupUi(this);
 
@@ -84,8 +84,11 @@ void ESOverallStockItemReport::slotGenerate()
 
 	KDReports::TextElement date(dateStr);
 	m_report->addElement(date, Qt::AlignLeft);
-	KDReports::TextElement time(timeStr);
-	m_report->addElement(time, Qt::AlignLeft);
+	QString itemOffset = QString::number(m_startingLimit) + " - " + QString::number(m_startingLimit + m_pageOffset);
+	KDReports::TextElement itemCount(itemOffset);
+	m_report->addElement(itemCount, Qt::AlignLeft);
+// 	KDReports::TextElement time(timeStr);
+// 	m_report->addElement(time, Qt::AlignLeft);
 
 	// add 20 mm of vertical space:
 	m_report->addVerticalSpacing(10);
@@ -97,7 +100,6 @@ void ESOverallStockItemReport::slotGenerate()
 	tableElement.setWidth(100, KDReports::Percent);
 
 	//////////////////////////////////////////////////////////////////////////
-
 	int row = 0;
 	{
 		KDReports::Cell& c1 = tableElement.cell(row, 0);
@@ -131,6 +133,7 @@ void ESOverallStockItemReport::slotGenerate()
 		c5.addElement(t5);
 	}
 	row++;
+	double subTotal = 0;
 	QString qStr;
 	if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
 		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
@@ -167,9 +170,12 @@ void ESOverallStockItemReport::slotGenerate()
 		ES::Utility::printRow(tableElement, row, 4, floorNo);
 
 		double stockValue = sellingPrice* qty;
+		subTotal += stockValue;
 		ES::Utility::printRow(tableElement, row, 5, QString::number(stockValue, 'f', 2));
 		row++;
 	}
+	ES::Utility::printRow(tableElement, row, 4, "Sub Total ");
+	ES::Utility::printRow(tableElement, row, 5, QString::number(subTotal, 'f', 2));
 
 	m_report->addElement(tableElement);
 
@@ -204,7 +210,7 @@ void ESOverallStockItemReport::displayResults()
 	if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
 		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
 	{
-		qStr = "SELECT stock.qty, stock.min_qty, stock.floor, item.item_code, item.item_name FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0";
+		qStr = "SELECT stock.qty, stock.min_qty, stock.floor, item.item_code, item.item_name , stock.selling_price FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0";
 		qRecordCountStr = "SELECT COUNT(*) as c FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0";
 	}
 	else
