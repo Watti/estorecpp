@@ -12,6 +12,7 @@
 #include "esmdfsalessummary.h"
 #include "esrevenuemasterreport.h"
 #include "escustomeroutstandingsummary.h"
+#include "escustomerwisesalessummary .h"
 
 class ESSalesReportContainer : public QWidget
 {
@@ -36,6 +37,7 @@ private:
 	MDFSalesSummary* m_mdfSalesSummary;
 	ESRevenueMasterReport* m_revenueMasterSummary;
 	ESCustomerOutstandingSummary* m_customerOutstandingSummary;
+	ESCustomerWiseSalesSummary* m_customerWiseSalesSummary;
 
 };
 
