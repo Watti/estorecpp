@@ -9,6 +9,10 @@
 #include "esreturnsummary.h"
 #include "essalesummaryreport.h"
 #include "esoveralllsalessummary.h"
+#include "esmdfsalessummary.h"
+#include "esrevenuemasterreport.h"
+#include "escustomeroutstandingsummary.h"
+#include "escustomerwisesalessummary .h"
 
 class ESSalesReportContainer : public QWidget
 {
@@ -30,6 +34,10 @@ private:
 	ESReturnSummary* m_returnSummary; 
 	ESSalesSummary* m_salesSummary;
 	OverallSalesSummary* m_overallSalesSummary;
+	MDFSalesSummary* m_mdfSalesSummary;
+	ESRevenueMasterReport* m_revenueMasterSummary;
+	ESCustomerOutstandingSummary* m_customerOutstandingSummary;
+	ESCustomerWiseSalesSummary* m_customerWiseSalesSummary;
 
 };
 

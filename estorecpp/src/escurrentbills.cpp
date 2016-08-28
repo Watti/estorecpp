@@ -942,14 +942,6 @@ void ESCurrentBills::slotReprint(QString billIdStr)
 		printer.setFullPage(false);
 		printer.setOrientation(QPrinter::Portrait);
 
-		//preview start
-		QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
-		QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
-		dialog->setWindowTitle(tr("Print Document"));
-		ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
-		dialog->exec();
-		//preview end
-
 		KDReports::Header& header2 = report.header(KDReports::FirstPage);
 
 		QString titleStr = ES::Session::getInstance()->getBillTitle();
@@ -987,6 +979,14 @@ void ESCurrentBills::slotReprint(QString billIdStr)
 		header1.addElement(billIdHead);
 
 		report.setMargins(10, 15, 10, 15);
+
+		//preview start
+		QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
+		QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
+		dialog->setWindowTitle(tr("Print Document"));
+		ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
+		dialog->exec();
+		//preview end
 
 		//report.print(&printer);
 	}
@@ -1397,6 +1397,42 @@ void ESCurrentBills::printReturnBill(QString billIdStr)
 
 		report.addElement(newdataTableElement);
 		report.addVerticalSpacing(2);
+
+		KDReports::Header& header2 = report.header(KDReports::FirstPage);
+
+		QString titleStr2 = ES::Session::getInstance()->getBillTitle();
+		KDReports::TextElement titleElement2(titleStr2);
+		titleElement2.setPointSize(14);
+		titleElement2.setBold(true);
+		header2.addElement(titleElement2, Qt::AlignCenter);
+
+		QString addressStr = ES::Session::getInstance()->getBillAddress();
+		KDReports::TextElement addressElement(addressStr);
+		addressElement.setPointSize(10);
+		addressElement.setBold(false);
+		header2.addElement(addressElement, Qt::AlignCenter);
+
+		QString phoneStr = ES::Session::getInstance()->getBillPhone();
+		KDReports::TextElement telElement(phoneStr);
+		telElement.setPointSize(10);
+		telElement.setBold(false);
+		header2.addElement(telElement, Qt::AlignCenter);
+
+		QString emailStr = ES::Session::getInstance()->getBillEmail();
+		if (emailStr != "")
+		{
+			KDReports::TextElement emailElement(emailStr);
+			emailElement.setPointSize(10);
+			emailElement.setBold(false);
+			header2.addElement(emailElement, Qt::AlignCenter);
+		}
+
+		KDReports::Header& header1 = report.header(KDReports::AllPages);
+
+		KDReports::TextElement billIdHead("Bill No : " + billIdStr);
+		billIdHead.setPointSize(11);
+		billIdHead.setBold(true);
+		header1.addElement(billIdHead);
 
 		QPrinter printer;
 		printer.setPaperSize(QPrinter::A4);

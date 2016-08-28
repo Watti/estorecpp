@@ -27,6 +27,7 @@ ESAddManualStockItems::ESAddManualStockItems(QWidget *parent /*= 0*/)
 	ui.tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
 	ui.tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
 	ui.tableWidget->hideColumn(0);
+	ui.tableWidget->hideColumn(5);
 
 	QObject::connect(ui.tableWidget, SIGNAL(cellClicked(int, int)), this, SLOT(slotItemSelected(int, int)));
 	QObject::connect(ui.addToStockBtn, SIGNAL(clicked()), this, SLOT(slotAddToStock()));

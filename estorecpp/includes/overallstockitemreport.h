@@ -28,7 +28,7 @@ public:
 
 private:
 	Ui::OverallStockItemsReportWidget ui;
-	KDReports::Report report;
+	KDReports::Report* m_report;
 	int m_pageOffset;
 	int m_startingLimit;
 	int m_totalRecords;

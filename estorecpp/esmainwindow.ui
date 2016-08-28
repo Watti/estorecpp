@@ -81,7 +81,7 @@
    </palette>
   </property>
   <property name="windowTitle">
-   <string>EStore</string>
+   <string>PROGEX</string>
   </property>
   <property name="layoutDirection">
    <enum>Qt::LeftToRight</enum>

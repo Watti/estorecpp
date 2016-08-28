@@ -12,7 +12,7 @@
 #include "qnamespace.h"
 #include "utility/session.h"
 
-ESReturnSummary::ESReturnSummary(QWidget *parent /*= 0*/) : QWidget(parent)
+ESReturnSummary::ESReturnSummary(QWidget *parent /*= 0*/) : QWidget(parent), m_report(NULL)
 {
 	ui.setupUi(this);
 
@@ -60,7 +60,7 @@ void ESReturnSummary::slotSearch()
 	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
 	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
 
-	QSqlQuery q("SELECT user_id, COUNT(bill_id) AS bills, SUM(return_total) AS total FROM return_item WHERE DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'" + "GROUP BY(user_id)");
+	QSqlQuery q("SELECT user_id, COUNT(bill_id) AS bills, SUM(return_total) AS total FROM return_item WHERE DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "' AND deleted = 0 " + "GROUP BY(user_id)");
 	while (q.next())
 	{
 		QString userId = q.value("user_id").toString();
@@ -125,10 +125,12 @@ void ESReturnSummary::slotGenerateReport()
 	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
 	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
 
+	m_report = new KDReports::Report;
+
 	KDReports::TextElement titleElement("Return Summary Report");
 	titleElement.setPointSize(13);
 	titleElement.setBold(true);
-	report.addElement(titleElement, Qt::AlignHCenter);
+	m_report->addElement(titleElement, Qt::AlignHCenter);
 
 	QString dateStr = "Date : ";
 	dateStr.append(stardDateStr).append(" - ").append(endDateStr);
@@ -147,8 +149,8 @@ void ESReturnSummary::slotGenerateReport()
 		dateCell.addElement(t, Qt::AlignRight);
 	}
 
-	report.addElement(infoTableElement);
-	report.addVerticalSpacing(5);
+	m_report->addElement(infoTableElement);
+	m_report->addVerticalSpacing(5);
 
 	KDReports::TableElement tableElement;
 	tableElement.setHeaderColumnCount(7);
@@ -244,7 +246,7 @@ void ESReturnSummary::slotGenerateReport()
 	printRow(tableElement, row, 5, "Bill Count", Qt::AlignRight);
 	printRow(tableElement, row, 6, QString::number(totalBillCount), Qt::AlignRight);
 
-	report.addElement(tableElement);
+	m_report->addElement(tableElement);
 // 	report.addVerticalSpacing(2);
 // 
 // 	KDReports::TableElement bottomTable;
@@ -285,16 +287,18 @@ void ESReturnSummary::printRow(KDReports::TableElement& tableElement, int row, i
 
 void ESReturnSummary::slotPrint(QPrinter* printer)
 {
-	report.print(printer);
+	m_report->print(printer);
 	this->close();
 }
 
 void ESReturnSummary::slotGenerateReportForGivenUser(QString userId)
 {
+	m_report = new KDReports::Report;
+
 	KDReports::TextElement titleElement("Return Item Report");
 	titleElement.setPointSize(13);
 	titleElement.setBold(true);
-	report.addElement(titleElement, Qt::AlignHCenter);
+	m_report->addElement(titleElement, Qt::AlignHCenter);
 
 	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
 	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
@@ -330,8 +334,8 @@ void ESReturnSummary::slotGenerateReportForGivenUser(QString userId)
 		userCell.addElement(t, Qt::AlignLeft);
 	}
 
-	report.addElement(infoTableElement);
-	report.addVerticalSpacing(5);
+	m_report->addElement(infoTableElement);
+	m_report->addVerticalSpacing(5);
 
 	KDReports::TableElement tableElement;
 	tableElement.setHeaderColumnCount(5);
@@ -374,7 +378,7 @@ void ESReturnSummary::slotGenerateReportForGivenUser(QString userId)
 		cell.addElement(cTextElement, Qt::AlignCenter);
 	}
 
-	QString pReturnQStr("SELECT * FROM return_item WHERE user_id = " + userId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+	QString pReturnQStr("SELECT * FROM return_item WHERE user_id = " + userId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "' AND deleted = 0");
 	QSqlQuery qReturnItems(pReturnQStr);
 	float total = 0;
 	int row = 1;
@@ -399,7 +403,7 @@ void ESReturnSummary::slotGenerateReportForGivenUser(QString userId)
 
 	printRow(tableElement, row,3, "Total");
 	printRow(tableElement, row, 4, QString::number(total, 'f', 2), Qt::AlignRight);
-	report.addElement(tableElement);
+	m_report->addElement(tableElement);
 
 	QPrinter printer;
 	printer.setPaperSize(QPrinter::A4);
