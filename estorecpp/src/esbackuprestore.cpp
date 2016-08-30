@@ -161,7 +161,7 @@ void ESBackupRestore::slotRestore()
 	//cmd.append(m_manualRestorePath);
 	QProcess *poc = new QProcess(this);
 
-	QString cmd = QString("mysql.exe --log-error restore.log -u%1 -p%2 goldfish").arg("root", "123");
+	QString cmd = QString("mysql.exe -u%1 -p%2 goldfish").arg("prog", "progex@2016");
 	QString Path = QString("%1").arg(m_manualRestorePath);
 	poc->setStandardInputFile(Path);
 
