@@ -14,6 +14,9 @@ public:
 
 	Ui::SystemSettings& getUI() { return ui; };
 
+public slots:
+	void resetDatabase();
+
 private:
 	Ui::SystemSettings ui;
 
