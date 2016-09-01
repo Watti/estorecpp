@@ -68,7 +68,7 @@
       <widget class="QPushButton" name="prevBtn">
        <property name="font">
         <font>
-         <pointsize>8</pointsize>
+         <pointsize>11</pointsize>
         </font>
        </property>
        <property name="text">
@@ -77,9 +77,14 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="generateButton">
+      <widget class="QPushButton" name="nextBtn">
+       <property name="font">
+        <font>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
        <property name="text">
-        <string>Generate Report</string>
+        <string>Next &gt;&gt;</string>
        </property>
       </widget>
      </item>
@@ -97,14 +102,23 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="nextBtn">
-       <property name="font">
-        <font>
-         <pointsize>8</pointsize>
-        </font>
-       </property>
+      <widget class="QPushButton" name="generateButton">
        <property name="text">
-        <string>Next &gt;&gt;</string>
+        <string> Generate Report </string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="pdf">
+       <property name="text">
+        <string>PDF</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="csv">
+       <property name="text">
+        <string>CSV</string>
        </property>
       </widget>
      </item>

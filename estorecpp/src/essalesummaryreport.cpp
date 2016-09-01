@@ -215,6 +215,11 @@ void ESSalesSummary::slotGenerate()
 	printer.setFullPage(false);
 	printer.setOrientation(QPrinter::Portrait);
 
+	if (ui.pdf->isChecked())
+	{
+		report.exportToFile("./reports/sales_summary_report.pdf");
+	}
+
 	QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
 	QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
 	dialog->setWindowTitle(tr("Print Document"));
