@@ -160,7 +160,7 @@ void ESBackupRestore::slotRestore()
 	//QString bckpPath = m_backupPath + "/" + fileName;
 	//cmd.append(m_manualRestorePath);
 	QProcess *poc = new QProcess(this);
-
+	//gunzip < [backupfile.sql.gz] | mysql -u [uname] -p[pass] [dbname]
 	QString cmd = QString("mysql.exe -u%1 -p%2 goldfish").arg("prog", "progex@2016");
 	QString Path = QString("%1").arg(m_manualRestorePath);
 	poc->setStandardInputFile(Path);
@@ -171,6 +171,7 @@ void ESBackupRestore::slotRestore()
 	poc->start(cmd);
 	poc->waitForFinished(-1);
 	qDebug() << poc->errorString();
+	this->close();
 }
 
 void ESBackupRestore::slotEnableStandardRestore()
