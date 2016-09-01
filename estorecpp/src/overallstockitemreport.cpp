@@ -144,11 +144,11 @@ void ESOverallStockItemReport::slotGenerate()
 	if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
 		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
 	{
-		qStr = "SELECT stock.stock_id, stock.qty, stock.min_qty, stock.floor, stock.selling_price, item.item_code, item.item_name FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0";
+		qStr = "SELECT stock.stock_id, stock.qty, stock.min_qty, stock.floor, stock.selling_price, item.item_code, item.item_name FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 AND item.deleted=0";
 	}
 	else
 	{
-		qStr = "SELECT stock.stock_id, stock.qty, stock.min_qty, stock.floor, stock.selling_price, item.item_code, item.item_name FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 AND stock.visible = 1";
+		qStr = "SELECT stock.stock_id, stock.qty, stock.min_qty, stock.floor, stock.selling_price, item.item_code, item.item_name FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 AND item.deleted=0 AND stock.visible = 1";
 	}
 	//pagination start
 	qStr.append(" LIMIT ").append(QString::number(m_startingLimit));
@@ -222,13 +222,13 @@ void ESOverallStockItemReport::displayResults()
 	if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
 		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
 	{
-		qStr = "SELECT stock.stock_id, stock.qty, stock.min_qty, stock.floor, item.item_code, item.item_name , stock.selling_price FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0";
-		qRecordCountStr = "SELECT COUNT(*) as c FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0";
+		qStr = "SELECT stock.stock_id, stock.qty, stock.min_qty, stock.floor, item.item_code, item.item_name , stock.selling_price FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 AND item.deleted = 0";
+		qRecordCountStr = "SELECT COUNT(*) as c FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 AND item.deleted=0";
 	}
 	else
 	{
-		qStr = "SELECT stock.stock_id, stock.qty, stock.min_qty, stock.floor, stock.selling_price, item.item_code, item.item_name FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0  AND stock.visible = 1";
-		qRecordCountStr = "SELECT COUNT(*) as c FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0  AND stock.visible = 1";
+		qStr = "SELECT stock.stock_id, stock.qty, stock.min_qty, stock.floor, stock.selling_price, item.item_code, item.item_name FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 AND item.deleted = 0 AND stock.visible = 1";
+		qRecordCountStr = "SELECT COUNT(*) as c FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0  AND item.deleted=0 AND stock.visible = 1";
 	}
 	QSqlQuery queryRecordCount(qRecordCountStr);
 	if (queryRecordCount.next())

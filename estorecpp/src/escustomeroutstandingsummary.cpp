@@ -138,7 +138,7 @@ void ESCustomerOutstandingSummary::slotGenerateReport()
 	tableElement.setHeaderColumnCount(4);
 	tableElement.setBorder(1);
 	tableElement.setWidth(100, KDReports::Percent);
-
+	
 	{
 		KDReports::Cell& cell = tableElement.cell(0, 0);
 		KDReports::TextElement cTextElement("Name");
@@ -192,7 +192,7 @@ void ESCustomerOutstandingSummary::slotGenerateReport()
 	printRow(tableElement, row, 3, QString::number(totalOutstanding, 'f', 2));
 
 	report->addElement(tableElement);
-
+	
 	QPrinter printer;
 	printer.setPaperSize(QPrinter::A4);
 
