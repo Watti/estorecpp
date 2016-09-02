@@ -1129,7 +1129,7 @@ void ESCurrentBills::printReturnBill(QString billIdStr)
 		double unitPrice = 0, qty = 0, retTotal = 0;
 		int row = 0;
 
-		QSqlQuery returnItemQuery("SELECT * FROM return_item WHERE new_bill_id = " + billIdStr);
+		QSqlQuery returnItemQuery("SELECT * FROM return_item WHERE deleted = 0 AND new_bill_id = " + billIdStr);
 		while (returnItemQuery.next())
 		{
 			QString itemIdStr = returnItemQuery.value("item_id").toString();
@@ -1237,7 +1237,7 @@ void ESCurrentBills::printReturnBill(QString billIdStr)
 		double unitPrice2 = 0, qty2 = 0, retTotal2 = 0;
 		int row2 = 0;
 
-		QSqlQuery newItemQuery("SELECT * FROM sale WHERE bill_id = " + billIdStr);
+		QSqlQuery newItemQuery("SELECT * FROM sale WHERE deleted = 0 AND bill_id = " + billIdStr);
 		while (newItemQuery.next())
 		{
 			QString stockId = newItemQuery.value("stock_id").toString();
@@ -1278,8 +1278,8 @@ void ESCurrentBills::printReturnBill(QString billIdStr)
 				cell.addElement(t, Qt::AlignRight);
 			}{
 				QString paidPrice = newItemQuery.value("total").toString();
-				unitPrice2 = paidPrice.toDouble();
-				double total = qty2 * unitPrice2;
+				double total = paidPrice.toDouble();
+				//double total = qty2 * unitPrice2;
 				KDReports::Cell& cell = newdataTableElement.cell(row2, 4);
 				KDReports::TextElement t(QString::number(total, 'f', 2));
 				t.setPointSize(10);
