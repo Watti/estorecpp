@@ -131,6 +131,30 @@
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="QCheckBox" name="pdf">
+       <property name="font">
+        <font>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>PDF</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="csv">
+       <property name="font">
+        <font>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>CSV</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>

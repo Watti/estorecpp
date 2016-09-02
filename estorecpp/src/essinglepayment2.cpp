@@ -845,10 +845,12 @@ void ESSinglePayment2::slotPrintReturnBill()
 	newdataTableElement.setHeaderColumnCount(5);
 	newdataTableElement.setBorder(0);
 	newdataTableElement.setWidth(100, KDReports::Percent);
-	double unitPrice2 = 0, qty2 = 0, retTotal2 = 0;
+	
+	double retTotal2 = 0;
 	int row2 = 0;
 	for (int i = 0; i < m_returnItemsWidget->getUI().billTableWidget->rowCount(); ++i)
 	{
+		double unitPrice2 = 0, qty2 = 0;
 		row2 = i;
 		{
 			KDReports::Cell& cell = newdataTableElement.cell(i, 0);
