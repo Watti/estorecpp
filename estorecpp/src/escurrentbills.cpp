@@ -1044,7 +1044,7 @@ void ESCurrentBills::slotNext()
 
 void ESCurrentBills::printReturnBill(QString billIdStr)
 {
-	QSqlQuery rbQuery("SELECT * FROM return_bill WHERE return_bill_id = " + billIdStr);
+	QSqlQuery rbQuery("SELECT * FROM return_bill WHERE deleted = 0 AND return_bill_id = " + billIdStr);
 	QString oldBillId = "-1";
 
 	if (rbQuery.next())
