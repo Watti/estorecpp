@@ -285,7 +285,7 @@ void ESCustomerInfo::slotDeleteCustomer()
 	{
 		return;
 	}
-	if (ES::Utility::verifyUsingMessageBox(this, "EStore","Do you really want to delete customer?"))
+	if (ES::Utility::verifyUsingMessageBox(this, "Progex","Do you really want to delete customer?"))
 	{
 		QSqlQuery q("UPDATE customer SET deleted = 1 WHERE customer_id = " + m_selectedCustomerId);
 

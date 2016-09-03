@@ -119,7 +119,7 @@ void ESManageItems::slotUpdate(QString itemId)
 
 void ESManageItems::slotRemove(QString itemId)
 {
-	if (ES::Utility::verifyUsingMessageBox(this, "EStore", "Do you really want to remove this?"))
+	if (ES::Utility::verifyUsingMessageBox(this, "Progex", "Do you really want to remove this?"))
 	{
 		QString str("UPDATE item SET deleted = 1 WHERE item_id = " + itemId);
 		QSqlQuery q;

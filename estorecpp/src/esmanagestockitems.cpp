@@ -312,7 +312,7 @@ void ESManageStockItems::slotUpdate(QString stockId)
 
 void ESManageStockItems::slotRemove(QString stockId)
 {
-	if (ES::Utility::verifyUsingMessageBox(this, "EStore", "Do you really want to remove this?"))
+	if (ES::Utility::verifyUsingMessageBox(this, "Progex", "Do you really want to remove this?"))
 	{
 		//QString str("UPDATE stock SET deleted = 1 WHERE stock_id = " + stockId);
 		QString str("DELETE FROM stock WHERE stock_id = " + stockId);

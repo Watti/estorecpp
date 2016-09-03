@@ -351,7 +351,7 @@ void ESManageSuppliers::slotUpdate(QString id)
 
 void ESManageSuppliers::slotRemove(QString id)
 {
-	if (ES::Utility::verifyUsingMessageBox(this, "EStore", "Do you really want to remove this?"))
+	if (ES::Utility::verifyUsingMessageBox(this, "Progex", "Do you really want to remove this?"))
 	{
 		QString str("UPDATE supplier SET deleted = 1 WHERE supplier_id = " + id);
 		QSqlQuery q;

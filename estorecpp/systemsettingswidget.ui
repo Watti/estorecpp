@@ -303,7 +303,7 @@
           <widget class="QComboBox" name="comboBox">
            <item>
             <property name="text">
-             <string>Sales Only</string>
+             <string>Sales and Return Only</string>
             </property>
            </item>
            <item>

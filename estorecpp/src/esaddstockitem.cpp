@@ -57,7 +57,7 @@ void AddStockItem::slotAddStockItem()
 			{
 				if ( quantity < m_existingQuantityInMainStock)
 				{
-					if (!ES::Utility::verifyUsingMessageBox(this, "EStore", "Do you really want to reduce the stock quantity?"))
+					if (!ES::Utility::verifyUsingMessageBox(this, "Progex", "Do you really want to reduce the stock quantity?"))
 					{
 						return;
 					}

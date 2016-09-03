@@ -456,7 +456,7 @@ void ESAddBill::resetBill()
 
 void ESAddBill::slotRemoveItem(QString saleId)
 {
-	if (ES::Utility::verifyUsingMessageBox(this, "EStore", "Do you really want to remove this?"))
+	if (ES::Utility::verifyUsingMessageBox(this, "Progex", "Do you really want to remove this?"))
 	{
 		QString billId = ES::Session::getInstance()->getBillId();
 		QString queary("UPDATE sale set deleted = 1 WHERE sale_id = " + saleId + " AND bill_id = " + billId);

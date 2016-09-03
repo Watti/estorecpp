@@ -80,7 +80,7 @@ void ESItemCategories::slotUpdate(QString itemCategoryId)
 
 void ESItemCategories::slotRemove(QString itemCategoryId)
 {
-	if (ES::Utility::verifyUsingMessageBox(this, "EStore", "Do you really want to remove this?"))
+	if (ES::Utility::verifyUsingMessageBox(this, "Progex", "Do you really want to remove this?"))
 	{
 		QString str("UPDATE item_category SET deleted = 1 WHERE itemcategory_id = " + itemCategoryId);
 		QSqlQuery q;

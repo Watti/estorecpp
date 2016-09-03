@@ -329,7 +329,7 @@ void ESCurrentBills::slotProceed(QString billId)
 
 void ESCurrentBills::slotVoidBill(QString billId)
 {
-	if (ES::Utility::verifyUsingMessageBox(this, "ProgexPOS", "Do you really want to cancel this?"))
+	if (ES::Utility::verifyUsingMessageBox(this, "Progex", "Do you really want to cancel this?"))
 	{
 		QString billQryStr = "SELECT * FROM bill WHERE bill_id  = " + billId;
 		QSqlQuery BillQry(billQryStr);
@@ -1002,7 +1002,7 @@ void ESCurrentBills::printRow(KDReports::TableElement& tableElement, int row, in
 
 void ESCurrentBills::slotInvisible(QString billId)
 {
-	if (ES::Utility::verifyUsingMessageBox(this, "EStore", "Do you really want hide this ?"))
+	if (ES::Utility::verifyUsingMessageBox(this, "Progex", "Do you really want hide this ?"))
 	{
 		QString q("UPDATE bill SET visible = 0 WHERE bill_id = " + billId);
 		QSqlQuery query;
