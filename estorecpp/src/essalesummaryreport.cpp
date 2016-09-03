@@ -258,9 +258,7 @@ void ESSalesSummary::displayResults()
 	ui.tableWidgetTotal->insertRow(row);
 	ui.tableWidgetTotal->setVerticalHeaderItem(row, new QTableWidgetItem("Total"));
 	double cashSales = 0, creditSales = 0, chequeSales = 0, cardSales = 0;
-	//QSqlQuery totalBillQry("SELECT* FROM bill WHERE deleted = 0 AND status = 1 AND  DATE(date) = CURDATE()");
-	// 	QDateTime startDate = QDateTime::fromString(ui.fromDate->text(), Qt::ISODate);
-	// 	QDateTime endDate = QDateTime::fromString(ui.toDate->text(), Qt::ISODate);
+
 	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
 	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
 	QString qStr;
@@ -370,11 +368,11 @@ void ESSalesSummary::displayResults()
 			if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
 				ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
 			{
-				qUserStr = "SELECT * FROM bill WHERE status = 1 AND bill.user_id = " + uId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+				qUserStr = "SELECT * FROM bill WHERE status = 1 AND deleted = 0 AND user_id = " + uId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
 			}
 			else
 			{
-				qUserStr = "SELECT * FROM bill WHERE status = 1 AND visible = 1 AND bill.user_id = " + uId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+				qUserStr = "SELECT * FROM bill WHERE status = 1 AND deleted = 0 AND visible = 1 AND user_id = " + uId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
 			}
 
 			QSqlQuery userBillQry(qUserStr);
@@ -553,11 +551,11 @@ void ESSalesSummary::slotGenerateReportForGivenUser(QString userId)
 	if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
 		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
 	{
-		qStr = "SELECT * FROM bill WHERE status = 1 AND bill.user_id = " + userId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+		qStr = "SELECT * FROM bill WHERE status = 1 AND deleted = 0 AND bill.user_id = " + userId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
 	}
 	else
 	{
-		qStr = "SELECT * FROM bill WHERE status = 1 AND visible = 1 AND bill.user_id = " + userId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+		qStr = "SELECT * FROM bill WHERE status = 1 AND deleted = 0 AND visible = 1 AND bill.user_id = " + userId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
 	}
 
 	QSqlQuery userBillQry(qStr);
