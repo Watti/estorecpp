@@ -12,7 +12,7 @@ class ESAuthentication : public QDialog
 	Q_OBJECT
 
 public:
-	ESAuthentication(QString userType, bool& success, QDialog *parent = 0);
+	ESAuthentication(bool& success, QDialog *parent = 0);
 	~ESAuthentication();
 
 	Ui::AuthenticationWidget& getUI() { return ui; };
@@ -25,7 +25,6 @@ protected:
 
 private:
 	Ui::AuthenticationWidget ui;
-	QString m_userType;
 	bool& m_success;
 
 };

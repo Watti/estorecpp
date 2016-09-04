@@ -1,12 +1,10 @@
 #include "esauthentication.h"
 #include "QSqlQuery"
 
-ESAuthentication::ESAuthentication(QString userType, bool& success, QDialog *parent /*= 0*/) 
+ESAuthentication::ESAuthentication(bool& success, QDialog *parent /*= 0*/) 
 : QDialog(parent), m_success(success)
 {
 	ui.setupUi(this);
-
-	m_userType = userType;
 
 	QObject::connect(ui.cancel, SIGNAL(clicked()), this, SLOT(close()));
 	QObject::connect(ui.ok, SIGNAL(clicked()), this, SLOT(slotAuthenticate()));
@@ -36,7 +34,7 @@ void ESAuthentication::slotAuthenticate()
 			if (q.next())
 			{
 				QString type = q.value("usertype_name").toString();
-				if (type == m_userType)
+				if (type == "MANAGER" || type == "ASSITANT MANAGER")
 				{
 					m_success = true;
 				}

@@ -52,7 +52,8 @@ namespace
 						else
 						{
 							bool success = false;
-							ESAuthentication* auth = new ESAuthentication("MANAGER", success, 0);
+							
+							ESAuthentication* auth = new ESAuthentication(success, 0);
 							auth->exec();
 
 							if (!success)
