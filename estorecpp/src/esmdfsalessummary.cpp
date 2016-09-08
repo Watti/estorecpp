@@ -21,7 +21,7 @@ MDFSalesSummary::MDFSalesSummary(QWidget *parent /*= 0*/) : QWidget(parent), rep
 
 	QStringList headerLabels;
 	headerLabels.append("Item Cost");
-	headerLabels.append("Discount");
+	headerLabels.append("Max. Discount");
 	headerLabels.append("Avg. Sold Price");
 	headerLabels.append("Sold Qty");
 	headerLabels.append("Returned Qty");
@@ -70,16 +70,15 @@ void MDFSalesSummary::slotSearch()
 	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
 	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
 	double totalProfit = 0;
-	QSqlQuery categoryQry("SELECT * FROM Item JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id WHERE item.deleted = 0 AND item_category.itemcategory_name ='MDF' GROUP BY item.itemcategory_id");
+	QSqlQuery categoryQry("SELECT * FROM Item JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id WHERE item.deleted = 0 AND item_category.itemcategory_name ='MDF'");
 	while (categoryQry.next())
 	{
-		float grandTotal = 0, averagePrice = 0, totalQty = 0, totalAmount = 0;
+		float grandTotal = 0, averagePrice = 0, totalQty = 0;
 		QString itemId = categoryQry.value("item_id").toString();
 		QString itemName = categoryQry.value("item_name").toString();
 		QSqlQuery qryStock("SELECT * FROM stock_purchase_order_item JOIN stock ON stock_purchase_order_item.stock_id = stock.stock_id WHERE stock.deleted = 0 AND stock.item_id = " + itemId);
 		if (qryStock.next())
 		{
-			totalAmount = 0;
 			averagePrice = 0;
 			QString stockId = qryStock.value("stock_id").toString();
 			float sellingPrice = qryStock.value("selling_price").toFloat();
@@ -91,37 +90,41 @@ void MDFSalesSummary::slotSearch()
 
 			QTableWidgetItem* nameItem = new QTableWidgetItem(itemName);
 			ui.tableWidgetByCategory->setVerticalHeaderItem(row, nameItem);
-			float itemPrice = 0, balanceQty = 0, discount = 0, subTotal = 0, soldQty = 0, totalRetunedQty = 0;
-			QString salesQryStr = "SELECT discount, item_price, quantity FROM sale WHERE stock_id = " + stockId + " AND deleted = 0 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+
+			float subTotal = 0, /*balanceQty = 0,*/ maxDiscount = 0, /*subTotal = 0,*/ soldQty = 0/*, totalRetunedQty = 0*/;
+			QString salesQryStr = "SELECT discount, total, quantity FROM sale WHERE stock_id = " + stockId + " AND deleted = 0 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
 			QSqlQuery salesQry(salesQryStr);
 			while (salesQry.next())
 			{
-				itemPrice = salesQry.value("item_price").toFloat();
-				balanceQty += salesQry.value("quantity").toFloat();
+				subTotal += salesQry.value("total").toFloat();
 				soldQty += salesQry.value("quantity").toFloat();
-				discount = salesQry.value("discount").toFloat();
+				float discount = salesQry.value("discount").toFloat();
+				if (discount > maxDiscount)
+				{
+					maxDiscount = discount;
+				}
 			}
-			totalRetunedQty = 0;
+			
+			float totalRetunedQty = 0;
 			QSqlQuery queryReturn("SELECT * FROM return_item WHERE item_id = " + itemId + " AND deleted = 0 AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
 			while (queryReturn.next())
 			{
 				float retQty = queryReturn.value("qty").toFloat();
 				totalRetunedQty += retQty;
 			}
-			balanceQty -= totalRetunedQty;
-			subTotal = itemPrice*((100 - discount) / 100)*balanceQty;
-			totalAmount += subTotal;
+			float balanceQty = soldQty - totalRetunedQty;
+			//totalAmount += subTotal;
 
-			if (balanceQty > 0)
+			if (soldQty > 0)
 			{
-				averagePrice = totalAmount / balanceQty;
+				averagePrice = subTotal / soldQty;
 			}
 
 			QTableWidgetItem *purchasePriceWidget = new QTableWidgetItem(QString::number(purchasingPrice, 'f', 2));
 			purchasePriceWidget->setTextAlignment(Qt::AlignRight);
 			ui.tableWidgetByCategory->setItem(row, 0, purchasePriceWidget);
 
-			QTableWidgetItem *discountWidget = new QTableWidgetItem(QString::number(currentDiscount, 'f', 2));
+			QTableWidgetItem *discountWidget = new QTableWidgetItem(QString::number(maxDiscount, 'f', 2));
 			discountWidget->setTextAlignment(Qt::AlignRight);
 			ui.tableWidgetByCategory->setItem(row, 1, discountWidget);
 
@@ -143,11 +146,11 @@ void MDFSalesSummary::slotSearch()
 			totalBalanceQtyWidget->setTextAlignment(Qt::AlignRight);
 			ui.tableWidgetByCategory->setItem(row, 5, totalBalanceQtyWidget);
 
-			QTableWidgetItem *totalAmountWidget = new QTableWidgetItem(QString::number(totalAmount, 'f', 2));
+			QTableWidgetItem *totalAmountWidget = new QTableWidgetItem(QString::number(subTotal, 'f', 2));
 			totalAmountWidget->setTextAlignment(Qt::AlignRight);
 			ui.tableWidgetByCategory->setItem(row, 6, totalAmountWidget);
 
-			double approximateProfit = totalAmount - (purchasingPrice*((100 - currentDiscount) / 100)*balanceQty);
+			double approximateProfit = subTotal - (purchasingPrice * balanceQty);
 			totalProfit += approximateProfit;
 			QTableWidgetItem *profitWidget = new QTableWidgetItem(QString::number(approximateProfit, 'f', 2));
 			profitWidget->setTextAlignment(Qt::AlignRight);
