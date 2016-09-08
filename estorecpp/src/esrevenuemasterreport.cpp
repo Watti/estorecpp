@@ -26,6 +26,7 @@ ESRevenueMasterReport::ESRevenueMasterReport(QWidget *parent /*= 0*/) : QWidget(
 	headerLabels.append("Total Cost of Return");
 	headerLabels.append("Total Petty Cash Income");
 	headerLabels.append("Total Petty Cash Expenses");
+	headerLabels.append("Total Interest Earnings");
 	headerLabels.append("Approx. Profit");
 
 	QFont font = this->font();
@@ -67,7 +68,7 @@ void ESRevenueMasterReport::slotSearch()
 	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
 	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
 
-	float allBillTotal = 0, allBillProfit = 0, allReturnTotal = 0, allSoldItemCost = 0, allReturnedItemCost = 0;
+	float allBillTotal = 0, allBillProfit = 0, allReturnTotal = 0, allSoldItemCost = 0, allReturnedItemCost = 0, allBillInterest = 0;
 	QSqlQuery userQry("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE user.active = 1");
 	while (userQry.next())
 	{
@@ -82,11 +83,11 @@ void ESRevenueMasterReport::slotSearch()
 			if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
 				ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
 			{
-				qUserStr = "SELECT * FROM bill WHERE status = 1 AND bill.user_id = " + uId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+				qUserStr = "SELECT * FROM bill WHERE status = 1 AND deleted = 0 AND bill.user_id = " + uId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
 			}
 			else
 			{
-				qUserStr = "SELECT * FROM bill WHERE status = 1 AND visible = 1 AND bill.user_id = " + uId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+				qUserStr = "SELECT * FROM bill WHERE status = 1 AND deleted=0 AND visible = 1 AND bill.user_id = " + uId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
 			}
 
 			QSqlQuery userBillQry(qUserStr);
@@ -113,6 +114,7 @@ void ESRevenueMasterReport::slotSearch()
 						{
 							double amount = creditSaleQry.value("amount").toDouble();
 							double interest = creditSaleQry.value("interest").toDouble();
+							allBillInterest +=( amount*interest / 100);
 							amount = (amount * (100 + interest) / 100);
 							creditSales += amount;
 							billTotal += amount;
@@ -126,6 +128,7 @@ void ESRevenueMasterReport::slotSearch()
 							double amount = chequeSaleQry.value("amount").toDouble();
 							double interest = chequeSaleQry.value("interest").toDouble();
 							amount = (amount * (100 + interest) / 100);
+							allBillInterest += (amount*interest / 100);
 							chequeSales += amount;
 							billTotal += amount;
 						}
@@ -138,6 +141,7 @@ void ESRevenueMasterReport::slotSearch()
 							double amount = cardSaleQry.value("amount").toDouble();
 							double interest = cardSaleQry.value("interest").toDouble();
 							amount = (amount * (100 + interest) / 100);
+							allBillInterest += (amount*interest / 100);
 							cardSales += amount;
 							billTotal += amount;
 						}
@@ -260,12 +264,18 @@ void ESRevenueMasterReport::slotSearch()
 	expensePriceWidget->setTextAlignment(Qt::AlignRight);
 	ui.tableWidget->setItem(row, 5, expensePriceWidget);
 
+
+	QTableWidgetItem *interestWidget = new QTableWidgetItem(QString::number(allBillInterest, 'f', 2));
+	interestWidget->setTextAlignment(Qt::AlignRight);
+	ui.tableWidget->setItem(row, 6, interestWidget);
+
 	float totalIncome = allBillTotal + income + allReturnedItemCost;
 	float totalExpenses = allSoldItemCost + expense;
 	float profit = totalIncome - totalExpenses;
+
 	QTableWidgetItem *profitWidget = new QTableWidgetItem(QString::number(profit, 'f', 2));
 	profitWidget->setTextAlignment(Qt::AlignRight);
-	ui.tableWidget->setItem(row, 6, profitWidget);
+	ui.tableWidget->setItem(row, 7, profitWidget);
 
 }
 
@@ -317,7 +327,7 @@ void ESRevenueMasterReport::slotGenerateReport()
 	report->addVerticalSpacing(5);
 
 	KDReports::TableElement tableElement;
-	tableElement.setHeaderColumnCount(7);
+	tableElement.setHeaderColumnCount(8);
 	tableElement.setBorder(1);
 	tableElement.setWidth(100, KDReports::Percent);
 
@@ -365,13 +375,20 @@ void ESRevenueMasterReport::slotGenerateReport()
 	}
 	{
 		KDReports::Cell& cell = tableElement.cell(0, 6);
+		KDReports::TextElement cTextElement("Interest Earnings");
+		cTextElement.setPointSize(11);
+		cTextElement.setBold(true);
+		cell.addElement(cTextElement, Qt::AlignCenter);
+	}
+	{
+		KDReports::Cell& cell = tableElement.cell(0, 7);
 		KDReports::TextElement cTextElement("Approx. Profit");
 		cTextElement.setPointSize(11);
 		cTextElement.setBold(true);
 		cell.addElement(cTextElement, Qt::AlignCenter);
 	}
 
-	float allBillTotal = 0, allBillProfit = 0, allReturnTotal = 0, allSoldItemCost = 0, allReturnedItemCost = 0;
+	float allBillTotal = 0, allBillProfit = 0, allReturnTotal = 0, allSoldItemCost = 0, allReturnedItemCost = 0, allBillInterest = 0;
 	QSqlQuery userQry("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE user.active = 1");
 	while (userQry.next())
 	{
@@ -418,6 +435,7 @@ void ESRevenueMasterReport::slotGenerateReport()
 							double amount = creditSaleQry.value("amount").toDouble();
 							double interest = creditSaleQry.value("interest").toDouble();
 							amount = (amount * (100 + interest) / 100);
+							allBillInterest += (amount*interest / 100);
 							creditSales += amount;
 							billTotal += amount;
 						}
@@ -429,6 +447,7 @@ void ESRevenueMasterReport::slotGenerateReport()
 						{
 							double amount = chequeSaleQry.value("amount").toDouble();
 							double interest = chequeSaleQry.value("interest").toDouble();
+							allBillInterest += (amount*interest / 100);
 							amount = (amount * (100 + interest) / 100);
 							chequeSales += amount;
 							billTotal += amount;
@@ -441,6 +460,7 @@ void ESRevenueMasterReport::slotGenerateReport()
 						{
 							double amount = cardSaleQry.value("amount").toDouble();
 							double interest = cardSaleQry.value("interest").toDouble();
+							allBillInterest += (amount*interest / 100);
 							amount = (amount * (100 + interest) / 100);
 							cardSales += amount;
 							billTotal += amount;
@@ -546,7 +566,8 @@ void ESRevenueMasterReport::slotGenerateReport()
 	printRow(tableElement, row, 3, QString::number(allReturnedItemCost, 'f', 2));
 	printRow(tableElement, row, 4, QString::number(income, 'f', 2));
 	printRow(tableElement, row, 5, QString::number(expense, 'f', 2));
-	printRow(tableElement, row, 6, QString::number(profit, 'f', 2));
+	printRow(tableElement, row, 6, QString::number(allBillInterest, 'f', 2));
+	printRow(tableElement, row, 7, QString::number(profit, 'f', 2));
 
 	report->addElement(tableElement);
 

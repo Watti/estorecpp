@@ -98,8 +98,8 @@ void ESLatePayment::slotOk()
 			QString payByCash = "1";
 			if (isCheque)
 			{
-				QString qStr("INSERT INTO cheque_information (customer_id, cheque_number, bank, due_date, amount) VALUES (" +
-					m_customerId + ",'" + chNo + "','" + bank + "','" + dueDate + "', '" + QString::number(payingAmount) + "')");
+				QString qStr("INSERT INTO cheque_information (customer_id, cheque_number, bank, due_date, amount, user_id) VALUES (" +
+					m_customerId + ",'" + chNo + "','" + bank + "','" + dueDate + "', '" + QString::number(payingAmount) + "','" + QString::number(ES::Session::getInstance()->getUser()->getId()) + "')");
 				QSqlQuery qryCheckInsert;
 				if (!qryCheckInsert.exec(qStr))
 				{
@@ -110,7 +110,7 @@ void ESLatePayment::slotOk()
 				}
 				payByCash = "0";
 			}
-			QString OSettleQryStr("INSERT INTO customer_outstanding_settlement (customer_id, amount, settled_by_cash) VALUES (" + m_customerId + "," + QString::number(payingAmount)+","+payByCash+")");
+			QString OSettleQryStr("INSERT INTO customer_outstanding_settlement (customer_id, amount, settled_by_cash, user_id) VALUES (" + m_customerId + "," + QString::number(payingAmount) + "," + payByCash + "," + QString::number(ES::Session::getInstance()->getUser()->getId()) + ")");
 			QSqlQuery queryOutstandingSettlement(OSettleQryStr);
 			//print the bill
 

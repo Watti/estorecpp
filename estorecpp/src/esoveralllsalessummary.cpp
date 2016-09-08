@@ -20,13 +20,15 @@ OverallSalesSummary::OverallSalesSummary(QWidget *parent /*= 0*/) : QWidget(pare
 	ui.toDate->setDate(QDate::currentDate().addDays(1));
 
 	QStringList headerLabels;
-	headerLabels.append("Cash");
+	headerLabels.append("Sales Cash Total");
 	headerLabels.append("Credit");
-	headerLabels.append("Cheque");
+	headerLabels.append("Sales Cheque Total");
 	headerLabels.append("Card");
 	headerLabels.append("Return");
 	headerLabels.append("P/C Income");
 	headerLabels.append("P/C Expenses");
+	headerLabels.append("Outstanding Cash Total");
+	headerLabels.append("Outstanding Cheque Total");
 	headerLabels.append("Actions");
 
 	QFont font = this->font();
@@ -35,7 +37,7 @@ OverallSalesSummary::OverallSalesSummary(QWidget *parent /*= 0*/) : QWidget(pare
 
 	ui.tableWidgetByUser->setHorizontalHeaderLabels(headerLabels);
 	ui.tableWidgetByUser->horizontalHeader()->setStretchLastSection(true);
-	ui.tableWidgetByUser->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+	ui.tableWidgetByUser->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 	ui.tableWidgetByUser->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	ui.tableWidgetByUser->setSelectionBehavior(QAbstractItemView::SelectRows);
 	ui.tableWidgetByUser->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -49,10 +51,12 @@ OverallSalesSummary::OverallSalesSummary(QWidget *parent /*= 0*/) : QWidget(pare
 	headerLabels2.append("Return");
 	headerLabels2.append("P/C Income");
 	headerLabels2.append("P/C Expenses");
+	headerLabels2.append("Outstanding Cash Total");
+	headerLabels2.append("Outstanding Cheque Total");
 
 	ui.tableWidgetTotal->setHorizontalHeaderLabels(headerLabels2);
 	ui.tableWidgetTotal->horizontalHeader()->setStretchLastSection(true);
-	ui.tableWidgetTotal->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+	ui.tableWidgetTotal->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 	ui.tableWidgetTotal->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	ui.tableWidgetTotal->setSelectionBehavior(QAbstractItemView::SelectRows);
 	ui.tableWidgetTotal->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -62,7 +66,6 @@ OverallSalesSummary::OverallSalesSummary(QWidget *parent /*= 0*/) : QWidget(pare
 	QObject::connect(ui.fromDate, SIGNAL(dateChanged(const QDate &)), this, SLOT(slotSearch()));
 	QObject::connect(ui.toDate, SIGNAL(dateChanged(const QDate &)), this, SLOT(slotSearch()));
 	QObject::connect(m_generateReportSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotGenerateReportForGivenUser(QString)));
-	QObject::connect(ui.generateButton, SIGNAL(clicked()), this, SLOT(slotGenerateReport()));
 	//slotSearch();
 }
 
@@ -111,7 +114,7 @@ void OverallSalesSummary::slotSearch()
 			}
 			else
 			{
-				userBillQryStr = "SELECT * FROM bill WHERE status = 1 AND visible = 1 AND bill.user_id = " + uId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+				userBillQryStr = "SELECT * FROM bill WHERE status = 1 AND visible = 1 AND user_id = " + uId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
 			}
 			QSqlQuery userBillQry(userBillQryStr);
 			while (userBillQry.next())
@@ -165,6 +168,7 @@ void OverallSalesSummary::slotSearch()
 					}
 				}
 			}
+
 			QTableWidgetItem *cashSalesWidget = new QTableWidgetItem(QString::number(cashSales, 'f', 2));
 			cashSalesWidget->setTextAlignment(Qt::AlignRight);
 			ui.tableWidgetByUser->setItem(row, 0, cashSalesWidget);
@@ -216,6 +220,32 @@ void OverallSalesSummary::slotSearch()
 			ui.tableWidgetByUser->setItem(row, 6, expenseWidgetItem);
 			// todo :loyalty
 
+			//outstanding settlement related stuff
+			QSqlQuery outstandingCashCollectionQry("SELECT * FROM customer_outstanding_settlement WHERE user_id = " + uId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+			double cashSettlementTotal = 0, chequeSettlementTotal = 0;
+			while (outstandingCashCollectionQry.next())
+			{
+				double amount = outstandingCashCollectionQry.value("amount").toDouble();
+				int cashFlag = outstandingCashCollectionQry.value("settled_by_cash").toInt();
+				if (cashFlag == 1)
+				{
+					cashSettlementTotal += amount;
+				}
+				else if (cashFlag == 0)
+				{
+					//cheque
+					chequeSettlementTotal += amount;
+				}
+			}
+
+			QTableWidgetItem* settlementCashWidgetItem = new QTableWidgetItem(QString::number(cashSettlementTotal, 'f', 2));
+			settlementCashWidgetItem->setTextAlignment(Qt::AlignRight);
+			ui.tableWidgetByUser->setItem(row, 7, settlementCashWidgetItem);
+
+			QTableWidgetItem* settlementChequeWidgetItem = new QTableWidgetItem(QString::number(chequeSettlementTotal, 'f', 2));
+			settlementChequeWidgetItem->setTextAlignment(Qt::AlignRight);
+			ui.tableWidgetByUser->setItem(row, 8, settlementChequeWidgetItem);
+
 			QWidget* base = new QWidget(ui.tableWidgetByUser);
 
 			QPushButton* generateReportBtn = new QPushButton(base);
@@ -231,7 +261,7 @@ void OverallSalesSummary::slotSearch()
 			layout->addWidget(generateReportBtn);
 			layout->insertStretch(2);
 			base->setLayout(layout);
-			ui.tableWidgetByUser->setCellWidget(row, 7, base);
+			ui.tableWidgetByUser->setCellWidget(row, 9, base);
 			base->show();
 		}
 	}
@@ -372,6 +402,32 @@ void OverallSalesSummary::slotSearch()
 	QTableWidgetItem* expenseWidgetItem = new QTableWidgetItem(QString::number(expense, 'f', 2));
 	expenseWidgetItem->setTextAlignment(Qt::AlignRight);
 	ui.tableWidgetTotal->setItem(row, 6, expenseWidgetItem);
+
+	QSqlQuery outstandingCashCollectionQry("SELECT * FROM customer_outstanding_settlement WHERE DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+	double cashSettlementGrandTotal = 0, chequeSettlementGrandTotal = 0;
+	while (outstandingCashCollectionQry.next())
+	{
+		double amount = outstandingCashCollectionQry.value("amount").toDouble();
+		int cashFlag = outstandingCashCollectionQry.value("settled_by_cash").toInt();
+		if (cashFlag == 1)
+		{
+			cashSettlementGrandTotal += amount;
+		}
+		else if (cashFlag == 0)
+		{
+			//cheque
+			chequeSettlementGrandTotal += amount;
+		}
+	}
+
+	QTableWidgetItem* settlementCashTotalWidgetItem = new QTableWidgetItem(QString::number(cashSettlementGrandTotal, 'f', 2));
+	settlementCashTotalWidgetItem->setTextAlignment(Qt::AlignRight);
+	ui.tableWidgetTotal->setItem(row, 7, settlementCashTotalWidgetItem);
+
+	QTableWidgetItem* settlementChequeTotalWidgetItem = new QTableWidgetItem(QString::number(chequeSettlementGrandTotal, 'f', 2));
+	settlementChequeTotalWidgetItem->setTextAlignment(Qt::AlignRight);
+	ui.tableWidgetTotal->setItem(row, 8, settlementChequeTotalWidgetItem);
+
 }
 
 void OverallSalesSummary::printRow(KDReports::TableElement& tableElement, int row, int col, QString elementStr, Qt::AlignmentFlag alignment /*= Qt::AlignLeft*/)
@@ -389,7 +445,7 @@ Ui::OverallSalesSummary& OverallSalesSummary::getUI()
 
 void OverallSalesSummary::slotGenerateReportForGivenUser(QString userId)
 {
-		KDReports::TextElement titleElement("OVERALL SUMMARY");
+		KDReports::TextElement titleElement("OVERALL COLLECTION SUMMARY");
 		titleElement.setPointSize(13);
 		titleElement.setBold(true);
 		report.addElement(titleElement, Qt::AlignHCenter);
@@ -432,7 +488,7 @@ void OverallSalesSummary::slotGenerateReportForGivenUser(QString userId)
 		report.addVerticalSpacing(5);
 
 		KDReports::TableElement tableElement;
-		tableElement.setHeaderColumnCount(7);
+		tableElement.setHeaderColumnCount(9);
 		tableElement.setBorder(1);
 		tableElement.setWidth(100, KDReports::Percent);
 
@@ -485,7 +541,19 @@ void OverallSalesSummary::slotGenerateReportForGivenUser(QString userId)
 			cTextElement.setBold(true);
 			cell.addElement(cTextElement, Qt::AlignCenter);
 		}
-
+		{
+			KDReports::Cell& cell = tableElement.cell(0, 7);
+			KDReports::TextElement cTextElement("Outstanding Settlement Cash");
+			cTextElement.setPointSize(11);
+			cTextElement.setBold(true);
+			cell.addElement(cTextElement, Qt::AlignCenter);
+		}{
+			KDReports::Cell& cell = tableElement.cell(0, 8);
+			KDReports::TextElement cTextElement("Outstanding Settlement Cheque");
+			cTextElement.setPointSize(11);
+			cTextElement.setBold(true);
+			cell.addElement(cTextElement, Qt::AlignCenter);
+		}
 		int row = 1;
 		double cashSales = 0, creditSales = 0, chequeSales = 0, cardSales = 0;
 		QString userBillQryStr;
@@ -579,6 +647,22 @@ void OverallSalesSummary::slotGenerateReportForGivenUser(QString userId)
 			}
 		}
 
+		QSqlQuery outstandingCashCollectionQry("SELECT * FROM customer_outstanding_settlement WHERE user_id = " + userId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+		double cashSettlementGrandTotal = 0, chequeSettlementGrandTotal = 0;
+		while (outstandingCashCollectionQry.next())
+		{
+			double amount = outstandingCashCollectionQry.value("amount").toDouble();
+			int cashFlag = outstandingCashCollectionQry.value("settled_by_cash").toInt();
+			if (cashFlag == 1)
+			{
+				cashSettlementGrandTotal += amount;
+			}
+			else if (cashFlag == 0)
+			{
+				//cheque
+				chequeSettlementGrandTotal += amount;
+			}
+		}
 		printRow(tableElement, row, 0, QString::number(cashSales, 'f', 2));
 		printRow(tableElement, row, 1, QString::number(creditSales, 'f', 2));
 		printRow(tableElement, row, 2, QString::number(chequeSales, 'f', 2));
@@ -586,14 +670,15 @@ void OverallSalesSummary::slotGenerateReportForGivenUser(QString userId)
 		printRow(tableElement, row, 4, QString::number(returnTotal, 'f', 2));
 		printRow(tableElement, row, 5, QString::number(income, 'f', 2));
 		printRow(tableElement, row, 6, QString::number(expense, 'f', 2));
-
+		printRow(tableElement, row, 7, QString::number(cashSettlementGrandTotal, 'f', 2));
+		printRow(tableElement, row, 8, QString::number(chequeSettlementGrandTotal, 'f', 2));
 		report.addElement(tableElement);
 
 		QPrinter printer;
 		printer.setPaperSize(QPrinter::A4);
 
 		printer.setFullPage(false);
-		printer.setOrientation(QPrinter::Portrait);
+		printer.setOrientation(QPrinter::Landscape);
 
 		QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
 		QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
@@ -634,7 +719,7 @@ void OverallSalesSummary::slotGenerateReport()
 	report.addVerticalSpacing(5);
 
 	KDReports::TableElement tableElement;
-	tableElement.setHeaderColumnCount(7);
+	tableElement.setHeaderColumnCount(9);
 	tableElement.setBorder(1);
 	tableElement.setWidth(100, KDReports::Percent);
 
@@ -688,6 +773,20 @@ void OverallSalesSummary::slotGenerateReport()
 		cell.addElement(cTextElement, Qt::AlignCenter);
 	}
 
+	{
+		KDReports::Cell& cell = tableElement.cell(0, 7);
+		KDReports::TextElement cTextElement("Outstanding Settlement Cash");
+		cTextElement.setPointSize(11);
+		cTextElement.setBold(true);
+		cell.addElement(cTextElement, Qt::AlignCenter);
+	}
+	{
+		KDReports::Cell& cell = tableElement.cell(0, 8);
+		KDReports::TextElement cTextElement("Outstanding Settlement Cheque");
+		cTextElement.setPointSize(11);
+		cTextElement.setBold(true);
+		cell.addElement(cTextElement, Qt::AlignCenter);
+	}
 	int row = 1;
 	double cashSales = 0, creditSales = 0, chequeSales = 0, cardSales = 0;
 	QString qBillQryStr;
@@ -790,6 +889,23 @@ void OverallSalesSummary::slotGenerateReport()
 			}
 		}
 	}
+
+	QSqlQuery outstandingCashCollectionQry("SELECT * FROM customer_outstanding_settlement WHERE DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+	double cashSettlementGrandTotal = 0, chequeSettlementGrandTotal = 0;
+	while (outstandingCashCollectionQry.next())
+	{
+		double amount = outstandingCashCollectionQry.value("amount").toDouble();
+		int cashFlag = outstandingCashCollectionQry.value("settled_by_cash").toInt();
+		if (cashFlag == 1)
+		{
+			cashSettlementGrandTotal += amount;
+		}
+		else if (cashFlag == 0)
+		{
+			//cheque
+			chequeSettlementGrandTotal += amount;
+		}
+	}
 	printRow(tableElement, row, 0, QString::number(cashSales, 'f', 2));
 	printRow(tableElement, row, 1, QString::number(creditSales, 'f', 2));
 	printRow(tableElement, row, 2, QString::number(chequeSales, 'f', 2));
@@ -797,6 +913,8 @@ void OverallSalesSummary::slotGenerateReport()
 	printRow(tableElement, row, 4, QString::number(returnTotal, 'f', 2));
 	printRow(tableElement, row, 5, QString::number(income, 'f', 2));
 	printRow(tableElement, row, 6, QString::number(expense, 'f', 2));
+	printRow(tableElement, row, 7, QString::number(cashSettlementGrandTotal, 'f', 2));
+	printRow(tableElement, row, 8, QString::number(chequeSettlementGrandTotal, 'f', 2));
 
 	report.addElement(tableElement);
 
@@ -804,7 +922,7 @@ void OverallSalesSummary::slotGenerateReport()
 	printer.setPaperSize(QPrinter::A4);
 
 	printer.setFullPage(false);
-	printer.setOrientation(QPrinter::Portrait);
+	printer.setOrientation(QPrinter::Landscape);
 
 	QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
 	QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));

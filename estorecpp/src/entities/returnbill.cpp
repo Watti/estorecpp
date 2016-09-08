@@ -92,7 +92,7 @@ bool ES::ReturnBill::addReturnItem(QString oldBillId, QString itemCode)
 	// Try to find the item information
 	int itemId = -1;
 	QString itemName = "-1";
-	QSqlQuery q("SELECT item_id, item_name FROM item WHERE item_code = '" + itemCode + "'");
+	QSqlQuery q("SELECT item_id, item_name FROM item WHERE deleted = 0 AND item_code = '" + itemCode + "'");
 	if (q.next())
 	{
 		itemId = q.value("item_id").toInt();
