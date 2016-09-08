@@ -139,7 +139,15 @@ bool ES::ReturnBill::addReturnItem(QString oldBillId, QString itemCode)
 
 			bi.billedQuantity = quantity;
 		}
+		else
+		{
+			return false;
+		}
 		m_returnItems[m_returnItemsIDGenerator++] = bi;
+	}
+	else
+	{
+		return false;
 	}
 
 	calculateTotal();
