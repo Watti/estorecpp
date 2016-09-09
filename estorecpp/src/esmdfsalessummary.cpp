@@ -96,9 +96,11 @@ void MDFSalesSummary::slotSearch()
 			QSqlQuery salesQry(salesQryStr);
 			while (salesQry.next())
 			{
-				subTotal += salesQry.value("total").toFloat();
-				soldQty += salesQry.value("quantity").toFloat();
+				float grossTotal = salesQry.value("total").toFloat();
 				float discount = salesQry.value("discount").toFloat();
+				float netTotal = grossTotal*(100 - discount) / 100;
+				soldQty += salesQry.value("quantity").toFloat();
+				subTotal += netTotal;
 				if (discount > maxDiscount)
 				{
 					maxDiscount = discount;
@@ -106,19 +108,27 @@ void MDFSalesSummary::slotSearch()
 			}
 			
 			float totalRetunedQty = 0;
+			float returnTotal = 0;
 			QSqlQuery queryReturn("SELECT * FROM return_item WHERE item_id = " + itemId + " AND deleted = 0 AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
 			while (queryReturn.next())
 			{
 				float retQty = queryReturn.value("qty").toFloat();
 				totalRetunedQty += retQty;
+				float returnSubTotal = queryReturn.value("return_total").toFloat();
+				returnTotal += returnSubTotal;
 			}
 			float balanceQty = soldQty - totalRetunedQty;
 			//totalAmount += subTotal;
 
-			if (soldQty > 0)
+			float netTotal = subTotal - returnTotal;
+
+			if (balanceQty > 0)
 			{
-				averagePrice = subTotal / soldQty;
+				averagePrice = netTotal / balanceQty;
 			}
+
+			double approximateProfit = netTotal - (purchasingPrice * balanceQty);
+			totalProfit += approximateProfit;
 
 			QTableWidgetItem *purchasePriceWidget = new QTableWidgetItem(QString::number(purchasingPrice, 'f', 2));
 			purchasePriceWidget->setTextAlignment(Qt::AlignRight);
@@ -145,13 +155,10 @@ void MDFSalesSummary::slotSearch()
 			QTableWidgetItem *totalBalanceQtyWidget = new QTableWidgetItem(QString::number(balanceQty));
 			totalBalanceQtyWidget->setTextAlignment(Qt::AlignRight);
 			ui.tableWidgetByCategory->setItem(row, 5, totalBalanceQtyWidget);
-
-			QTableWidgetItem *totalAmountWidget = new QTableWidgetItem(QString::number(subTotal, 'f', 2));
+			QTableWidgetItem *totalAmountWidget = new QTableWidgetItem(QString::number(netTotal, 'f', 2));
 			totalAmountWidget->setTextAlignment(Qt::AlignRight);
 			ui.tableWidgetByCategory->setItem(row, 6, totalAmountWidget);
 
-			double approximateProfit = subTotal - (purchasingPrice * balanceQty);
-			totalProfit += approximateProfit;
 			QTableWidgetItem *profitWidget = new QTableWidgetItem(QString::number(approximateProfit, 'f', 2));
 			profitWidget->setTextAlignment(Qt::AlignRight);
 			ui.tableWidgetByCategory->setItem(row, 7, profitWidget);
@@ -293,58 +300,64 @@ void MDFSalesSummary::slotGenerateReportForGivenItem(QString itemId)
 
 		int row = 1;
 		float sellingPrice = 0, currentDiscount = 0, purchasingPrice = 0;
-		float itemPrice = 0, balanceQty = 0, discount = 0, subTotal = 0, soldQty = 0, totalRetunedQty = 0;
+		float itemPrice = 0, balanceQty = 0, totalRetunedQty = 0, soldQty = 0;
 		QSqlQuery qryStock("SELECT * FROM stock_purchase_order_item JOIN stock ON stock_purchase_order_item.stock_id = stock.stock_id WHERE stock.deleted = 0 AND stock.item_id = " + itemId);
 		if (qryStock.next())
 		{
-			totalAmount = 0;
 			averagePrice = 0;
-
 			QString stockId = qryStock.value("stock_id").toString();
-			sellingPrice = qryStock.value("selling_price").toFloat();
-			currentDiscount = qryStock.value("discount").toFloat();
-			purchasingPrice = qryStock.value("purchasing_price").toFloat();
+			float sellingPrice = qryStock.value("selling_price").toFloat();
+			float currentDiscount = qryStock.value("discount").toFloat();
+			float purchasingPrice = qryStock.value("purchasing_price").toFloat();
 
-			QTableWidgetItem* nameItem = new QTableWidgetItem(itemName);
-			ui.tableWidgetByCategory->setVerticalHeaderItem(row, nameItem);
-			QString salesQryStr = "SELECT discount, item_price, quantity FROM sale WHERE stock_id = " + stockId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+			float subTotal = 0, /*balanceQty = 0,*/ maxDiscount = 0/*, subTotal = 0, soldQty = 0*//*, totalRetunedQty = 0*/;
+			QString salesQryStr = "SELECT discount, total, quantity FROM sale WHERE stock_id = " + stockId + " AND deleted = 0 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
 			QSqlQuery salesQry(salesQryStr);
 			while (salesQry.next())
 			{
-				itemPrice = salesQry.value("item_price").toFloat();
-				balanceQty += salesQry.value("quantity").toFloat();
+				float grossTotal = salesQry.value("total").toFloat();
+				float discount = salesQry.value("discount").toFloat();
+				float netTotal = grossTotal*(100 - discount) / 100;
 				soldQty += salesQry.value("quantity").toFloat();
-				discount = salesQry.value("discount").toFloat();
-
-
+				subTotal += netTotal;
+				if (discount > maxDiscount)
+				{
+					maxDiscount = discount;
+				}
 			}
-			totalRetunedQty = 0;
+
+			float totalRetunedQty = 0;
+			float returnTotal = 0;
 			QSqlQuery queryReturn("SELECT * FROM return_item WHERE item_id = " + itemId + " AND deleted = 0 AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
 			while (queryReturn.next())
 			{
 				float retQty = queryReturn.value("qty").toFloat();
 				totalRetunedQty += retQty;
+				float returnSubTotal = queryReturn.value("return_total").toFloat();
+				returnTotal += returnSubTotal;
 			}
-			balanceQty -= totalRetunedQty;
-			subTotal = itemPrice*((100 - discount) / 100)*balanceQty;
-			totalAmount += subTotal;
+			balanceQty = soldQty - totalRetunedQty;
+			//totalAmount += subTotal;
+
+			float netTotal = subTotal - returnTotal;
 
 			if (balanceQty > 0)
 			{
-				averagePrice = totalAmount / balanceQty;
+				averagePrice = netTotal / balanceQty;
 			}
-		}
-		double approximateProfit = totalAmount - (purchasingPrice*((100 - currentDiscount) / 100)*balanceQty);
-		totalProfit += approximateProfit;
 
-		printRow(tableElement, row, 0, QString::number(purchasingPrice, 'f', 2));
-		printRow(tableElement, row, 1, QString::number(currentDiscount, 'f', 2));
-		printRow(tableElement, row, 2, QString::number(averagePrice, 'f', 2));
-		printRow(tableElement, row, 3, QString::number(soldQty));
-		printRow(tableElement, row, 4, QString::number(totalRetunedQty));
-		printRow(tableElement, row, 5, QString::number(balanceQty));
-		printRow(tableElement, row, 6, QString::number(totalAmount, 'f', 2));
-		printRow(tableElement, row, 7, QString::number(approximateProfit, 'f', 2));
+			double approximateProfit = netTotal - (purchasingPrice * balanceQty);
+			totalProfit += approximateProfit;
+
+			printRow(tableElement, row, 0, QString::number(purchasingPrice, 'f', 2));
+			printRow(tableElement, row, 1, QString::number(currentDiscount, 'f', 2));
+			printRow(tableElement, row, 2, QString::number(averagePrice, 'f', 2));
+			printRow(tableElement, row, 3, QString::number(soldQty));
+			printRow(tableElement, row, 4, QString::number(totalRetunedQty));
+			printRow(tableElement, row, 5, QString::number(balanceQty));
+			printRow(tableElement, row, 6, QString::number(totalAmount, 'f', 2));
+			printRow(tableElement, row, 7, QString::number(approximateProfit, 'f', 2));
+		}
 
 		report->addElement(tableElement);
 
@@ -415,7 +428,7 @@ void MDFSalesSummary::slotGenerateReport()
 	}
 	{
 		KDReports::Cell& cell = tableElement.cell(0, 2);
-		KDReports::TextElement cTextElement("Discount");
+		KDReports::TextElement cTextElement("Max. Discount");
 		cTextElement.setPointSize(11);
 		cTextElement.setBold(true);
 		cell.addElement(cTextElement, Qt::AlignCenter);
@@ -465,53 +478,60 @@ void MDFSalesSummary::slotGenerateReport()
 
 	int row = 1;
 
-	float grandTotal = 0, totalQty = 0, totalProfit = 0;
-	QSqlQuery categoryQry("SELECT * FROM Item JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id WHERE item.deleted = 0 AND item_category.itemcategory_name ='MDF' GROUP BY item.itemcategory_id");
+	double totalProfit = 0;
+	QSqlQuery categoryQry("SELECT * FROM Item JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id WHERE item.deleted = 0 AND item_category.itemcategory_name ='MDF'");
 	while (categoryQry.next())
 	{
-		float totalAmount = 0, averagePrice = 0;
+		float grandTotal = 0, averagePrice = 0, totalQty = 0;
 		QString itemId = categoryQry.value("item_id").toString();
 		QString itemName = categoryQry.value("item_name").toString();
-		float sellingPrice = 0, currentDiscount = 0, purchasingPrice = 0;
 		QSqlQuery qryStock("SELECT * FROM stock_purchase_order_item JOIN stock ON stock_purchase_order_item.stock_id = stock.stock_id WHERE stock.deleted = 0 AND stock.item_id = " + itemId);
 		if (qryStock.next())
 		{
-			float itemPrice = 0, balanceQty = 0, discount = 0, subTotal = 0, soldQty = 0, totalRetunedQty = 0;
-			totalAmount = 0;
 			averagePrice = 0;
 			QString stockId = qryStock.value("stock_id").toString();
-			sellingPrice = qryStock.value("selling_price").toFloat();
-			currentDiscount = qryStock.value("discount").toFloat();
-			purchasingPrice = qryStock.value("purchasing_price").toFloat();
-
-			QTableWidgetItem* nameItem = new QTableWidgetItem(itemName);
-			ui.tableWidgetByCategory->setVerticalHeaderItem(row, nameItem);
-			QString salesQryStr = "SELECT discount, item_price, quantity FROM sale WHERE stock_id = " + stockId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+			float sellingPrice = qryStock.value("selling_price").toFloat();
+			float currentDiscount = qryStock.value("discount").toFloat();
+			float purchasingPrice = qryStock.value("purchasing_price").toFloat();
+			
+			float subTotal = 0, /*balanceQty = 0,*/ maxDiscount = 0, /*subTotal = 0,*/ soldQty = 0/*, totalRetunedQty = 0*/;
+			QString salesQryStr = "SELECT discount, total, quantity FROM sale WHERE stock_id = " + stockId + " AND deleted = 0 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
 			QSqlQuery salesQry(salesQryStr);
 			while (salesQry.next())
 			{
-				itemPrice = salesQry.value("item_price").toFloat();
-				balanceQty += salesQry.value("quantity").toFloat();
+				float grossTotal = salesQry.value("total").toFloat();
+				float discount = salesQry.value("discount").toFloat();
+				float netTotal = grossTotal*(100 - discount) / 100;
 				soldQty += salesQry.value("quantity").toFloat();
-				discount = salesQry.value("discount").toFloat();
+				subTotal += netTotal;
+				if (discount > maxDiscount)
+				{
+					maxDiscount = discount;
+				}
 			}
-			totalRetunedQty = 0;
+
+			float totalRetunedQty = 0;
+			float returnTotal = 0;
 			QSqlQuery queryReturn("SELECT * FROM return_item WHERE item_id = " + itemId + " AND deleted = 0 AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
 			while (queryReturn.next())
 			{
 				float retQty = queryReturn.value("qty").toFloat();
 				totalRetunedQty += retQty;
+				float returnSubTotal = queryReturn.value("return_total").toFloat();
+				returnTotal += returnSubTotal;
 			}
-			balanceQty -= totalRetunedQty;
-			subTotal = itemPrice*((100 - discount) / 100)*balanceQty;
-			totalAmount += subTotal;
+			float balanceQty = soldQty - totalRetunedQty;
+			//totalAmount += subTotal;
+
+			float netTotal = subTotal - returnTotal;
+
 			if (balanceQty > 0)
 			{
-				averagePrice = totalAmount / balanceQty;
+				averagePrice = netTotal / balanceQty;
 			}
-			double approximateProfit = totalAmount - (purchasingPrice*((100 - currentDiscount) / 100)*balanceQty);
-			totalProfit += approximateProfit;
 
+			double approximateProfit = netTotal - (purchasingPrice * balanceQty);
+			totalProfit += approximateProfit;
 			printRow(tableElement, row, 0, itemName);
 			printRow(tableElement, row, 1, QString::number(purchasingPrice, 'f', 2));
 			printRow(tableElement, row, 2, QString::number(currentDiscount, 'f', 2));
@@ -519,7 +539,7 @@ void MDFSalesSummary::slotGenerateReport()
 			printRow(tableElement, row, 4, QString::number(soldQty));
 			printRow(tableElement, row, 5, QString::number(totalRetunedQty));
 			printRow(tableElement, row, 6, QString::number(balanceQty));
-			printRow(tableElement, row, 7, QString::number(totalAmount, 'f', 2));
+			printRow(tableElement, row, 7, QString::number(netTotal, 'f', 2));
 			printRow(tableElement, row, 8, QString::number(approximateProfit, 'f', 2));
 			row++;
 		}
