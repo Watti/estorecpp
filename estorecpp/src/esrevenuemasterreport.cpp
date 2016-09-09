@@ -269,8 +269,12 @@ void ESRevenueMasterReport::slotSearch()
 	interestWidget->setTextAlignment(Qt::AlignRight);
 	ui.tableWidget->setItem(row, 6, interestWidget);
 
-	float totalIncome = allBillTotal + income + allReturnedItemCost;
-	float totalExpenses = allSoldItemCost + expense;
+	float netIncome = allBillTotal - allReturnTotal;
+	float netItemCost = allSoldItemCost - allReturnedItemCost;
+	float totalIncome = income + netIncome;
+	float totalExpenses = expense + netItemCost;
+	//float totalIncome = allBillTotal + income + allReturnedItemCost;
+	//float totalExpenses = allSoldItemCost + expense;
 	float profit = totalIncome - totalExpenses;
 
 	QTableWidgetItem *profitWidget = new QTableWidgetItem(QString::number(profit, 'f', 2));
