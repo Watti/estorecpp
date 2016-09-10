@@ -25,6 +25,7 @@ namespace ES
 		static void updateOutstandingAmount(QString customerId, double amount);
 		static void printRow(KDReports::TableElement& tableElement, int row, int col,
 			QString elementStr, Qt::AlignmentFlag alignment = Qt::AlignLeft);
+		static QString getReturnBillForBill(QString& billId);
 	private:
 
 	};
