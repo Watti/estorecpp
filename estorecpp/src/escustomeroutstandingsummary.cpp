@@ -61,31 +61,34 @@ void ESCustomerOutstandingSummary::slotSearch()
 	{
 		QString customerId = customerQry.value("customer_id").toString();
 		double outstandingAmount = ES::Utility::getTotalCreditOutstanding(customerId);
-		totalOutstanding += outstandingAmount;
-		QString cName = customerQry.value("name").toString();
-		QString phone = customerQry.value("phone").toString();
-		QString address = customerQry.value("address").toString();
-		QString comments = customerQry.value("comments").toString();
+		if (outstandingAmount > 0)
+		{
+			totalOutstanding += outstandingAmount;
+			QString cName = customerQry.value("name").toString();
+			QString phone = customerQry.value("phone").toString();
+			QString address = customerQry.value("address").toString();
+			QString comments = customerQry.value("comments").toString();
 
-		int row = ui.tableWidget->rowCount();
-		ui.tableWidget->insertRow(row);
+			int row = ui.tableWidget->rowCount();
+			ui.tableWidget->insertRow(row);
 
 
-		QTableWidgetItem *nameWidget = new QTableWidgetItem(cName);
-		nameWidget->setTextAlignment(Qt::AlignLeft);
-		ui.tableWidget->setItem(row, 0, nameWidget);
+			QTableWidgetItem *nameWidget = new QTableWidgetItem(cName);
+			nameWidget->setTextAlignment(Qt::AlignLeft);
+			ui.tableWidget->setItem(row, 0, nameWidget);
 
-		QTableWidgetItem *phoneWidget = new QTableWidgetItem(phone);
-		phoneWidget->setTextAlignment(Qt::AlignLeft);
-		ui.tableWidget->setItem(row, 1, phoneWidget);
+			QTableWidgetItem *phoneWidget = new QTableWidgetItem(phone);
+			phoneWidget->setTextAlignment(Qt::AlignLeft);
+			ui.tableWidget->setItem(row, 1, phoneWidget);
 
-		QTableWidgetItem *addressWidget = new QTableWidgetItem(address);
-		addressWidget->setTextAlignment(Qt::AlignLeft);
-		ui.tableWidget->setItem(row, 2, addressWidget);
+			QTableWidgetItem *addressWidget = new QTableWidgetItem(address);
+			addressWidget->setTextAlignment(Qt::AlignLeft);
+			ui.tableWidget->setItem(row, 2, addressWidget);
 
-		QTableWidgetItem *outstandingWidget = new QTableWidgetItem(QString::number(outstandingAmount, 'f', 2));
-		outstandingWidget->setTextAlignment(Qt::AlignRight);
-		ui.tableWidget->setItem(row, 3, outstandingWidget);
+			QTableWidgetItem *outstandingWidget = new QTableWidgetItem(QString::number(outstandingAmount, 'f', 2));
+			outstandingWidget->setTextAlignment(Qt::AlignRight);
+			ui.tableWidget->setItem(row, 3, outstandingWidget);
+		}
 	}
 	ui.totalLbl->setText(QString::number(totalOutstanding, 'f', 2));
 }
@@ -175,17 +178,20 @@ void ESCustomerOutstandingSummary::slotGenerateReport()
 	{
 		QString customerId = customerQry.value("customer_id").toString();
 		double outstandingAmount = ES::Utility::getTotalCreditOutstanding(customerId);
-		totalOutstanding += outstandingAmount;
-		QString cName = customerQry.value("name").toString();
-		QString phone = customerQry.value("phone").toString();
-		QString address = customerQry.value("address").toString();
-		QString comments = customerQry.value("comments").toString();
+		if (outstandingAmount >0)
+		{
+			totalOutstanding += outstandingAmount;
+			QString cName = customerQry.value("name").toString();
+			QString phone = customerQry.value("phone").toString();
+			QString address = customerQry.value("address").toString();
+			QString comments = customerQry.value("comments").toString();
 
-		printRow(tableElement, row, 0, cName);
-		printRow(tableElement, row, 1, phone);
-		printRow(tableElement, row, 2, address);
-		printRow(tableElement, row, 3, QString::number(outstandingAmount, 'f', 2));
-		row++;
+			printRow(tableElement, row, 0, cName);
+			printRow(tableElement, row, 1, phone);
+			printRow(tableElement, row, 2, address);
+			printRow(tableElement, row, 3, QString::number(outstandingAmount, 'f', 2));
+			row++;
+		}
 	}
 
 	printRow(tableElement, row, 2, "Total ");
