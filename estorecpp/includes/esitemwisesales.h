@@ -24,7 +24,6 @@ public:
 	public slots:
 	void slotPrint(QPrinter* printer);
 	void slotSearch();
-	void slotGenerateReportForGivenItem(QString itemId);
 	void slotGenerateReport();
 	void slotPrev();
 	void slotNext();
