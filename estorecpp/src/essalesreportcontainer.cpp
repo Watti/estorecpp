@@ -22,7 +22,7 @@ ESSalesReportContainer::ESSalesReportContainer(QWidget *parent /*= 0*/) : QWidge
 	ui.tabWidget->addTab(m_pettyCashSummary, "Petty Cash Summary");
 
 	m_overallSalesSummary = new OverallSalesSummary(ui.tabWidget);
-	ui.tabWidget->addTab(m_overallSalesSummary, "Overall Sales Summary");
+	ui.tabWidget->addTab(m_overallSalesSummary, "Overall Summary");
 
 	if (!ES::Session::getInstance()->isSecondDisplayOn())
 	{
