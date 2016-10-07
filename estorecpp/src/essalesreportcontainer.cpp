@@ -22,7 +22,7 @@ ESSalesReportContainer::ESSalesReportContainer(QWidget *parent /*= 0*/) : QWidge
 	ui.tabWidget->addTab(m_pettyCashSummary, "Petty Cash Summary");
 
 	m_overallSalesSummary = new OverallSalesSummary(ui.tabWidget);
-	ui.tabWidget->addTab(m_overallSalesSummary, "Overall Sales Summary");
+	ui.tabWidget->addTab(m_overallSalesSummary, "Overall Summary");
 
 	if (!ES::Session::getInstance()->isSecondDisplayOn())
 	{
@@ -53,6 +53,8 @@ ESSalesReportContainer::ESSalesReportContainer(QWidget *parent /*= 0*/) : QWidge
  		m_customerWiseSalesSummary = new ESCustomerWiseSalesSummary(ui.tabWidget);
  		ui.tabWidget->addTab(m_customerWiseSalesSummary, "Customer Wise Sales Summary");
 
+		m_itemWiseSales = new ItemWiseSales(ui.tabWidget);
+		ui.tabWidget->addTab(m_itemWiseSales, "Item Wise Sales");
 	}
 	//onTabChanged(0);
 }
@@ -114,7 +116,17 @@ void ESSalesReportContainer::onTabChanged(int tabIndex)
 		}
 		break;
 	case 7:
-		m_customerWiseSalesSummary->slotSearch();
+		if (!ES::Session::getInstance()->isSecondDisplayOn())
+		{
+			m_customerWiseSalesSummary->slotSearch();
+		}
+		else
+		{
+			m_itemWiseSales->slotSearch();
+		}
+		break;
+	case 8:
+		m_itemWiseSales->slotSearch();
 		break;
 	default:
 		break;

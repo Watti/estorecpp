@@ -29,10 +29,20 @@ void ESSystemSettings::resetDatabase()
 				  QSqlQuery q2("DELETE FROM sale");
 				  QSqlQuery q3("DELETE FROM return_item");
 				  QSqlQuery q4("DELETE FROM return_bill");
-				  QSqlQuery q5("ALTER TABLE bill AUTO_INCREMENT = 1");
-				  QSqlQuery q6("ALTER TABLE sale AUTO_INCREMENT = 1");
-				  QSqlQuery q7("ALTER TABLE return_item AUTO_INCREMENT = 1");
-				  QSqlQuery q8("ALTER TABLE return_bill AUTO_INCREMENT = 1");
+				  QSqlQuery q5("DELETE FROM cash");
+				  QSqlQuery q6("DELETE FROM cheque");
+				  QSqlQuery q7("DELETE FROM credit");
+				  QSqlQuery q8("DELETE FROM payment");
+				  QSqlQuery q9("DELETE FROM card");
+				  QSqlQuery q10("ALTER TABLE bill AUTO_INCREMENT = 1");
+				  QSqlQuery q11("ALTER TABLE sale AUTO_INCREMENT = 1");
+				  QSqlQuery q12("ALTER TABLE return_item AUTO_INCREMENT = 1");
+				  QSqlQuery q13("ALTER TABLE return_bill AUTO_INCREMENT = 1");
+				  QSqlQuery q14("ALTER TABLE cash AUTO_INCREMENT = 1");
+				  QSqlQuery q15("ALTER TABLE cheque AUTO_INCREMENT = 1");
+				  QSqlQuery q16("ALTER TABLE credit AUTO_INCREMENT = 1");
+				  QSqlQuery q17("ALTER TABLE card AUTO_INCREMENT = 1");
+				  QSqlQuery q18("ALTER TABLE payment AUTO_INCREMENT = 1");
 				  this->close();
 			  }
 		break;

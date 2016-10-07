@@ -162,4 +162,13 @@ namespace ES
 		cell.addElement(te, alignment);
 	}
 
+	QString Utility::getReturnBillForBill(QString& billId)
+	{
+		QSqlQuery returnBillQuery("SELECT * FROM return_bill WHERE bill_id = " + billId);
+		if (returnBillQuery.next())
+		{
+			return returnBillQuery.value("return_bill_id").toString();
+		}
+		return "";
+	}
 }

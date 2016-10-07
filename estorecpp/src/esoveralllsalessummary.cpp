@@ -27,8 +27,8 @@ OverallSalesSummary::OverallSalesSummary(QWidget *parent /*= 0*/) : QWidget(pare
 	headerLabels.append("Return");
 	headerLabels.append("P/C Income");
 	headerLabels.append("P/C Expenses");
-	headerLabels.append("Outstanding Cash Total");
-	headerLabels.append("Outstanding Cheque Total");
+	headerLabels.append("Outstanding Collection Cash");
+	headerLabels.append("Outstanding Collection Cheque");
 	headerLabels.append("Actions");
 
 	QFont font = this->font();
@@ -51,8 +51,8 @@ OverallSalesSummary::OverallSalesSummary(QWidget *parent /*= 0*/) : QWidget(pare
 	headerLabels2.append("Return");
 	headerLabels2.append("P/C Income");
 	headerLabels2.append("P/C Expenses");
-	headerLabels2.append("Outstanding Cash Total");
-	headerLabels2.append("Outstanding Cheque Total");
+	headerLabels2.append("Outstanding Collection Cash");
+	headerLabels2.append("Outstanding Collection Cheque");
 
 	ui.tableWidgetTotal->setHorizontalHeaderLabels(headerLabels2);
 	ui.tableWidgetTotal->horizontalHeader()->setStretchLastSection(true);
@@ -543,13 +543,13 @@ void OverallSalesSummary::slotGenerateReportForGivenUser(QString userId)
 		}
 		{
 			KDReports::Cell& cell = tableElement.cell(0, 7);
-			KDReports::TextElement cTextElement("Outstanding Settlement Cash");
+			KDReports::TextElement cTextElement("Outstanding Collection Cash");
 			cTextElement.setPointSize(11);
 			cTextElement.setBold(true);
 			cell.addElement(cTextElement, Qt::AlignCenter);
 		}{
 			KDReports::Cell& cell = tableElement.cell(0, 8);
-			KDReports::TextElement cTextElement("Outstanding Settlement Cheque");
+			KDReports::TextElement cTextElement("Outstanding Collection Cheque");
 			cTextElement.setPointSize(11);
 			cTextElement.setBold(true);
 			cell.addElement(cTextElement, Qt::AlignCenter);
@@ -775,14 +775,14 @@ void OverallSalesSummary::slotGenerateReport()
 
 	{
 		KDReports::Cell& cell = tableElement.cell(0, 7);
-		KDReports::TextElement cTextElement("Outstanding Settlement Cash");
+		KDReports::TextElement cTextElement("Outstanding Collection Cash");
 		cTextElement.setPointSize(11);
 		cTextElement.setBold(true);
 		cell.addElement(cTextElement, Qt::AlignCenter);
 	}
 	{
 		KDReports::Cell& cell = tableElement.cell(0, 8);
-		KDReports::TextElement cTextElement("Outstanding Settlement Cheque");
+		KDReports::TextElement cTextElement("Outstanding Collection Cheque");
 		cTextElement.setPointSize(11);
 		cTextElement.setBold(true);
 		cell.addElement(cTextElement, Qt::AlignCenter);

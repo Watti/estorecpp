@@ -70,6 +70,7 @@ void MDFSalesSummary::slotSearch()
 	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
 	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
 	double totalProfit = 0;
+	double netTotalIncome = 0;
 	QSqlQuery categoryQry("SELECT * FROM Item JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id WHERE item.deleted = 0 AND item_category.itemcategory_name ='MDF'");
 	while (categoryQry.next())
 	{
@@ -126,7 +127,7 @@ void MDFSalesSummary::slotSearch()
 			{
 				averagePrice = netTotal / balanceQty;
 			}
-
+			netTotalIncome += netTotal;
 			double approximateProfit = netTotal - (purchasingPrice * balanceQty);
 			totalProfit += approximateProfit;
 
@@ -184,6 +185,7 @@ void MDFSalesSummary::slotSearch()
 	}
 
 	ui.totalProfitLbl->setText(QString::number(totalProfit, 'f', 2));
+	ui.totalIncomeLbl->setText(QString::number(netTotalIncome, 'f', 2));
 }
 
 void MDFSalesSummary::printRow(KDReports::TableElement& tableElement, int row, int col, QString elementStr, Qt::AlignmentFlag alignment /*= Qt::AlignLeft*/)
@@ -355,7 +357,7 @@ void MDFSalesSummary::slotGenerateReportForGivenItem(QString itemId)
 			printRow(tableElement, row, 3, QString::number(soldQty));
 			printRow(tableElement, row, 4, QString::number(totalRetunedQty));
 			printRow(tableElement, row, 5, QString::number(balanceQty));
-			printRow(tableElement, row, 6, QString::number(totalAmount, 'f', 2));
+			printRow(tableElement, row, 6, QString::number(netTotal, 'f', 2));
 			printRow(tableElement, row, 7, QString::number(approximateProfit, 'f', 2));
 		}
 
@@ -479,6 +481,7 @@ void MDFSalesSummary::slotGenerateReport()
 	int row = 1;
 
 	double totalProfit = 0;
+	double netTotalIncome = 0;
 	QSqlQuery categoryQry("SELECT * FROM Item JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id WHERE item.deleted = 0 AND item_category.itemcategory_name ='MDF'");
 	while (categoryQry.next())
 	{
@@ -529,7 +532,7 @@ void MDFSalesSummary::slotGenerateReport()
 			{
 				averagePrice = netTotal / balanceQty;
 			}
-
+			netTotalIncome += netTotal;
 			double approximateProfit = netTotal - (purchasingPrice * balanceQty);
 			totalProfit += approximateProfit;
 			printRow(tableElement, row, 0, itemName);
@@ -544,6 +547,8 @@ void MDFSalesSummary::slotGenerateReport()
 			row++;
 		}
 	}
+	printRow(tableElement, row, 7, "Total Income");
+	printRow(tableElement, row, 8, QString::number(netTotalIncome, 'f', 2));
 
 	printRow(tableElement, row, 7, "Total Profit");
 	printRow(tableElement, row, 8, QString::number(totalProfit, 'f', 2));
