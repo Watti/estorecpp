@@ -828,12 +828,12 @@ void ESReturnItems::updateDatabase()
 			QSqlQuery query;
 			if (query.exec(q))
 			{
-				QSqlQuery qStock("SELECT * FROM stock WHERE stock_id = " + ni.stockId);
+				QSqlQuery qStock("SELECT * FROM stock WHERE stock_id = " + QString::number(ni.stockId));
 				if (qStock.next())
 				{
 					float currentQty = qStock.value("qty").toFloat();
 					float newQty = currentQty - ni.quantity;
-					QSqlQuery qStockUpdate("UPDATE stock SET qty = " + QString::number(newQty) + " WHERE stock_id = " + ni.stockId);
+					QSqlQuery qStockUpdate("UPDATE stock SET qty = " + QString::number(newQty) + " WHERE stock_id = " + QString::number(ni.stockId));
 				}
 			}
 		}
