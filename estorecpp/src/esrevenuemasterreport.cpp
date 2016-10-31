@@ -179,13 +179,13 @@ void ESRevenueMasterReport::slotSearch()
 						{
 							itemName = queryItem.value("item_name").toString();
 						}
-						QSqlQuery queryReturn("SELECT * FROM return_item WHERE item_id = " + itemId + " AND bill_id = " + billId + " AND deleted = 0 AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
 						float retQty = 0;
-						float totalAmountPerItem = itemPrice*((100 - discount) / 100)*soldQty;
+						//float totalAmountPerItem = itemPrice*((100 - discount) / 100)*soldQty;
 						float costOfSoldItems = (purchasingPrice*soldQty);
 						totalCostOfItems += costOfSoldItems;
-						totalIncomeOfItems += totalAmountPerItem;
+						//totalIncomeOfItems += totalAmountPerItem;
 
+						QSqlQuery queryReturn("SELECT * FROM return_item WHERE item_id = " + itemId + " AND bill_id = " + billId + " AND deleted = 0 AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
 						while (queryReturn.next())
 						{
 							retQty = queryReturn.value("qty").toFloat();
