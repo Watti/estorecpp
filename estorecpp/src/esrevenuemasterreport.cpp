@@ -256,18 +256,18 @@ void ESRevenueMasterReport::slotSearch()
 	returnedCostWidget->setTextAlignment(Qt::AlignRight);
 	ui.tableWidget->setItem(row, 3, returnedCostWidget);
 
-	QTableWidgetItem *incomePriceWidget = new QTableWidgetItem(QString::number(income, 'f', 2));
-	incomePriceWidget->setTextAlignment(Qt::AlignRight);
-	ui.tableWidget->setItem(row, 4, incomePriceWidget);
-
-	QTableWidgetItem *expensePriceWidget = new QTableWidgetItem(QString::number(expense, 'f', 2));
-	expensePriceWidget->setTextAlignment(Qt::AlignRight);
-	ui.tableWidget->setItem(row, 5, expensePriceWidget);
+// 	QTableWidgetItem *incomePriceWidget = new QTableWidgetItem(QString::number(income, 'f', 2));
+// 	incomePriceWidget->setTextAlignment(Qt::AlignRight);
+// 	ui.tableWidget->setItem(row, 4, incomePriceWidget);
+// 
+// 	QTableWidgetItem *expensePriceWidget = new QTableWidgetItem(QString::number(expense, 'f', 2));
+// 	expensePriceWidget->setTextAlignment(Qt::AlignRight);
+// 	ui.tableWidget->setItem(row, 5, expensePriceWidget);
 
 
 	QTableWidgetItem *interestWidget = new QTableWidgetItem(QString::number(allBillInterest, 'f', 2));
 	interestWidget->setTextAlignment(Qt::AlignRight);
-	ui.tableWidget->setItem(row, 6, interestWidget);
+	ui.tableWidget->setItem(row, 4, interestWidget);
 
 	float netIncome = allBillTotal;
 	float netItemCost = allSoldItemCost - allReturnedItemCost;
@@ -331,7 +331,7 @@ void ESRevenueMasterReport::slotGenerateReport()
 	report->addVerticalSpacing(5);
 
 	KDReports::TableElement tableElement;
-	tableElement.setHeaderColumnCount(8);
+	tableElement.setHeaderColumnCount(6);
 	tableElement.setBorder(1);
 	tableElement.setWidth(100, KDReports::Percent);
 
@@ -363,29 +363,29 @@ void ESRevenueMasterReport::slotGenerateReport()
 		cTextElement.setBold(true);
 		cell.addElement(cTextElement, Qt::AlignCenter);
 	}
+// 	{
+// 		KDReports::Cell& cell = tableElement.cell(0, 4);
+// 		KDReports::TextElement cTextElement("P/C Income");
+// 		cTextElement.setPointSize(11);
+// 		cTextElement.setBold(true);
+// 		cell.addElement(cTextElement, Qt::AlignCenter);
+// 	}
+// 	{
+// 		KDReports::Cell& cell = tableElement.cell(0, 5);
+// 		KDReports::TextElement cTextElement("P/C Expenses");
+// 		cTextElement.setPointSize(11);
+// 		cTextElement.setBold(true);
+// 		cell.addElement(cTextElement, Qt::AlignCenter);
+// 	}
 	{
 		KDReports::Cell& cell = tableElement.cell(0, 4);
-		KDReports::TextElement cTextElement("P/C Income");
-		cTextElement.setPointSize(11);
-		cTextElement.setBold(true);
-		cell.addElement(cTextElement, Qt::AlignCenter);
-	}
-	{
-		KDReports::Cell& cell = tableElement.cell(0, 5);
-		KDReports::TextElement cTextElement("P/C Expenses");
-		cTextElement.setPointSize(11);
-		cTextElement.setBold(true);
-		cell.addElement(cTextElement, Qt::AlignCenter);
-	}
-	{
-		KDReports::Cell& cell = tableElement.cell(0, 6);
 		KDReports::TextElement cTextElement("Interest Earnings");
 		cTextElement.setPointSize(11);
 		cTextElement.setBold(true);
 		cell.addElement(cTextElement, Qt::AlignCenter);
 	}
 	{
-		KDReports::Cell& cell = tableElement.cell(0, 7);
+		KDReports::Cell& cell = tableElement.cell(0, 5);
 		KDReports::TextElement cTextElement("Approx. Profit");
 		cTextElement.setPointSize(11);
 		cTextElement.setBold(true);
@@ -478,7 +478,6 @@ void ESRevenueMasterReport::slotGenerateReport()
 				//item wise start
 				double totalProfit = 0;
 
-				//float grandTotal = 0, averagePrice = 0, totalQty = 0, totalAmount = 0, itemPrice = 0, netSoldQty = 0, discount = 0, totalAmountPerItem = 0, soldQty = 0, returnedItemQty = 0, returnedTotalPrice = 0;
 				float totalIncomeOfItems = 0, totalCostOfItems = 0, totalReturned = 0, totalCostOfReturnedItems = 0;
 				QString salesQryStr = "SELECT quantity, discount, total,stock_id, item_price from sale where deleted = 0 AND bill_id = " + billId + " AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
 				QSqlQuery salesQry(salesQryStr);
@@ -535,31 +534,31 @@ void ESRevenueMasterReport::slotGenerateReport()
 	}
 
 
-	QSqlQuery totalQuery("SELECT * FROM petty_cash WHERE  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
-	double income = 0, expense = 0;
-	while (totalQuery.next())
-	{
-		QSqlQuery queryUserType("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE user.active = 1 AND user.user_id = " + totalQuery.value("user_id").toString() + " AND usertype.usertype_name <> 'DEV'");
-		if (queryUserType.next())
-		{
-			int type = totalQuery.value("type").toUInt();
-			if (type == 0)
-			{
-				//expense
-				expense += totalQuery.value("amount").toDouble();
+// 	QSqlQuery totalQuery("SELECT * FROM petty_cash WHERE  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+// 	double income = 0, expense = 0;
+// 	while (totalQuery.next())
+// 	{
+// 		QSqlQuery queryUserType("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE user.active = 1 AND user.user_id = " + totalQuery.value("user_id").toString() + " AND usertype.usertype_name <> 'DEV'");
+// 		if (queryUserType.next())
+// 		{
+// 			int type = totalQuery.value("type").toUInt();
+// 			if (type == 0)
+// 			{
+// 				//expense
+// 				expense += totalQuery.value("amount").toDouble();
+// 
+// 			}
+// 			else if (type == 1)
+// 			{
+// 				//income
+// 				income += totalQuery.value("amount").toDouble();
+// 
+// 			}
+// 		}
+// 	}
 
-			}
-			else if (type == 1)
-			{
-				//income
-				income += totalQuery.value("amount").toDouble();
-
-			}
-		}
-	}
-
-	float totalIncome = allBillTotal + income + allReturnedItemCost;
-	float totalExpenses = allSoldItemCost + expense;
+	float totalIncome = allBillTotal + allReturnedItemCost;
+	float totalExpenses = allSoldItemCost;
 	float profit = totalIncome - totalExpenses;
 
 	int row = 1;
@@ -568,10 +567,10 @@ void ESRevenueMasterReport::slotGenerateReport()
 	printRow(tableElement, row, 1, QString::number(allSoldItemCost, 'f', 2));
 	printRow(tableElement, row, 2, QString::number(allReturnTotal, 'f', 2));
 	printRow(tableElement, row, 3, QString::number(allReturnedItemCost, 'f', 2));
-	printRow(tableElement, row, 4, QString::number(income, 'f', 2));
-	printRow(tableElement, row, 5, QString::number(expense, 'f', 2));
-	printRow(tableElement, row, 6, QString::number(allBillInterest, 'f', 2));
-	printRow(tableElement, row, 7, QString::number(profit, 'f', 2));
+// 	printRow(tableElement, row, 4, QString::number(income, 'f', 2));
+// 	printRow(tableElement, row, 5, QString::number(expense, 'f', 2));
+	printRow(tableElement, row, 4, QString::number(allBillInterest, 'f', 2));
+	printRow(tableElement, row, 5, QString::number(profit, 'f', 2));
 
 	report->addElement(tableElement);
 
