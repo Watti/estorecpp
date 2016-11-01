@@ -24,9 +24,6 @@ ESRevenueMasterReport::ESRevenueMasterReport(QWidget *parent /*= 0*/) : QWidget(
 	headerLabels.append("Total Cost Of Sales");
 	headerLabels.append("Total Return");
 	headerLabels.append("Total Cost of Return");
-	headerLabels.append("Total Petty Cash Income");
-	headerLabels.append("Total Petty Cash Expenses");
-	headerLabels.append("Total Interest Earnings");
 	headerLabels.append("Approx. Profit");
 
 	QFont font = this->font();
@@ -68,7 +65,7 @@ void ESRevenueMasterReport::slotSearch()
 	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
 	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
 
-	float allBillTotal = 0, allBillProfit = 0, allReturnTotal = 0, allSoldItemCost = 0, allReturnedItemCost = 0, allBillInterest = 0;
+	float totalSalesIncome = 0, allBillProfit = 0, allReturnTotal = 0, totalSalesItemCost = 0, allReturnedItemCost = 0, allBillInterest = 0;
 	QSqlQuery userQry("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE user.active = 1");
 	while (userQry.next())
 	{
@@ -181,8 +178,6 @@ void ESRevenueMasterReport::slotSearch()
 						}
 						float retQty = 0;
 						//float totalAmountPerItem = itemPrice*((100 - discount) / 100)*soldQty;
-						float costOfSoldItems = (purchasingPrice*soldQty);
-						totalCostOfItems += costOfSoldItems;
 						//totalIncomeOfItems += totalAmountPerItem;
 
 						QSqlQuery queryReturn("SELECT * FROM return_item WHERE item_id = " + itemId + " AND bill_id = " + billId + " AND deleted = 0 AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
@@ -193,11 +188,15 @@ void ESRevenueMasterReport::slotSearch()
 							totalReturned += retTotal;
 							float costOfReturned = (purchasingPrice*retQty);
 							totalCostOfReturnedItems += costOfReturned;
+							soldQty -= retQty;
 						}
+
+						float costOfSoldItems = (purchasingPrice*soldQty);
+						totalCostOfItems += costOfSoldItems;
 					}
 				}
-				allSoldItemCost += totalCostOfItems;
-				allBillTotal += billTotal;
+				totalSalesItemCost += totalCostOfItems;
+				totalSalesIncome += billTotal;
 				allReturnedItemCost += totalCostOfReturnedItems;
 				allReturnTotal += totalReturned;
 				totalCostOfItems = 0;
@@ -211,39 +210,15 @@ void ESRevenueMasterReport::slotSearch()
 	}
 
 
-	QSqlQuery totalQuery("SELECT * FROM petty_cash WHERE  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
-	double income = 0, expense = 0;
-	while (totalQuery.next())
-	{
-		QSqlQuery queryUserType("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE user.active = 1 AND user.user_id = " + totalQuery.value("user_id").toString() + " AND usertype.usertype_name <> 'DEV'");
-		if (queryUserType.next())
-		{
-			int type = totalQuery.value("type").toUInt();
-			if (type == 0)
-			{
-				//expense
-				expense += totalQuery.value("amount").toDouble();
-
-			}
-			else if (type == 1)
-			{
-				//income
-				income += totalQuery.value("amount").toDouble();
-
-			}
-		}
-	}
-
 	int row = ui.tableWidget->rowCount();
 	ui.tableWidget->insertRow(row);
 
-	float grossSalesTotal = allBillTotal + allReturnTotal;
 
-	QTableWidgetItem *totalSaleWidget = new QTableWidgetItem(QString::number(grossSalesTotal, 'f', 2));
+	QTableWidgetItem *totalSaleWidget = new QTableWidgetItem(QString::number(totalSalesIncome, 'f', 2));
 	totalSaleWidget->setTextAlignment(Qt::AlignRight);
 	ui.tableWidget->setItem(row, 0, totalSaleWidget);
 
-	QTableWidgetItem *totalCostSaleWidget = new QTableWidgetItem(QString::number(allSoldItemCost, 'f', 2));
+	QTableWidgetItem *totalCostSaleWidget = new QTableWidgetItem(QString::number(totalSalesItemCost, 'f', 2));
 	totalCostSaleWidget->setTextAlignment(Qt::AlignRight);
 	ui.tableWidget->setItem(row, 1, totalCostSaleWidget);
 
@@ -256,30 +231,17 @@ void ESRevenueMasterReport::slotSearch()
 	returnedCostWidget->setTextAlignment(Qt::AlignRight);
 	ui.tableWidget->setItem(row, 3, returnedCostWidget);
 
-// 	QTableWidgetItem *incomePriceWidget = new QTableWidgetItem(QString::number(income, 'f', 2));
-// 	incomePriceWidget->setTextAlignment(Qt::AlignRight);
-// 	ui.tableWidget->setItem(row, 4, incomePriceWidget);
-// 
-// 	QTableWidgetItem *expensePriceWidget = new QTableWidgetItem(QString::number(expense, 'f', 2));
-// 	expensePriceWidget->setTextAlignment(Qt::AlignRight);
-// 	ui.tableWidget->setItem(row, 5, expensePriceWidget);
+// 	QTableWidgetItem *interestWidget = new QTableWidgetItem(QString::number(allBillInterest, 'f', 2));
+// 	interestWidget->setTextAlignment(Qt::AlignRight);
+// 	ui.tableWidget->setItem(row, 4, interestWidget);
 
-
-	QTableWidgetItem *interestWidget = new QTableWidgetItem(QString::number(allBillInterest, 'f', 2));
-	interestWidget->setTextAlignment(Qt::AlignRight);
-	ui.tableWidget->setItem(row, 4, interestWidget);
-
-	float netIncome = allBillTotal;
-	float netItemCost = allSoldItemCost - allReturnedItemCost;
-	float totalIncome = income + netIncome;
-	float totalExpenses = expense + netItemCost;
-	//float totalIncome = allBillTotal + income + allReturnedItemCost;
-	//float totalExpenses = allSoldItemCost + expense;
-	float profit = totalIncome - totalExpenses;
+	float totalIncome = totalSalesIncome /*+ allReturnedItemCost*/;
+	float totalExpences = totalSalesItemCost/* + allReturnTotal*/;
+	float profit = totalIncome - totalExpences;
 
 	QTableWidgetItem *profitWidget = new QTableWidgetItem(QString::number(profit, 'f', 2));
 	profitWidget->setTextAlignment(Qt::AlignRight);
-	ui.tableWidget->setItem(row, 7, profitWidget);
+	ui.tableWidget->setItem(row, 4, profitWidget);
 
 }
 
@@ -331,7 +293,7 @@ void ESRevenueMasterReport::slotGenerateReport()
 	report->addVerticalSpacing(5);
 
 	KDReports::TableElement tableElement;
-	tableElement.setHeaderColumnCount(6);
+	tableElement.setHeaderColumnCount(5);
 	tableElement.setBorder(1);
 	tableElement.setWidth(100, KDReports::Percent);
 
@@ -377,15 +339,15 @@ void ESRevenueMasterReport::slotGenerateReport()
 // 		cTextElement.setBold(true);
 // 		cell.addElement(cTextElement, Qt::AlignCenter);
 // 	}
+// 	{
+// 		KDReports::Cell& cell = tableElement.cell(0, 4);
+// 		KDReports::TextElement cTextElement("Interest Earnings");
+// 		cTextElement.setPointSize(11);
+// 		cTextElement.setBold(true);
+// 		cell.addElement(cTextElement, Qt::AlignCenter);
+// 	}
 	{
 		KDReports::Cell& cell = tableElement.cell(0, 4);
-		KDReports::TextElement cTextElement("Interest Earnings");
-		cTextElement.setPointSize(11);
-		cTextElement.setBold(true);
-		cell.addElement(cTextElement, Qt::AlignCenter);
-	}
-	{
-		KDReports::Cell& cell = tableElement.cell(0, 5);
 		KDReports::TextElement cTextElement("Approx. Profit");
 		cTextElement.setPointSize(11);
 		cTextElement.setBold(true);
@@ -504,10 +466,6 @@ void ESRevenueMasterReport::slotGenerateReport()
 						}
 						QSqlQuery queryReturn("SELECT * FROM return_item WHERE item_id = " + itemId + " AND bill_id = " + billId + " AND deleted = 0 AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
 						float retQty = 0;
-						float totalAmountPerItem = itemPrice*((100 - discount) / 100)*soldQty;
-						float costOfSoldItems = (purchasingPrice*soldQty);
-						totalCostOfItems += costOfSoldItems;
-						totalIncomeOfItems += totalAmountPerItem;
 
 						while (queryReturn.next())
 						{
@@ -516,7 +474,12 @@ void ESRevenueMasterReport::slotGenerateReport()
 							totalReturned += retTotal;
 							float costOfReturned = (purchasingPrice*retQty);
 							totalCostOfReturnedItems += costOfReturned;
+							soldQty -= retQty;
 						}
+						float totalAmountPerItem = itemPrice*((100 - discount) / 100)*soldQty;
+						float costOfSoldItems = (purchasingPrice*soldQty);
+						totalCostOfItems += costOfSoldItems;
+						totalIncomeOfItems += totalAmountPerItem;
 					}
 				}
 				allSoldItemCost += totalCostOfItems;
@@ -533,44 +496,16 @@ void ESRevenueMasterReport::slotGenerateReport()
 		}
 	}
 
-
-// 	QSqlQuery totalQuery("SELECT * FROM petty_cash WHERE  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
-// 	double income = 0, expense = 0;
-// 	while (totalQuery.next())
-// 	{
-// 		QSqlQuery queryUserType("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE user.active = 1 AND user.user_id = " + totalQuery.value("user_id").toString() + " AND usertype.usertype_name <> 'DEV'");
-// 		if (queryUserType.next())
-// 		{
-// 			int type = totalQuery.value("type").toUInt();
-// 			if (type == 0)
-// 			{
-// 				//expense
-// 				expense += totalQuery.value("amount").toDouble();
-// 
-// 			}
-// 			else if (type == 1)
-// 			{
-// 				//income
-// 				income += totalQuery.value("amount").toDouble();
-// 
-// 			}
-// 		}
-// 	}
-
-	float totalIncome = allBillTotal + allReturnedItemCost;
-	float totalExpenses = allSoldItemCost;
+	float totalIncome = allBillTotal/* + allReturnedItemCost*/;
+	float totalExpenses = allSoldItemCost/*+allReturnTotal*/;
 	float profit = totalIncome - totalExpenses;
 
 	int row = 1;
-	float grossSalesTotal = allBillTotal + allReturnTotal;
-	printRow(tableElement, row, 0, QString::number(grossSalesTotal,'f',2));
+	printRow(tableElement, row, 0, QString::number(allBillTotal,'f',2));
 	printRow(tableElement, row, 1, QString::number(allSoldItemCost, 'f', 2));
 	printRow(tableElement, row, 2, QString::number(allReturnTotal, 'f', 2));
 	printRow(tableElement, row, 3, QString::number(allReturnedItemCost, 'f', 2));
-// 	printRow(tableElement, row, 4, QString::number(income, 'f', 2));
-// 	printRow(tableElement, row, 5, QString::number(expense, 'f', 2));
-	printRow(tableElement, row, 4, QString::number(allBillInterest, 'f', 2));
-	printRow(tableElement, row, 5, QString::number(profit, 'f', 2));
+	printRow(tableElement, row, 4, QString::number(profit, 'f', 2));
 
 	report->addElement(tableElement);
 
