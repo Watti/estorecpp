@@ -90,8 +90,9 @@ void ESRevenueMasterReport::slotSearch()
 			QSqlQuery userBillQry(qUserStr);
 			while (userBillQry.next())
 			{
-				float billTotal = 0, billProfit = 0;
+				float billTotal = 0, billAmount = 0;
 				QString billId = userBillQry.value("bill_id").toString();
+				billAmount = userBillQry.value("amount").toFloat();
 				QSqlQuery paymentQry("SELECT * FROM payment WHERE valid = 1 AND bill_id = " + billId);
 				while (paymentQry.next())
 				{
@@ -176,23 +177,35 @@ void ESRevenueMasterReport::slotSearch()
 						{
 							itemName = queryItem.value("item_name").toString();
 						}
-						float retQty = 0;
-						//float totalAmountPerItem = itemPrice*((100 - discount) / 100)*soldQty;
-						//totalIncomeOfItems += totalAmountPerItem;
 
-						QSqlQuery queryReturn("SELECT * FROM return_item WHERE item_id = " + itemId + " AND bill_id = " + billId + " AND deleted = 0 AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
-						while (queryReturn.next())
+						// check if this bill is return
+						QSqlQuery q1("SELECT * FROM return_bill WHERE return_bill_id = " + billId);
+						if (q1.next())
 						{
-							retQty = queryReturn.value("qty").toFloat();
-							float retTotal = queryReturn.value("return_total").toFloat();
-							totalReturned += retTotal;
-							float costOfReturned = (purchasingPrice*retQty);
-							totalCostOfReturnedItems += costOfReturned;
-							soldQty -= retQty;
+							QSqlQuery q2("SELECT * FROM return_item WHERE item_id = " + itemId + " AND bill_id = " + billId + " AND deleted = 0 ");
+							float retQty = q2.value("qty").toFloat();
+							totalCostOfItems -= (purchasingPrice * retQty);
 						}
-
-						float costOfSoldItems = (purchasingPrice*soldQty);
-						totalCostOfItems += costOfSoldItems;
+						else
+						{
+							totalCostOfItems += (purchasingPrice * soldQty);
+						}
+// 						float retQty = 0;
+// 						//float totalAmountPerItem = itemPrice*((100 - discount) / 100)*soldQty;
+// 						//totalIncomeOfItems += totalAmountPerItem;
+// 
+// 						QSqlQuery queryReturn("SELECT * FROM return_item WHERE item_id = " + itemId + " AND bill_id = " + billId + " AND deleted = 0 AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+// 						while (queryReturn.next())
+// 						{
+// 							retQty = queryReturn.value("qty").toFloat();
+// 							float retTotal = queryReturn.value("return_total").toFloat();
+// 							totalReturned += retTotal;
+// 							float costOfReturned = (purchasingPrice*retQty);
+// 							totalCostOfReturnedItems += costOfReturned;
+// 							soldQty -= retQty;
+// 						}
+// 						float costOfSoldItems = (purchasingPrice*soldQty);
+// 						totalCostOfItems += costOfSoldItems;
 					}
 				}
 				totalSalesItemCost += totalCostOfItems;
@@ -208,7 +221,6 @@ void ESRevenueMasterReport::slotSearch()
 
 		}
 	}
-
 
 	int row = ui.tableWidget->rowCount();
 	ui.tableWidget->insertRow(row);
@@ -464,22 +476,33 @@ void ESRevenueMasterReport::slotGenerateReport()
 						{
 							itemName = queryItem.value("item_name").toString();
 						}
-						QSqlQuery queryReturn("SELECT * FROM return_item WHERE item_id = " + itemId + " AND bill_id = " + billId + " AND deleted = 0 AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
-						float retQty = 0;
-
-						while (queryReturn.next())
+						QSqlQuery q1("SELECT * FROM return_bill WHERE return_bill_id = " + billId);
+						if (q1.next())
 						{
-							retQty = queryReturn.value("qty").toFloat();
-							float retTotal = queryReturn.value("return_total").toFloat();
-							totalReturned += retTotal;
-							float costOfReturned = (purchasingPrice*retQty);
-							totalCostOfReturnedItems += costOfReturned;
-							soldQty -= retQty;
+							QSqlQuery q2("SELECT * FROM return_item WHERE item_id = " + itemId + " AND bill_id = " + billId + " AND deleted = 0 ");
+							float retQty = q2.value("qty").toFloat();
+							totalCostOfItems -= (purchasingPrice * retQty);
 						}
-						float totalAmountPerItem = itemPrice*((100 - discount) / 100)*soldQty;
-						float costOfSoldItems = (purchasingPrice*soldQty);
-						totalCostOfItems += costOfSoldItems;
-						totalIncomeOfItems += totalAmountPerItem;
+						else
+						{
+							totalCostOfItems += (purchasingPrice * soldQty);
+						}
+// 						QSqlQuery queryReturn("SELECT * FROM return_item WHERE item_id = " + itemId + " AND bill_id = " + billId + " AND deleted = 0 AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+// 						float retQty = 0;
+// 
+// 						while (queryReturn.next())
+// 						{
+// 							retQty = queryReturn.value("qty").toFloat();
+// 							float retTotal = queryReturn.value("return_total").toFloat();
+// 							totalReturned += retTotal;
+// 							float costOfReturned = (purchasingPrice*retQty);
+// 							totalCostOfReturnedItems += costOfReturned;
+// 							soldQty -= retQty;
+// 						}
+// 						float totalAmountPerItem = itemPrice*((100 - discount) / 100)*soldQty;
+// 						float costOfSoldItems = (purchasingPrice*soldQty);
+// 						totalCostOfItems += costOfSoldItems;
+// 						totalIncomeOfItems += totalAmountPerItem;
 					}
 				}
 				allSoldItemCost += totalCostOfItems;
