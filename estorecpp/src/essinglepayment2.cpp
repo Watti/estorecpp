@@ -911,7 +911,7 @@ void ESSinglePayment2::slotPrintReturnBill()
 	double newBillInterest = newBillInterestStr.toDouble();
 	if (newBillInterest > 0)
 	{
-		retTotal2 = retTotal2*(100 + newBillInterest) / 100;
+		retTotal2 = retTotal2 * (100 + newBillInterest) / 100.0;
 	}
 	row2++;
 	{//interest

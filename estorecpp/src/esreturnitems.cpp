@@ -806,38 +806,37 @@ void ESReturnItems::updateDatabase()
 				QSqlQuery qStockUpdate("UPDATE stock SET qty = " + QString::number(newQty) + " WHERE stock_id = " + stockId);
 			}
 		}
+	}
 
-		// process new items
-		const std::map<int, ES::ReturnBill::NewItemInfo>& newItems = m_bill.getNewItemTable();
-		std::map<int, ES::ReturnBill::NewItemInfo>::const_iterator iter = newItems.begin();
-		std::map<int, ES::ReturnBill::NewItemInfo>::const_iterator iterEnd = newItems.end();
-		for (; iter != iterEnd; ++iter)
+	// process new items
+	const std::map<int, ES::ReturnBill::NewItemInfo>& newItems = m_bill.getNewItemTable();
+	std::map<int, ES::ReturnBill::NewItemInfo>::const_iterator iter = newItems.begin();
+	std::map<int, ES::ReturnBill::NewItemInfo>::const_iterator iterEnd = newItems.end();
+	for (; iter != iterEnd; ++iter)
+	{
+		const ES::ReturnBill::NewItemInfo& ni = iter->second;
+
+		double price = ni.itemPrice - ni.itemPrice * ni.discount * 0.01;
+		double netTotal = price * ni.quantity;
+		// stock_id 	bill_id 	quantity 	discount 	item_price 	total 	deleted 	date 
+		QString q = "INSERT INTO sale (stock_id, bill_id, quantity, discount, item_price, total) VALUES(" +
+			QString::number(ni.stockId) + ", " +
+			QString::number(m_bill.getBillId()) + ", " +
+			QString::number(ni.quantity) + ", " +
+			QString::number(ni.discount, 'f', 2) + ", " +
+			QString::number(ni.itemPrice, 'f', 2) + ", " +
+			QString::number(netTotal, 'f', 2) + ")";
+		QSqlQuery query;
+		if (query.exec(q))
 		{
-			const ES::ReturnBill::NewItemInfo& ni = iter->second;
-		
-			double price = ni.itemPrice - ni.itemPrice * ni.discount * 0.01;
-			double netTotal = price * ni.quantity;
-			// stock_id 	bill_id 	quantity 	discount 	item_price 	total 	deleted 	date 
-			QString q = "INSERT INTO sale (stock_id, bill_id, quantity, discount, item_price, total) VALUES(" +
-				QString::number(ni.stockId) + ", " + 
-				QString::number(m_bill.getBillId()) + ", " +
-				QString::number(ni.quantity) + ", " +
-				QString::number(ni.discount, 'f', 2) + ", " + 
-				QString::number(ni.itemPrice, 'f', 2) + ", " +
-				QString::number(netTotal, 'f', 2) + ")";
-			QSqlQuery query;
-			if (query.exec(q))
+			QSqlQuery qStock("SELECT * FROM stock WHERE stock_id = " + QString::number(ni.stockId));
+			if (qStock.next())
 			{
-				QSqlQuery qStock("SELECT * FROM stock WHERE stock_id = " + QString::number(ni.stockId));
-				if (qStock.next())
-				{
-					float currentQty = qStock.value("qty").toFloat();
-					float newQty = currentQty - ni.quantity;
-					QSqlQuery qStockUpdate("UPDATE stock SET qty = " + QString::number(newQty) + " WHERE stock_id = " + QString::number(ni.stockId));
-				}
+				float currentQty = qStock.value("qty").toFloat();
+				float newQty = currentQty - ni.quantity;
+				QSqlQuery qStockUpdate("UPDATE stock SET qty = " + QString::number(newQty) + " WHERE stock_id = " + QString::number(ni.stockId));
 			}
 		}
-
 	}
 }
 
