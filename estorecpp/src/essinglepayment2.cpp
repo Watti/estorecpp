@@ -196,7 +196,7 @@ void ESSinglePayment2::handleCashPayment(int billId, double netAmount)
 		{
 			QMessageBox mbox;
 			mbox.setIcon(QMessageBox::Critical);
-			mbox.setText(QString("Failed"));
+			mbox.setText(QString("Failed to insert into cash"));
 			mbox.exec();
 		}
 		else
@@ -208,7 +208,7 @@ void ESSinglePayment2::handleCashPayment(int billId, double netAmount)
 	{
 		QMessageBox mbox;
 		mbox.setIcon(QMessageBox::Critical);
-		mbox.setText(QString("Failed"));
+		mbox.setText(QString("Failed to insert into payment"));
 		mbox.exec();
 	}
 }

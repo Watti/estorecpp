@@ -438,19 +438,29 @@ void ESReturnItems::slotNewItemQuantityCellUpdated(QString txt, int row, int col
 		QString rowIdStr = item->text();
 		std::string s = rowIdStr.toStdString();
 		long rowId = rowIdStr.toLong();
-		m_bill.updateNewItemQuantity(rowId, txt);
+		bool success = m_bill.updateNewItemQuantity(rowId, txt);
+			const std::map<int, ES::ReturnBill::NewItemInfo>& newItems = m_bill.getNewItemTable();
+			std::map<int, ES::ReturnBill::NewItemInfo>::const_iterator iter = newItems.find(rowId);
+			if (iter != newItems.end())
+			{
+				const ES::ReturnBill::NewItemInfo& ni = iter->second;
 
-		const std::map<int, ES::ReturnBill::NewItemInfo>& newItems = m_bill.getNewItemTable();
-		std::map<int, ES::ReturnBill::NewItemInfo>::const_iterator iter = newItems.find(rowId);
-		if (iter != newItems.end())
-		{
-			const ES::ReturnBill::NewItemInfo& ni = iter->second;
-
-			double subtotal = ni.itemPrice * ni.quantity;
-			QTableWidgetItem* subtotalItem = new QTableWidgetItem(QString::number(subtotal, 'f', 2));
-			subtotalItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-			ui.billTableWidget->setItem(row, 5, subtotalItem);
-		}			
+				double subtotal = ni.itemPrice * ni.quantity;
+				QTableWidgetItem* subtotalItem = new QTableWidgetItem(QString::number(subtotal, 'f', 2));
+				subtotalItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+				ui.billTableWidget->setItem(row, 5, subtotalItem);
+				if (!success)
+				{
+					QSqlQuery query("SELECT qty FROM stock WHERE stock_id = " + QString::number(ni.stockId));
+					if (query.first())
+					{
+						QString currentQty = query.value("qty").toString();
+						QTableWidgetItem* qtyItem = new QTableWidgetItem(currentQty);
+						qtyItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+						ui.billTableWidget->setItem(row, 3, qtyItem);
+					}
+				}
+			}
 	}
 	
 	showTotal();

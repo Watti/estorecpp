@@ -322,12 +322,18 @@ bool ES::ReturnBill::updateNewItemQuantity(long rowId, QString qtyStr)
 			return false;
 		}
 
-		QSqlQuery query("SELECT qty FROM stock stock_id = " + ni.stockId);
+		QSqlQuery query("SELECT qty FROM stock WHERE stock_id = " + QString::number(ni.stockId));
 		if (query.first())
 		{
 			double currentQty = query.value("qty").toDouble();
 			if (requestedQty > currentQty)
 			{
+				ni.quantity = currentQty;
+				calculateTotal();
+				QMessageBox mbox;
+				mbox.setIcon(QMessageBox::Critical);
+				mbox.setText(QString("Low stock"));
+				mbox.exec();
 				return false;
 			}
 		}
