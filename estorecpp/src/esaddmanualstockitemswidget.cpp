@@ -160,7 +160,7 @@ void ESAddManualStockItems::slotItemSelected(int row, int col)
 		ui.minQty->setText(queryStock.value("min_qty").toString());
 		ui.discount->setText(queryStock.value("discount").toString());
 		ui.sellingPrice->setText(queryStock.value("selling_price").toString());
-		ui.qty->setText(queryStock.value("qty").toString());
+		ui.currentQty->setText(queryStock.value("qty").toString());
 		stockId = queryStock.value("stock_id").toString();
 	}
 	if (success)
@@ -228,7 +228,7 @@ void ESAddManualStockItems::slotAddToStock()
 		return;
 	}
 	isValid = false;
-	double currentQty = ui.qty->text().toDouble(&isValid);
+	double newlyAddedQty = ui.qty->text().toDouble(&isValid);
 	if (!isValid)
 	{
 		QMessageBox mbox;
@@ -304,7 +304,7 @@ void ESAddManualStockItems::slotAddToStock()
 		QString currentSellingPrice = itemStock.value("selling_price").toString();
 
 		//currentQty += itemStock.value("qty").toDouble();
-
+		double currentQty = newlyAddedQty + ui.currentQty->text().toDouble();
 		QString qtyStr;
 		qtyStr.setNum(currentQty);
 		QString q("UPDATE stock SET  qty = " + qtyStr + " , selling_price = " + newSellingPrice + " , discount = "
@@ -374,7 +374,7 @@ void ESAddManualStockItems::slotAddToStock()
 	else
 	{
 		QString qtyStr;
-		qtyStr.setNum(currentQty);
+		qtyStr.setNum(newlyAddedQty);
 		QString q("INSERT INTO stock (item_id, qty, min_qty, selling_price, discount, floor, user_id) VALUES (" +
 			itemId + "," + qtyStr + "," + ui.minQty->text() + "," + newSellingPrice + "," + discount + "," + floorNo + ", " + userIdStr + ")");
 		QSqlQuery query;

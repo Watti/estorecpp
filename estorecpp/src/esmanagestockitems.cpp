@@ -275,7 +275,7 @@ void ESManageStockItems::slotUpdate(QString stockId)
 
 
 		QString quantity = query.value("qty").toString();
-		addStockItem->getUI().qty->setText(quantity);
+		addStockItem->getUI().currentQty->setText(quantity);
 		bool isValid = false;
 		double qtyDouble = quantity.toDouble(&isValid);
 		if (isValid)
