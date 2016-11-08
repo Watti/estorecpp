@@ -184,6 +184,7 @@ void ES::ReturnBill::addNewItem(QString stockId)
 		{
 			ni.itemCode = itemQ.value("item_code").toString();
 			ni.itemName = itemQ.value("item_name").toString();
+			ni.wCost = itemQ.value("w_cost").toDouble();
 		}
 		m_newItems[m_newItemsIDGenerator++] = ni;
 	}

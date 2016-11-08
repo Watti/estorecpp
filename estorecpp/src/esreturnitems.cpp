@@ -829,12 +829,13 @@ void ESReturnItems::updateDatabase()
 		double price = ni.itemPrice - ni.itemPrice * ni.discount * 0.01;
 		double netTotal = price * ni.quantity;
 		// stock_id 	bill_id 	quantity 	discount 	item_price 	total 	deleted 	date 
-		QString q = "INSERT INTO sale (stock_id, bill_id, quantity, discount, item_price, total) VALUES(" +
+		QString q = "INSERT INTO sale (stock_id, bill_id, quantity, discount, item_price, w_cost, total) VALUES(" +
 			QString::number(ni.stockId) + ", " +
 			QString::number(m_bill.getBillId()) + ", " +
 			QString::number(ni.quantity) + ", " +
 			QString::number(ni.discount, 'f', 2) + ", " +
 			QString::number(ni.itemPrice, 'f', 2) + ", " +
+			QString::number(ni.wCost, 'f', 2) + ", " +
 			QString::number(netTotal, 'f', 2) + ")";
 		QSqlQuery query;
 		if (query.exec(q))

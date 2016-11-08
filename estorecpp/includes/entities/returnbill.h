@@ -27,6 +27,7 @@ namespace ES
 			QString itemCode;
 			QString itemName;
 			double itemPrice;
+			double wCost;
 			double quantity;
 			double discount;
 		};

@@ -176,13 +176,19 @@ void ESAddBillItem::addToBill(QString stockId)
 {
 	QString billId = ES::Session::getInstance()->getBillId();
 	QString lastInsertedID;
-	QSqlQuery queryStock("SELECT discount, selling_price FROM stock WHERE stock_id = " + stockId);
+	QSqlQuery queryStock("SELECT discount, selling_price, item_id FROM stock WHERE stock_id = " + stockId);
 	if (queryStock.next())
 	{
 		QString discount = queryStock.value("discount").toString();
 		QString itemPrice = queryStock.value("selling_price").toString();
-		QString q = "INSERT INTO sale (stock_id, bill_id, discount, item_price) VALUES(" + stockId + ", " + 
-			billId + ", " + discount + ", " + itemPrice + ")";
+		QString wCost = "-1.0";
+		QSqlQuery getWCost("SELECT w_cost FROM item WHERE item_id = " + queryStock.value("item_id").toString());
+		if (getWCost.first())
+		{
+			wCost = getWCost.value("w_cost").toString();
+		}
+		QString q = "INSERT INTO sale (stock_id, bill_id, discount, item_price, w_cost) VALUES(" + stockId + ", " + 
+			billId + ", " + discount + ", " + itemPrice + ", " + wCost + ")";
 		QSqlQuery query;
 		if (query.exec(q))
 		{
