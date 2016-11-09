@@ -53,9 +53,19 @@ void AddStockItem::slotAddStockItem()
 				mbox.setIcon(QMessageBox::Warning);
 				mbox.setText(QString("Invalid input - Quantity"));
 				mbox.exec();
+				return;
 			}
-			if (quantity >= 0)
+			double tempNewQty = m_existingQuantityInMainStock + quantity;
+			if (tempNewQty < 0 )
 			{
+				QMessageBox mbox;
+				mbox.setIcon(QMessageBox::Warning);
+				mbox.setText(QString("Invalid - Quantity"));
+				mbox.exec();
+				return;
+			}
+// 			if (quantity >= 0)
+// 			{
 				double minQty = qtyStr.toDouble(&isValid);
 				if (!isValid)
 				{
@@ -63,6 +73,7 @@ void AddStockItem::slotAddStockItem()
 					mbox.setIcon(QMessageBox::Warning);
 					mbox.setText(QString("Invalid input - Minimum Quantity"));
 					mbox.exec();
+					return;
 				}
 				QString itemId = ui.itemIDLabel->text();
 				QString  price = ui.itemPrice->text();
@@ -218,14 +229,14 @@ void AddStockItem::slotAddStockItem()
 						mbox.exec();
 					}
 				}
-			}
-			else
-			{
-				QMessageBox mbox;
-				mbox.setIcon(QMessageBox::Warning);
-				mbox.setText(QString("Invalid Quantity"));
-				mbox.exec();
-			}
+//			}
+// 			else
+// 			{
+// 				QMessageBox mbox;
+// 				mbox.setIcon(QMessageBox::Warning);
+// 				mbox.setText(QString("Invalid Quantity"));
+// 				mbox.exec();
+// 			}
 		}
 		else
 		{
@@ -233,6 +244,7 @@ void AddStockItem::slotAddStockItem()
 			mbox.setIcon(QMessageBox::Warning);
 			mbox.setText(QString("Some fields are empty"));
 			mbox.exec();
+			return;
 		}
 	}
 	else

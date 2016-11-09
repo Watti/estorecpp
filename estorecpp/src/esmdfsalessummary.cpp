@@ -71,13 +71,19 @@ void MDFSalesSummary::slotSearch()
 	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
 	double totalProfit = 0;
 	double netTotalIncome = 0;
-	QSqlQuery categoryQry("SELECT * FROM Item JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id WHERE item.deleted = 0 AND item_category.itemcategory_name ='MDF'");
+	QString qMDFStr = "SELECT * FROM Item JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id WHERE item.deleted = 0 AND item_category.itemcategory_name ='MDF'";
+	QSqlQuery categoryQry;
+	categoryQry.setForwardOnly(true);
+	categoryQry.exec(qMDFStr);
 	while (categoryQry.next())
 	{
 		float grandTotal = 0, averagePrice = 0, totalQty = 0;
 		QString itemId = categoryQry.value("item_id").toString();
 		QString itemName = categoryQry.value("item_name").toString();
-		QSqlQuery qryStock("SELECT * FROM stock_purchase_order_item JOIN stock ON stock_purchase_order_item.stock_id = stock.stock_id WHERE stock.deleted = 0 AND stock.item_id = " + itemId);
+		QString stockQryStr = "SELECT * FROM stock_purchase_order_item JOIN stock ON stock_purchase_order_item.stock_id = stock.stock_id WHERE stock.deleted = 0 AND stock.item_id = " + itemId;
+		QSqlQuery qryStock;
+		qryStock.setForwardOnly(true);
+		qryStock.exec(stockQryStr);
 		if (qryStock.next())
 		{
 			averagePrice = 0;
@@ -94,7 +100,9 @@ void MDFSalesSummary::slotSearch()
 
 			float subTotal = 0, /*balanceQty = 0,*/ maxDiscount = 0, /*subTotal = 0,*/ soldQty = 0/*, totalRetunedQty = 0*/;
 			QString salesQryStr = "SELECT discount, total, quantity FROM sale WHERE stock_id = " + stockId + " AND deleted = 0 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
-			QSqlQuery salesQry(salesQryStr);
+			QSqlQuery salesQry;
+			salesQry.setForwardOnly(true);
+			salesQry.exec(salesQryStr);
 			while (salesQry.next())
 			{
 				float grossTotal = salesQry.value("total").toFloat();
