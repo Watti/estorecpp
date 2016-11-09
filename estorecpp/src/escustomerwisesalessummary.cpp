@@ -64,7 +64,10 @@ void ESCustomerWiseSalesSummary::slotSearch()
 		ui.tableWidget->removeRow(0);
 	}
 	double grandTotal = 0;
-	QSqlQuery customerQry("SELECT * FROM customer WHERE deleted = 0 ORDER BY name");
+	QSqlQuery customerQry;
+	customerQry.prepare("SELECT * FROM customer WHERE deleted = 0 ORDER BY name");
+	customerQry.setForwardOnly(true);
+	customerQry.exec();
 	while (customerQry.next())
 	{
 		double cashSales = 0, creditSales = 0, chequeSales = 0, cardSales = 0, customerTotalAmount = 0;
@@ -74,63 +77,15 @@ void ESCustomerWiseSalesSummary::slotSearch()
 		QString address = customerQry.value("address").toString();
 		QString comments = customerQry.value("comments").toString();
 
-		QSqlQuery totalBillQry("SELECT* FROM bill WHERE deleted = 0 AND status = 1 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "' AND customer_id = " + customerId);
-		while (totalBillQry.next())
+		QSqlQuery totalBillQry;
+		totalBillQry.prepare("SELECT SUM(amount) as TotalAmount FROM bill WHERE deleted = 0 AND status = 1 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "' AND customer_id = " + customerId);
+		totalBillQry.setForwardOnly(true);
+		totalBillQry.exec();
+		if (totalBillQry.next())
 		{
-			QSqlQuery queryUserType("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE user.user_id = " + totalBillQry.value("user_id").toString() + " AND usertype.usertype_name <> 'DEV'");
-			if (queryUserType.next())
-			{
-				QSqlQuery paymentQry("SELECT * FROM payment WHERE valid = 1 AND bill_id = " + totalBillQry.value("bill_id").toString());
-				while (paymentQry.next())
-				{
-					QString paymentType = paymentQry.value("payment_type").toString();
-					QString paymentId = paymentQry.value("payment_id").toString();
-					double tot = paymentQry.value("total_amount").toDouble();
-					if (paymentType == "CASH")
-					{
-						cashSales += tot;
-					}
-					else if (paymentType == "CREDIT")
-					{
-						QSqlQuery creditSaleQry("SELECT * FROM credit WHERE payment_id = " + paymentId);
-						while (creditSaleQry.next())
-						{
-							double amount = creditSaleQry.value("amount").toDouble();
-							double interest = creditSaleQry.value("interest").toDouble();
-							amount = (amount * (100 + interest) / 100);
-							creditSales += amount;
-						}
-					}
-					else if (paymentType == "CHEQUE")
-					{
-						QSqlQuery chequeSaleQry("SELECT * FROM cheque WHERE payment_id = " + paymentId);
-						while (chequeSaleQry.next())
-						{
-							double amount = chequeSaleQry.value("amount").toDouble();
-							double interest = chequeSaleQry.value("interest").toDouble();
-							amount = (amount * (100 + interest) / 100);
-							chequeSales += amount;
-						}
-					}
-					else if (paymentType == "CARD")
-					{
-						QSqlQuery cardSaleQry("SELECT * FROM card WHERE payment_id = " + paymentId);
-						while (cardSaleQry.next())
-						{
-							double amount = cardSaleQry.value("amount").toDouble();
-							double interest = cardSaleQry.value("interest").toDouble();
-							amount = (amount * (100 + interest) / 100);
-							cardSales += amount;
-						}
-					}
-					else if (paymentType == "LOYALTY")
-					{
-					}
-				}
-			}
+			customerTotalAmount = totalBillQry.value("TotalAmount").toDouble();
 		}
-		customerTotalAmount += cashSales + cardSales + chequeSales + creditSales;
-		grandTotal += customerTotalAmount;
+ 		grandTotal += customerTotalAmount;
 
 		int row = ui.tableWidget->rowCount();
 		ui.tableWidget->insertRow(row);
@@ -234,7 +189,10 @@ void ESCustomerWiseSalesSummary::slotGenerateReport()
 		cell.addElement(cTextElement, Qt::AlignCenter);
 	}
 
-	QSqlQuery customerQry("SELECT * FROM customer WHERE deleted = 0 ORDER BY name");
+	QSqlQuery customerQry;
+	customerQry.prepare("SELECT * FROM customer WHERE deleted = 0 ORDER BY name");
+	customerQry.setForwardOnly(true);
+	customerQry.exec();
 	int row = 1;
 	double grandTotal = 0;
 	while (customerQry.next())
@@ -246,63 +204,14 @@ void ESCustomerWiseSalesSummary::slotGenerateReport()
 		QString address = customerQry.value("address").toString();
 		QString comments = customerQry.value("comments").toString();
 
-		QSqlQuery totalBillQry("SELECT* FROM bill WHERE deleted = 0 AND status = 1 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "' AND customer_id = " + customerId);
-		while (totalBillQry.next())
+		QSqlQuery totalBillQry;
+		totalBillQry.prepare("SELECT SUM(amount) as TotalAmount FROM bill WHERE deleted = 0 AND status = 1 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "' AND customer_id = " + customerId);
+		totalBillQry.setForwardOnly(true);
+		totalBillQry.exec();
+		if (totalBillQry.next())
 		{
-			QSqlQuery queryUserType("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE user.user_id = " + totalBillQry.value("user_id").toString() + " AND usertype.usertype_name <> 'DEV'");
-			if (queryUserType.next())
-			{
-				QSqlQuery paymentQry("SELECT * FROM payment WHERE valid = 1 AND bill_id = " + totalBillQry.value("bill_id").toString());
-				while (paymentQry.next())
-				{
-					QString paymentType = paymentQry.value("payment_type").toString();
-					QString paymentId = paymentQry.value("payment_id").toString();
-					double tot = paymentQry.value("total_amount").toDouble();
-					if (paymentType == "CASH")
-					{
-						cashSales += tot;
-					}
-					else if (paymentType == "CREDIT")
-					{
-						QSqlQuery creditSaleQry("SELECT * FROM credit WHERE payment_id = " + paymentId);
-						while (creditSaleQry.next())
-						{
-							double amount = creditSaleQry.value("amount").toDouble();
-							double interest = creditSaleQry.value("interest").toDouble();
-							amount = (amount * (100 + interest) / 100);
-							creditSales += amount;
-						}
-					}
-					else if (paymentType == "CHEQUE")
-					{
-						QSqlQuery chequeSaleQry("SELECT * FROM cheque WHERE payment_id = " + paymentId);
-						while (chequeSaleQry.next())
-						{
-							double amount = chequeSaleQry.value("amount").toDouble();
-							double interest = chequeSaleQry.value("interest").toDouble();
-							amount = (amount * (100 + interest) / 100);
-							chequeSales += amount;
-						}
-					}
-					else if (paymentType == "CARD")
-					{
-						QSqlQuery cardSaleQry("SELECT * FROM card WHERE payment_id = " + paymentId);
-						while (cardSaleQry.next())
-						{
-							double amount = cardSaleQry.value("amount").toDouble();
-							double interest = cardSaleQry.value("interest").toDouble();
-							amount = (amount * (100 + interest) / 100);
-							cardSales += amount;
-						}
-					}
-					else if (paymentType == "LOYALTY")
-					{
-					}
-				}
-			}
+			customerTotalAmount = totalBillQry.value("TotalAmount").toDouble();
 		}
-
-		customerTotalAmount += cashSales + cardSales + chequeSales + creditSales;
 		grandTotal += customerTotalAmount;
 
 		printRow(tableElement, row, 0, cName);
