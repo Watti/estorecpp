@@ -60,8 +60,9 @@ void ESOrderCheckIn::slotAddToStock()
 
 	QString itemId = ui.itemIdText->text();
 	double currentQty = ui.quantity->text().toDouble();
-	double currentQtyInDB = -1;
+	double currentQtyInDB = -1.0;
 	double remainingQtyInDB = 0.0;
+	double oldPurchasingPrice = 0.0;
 	
 	// To check whether further check-in is possible
 	QSqlQuery stockPOQuery("SELECT * FROM stock_purchase_order_item WHERE purchaseorder_id = " + m_orderId + " AND item_id = " + itemId);
@@ -69,6 +70,7 @@ void ESOrderCheckIn::slotAddToStock()
 	{
 		currentQtyInDB = stockPOQuery.value("checkin_qty").toDouble();
 		remainingQtyInDB = stockPOQuery.value("remaining_qty").toDouble();
+		oldPurchasingPrice = stockPOQuery.value("purchasing_price").toDouble();
 		if (currentQty > currentQtyInDB)
 		{
 			QMessageBox mbox;
@@ -87,16 +89,24 @@ void ESOrderCheckIn::slotAddToStock()
 	QString userIdStr;
 	userIdStr.setNum(userId);
 
+	bool updateWCost = true;
+
 	QSqlQuery itemStock("SELECT * FROM stock WHERE deleted = 0 AND item_id = " + itemId);
 	if (itemStock.next())
 	{
 		stockId = itemStock.value("stock_id").toString();
 		stockSellingPrice = itemStock.value("selling_price").toString();
-		currentQty += itemStock.value("qty").toDouble();
+		double oldQty = itemStock.value("qty").toDouble();
+		currentQty += oldQty;
 
 		QString qtyStr;
 		qtyStr.setNum(currentQty);
 		QSqlQuery q("UPDATE stock SET qty = " + qtyStr + " WHERE stock_id = " + stockId);
+
+		//double a = oldPurchasingPrice * oldQty;
+		//double b = ui.purchasingPrice->text().toDouble() * ui.quantity->text().toDouble();
+		//double wCost = (a + b) / (oldQty + ui.quantity->text().toDouble());
+		//QSqlQuery updateWCost("UPDATE item SET w_cost = " + QString::number(wCost, 'f', 2) + " WHERE item_id = " + itemId);
 	}
 	else
 	{
@@ -109,6 +119,8 @@ void ESOrderCheckIn::slotAddToStock()
 		{
 			stockId = query.lastInsertId().value<QString>();
 		}
+		QSqlQuery updateWCostQuery("UPDATE item SET w_cost = " + QString::number(ui.purchasingPrice->text().toDouble(), 'f', 2) + " WHERE item_id = " + itemId);
+		updateWCost = false;
 	}
 
 	QString itemSellingPrice = ui.sellingPrice->text();
@@ -148,13 +160,14 @@ void ESOrderCheckIn::slotAddToStock()
 		
 		QSqlQuery query;
 		query.prepare("INSERT INTO stock_purchase_order_item (purchaseorder_id, item_id, stock_id, qty, checkin_qty, \
-				remaining_qty, selling_price) VALUES (?, ?, ?, ?, ?, ?, ?)");
+				remaining_qty, purchasing_price, selling_price) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
 		query.addBindValue(m_orderId);
 		query.addBindValue(itemId);
 		query.addBindValue(stockId);
 		query.addBindValue(qty);
 		query.addBindValue(availableQty);
 		query.addBindValue(ui.quantity->text());
+		query.addBindValue(ui.purchasingPrice->text());
 		query.addBindValue(itemSellingPrice);
 
 		if (!query.exec())
@@ -165,6 +178,25 @@ void ESOrderCheckIn::slotAddToStock()
 			mbox.setIcon(QMessageBox::Critical);
 			mbox.setText(errorMsg);
 			mbox.exec();
+		}
+	}
+
+	if (updateWCost)
+	{
+		QSqlQuery queryOrderItems("SELECT * FROM stock_purchase_order_item WHERE item_id = " + itemId);
+		double costTotal = 0;
+		double qtyTotal = 0;
+		while (queryOrderItems.next())
+		{
+			double curQty = queryOrderItems.value("remaining_qty").toDouble();
+			costTotal += queryOrderItems.value("purchasing_price").toDouble() * curQty;
+			qtyTotal += curQty;
+		}
+
+		if (qtyTotal > 0)
+		{
+			double wCost = costTotal / qtyTotal;
+			QSqlQuery updateWCost("UPDATE item SET w_cost = " + QString::number(wCost, 'f', 2) + " WHERE item_id = " + itemId);
 		}
 	}
 

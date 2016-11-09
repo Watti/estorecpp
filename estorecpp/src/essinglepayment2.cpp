@@ -548,11 +548,56 @@ void ESSinglePayment2::finishBill(double netAmount, int billId)
 	}
 	else
 	{
-		
-// 		if (m_addBill)
-// 		{
-// 			m_addBill->resetBill();
-// 		}
+		// Update database
+		m_returnItemsWidget->updateDatabase();
+
+		// Update stock quantity
+		QSqlQuery saleQuantityQuery;
+		saleQuantityQuery.prepare("SELECT * FROM sale WHERE bill_id = ?");
+		saleQuantityQuery.addBindValue(billId);
+		if (saleQuantityQuery.exec())
+		{
+			while (saleQuantityQuery.next())
+			{
+				QString stockId = saleQuantityQuery.value("stock_id").toString();
+				double quantity = saleQuantityQuery.value("quantity").toDouble();
+
+				QSqlQuery q("SELECT * FROM stock WHERE stock_id = " + stockId);
+				if (q.next())
+				{
+					double stockQuantity = q.value("qty").toDouble();
+					double remainingQty = stockQuantity - quantity;
+					//QSqlQuery stockUpdateQuery;
+					//stockUpdateQuery.prepare("UPDATE stock SET qty = ? WHERE stock_id = ?");
+					//stockUpdateQuery.addBindValue(remainingQty);
+					//stockUpdateQuery.addBindValue(stockId);
+					//stockUpdateQuery.exec();
+
+					// stock quantity has been updated, match the update of the stock quantity 
+					// with the PO items in stock_purchase_order_item for profit calculation
+					// if multiple records are present first one will be updated
+					double qty = quantity;
+					QSqlQuery qq("SELECT * FROM stock_purchase_order_item WHERE stock_id = " + stockId);
+					while (qq.next())
+					{
+						QString id = qq.value("stock_po_item_id").toString();
+						double currentQty = qq.value("remaining_qty").toDouble();
+						if (qty <= currentQty)
+						{
+							QSqlQuery qqq("UPDATE stock_purchase_order_item SET remaining_qty = " +
+								QString::number(currentQty - qty, 'f', 2) + " WHERE stock_po_item_id = " + id);
+							break;
+						}
+						else
+						{
+							QSqlQuery qqq("UPDATE stock_purchase_order_item SET remaining_qty = 0 WHERE stock_po_item_id = " + id);
+							qty -= currentQty;
+						}
+					}
+				}
+
+			}
+		}
 
 		if (ui.doPrintCB->isChecked())
 		{
@@ -1077,9 +1122,6 @@ void ESSinglePayment2::slotPrintReturnBill()
 	header1.addElement(billIdHead);
 
 	//////////////////////////////////////////////////////////////////////////
-
-	// Update database
-	m_returnItemsWidget->updateDatabase();
 
 	QPrinter printer;
 	printer.setPaperSize(QPrinter::A4);

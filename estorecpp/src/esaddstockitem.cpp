@@ -124,9 +124,11 @@ void AddStockItem::slotAddStockItem()
 							visible = "0";
 						}
 						QSqlQuery queryStock("SELECT qty FROM stock WHERE stock_id = "+m_stockId);
+						double currentStockQty = 0.0;
+						
 						if (queryStock.first())
 						{
-							double currentStockQty = queryStock.value("qty").toDouble();
+							currentStockQty = queryStock.value("qty").toDouble();
 							newQty = currentStockQty + quantity;
 							q = "UPDATE stock SET qty = '" + QString::number(newQty) + "', min_qty = '" + minQtyStr + "' ,selling_price = '" + price + "', discount ='" + discount + "', visible = '" + visible + "', floor = '" + floorNo + "' WHERE stock_id = " + m_stockId;
 						}
@@ -141,8 +143,13 @@ void AddStockItem::slotAddStockItem()
 							}
 							else
 							{
-								double wCost = (purchasingPrice.toDouble() + oldWCost) / 2.0;
-								QSqlQuery updateWCost("UPDATE item SET w_cost = " + QString::number(wCost, 'f', 2) + " WHERE item_id = " + itemId);
+								if (quantity > 0)
+								{
+									double a = oldWCost * currentStockQty;
+									double b = purchasingPrice.toDouble() * quantity;
+									double wCost = (a + b) / (currentStockQty + quantity);
+									QSqlQuery updateWCost("UPDATE item SET w_cost = " + QString::number(wCost, 'f', 2) + " WHERE item_id = " + itemId);
+								}
 							}
 						}
 					}
