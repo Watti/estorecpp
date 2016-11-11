@@ -106,11 +106,8 @@ void MDFSalesSummary::slotSearch()
 
 	for (auto midh : dataHolderVec)
 	{
-		int row = ui.tableWidget->rowCount();
-		ui.tableWidget->insertRow(row);
-
-		QTableWidgetItem* nameItem = new QTableWidgetItem(midh.itemName);
-		ui.tableWidget->setVerticalHeaderItem(row, nameItem);
+		int row = 0;
+		
 
 		float itemCost = 0;
 		float lineTotal = 0;
@@ -123,7 +120,15 @@ void MDFSalesSummary::slotSearch()
 
 		if (salesQry.next())
 		{
+
 			lineTotal = salesQry.value("totalAmount").toFloat();
+			if (lineTotal > 0)
+			{
+				row = ui.tableWidget->rowCount();
+				ui.tableWidget->insertRow(row);
+
+				QTableWidgetItem* nameItem = new QTableWidgetItem(midh.itemName);
+				ui.tableWidget->setVerticalHeaderItem(row, nameItem);
 			grandSalesTotal += lineTotal;
 			float discount = salesQry.value("discount").toFloat();
 			lineQty = salesQry.value("totalQty").toFloat();
@@ -156,6 +161,7 @@ void MDFSalesSummary::slotSearch()
 			QTableWidgetItem *totalSalesCostWidget = new QTableWidgetItem(QString::number(lineCost, 'f', 2));
 			totalSalesCostWidget->setTextAlignment(Qt::AlignRight);
 			ui.tableWidget->setItem(row, 4, totalSalesCostWidget);
+			}
 
 		}
 
@@ -606,10 +612,8 @@ void MDFSalesSummary::slotGenerateReport()
 		cell.addElement(cTextElement, Qt::AlignCenter);
 	}
 	int row = 1;
-	float grandReturnTotal, grandReturnCost = 0, grandSaleCost = 0, grandSalesTotal = 0;
-	float totalProfit = 0;
+	float grandReturnTotal, grandReturnCost = 0, grandSaleCost = 0, grandSalesTotal = 0, totalProfit = 0, netTotalIncome = 0;
 
-	double netTotalIncome = 0;
 	QVector<MDFItemDataHolder> dataHolderVec;
 	QString qMDFStr = "SELECT * FROM Item JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id WHERE item.deleted = 0 AND item_category.itemcategory_name ='MDF'";
 	QSqlQuery categoryQry;
@@ -633,11 +637,10 @@ void MDFSalesSummary::slotGenerateReport()
 			dataHolderVec.push_back(midh);
 		}
 	}
-
+	bool printLine = false;
 	for (auto midh : dataHolderVec)
 	{
-		printRow(tableElement, row, 0, midh.itemName);
-
+		printLine = false;
 		float itemCost = 0;
 		float lineTotal = 0;
 		float lineQty = 0;
@@ -658,12 +661,15 @@ void MDFSalesSummary::slotGenerateReport()
 			grandReturnCost += lineCost;
 			itemCost = lineCost / lineQty;
 			float avgSellingPrice = lineTotal / lineQty;
-
-			printRow(tableElement, row, 1, QString::number(itemCost, 'f', 2));
-			printRow(tableElement, row, 2, QString::number(avgSellingPrice, 'f', 2));
-			printRow(tableElement, row, 3, QString::number(lineQty));
-			printRow(tableElement, row, 4, QString::number(lineTotal, 'f', 2));
-			printRow(tableElement, row, 5, QString::number(lineCost, 'f', 2));
+			if (lineTotal > 0)
+			{
+				printRow(tableElement, row, 1, QString::number(itemCost, 'f', 2));
+				printRow(tableElement, row, 2, QString::number(avgSellingPrice, 'f', 2));
+				printRow(tableElement, row, 3, QString::number(lineQty));
+				printRow(tableElement, row, 4, QString::number(lineTotal, 'f', 2));
+				printRow(tableElement, row, 5, QString::number(lineCost, 'f', 2));
+				printLine = true;
+			}
 
 		}
 
@@ -672,24 +678,30 @@ void MDFSalesSummary::slotGenerateReport()
 		QSqlQuery queryReturn("SELECT SUM(qty) as totalQty , SUM(return_total) as retTotal FROM return_item WHERE item_id = " + midh.itemId + " AND deleted = 0 AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
 		if (queryReturn.next())
 		{
-			float lineReturnQty = queryReturn.value("totalQty").toFloat();
-			float lineReturn = queryReturn.value("retTotal").toFloat();
-			grandReturnTotal += lineReturn;
+			if (printLine)
+			{
+				float lineReturnQty = queryReturn.value("totalQty").toFloat();
+				float lineReturn = queryReturn.value("retTotal").toFloat();
+				grandReturnTotal += lineReturn;
 
-			printRow(tableElement, row, 6, QString::number(lineReturnQty));
-			printRow(tableElement, row, 7, QString::number(lineReturn, 'f', 2));
+				printRow(tableElement, row, 6, QString::number(lineReturnQty));
+				printRow(tableElement, row, 7, QString::number(lineReturn, 'f', 2));
 
-			totalReturnCost = lineReturnQty * itemCost;
-			grandReturnCost += totalReturnCost;
+				totalReturnCost = lineReturnQty * itemCost;
+				grandReturnCost += totalReturnCost;
 
-			printRow(tableElement, row, 8, QString::number(totalReturnCost, 'f', 2));
-
+				printRow(tableElement, row, 8, QString::number(totalReturnCost, 'f', 2));
+			}
 		}
-		float itemProfit = (lineTotal - lineCost) - (returnTotal - totalReturnCost);
-		totalProfit += itemProfit;
-		netTotalIncome += (lineTotal - returnTotal);
-		printRow(tableElement, row, 9, QString::number(itemProfit, 'f', 2));
-		row++;
+		if (printLine)
+		{
+			float itemProfit = (lineTotal - lineCost) - (returnTotal - totalReturnCost);
+			totalProfit += itemProfit;
+			netTotalIncome += (lineTotal - returnTotal);
+			printRow(tableElement, row, 0, midh.itemName);
+			printRow(tableElement, row, 9, QString::number(itemProfit, 'f', 2));
+			row++;
+		}
 	}
 	printRow(tableElement, row, 3, "Net. Sales");
 	printRow(tableElement, row, 4, QString::number(netTotalIncome, 'f', 2));
