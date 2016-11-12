@@ -28,7 +28,7 @@ public:
 private:
 	Ui::RevenueMasterReport ui;
 
-	void printRow(KDReports::TableElement& tableElement, int row, int col,
+	void printRow(KDReports::TableElement* tableElement, int row, int col,
 		QString elementStr, Qt::AlignmentFlag alignment = Qt::AlignLeft);
 	KDReports::Report* report;
 	QSignalMapper* m_generateReportSignalMapper;

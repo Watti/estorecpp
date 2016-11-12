@@ -84,28 +84,30 @@ void ESCustomerWiseSalesSummary::slotSearch()
 		if (totalBillQry.next())
 		{
 			customerTotalAmount = totalBillQry.value("TotalAmount").toDouble();
+			if (customerTotalAmount > 0)
+			{
+				grandTotal += customerTotalAmount;
+
+				int row = ui.tableWidget->rowCount();
+				ui.tableWidget->insertRow(row);
+
+				QTableWidgetItem *nameWidget = new QTableWidgetItem(cName);
+				nameWidget->setTextAlignment(Qt::AlignLeft);
+				ui.tableWidget->setItem(row, 0, nameWidget);
+
+				QTableWidgetItem *phoneWidget = new QTableWidgetItem(phone);
+				phoneWidget->setTextAlignment(Qt::AlignLeft);
+				ui.tableWidget->setItem(row, 1, phoneWidget);
+
+				QTableWidgetItem *addressWidget = new QTableWidgetItem(address);
+				addressWidget->setTextAlignment(Qt::AlignLeft);
+				ui.tableWidget->setItem(row, 2, addressWidget);
+
+				QTableWidgetItem *totalSalesWidget = new QTableWidgetItem(QString::number(customerTotalAmount, 'f', 2));
+				totalSalesWidget->setTextAlignment(Qt::AlignRight);
+				ui.tableWidget->setItem(row, 3, totalSalesWidget);
+			}
 		}
- 		grandTotal += customerTotalAmount;
-
-		int row = ui.tableWidget->rowCount();
-		ui.tableWidget->insertRow(row);
-
-
-		QTableWidgetItem *nameWidget = new QTableWidgetItem(cName);
-		nameWidget->setTextAlignment(Qt::AlignLeft);
-		ui.tableWidget->setItem(row, 0, nameWidget);
-
-		QTableWidgetItem *phoneWidget = new QTableWidgetItem(phone);
-		phoneWidget->setTextAlignment(Qt::AlignLeft);
-		ui.tableWidget->setItem(row, 1, phoneWidget);
-
-		QTableWidgetItem *addressWidget = new QTableWidgetItem(address);
-		addressWidget->setTextAlignment(Qt::AlignLeft);
-		ui.tableWidget->setItem(row, 2, addressWidget);
-
-		QTableWidgetItem *totalSalesWidget = new QTableWidgetItem(QString::number(customerTotalAmount, 'f', 2));
-		totalSalesWidget->setTextAlignment(Qt::AlignRight);
-		ui.tableWidget->setItem(row, 3, totalSalesWidget);
 	}
 	ui.totalLbl->setText(QString::number(grandTotal, 'f', 2));
 }
@@ -211,14 +213,17 @@ void ESCustomerWiseSalesSummary::slotGenerateReport()
 		if (totalBillQry.next())
 		{
 			customerTotalAmount = totalBillQry.value("TotalAmount").toDouble();
-		}
-		grandTotal += customerTotalAmount;
+			if (customerTotalAmount > 0)
+			{
+				grandTotal += customerTotalAmount;
 
-		printRow(tableElement, row, 0, cName);
-		printRow(tableElement, row, 1, phone);
-		printRow(tableElement, row, 2, address);
-		printRow(tableElement, row, 3, QString::number(customerTotalAmount, 'f', 2));
-		row++;
+				printRow(tableElement, row, 0, cName);
+				printRow(tableElement, row, 1, phone);
+				printRow(tableElement, row, 2, address);
+				printRow(tableElement, row, 3, QString::number(customerTotalAmount, 'f', 2));
+				row++;
+			}
+		}
 	}
 
 	printRow(tableElement, row, 2, "Total ");
