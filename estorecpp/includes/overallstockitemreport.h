@@ -14,7 +14,6 @@ class ESOverallStockItemReport : public QWidget
 public:
 	ESOverallStockItemReport(QWidget *parent = 0);
 
-	void displayResults();
 
 	~ESOverallStockItemReport();
 
@@ -25,6 +24,7 @@ public:
 	void slotPrint(QPrinter* printer);
 	void slotPrev();
 	void slotNext();
+	void displayResults();
 
 private:
 	Ui::OverallStockItemsReportWidget ui;

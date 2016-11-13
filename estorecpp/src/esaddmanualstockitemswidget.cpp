@@ -192,7 +192,7 @@ void ESAddManualStockItems::slotAddToStock()
 		return;
 	}
 	bool isValid = false;
-	newSellingPrice.toDouble(&isValid);
+	double sellingPrice = newSellingPrice.toDouble(&isValid);
 	if (!isValid)
 	{
 		QMessageBox mbox;
@@ -271,6 +271,15 @@ void ESAddManualStockItems::slotAddToStock()
 		mbox.setIcon(QMessageBox::Warning);
 		mbox.setText(QString("Invalid input - Purchasing Price"));
 		mbox.exec();
+	}
+	double costOfItem = purchasingPriceStr.toDouble();
+	if (sellingPrice < costOfItem)
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Warning);
+		mbox.setText(QString("Invalid input - Purchasing price cannot be higher than the selling price"));
+		mbox.exec();
+		return;
 	}
 	if (!floorNo.isEmpty())
 	{
@@ -370,6 +379,13 @@ void ESAddManualStockItems::slotAddToStock()
 				}
 			}
 		}
+		if (success)
+		{
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Information);
+			mbox.setText(QString("Operation is success"));
+			mbox.exec();
+		}
 	}
 	else
 	{
@@ -417,6 +433,13 @@ void ESAddManualStockItems::slotAddToStock()
 				mbox.setText(QString("Purchasing price update error!"));
 				mbox.exec();
 			}
+		}
+		if (success)
+		{
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Information);
+			mbox.setText(QString("Operation is success"));
+			mbox.exec();
 		}
 	}
 

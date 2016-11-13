@@ -11,6 +11,9 @@
 #include <QTextEdit>
 #include "utility/esmainwindowholder.h"
 #include "esmainwindow.h"
+#include "QMessageBox"
+#include "utility/esdbconnection.h"
+#include "utility/utility.h"
 
 ESStockReport::ESStockReport(QWidget *parent /*= 0*/) : QWidget(parent), m_report(NULL)
 {
@@ -31,7 +34,28 @@ ESStockReport::ESStockReport(QWidget *parent /*= 0*/) : QWidget(parent), m_repor
 	ui.tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
 
 	QObject::connect(ui.generateButton, SIGNAL(clicked()), this, SLOT(slotGenerate()));
+	QObject::connect(ui.categoryCombo, SIGNAL(activated(QString)), this, SLOT(displayResults()));
+	if (!ES::DbConnection::instance()->open())
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Critical);
+		mbox.setText(QString("Cannot connect to the database : ESStockReport::displayStockItems "));
+		mbox.exec();
+	}
+	else
+	{
+		QSqlQuery queryCategory("SELECT * FROM item_category WHERE deleted = 0 ORDER BY itemcategory_name");
+		QString catCode = "select";
+		int catId = -1;
 
+		ui.categoryCombo->addItem(catCode, catId);
+
+		while (queryCategory.next())
+		{
+			catId = queryCategory.value("itemcategory_id").toInt();
+			ui.categoryCombo->addItem(queryCategory.value("itemcategory_name").toString(), catId);
+		}
+	}
 	displayResults();
 
 }
@@ -125,18 +149,37 @@ void ESStockReport::slotGenerate()
 		t4.setPointSize(12);
 		//t4.setTextColor(Qt::gray);
 		c4.addElement(t4);
-
+		int categoryId = ui.categoryCombo->currentData().toInt();
+		bool categorySelected = false;
+		if (categoryId != -1)
+		{
+			categorySelected = true;
+		}
 		row++;
 		QString maxRows = ui.maxRows->text();
 		QString qStr;
 		if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
 			ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
 		{
-			qStr = "SELECT stock.qty, stock.min_qty, item.item_code, item.item_name FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0  AND item.deleted = 0 AND stock.qty <= stock.min_qty";
+
+			qStr = "SELECT item.item_name, stock.qty, stock.min_qty, item.item_code FROM stock JOIN item ON stock.item_id = item.item_id JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id WHERE stock.deleted = 0 AND item.deleted = 0 AND item_category.deleted =0 ";
+
+			if (categorySelected)
+			{
+				qStr.append(" AND item_category.itemcategory_id = " + QString::number(categoryId));
+			}
+			qStr.append(" AND stock.qty <= stock.min_qty LIMIT " + maxRows);
 		}
 		else
 		{
-			qStr = "SELECT stock.qty, stock.min_qty, item.item_code, item.item_name FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 AND item.deleted = 0 AND stock.visible = 1 AND stock.qty <= stock.min_qty";
+			qStr = "SELECT item.item_name, stock.qty, stock.min_qty, item.item_code FROM stock JOIN item ON stock.item_id = item.item_id JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id WHERE stock.deleted = 0 AND item.deleted = 0 AND item_category.deleted =0 AND stock.visible = 1 ";
+			//qStr = "SELECT stock.qty, stock.min_qty, item.item_code FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 AND item.deleted = 0 AND stock.visible = 1 AND stock.qty <= stock.min_qty LIMIT " + maxRows;
+
+			if (categorySelected)
+			{
+				qStr.append(" AND item_category.itemcategory_id = " + QString::number(categoryId));
+			}
+			qStr.append(" AND stock.qty <= stock.min_qty LIMIT " + maxRows);
 		}
 		QSqlQuery q(qStr);
 		while (q.next())
@@ -148,24 +191,24 @@ void ESStockReport::slotGenerate()
 
 			QString itemCode = q.value("item_code").toString();
 			QString itemName = q.value("item_name").toString();
-			QString qtyStr = QString::number(qty, 'f', 2);
-			QString minQtyStr = QString::number(minQty, 'f', 2);
+			QString qtyStr = QString::number(qty);
+			QString minQtyStr = QString::number(minQty);
 			QString s, reorder = "No";
 
 			if (excess > 0)
 			{
-				s = QString::number(excess, 'f', 2);
+				s = QString::number(excess);
 				s.prepend("(+) ");
 			}
 			else if (excess < 0)
 			{
-				s = QString::number(-excess, 'f', 2);
+				s = QString::number(-excess);
 				s.prepend("(-) ");
 				reorder = "Yes";
 			}
 			else
 			{
-				s = QString::number(excess, 'f', 2);
+				s = QString::number(excess);
 			}
 
 			KDReports::Cell& c1 = tableElement.cell(row, 0);
@@ -233,16 +276,38 @@ void ESStockReport::displayResults()
 	{
 		ui.tableWidget->removeRow(0);
 	}
+
+	int categoryId = ui.categoryCombo->currentData().toInt();
+	bool categorySelected = false;
+	if (categoryId != -1)
+	{
+		categorySelected = true;
+	}
 	QString maxRows = ui.maxRows->text();
 	QString qStr;
+
 	if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
 		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
 	{
-		qStr = "SELECT stock.qty, stock.min_qty, item.item_code FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 AND item.deleted = 0 AND stock.qty <= stock.min_qty LIMIT " + maxRows;
+		
+		qStr = "SELECT item.item_name, stock.qty, stock.min_qty, item.item_code FROM stock JOIN item ON stock.item_id = item.item_id JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id WHERE stock.deleted = 0 AND item.deleted = 0 AND item_category.deleted =0 ";
+
+		if (categorySelected)
+		{
+			qStr.append(" AND item_category.itemcategory_id = "+QString::number(categoryId));
+		}
+		qStr.append(" AND stock.qty <= stock.min_qty LIMIT " + maxRows);
 	}
 	else
 	{
-		qStr = "SELECT stock.qty, stock.min_qty, item.item_code FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 AND item.deleted = 0 AND stock.visible = 1 AND stock.qty <= stock.min_qty LIMIT " + maxRows;
+		qStr = "SELECT item.item_name, stock.qty, stock.min_qty, item.item_code FROM stock JOIN item ON stock.item_id = item.item_id JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id WHERE stock.deleted = 0 AND item.deleted = 0 AND item_category.deleted =0 AND stock.visible = 1 ";
+		//qStr = "SELECT stock.qty, stock.min_qty, item.item_code FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 AND item.deleted = 0 AND stock.visible = 1 AND stock.qty <= stock.min_qty LIMIT " + maxRows;
+
+		if (categorySelected)
+		{
+			qStr.append(" AND item_category.itemcategory_id = " + QString::number(categoryId));
+		}
+		qStr.append(" AND stock.qty <= stock.min_qty LIMIT " + maxRows);
 	}
 	QSqlQuery q(qStr);
 	while (q.next())
@@ -260,12 +325,12 @@ void ESStockReport::displayResults()
 		if (excess < 0)	item->setBackgroundColor(red);
 		ui.tableWidget->setItem(row, 0, item);
 
-		item = new QTableWidgetItem(QString::number(qty, 'f', 2));
+		item = new QTableWidgetItem(QString::number(qty));
 		item->setTextAlignment(Qt::AlignRight);
 		if (excess < 0)	item->setBackgroundColor(red);
 		ui.tableWidget->setItem(row, 1, item);
 
-		item = new QTableWidgetItem(QString::number(minQty, 'f', 2));
+		item = new QTableWidgetItem(QString::number(minQty));
 		item->setTextAlignment(Qt::AlignRight);
 		if (excess < 0)	item->setBackgroundColor(red);
 		ui.tableWidget->setItem(row, 2, item);
@@ -274,18 +339,18 @@ void ESStockReport::displayResults()
 
 		if (excess > 0)
 		{
-			s = QString::number(excess, 'f', 2);
+			s = QString::number(excess);
 			s.prepend("(+) ");
 		}
 		else if (excess < 0)
 		{
-			s = QString::number(-excess, 'f', 2);
+			s = QString::number(-excess);
 			s.prepend("(-) ");
 			reorder = "Yes";
 		}
 		else
 		{
-			s = QString::number(excess, 'f', 2);
+			s = QString::number(excess);
 		}
 
 		item = new QTableWidgetItem(s);

@@ -12,6 +12,8 @@
 #include "esmainwindow.h"
 #include "overallstockitemreport.h"
 #include "utility/utility.h"
+#include "utility/esdbconnection.h"
+#include "QMessageBox"
 
 ESOverallStockItemReport::ESOverallStockItemReport(QWidget *parent /*= 0*/) : QWidget(parent),
 m_startingLimit(0), m_pageOffset(100), m_nextCounter(0), m_maxNextCount(0), m_report(NULL)
@@ -37,7 +39,28 @@ m_startingLimit(0), m_pageOffset(100), m_nextCounter(0), m_maxNextCount(0), m_re
 	QObject::connect(ui.nextBtn, SIGNAL(clicked()), this, SLOT(slotNext()));
 	QObject::connect(ui.prevBtn, SIGNAL(clicked()), this, SLOT(slotPrev()));
 	QObject::connect(ui.generateButton, SIGNAL(clicked()), this, SLOT(slotGenerate()));
+	QObject::connect(ui.categoryCombo, SIGNAL(activated(QString)), this, SLOT(displayResults()));
+	if (!ES::DbConnection::instance()->open())
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Critical);
+		mbox.setText(QString("Cannot connect to the database : ESOverallStockItemReport::displayStockItems "));
+		mbox.exec();
+	}
+	else
+	{
+		QSqlQuery queryCategory("SELECT * FROM item_category WHERE deleted = 0 ORDER BY itemcategory_name");
+		QString catCode = "select";
+		int catId = -1;
 
+		ui.categoryCombo->addItem(catCode, catId);
+
+		while (queryCategory.next())
+		{
+			catId = queryCategory.value("itemcategory_id").toInt();
+			ui.categoryCombo->addItem(queryCategory.value("itemcategory_name").toString(), catId);
+		}
+	}
 	ui.prevBtn->setDisabled(true);
 	ui.nextBtn->setDisabled(true);
 
@@ -140,15 +163,25 @@ void ESOverallStockItemReport::slotGenerate()
 	}
 	row++;
 	double subTotal = 0;
+	int categoryId = ui.categoryCombo->currentData().toInt();
+	bool categorySelected = false;
+	if (categoryId != -1)
+	{
+		categorySelected = true;
+	}
 	QString qStr;
 	if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
 		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
 	{
-		qStr = "SELECT stock.stock_id, stock.qty, stock.min_qty, stock.floor, stock.selling_price, item.item_code, item.item_name, item.w_cost FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 AND item.deleted=0";
+		qStr = "SELECT stock.stock_id, stock.qty, stock.min_qty, stock.floor, item.item_code, item.item_name, item.w_cost , stock.selling_price FROM stock JOIN item ON stock.item_id = item.item_id JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id WHERE stock.deleted = 0 AND item.deleted = 0  AND item_category.deleted =0 ";
 	}
 	else
 	{
-		qStr = "SELECT stock.stock_id, stock.qty, stock.min_qty, stock.floor, stock.selling_price, item.item_code, item.item_name , item.w_cost FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 AND item.deleted=0 AND stock.visible = 1";
+		qStr = "SELECT stock.stock_id, stock.qty, stock.min_qty, stock.floor, stock.selling_price, item.item_code, item.item_name , item.w_cost FROM stock JOIN item ON stock.item_id = item.item_id JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id WHERE stock.deleted = 0 AND item.deleted = 0 AND item_category.deleted =0 AND stock.visible = 1 ";
+	}
+	if (categorySelected)
+	{
+		qStr.append(" AND item_category.itemcategory_id = " + QString::number(categoryId));
 	}
 	//pagination start
 	qStr.append(" LIMIT ").append(QString::number(m_startingLimit));
@@ -219,17 +252,29 @@ void ESOverallStockItemReport::displayResults()
 	{
 		ui.tableWidget->removeRow(0);
 	}
+	int categoryId = ui.categoryCombo->currentData().toInt();
+	bool categorySelected = false;
+	if (categoryId != -1)
+	{
+		categorySelected = true;
+	}
 	QString qStr, qRecordCountStr;
 	if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
 		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
 	{
-		qStr = "SELECT stock.stock_id, stock.qty, stock.min_qty, stock.floor, item.item_code, item.item_name, item.w_cost , stock.selling_price FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 AND item.deleted = 0";
-		qRecordCountStr = "SELECT COUNT(*) as c FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 AND item.deleted=0";
+		qStr = "SELECT stock.stock_id, stock.qty, stock.min_qty, stock.floor, item.item_code, item.item_name, item.w_cost , stock.selling_price FROM stock JOIN item ON stock.item_id = item.item_id JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id WHERE stock.deleted = 0 AND item.deleted = 0  AND item_category.deleted =0 ";
+		qRecordCountStr = "SELECT COUNT(*) as c FROM stock JOIN item ON stock.item_id = item.item_id JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id WHERE stock.deleted = 0 AND item.deleted=0 AND item_category.deleted =0 ";
+		
 	}
 	else
 	{
-		qStr = "SELECT stock.stock_id, stock.qty, stock.min_qty, stock.floor, stock.selling_price, item.item_code, item.item_name , item.w_cost FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 AND item.deleted = 0 AND stock.visible = 1";
-		qRecordCountStr = "SELECT COUNT(*) as c FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0  AND item.deleted=0 AND stock.visible = 1";
+		qStr = "SELECT stock.stock_id, stock.qty, stock.min_qty, stock.floor, stock.selling_price, item.item_code, item.item_name , item.w_cost FROM stock JOIN item ON stock.item_id = item.item_id JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id WHERE stock.deleted = 0 AND item.deleted = 0 AND item_category.deleted =0 AND stock.visible = 1 ";
+		qRecordCountStr = "SELECT COUNT(*) as c FROM stock JOIN item ON stock.item_id = item.item_id  JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id WHERE stock.deleted = 0 AND item.deleted=0 AND stock.visible = 1  AND item_category.deleted =0 ";
+	}
+	if (categorySelected)
+	{
+		qStr.append(" AND item_category.itemcategory_id = " + QString::number(categoryId));
+		qRecordCountStr.append(" AND item_category.itemcategory_id = " + QString::number(categoryId));
 	}
 	QSqlQuery queryRecordCount(qRecordCountStr);
 	if (queryRecordCount.next())

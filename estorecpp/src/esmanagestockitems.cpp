@@ -59,7 +59,7 @@ ESManageStockItems::ESManageStockItems(QWidget *parent /*= 0*/)
 	}
 	else
 	{
-		QSqlQuery queryCategory("SELECT * FROM item_category WHERE deleted = 0");
+		QSqlQuery queryCategory("SELECT * FROM item_category WHERE deleted = 0 ORDER BY itemcategory_name");
 		QStringList catogory;
 		catogory.append(DEFAULT_DB_COMBO_VALUE);
 		while (queryCategory.next())

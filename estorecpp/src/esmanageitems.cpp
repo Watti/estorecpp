@@ -54,7 +54,7 @@ ESManageItems::ESManageItems(QWidget *parent /*= 0*/)
 	}
 	else
 	{
-		QSqlQuery queryCategory("SELECT * FROM item_category WHERE deleted = 0");
+		QSqlQuery queryCategory("SELECT * FROM item_category WHERE deleted = 0 ORDER BY itemcategory_name");
 		QString catCode = "select";
 		int catId = -1;
 

@@ -14,7 +14,6 @@ class ESStockReport : public QWidget
 public:
 	ESStockReport(QWidget *parent = 0);
 
-	void displayResults();
 
 	~ESStockReport();
 
@@ -23,6 +22,7 @@ public:
 	public slots:
 	void slotGenerate();
 	void slotPrint(QPrinter* printer);
+	void displayResults();
 	
 private:
 	Ui::StockReportWidget ui;
