@@ -131,8 +131,4 @@ void ESSalesReportContainer::onTabChanged(int tabIndex)
 	default:
 		break;
 	}
-
-
-
-
 }

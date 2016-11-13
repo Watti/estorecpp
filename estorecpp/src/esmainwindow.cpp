@@ -70,7 +70,7 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	QObject::connect(ui.actionCurrentBills, SIGNAL(triggered()), this, SLOT(slotCurrentBills()));
 	QObject::connect(ui.actionConfigure, SIGNAL(triggered()), this, SLOT(slotConfigure()));
 	QObject::connect(ui.actionShowStatus, SIGNAL(triggered()), this, SLOT(slotShowStatus()));
-	QObject::connect(ui.actionGeneral, SIGNAL(triggered()), this, SLOT(slotGeneralReports()));
+	//QObject::connect(ui.actionGeneral, SIGNAL(triggered()), this, SLOT(slotGeneralReports()));
 	QObject::connect(ui.actionSales, SIGNAL(triggered()), this, SLOT(slotSalesReports()));
 	QObject::connect(ui.actionStocks, SIGNAL(triggered()), this, SLOT(slotStocksReports()));
 	QObject::connect(ui.actionSettings, SIGNAL(triggered()), this, SLOT(slotSettings()));
@@ -176,9 +176,9 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	ui.mainToolBar->addAction(ui.actionShowStatus);
 	mmgr->addSeparator(ui.mainToolBar->addSeparator());
 	
-	mmgr->addAction("General", ui.actionGeneral);
-	ui.actionGeneral->setIcon(QIcon("icons/reports.png"));
-	ui.mainToolBar->addAction(ui.actionGeneral);
+// 	mmgr->addAction("General", ui.actionGeneral);
+// 	ui.actionGeneral->setIcon(QIcon("icons/reports.png"));
+// 	ui.mainToolBar->addAction(ui.actionGeneral);
 	mmgr->addAction("Sales", ui.actionSales);
 	ui.actionSales->setIcon(QIcon("icons/sales_report.png"));
 	ui.mainToolBar->addAction(ui.actionSales);
@@ -195,12 +195,12 @@ ESMainWindow::ESMainWindow(QWidget *parent)
 	ui.mainToolBar->addAction(ui.actionBackupRestore);
 	mmgr->addSeparator(ui.mainToolBar->addSeparator());
 
-	mmgr->addAction("Offers", ui.actionOffers);
-	ui.actionOffers->setIcon(QIcon("icons/offers.png"));
-	ui.mainToolBar->addAction(ui.actionOffers);
-	mmgr->addAction("Gift Vouchers", ui.actionGiftVouchers);
-	ui.actionGiftVouchers->setIcon(QIcon("icons/gift_voucher.png"));
-	ui.mainToolBar->addAction(ui.actionGiftVouchers);
+// 	mmgr->addAction("Offers", ui.actionOffers);
+// 	ui.actionOffers->setIcon(QIcon("icons/offers.png"));
+// 	ui.mainToolBar->addAction(ui.actionOffers);
+// 	mmgr->addAction("Gift Vouchers", ui.actionGiftVouchers);
+// 	ui.actionGiftVouchers->setIcon(QIcon("icons/gift_voucher.png"));
+// 	ui.mainToolBar->addAction(ui.actionGiftVouchers);
 
 	mmgr->addMenuActionMapping("Stock", "Manage Stock Items");
 	mmgr->addMenuActionMapping("Items", "Manage Items");

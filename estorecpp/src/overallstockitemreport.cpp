@@ -144,11 +144,11 @@ void ESOverallStockItemReport::slotGenerate()
 	if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
 		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
 	{
-		qStr = "SELECT stock.stock_id, stock.qty, stock.min_qty, stock.floor, stock.selling_price, item.item_code, item.item_name FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 AND item.deleted=0";
+		qStr = "SELECT stock.stock_id, stock.qty, stock.min_qty, stock.floor, stock.selling_price, item.item_code, item.item_name, item.w_cost FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 AND item.deleted=0";
 	}
 	else
 	{
-		qStr = "SELECT stock.stock_id, stock.qty, stock.min_qty, stock.floor, stock.selling_price, item.item_code, item.item_name FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 AND item.deleted=0 AND stock.visible = 1";
+		qStr = "SELECT stock.stock_id, stock.qty, stock.min_qty, stock.floor, stock.selling_price, item.item_code, item.item_name , item.w_cost FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 AND item.deleted=0 AND stock.visible = 1";
 	}
 	//pagination start
 	qStr.append(" LIMIT ").append(QString::number(m_startingLimit));
@@ -163,11 +163,12 @@ void ESOverallStockItemReport::slotGenerate()
 		double sellingPrice = q.value("selling_price").toDouble();
 		double purchasingPrice = 0;
 		QString stockId = q.value("stock_id").toString();
-		QSqlQuery qryPurchaseOrder("SELECT * FROM stock_purchase_order_item JOIN stock ON stock_purchase_order_item.stock_id = stock.stock_id WHERE stock.deleted = 0 AND stock.stock_id = " + stockId);
-		if (qryPurchaseOrder.next())
-		{
-			purchasingPrice = qryPurchaseOrder.value("purchasing_price").toDouble();
-		}
+// 		QSqlQuery qryPurchaseOrder("SELECT * FROM stock_purchase_order_item JOIN stock ON stock_purchase_order_item.stock_id = stock.stock_id WHERE stock.deleted = 0 AND stock.stock_id = " + stockId);
+// 		if (qryPurchaseOrder.next())
+// 		{
+// 			purchasingPrice = qryPurchaseOrder.value("purchasing_price").toDouble();
+// 		}
+		purchasingPrice = q.value("w_cost").toDouble();
 		QString itemCode = q.value("item_code").toString();
 		QString itemName = q.value("item_name").toString();
 		QString floorNo = q.value("floor").toString();
@@ -222,12 +223,12 @@ void ESOverallStockItemReport::displayResults()
 	if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
 		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
 	{
-		qStr = "SELECT stock.stock_id, stock.qty, stock.min_qty, stock.floor, item.item_code, item.item_name , stock.selling_price FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 AND item.deleted = 0";
+		qStr = "SELECT stock.stock_id, stock.qty, stock.min_qty, stock.floor, item.item_code, item.item_name, item.w_cost , stock.selling_price FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 AND item.deleted = 0";
 		qRecordCountStr = "SELECT COUNT(*) as c FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 AND item.deleted=0";
 	}
 	else
 	{
-		qStr = "SELECT stock.stock_id, stock.qty, stock.min_qty, stock.floor, stock.selling_price, item.item_code, item.item_name FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 AND item.deleted = 0 AND stock.visible = 1";
+		qStr = "SELECT stock.stock_id, stock.qty, stock.min_qty, stock.floor, stock.selling_price, item.item_code, item.item_name , item.w_cost FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0 AND item.deleted = 0 AND stock.visible = 1";
 		qRecordCountStr = "SELECT COUNT(*) as c FROM stock JOIN item ON stock.item_id = item.item_id WHERE stock.deleted = 0  AND item.deleted=0 AND stock.visible = 1";
 	}
 	QSqlQuery queryRecordCount(qRecordCountStr);
@@ -270,10 +271,11 @@ void ESOverallStockItemReport::displayResults()
 			double purchasingPrice = 0;
 			QString stockId = q.value("stock_id").toString();
 			QSqlQuery qryPurchaseOrder("SELECT * FROM stock_purchase_order_item JOIN stock ON stock_purchase_order_item.stock_id = stock.stock_id WHERE stock.deleted = 0 AND stock.stock_id = " + stockId);
-			if (qryPurchaseOrder.next())
-			{
-				purchasingPrice = qryPurchaseOrder.value("purchasing_price").toDouble();
-			}
+// 			if (qryPurchaseOrder.next())
+// 			{
+// 				purchasingPrice = qryPurchaseOrder.value("purchasing_price").toDouble();
+// 			}
+			purchasingPrice = q.value("w_cost").toDouble();
 			QTableWidgetItem* item = NULL;
 			item = new QTableWidgetItem(q.value("item_code").toString());
 			item->setTextAlignment(Qt::AlignLeft);
