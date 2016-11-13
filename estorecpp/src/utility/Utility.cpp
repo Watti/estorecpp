@@ -126,6 +126,10 @@ namespace ES
 
 	float Utility::getTotalCreditOutstanding(QString customerId)
 	{
+		if (customerId == "-1")
+		{
+			return 0.f;
+		}
 		float outstandingAmount = 0;
 		QSqlQuery queryOutstanding("SELECT * FROM customer_outstanding WHERE settled = 0 AND customer_id = " + customerId);
 		if (queryOutstanding.next())
