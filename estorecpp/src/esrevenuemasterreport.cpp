@@ -101,16 +101,20 @@ void ESRevenueMasterReport::slotSearch()
 
 	for (SaleDataHolder sdh : salesData)
 	{
-		double totalCost = sdh.cost*sdh.lineTotalQty;
-		grandSalesTotal += sdh.lineTotal;
-		salesGrandCost += totalCost;
-		QString queryStockItemStr = "SELECT item.item_name, item.item_id FROM stock, item WHERE stock.item_id = item.item_id AND stock.stock_id = " + sdh.stockId;
+		QString queryStockItemStr = "SELECT item.item_name, item.w_cost, item.item_id FROM stock, item WHERE stock.item_id = item.item_id AND stock.stock_id = " + sdh.stockId;
 		QSqlQuery queryStockItem;
 		queryStockItem.prepare(queryStockItemStr);
 		queryStockItem.setForwardOnly(true);
 		queryStockItem.exec();
 		if (queryStockItem.first())
 		{
+			if (sdh.cost == -1)
+			{
+				sdh.cost = queryStockItem.value("w_cost").toDouble();
+			}
+			double totalCost = sdh.cost*sdh.lineTotalQty;
+			grandSalesTotal += sdh.lineTotal;
+			salesGrandCost += totalCost;
 			int row = ui.tableWidget->rowCount();
 			ui.tableWidget->insertRow(row);
 

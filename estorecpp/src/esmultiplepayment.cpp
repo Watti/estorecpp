@@ -697,7 +697,7 @@ void ESMultiplePayment::finishBill(double netAmount, int billId)
 	{
 		// Update stock quantity
 		QSqlQuery saleQuantityQuery;
-		saleQuantityQuery.prepare("SELECT * FROM sale WHERE bill_id = ?");
+		saleQuantityQuery.prepare("SELECT * FROM sale WHERE deleted = 0 AND bill_id = ?");
 		saleQuantityQuery.addBindValue(billId);
 		if (saleQuantityQuery.exec())
 		{
