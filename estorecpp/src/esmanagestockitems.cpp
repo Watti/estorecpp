@@ -10,7 +10,7 @@
 #include "utility/session.h"
 
 ESManageStockItems::ESManageStockItems(QWidget *parent /*= 0*/)
-: QWidget(parent), m_startingLimit(0), m_pageOffset(15), m_nextCounter(0), m_maxNextCount(0)
+: QWidget(parent), m_startingLimit(0), m_pageOffset(100), m_nextCounter(0), m_maxNextCount(0)
 {
 	ui.setupUi(this);
 	m_updateButtonSignalMapper = new QSignalMapper(this);
@@ -85,6 +85,7 @@ void ESManageStockItems::slotSearch()
 		ui.tableWidget->removeRow(0);
 	}
 
+	
 	QString text = ui.searchTextBox->text();
 	QString selectedCategory = ui.categoryComboBox->currentText();
 
@@ -284,7 +285,7 @@ void ESManageStockItems::slotUpdate(QString stockId)
 		}
 		QString minqty = query.value("min_qty").toString(), qty = query.value("qty").toString();
 		addStockItem->getUI().minQty->setText(minqty);
-		addStockItem->getUI().qty->setText(qty);
+		addStockItem->getUI().qty->setText("0");
 		addStockItem->setExistingQuantityInStock(qty.toDouble());
 		QSqlQuery queryPO("SELECT purchasing_price FROM stock_purchase_order_item WHERE stock_id = " + stockId + "AND item_id =" + itemId);
 		if (queryPO.next())
