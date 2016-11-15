@@ -108,12 +108,11 @@ void MDFSalesSummary::slotSearch()
 	{
 		int row = 0;
 		
-
 		float itemCost = 0;
 		float lineTotal = 0;
 		float lineQty = 0;
 		float lineCost = 0;
-		QString salesQryStr = "SELECT discount, SUM(total) as totalAmount, SUM(quantity) as totalQty, SUM(w_cost) as totalCost FROM sale WHERE stock_id = " + midh.stockId + " AND deleted = 0 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+		QString salesQryStr = "SELECT discount, SUM(total) as totalAmount, SUM(quantity) as totalQty, w_cost FROM sale WHERE stock_id = " + midh.stockId + " AND deleted = 0 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
 		QSqlQuery salesQry;
 		salesQry.setForwardOnly(true);
 		salesQry.exec(salesQryStr);
@@ -132,7 +131,7 @@ void MDFSalesSummary::slotSearch()
 			grandSalesTotal += lineTotal;
 			float discount = salesQry.value("discount").toFloat();
 			lineQty = salesQry.value("totalQty").toFloat();
-			lineCost = salesQry.value("totalCost").toFloat();
+			lineCost = salesQry.value("w_cost").toFloat()*lineQty;
 
 			grandReturnCost += lineCost;
 			itemCost = lineCost / lineQty;
@@ -645,7 +644,7 @@ void MDFSalesSummary::slotGenerateReport()
 		float lineTotal = 0;
 		float lineQty = 0;
 		float lineCost = 0;
-		QString salesQryStr = "SELECT discount, SUM(total) as totalAmount, SUM(quantity) as totalQty, SUM(w_cost) as totalCost FROM sale WHERE stock_id = " + midh.stockId + " AND deleted = 0 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+		QString salesQryStr = "SELECT discount, SUM(total) as totalAmount, SUM(quantity) as totalQty, w_cost FROM sale WHERE stock_id = " + midh.stockId + " AND deleted = 0 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
 		QSqlQuery salesQry;
 		salesQry.setForwardOnly(true);
 		salesQry.exec(salesQryStr);
@@ -656,7 +655,8 @@ void MDFSalesSummary::slotGenerateReport()
 			grandSalesTotal += lineTotal;
 			float discount = salesQry.value("discount").toFloat();
 			lineQty = salesQry.value("totalQty").toFloat();
-			lineCost = salesQry.value("totalCost").toFloat();
+			float cost = salesQry.value("w_cost").toFloat();
+			lineCost = cost*lineQty;
 
 			grandReturnCost += lineCost;
 			itemCost = lineCost / lineQty;

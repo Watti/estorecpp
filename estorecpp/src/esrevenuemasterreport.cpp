@@ -98,10 +98,10 @@ void ESRevenueMasterReport::slotSearch()
 			
 		}
 	}
-
+	int row = 0;
 	for (SaleDataHolder sdh : salesData)
 	{
-		QString queryStockItemStr = "SELECT item.item_name, item.w_cost, item.item_id FROM stock, item WHERE stock.item_id = item.item_id AND stock.stock_id = " + sdh.stockId;
+		QString queryStockItemStr = "SELECT item.item_name, item.w_cost, item.item_id FROM stock, item WHERE stock.item_id = item.item_id AND stock.deleted=0 AND item.deleted = 0 AND stock.stock_id = " + sdh.stockId;
 		QSqlQuery queryStockItem;
 		queryStockItem.prepare(queryStockItemStr);
 		queryStockItem.setForwardOnly(true);
@@ -115,7 +115,7 @@ void ESRevenueMasterReport::slotSearch()
 			double totalCost = sdh.cost*sdh.lineTotalQty;
 			grandSalesTotal += sdh.lineTotal;
 			salesGrandCost += totalCost;
-			int row = ui.tableWidget->rowCount();
+			row = ui.tableWidget->rowCount();
 			ui.tableWidget->insertRow(row);
 
 			QString itemName = queryStockItem.value("item_name").toString();
@@ -510,16 +510,23 @@ void ESRevenueMasterReport::slotGenerateReport()
 
 	for (std::shared_ptr<SaleDataHolder> sdh : salesData)
 	{
-		double totalCost = sdh->cost*sdh->lineTotalQty;
-		grandSalesTotal += sdh->lineTotal;
-		salesGrandCost += totalCost;
-		QString queryStockItemStr = "SELECT item.item_name, item.item_id FROM stock, item WHERE stock.item_id = item.item_id AND stock.stock_id = " + sdh->stockId;
+// 		double totalCost = sdh->cost*sdh->lineTotalQty;
+// 		grandSalesTotal += sdh->lineTotal;
+// 		salesGrandCost += totalCost;
+		QString queryStockItemStr = "SELECT item.item_name, item.w_cost, item.item_id FROM stock, item WHERE stock.item_id = item.item_id AND stock.deleted=0 AND item.deleted = 0 AND stock.stock_id = " + sdh->stockId;
 		QSqlQuery queryStockItem;
 		queryStockItem.prepare(queryStockItemStr);
 		queryStockItem.setForwardOnly(true);
 		queryStockItem.exec();
 		if (queryStockItem.first())
 		{
+			if (sdh->cost == -1)
+			{
+				sdh->cost = queryStockItem.value("w_cost").toDouble();
+			}
+			double totalCost = sdh->cost*sdh->lineTotalQty;
+			grandSalesTotal += sdh->lineTotal;
+			salesGrandCost += totalCost;
 			QString itemName = queryStockItem.value("item_name").toString();
 			QString itemId = queryStockItem.value("item_id").toString();
 

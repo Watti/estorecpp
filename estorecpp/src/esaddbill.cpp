@@ -201,10 +201,6 @@ void ESAddBill::slotStartNewBill()
 
 		bool secondDisplayOn = ES::Session::getInstance()->isSecondDisplayOn();
 
-		if (secondDisplayOn)
-		{
-			billID = QString::number(id % 10000);
-		}
 		ui.billIdLabel->setText(billID);
 		ui.billedByLabel->setText(ES::Session::getInstance()->getUser()->getName());
 	}

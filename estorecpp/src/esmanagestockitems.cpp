@@ -10,7 +10,7 @@
 #include "utility/session.h"
 
 ESManageStockItems::ESManageStockItems(QWidget *parent /*= 0*/)
-: QWidget(parent), m_startingLimit(0), m_pageOffset(100), m_nextCounter(0), m_maxNextCount(0)
+: QWidget(parent), m_startingLimit(0), m_pageOffset(50), m_nextCounter(0), m_maxNextCount(0)
 {
 	ui.setupUi(this);
 	m_updateButtonSignalMapper = new QSignalMapper(this);
@@ -80,6 +80,7 @@ ESManageStockItems::~ESManageStockItems()
 
 void ESManageStockItems::slotSearch()
 {
+	
 	while (ui.tableWidget->rowCount() > 0)
 	{
 		ui.tableWidget->removeRow(0);
