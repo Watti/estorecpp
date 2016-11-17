@@ -1,6 +1,13 @@
 #include "essystemsettings.h"
 #include "QSqlQuery"
 #include "utility\utility.h"
+#include <wingdi.h>
+#include "easylogging++.h"
+#include "utility\session.h"
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <string>
 
 ESSystemSettings::ESSystemSettings(QWidget *parent /*= 0*/)
 : QWidget(parent)
@@ -44,6 +51,7 @@ void ESSystemSettings::resetDatabase()
 				  QSqlQuery q17("ALTER TABLE card AUTO_INCREMENT = 1");
 				  QSqlQuery q18("ALTER TABLE payment AUTO_INCREMENT = 1");
 				  this->close();
+				  LOG(INFO) << "Database has been reset by = " << ES::Session::getInstance()->getUser()->getName().toLatin1().toStdString();
 			  }
 		break;
 	}

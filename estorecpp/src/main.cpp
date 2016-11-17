@@ -146,8 +146,7 @@ int main(int argc, char *argv[])
 	mainWindow.move(QPoint(rect1.x(), rect1.y()));
 	mainWindow.resize(rect1.width(), rect1.height());
 	mainWindow.showMaximized();
-
-	LOG(INFO) << "Initializing the system...";
+	//LOG(INFO) << "Initializing the system...";
 
 	ES::MainWindowHolder::instance()->setMainWindow(&mainWindow);
 
