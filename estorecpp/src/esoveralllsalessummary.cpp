@@ -198,18 +198,18 @@ void OverallSalesSummary::slotSearch()
 			while (queryPettyCash.next())
 			{
 				QString uId = queryPettyCash.value("user_id").toString();
-					int type = queryPettyCash.value("type").toInt();
-					double amount = queryPettyCash.value("amount").toDouble();
-					if (type == 1)
-					{
-						//income
-						income += amount;
-					}
-					else if (type == 0)
-					{
-						//expense
-						expense += amount;
-					}
+				int type = queryPettyCash.value("type").toInt();
+				double amount = queryPettyCash.value("amount").toDouble();
+				if (type == 1)
+				{
+					//income
+					income += amount;
+				}
+				else if (type == 0)
+				{
+					//expense
+					expense += amount;
+				}
 			}
 			QTableWidgetItem* incomeWidgetItem = new QTableWidgetItem(QString::number(income, 'f', 2));
 			incomeWidgetItem->setTextAlignment(Qt::AlignRight);
@@ -255,7 +255,7 @@ void OverallSalesSummary::slotSearch()
 
 			m_generateReportSignalMapper->setMapping(generateReportBtn, uId);
 			QObject::connect(generateReportBtn, SIGNAL(clicked()), m_generateReportSignalMapper, SLOT(map()));
-			
+
 			QHBoxLayout *layout = new QHBoxLayout;
 			layout->setContentsMargins(0, 0, 0, 0);
 			layout->addWidget(generateReportBtn);
@@ -358,16 +358,16 @@ void OverallSalesSummary::slotSearch()
 	cardSalesWidget->setTextAlignment(Qt::AlignRight);
 	ui.tableWidgetTotal->setItem(row, 3, cardSalesWidget);
 
-	QSqlQuery queryReturn("SELECT * FROM return_item WHERE DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+	QSqlQuery queryReturn("SELECT SUM(return_total) as rTotal FROM return_item WHERE deleted=0 AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
 	double returnTotal = 0;
 	if (queryReturn.next())
 	{
-		QString uId = queryReturn.value("user_id").toString();
-		QSqlQuery queryUserType("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE user.active = 1 AND user.user_id = " + uId + " AND usertype.usertype_name <> 'DEV'");
-		if (queryUserType.next())
-		{
+		// 		QString uId = queryReturn.value("user_id").toString();
+		// 		QSqlQuery queryUserType("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE user.active = 1 AND user.user_id = " + uId + " AND usertype.usertype_name <> 'DEV'");
+		// 		if (queryUserType.next())
+		// 		{
 			returnTotal = queryReturn.value("rTotal").toDouble();
-		}
+		//		}
 	}
 	QTableWidgetItem *cardReturnWidget = new QTableWidgetItem(QString::number(returnTotal, 'f', 2));
 	cardReturnWidget->setTextAlignment(Qt::AlignRight);
@@ -445,246 +445,246 @@ Ui::OverallSalesSummary& OverallSalesSummary::getUI()
 
 void OverallSalesSummary::slotGenerateReportForGivenUser(QString userId)
 {
-		KDReports::TextElement titleElement("OVERALL COLLECTION SUMMARY");
-		titleElement.setPointSize(13);
-		titleElement.setBold(true);
-		report.addElement(titleElement, Qt::AlignHCenter);
+	KDReports::TextElement titleElement("OVERALL COLLECTION SUMMARY");
+	titleElement.setPointSize(13);
+	titleElement.setBold(true);
+	report.addElement(titleElement, Qt::AlignHCenter);
 
-		QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
-		QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
+	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
+	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
 
-		QString dateStr = "Date : ";
-		dateStr.append(stardDateStr).append(" - ").append(endDateStr);
+	QString dateStr = "Date : ";
+	dateStr.append(stardDateStr).append(" - ").append(endDateStr);
 
-		QString userStr = "User : ";
+	QString userStr = "User : ";
 
-		QSqlQuery queryUser("SELECT * FROM user WHERE user_id = "+userId);
-		if (queryUser.next())
-		{
-			userStr.append(queryUser.value("display_name").toString());
-		}
+	QSqlQuery queryUser("SELECT * FROM user WHERE user_id = " + userId);
+	if (queryUser.next())
+	{
+		userStr.append(queryUser.value("display_name").toString());
+	}
 
-		KDReports::TableElement infoTableElement;
-		infoTableElement.setHeaderRowCount(2);
-		infoTableElement.setHeaderColumnCount(2);
-		infoTableElement.setBorder(0);
-		infoTableElement.setWidth(100, KDReports::Percent);
+	KDReports::TableElement infoTableElement;
+	infoTableElement.setHeaderRowCount(2);
+	infoTableElement.setHeaderColumnCount(2);
+	infoTableElement.setBorder(0);
+	infoTableElement.setWidth(100, KDReports::Percent);
 
-		{
-			KDReports::Cell& dateCell = infoTableElement.cell(0, 1);
-			KDReports::TextElement t(dateStr);
-			t.setPointSize(10);
-			dateCell.addElement(t, Qt::AlignRight);
-		}
+	{
+		KDReports::Cell& dateCell = infoTableElement.cell(0, 1);
+		KDReports::TextElement t(dateStr);
+		t.setPointSize(10);
+		dateCell.addElement(t, Qt::AlignRight);
+	}
 
-		{
-			KDReports::Cell& userCell = infoTableElement.cell(0, 0);
-			KDReports::TextElement t(userStr);
-			t.setPointSize(10);
-			userCell.addElement(t, Qt::AlignLeft);
-		}
+	{
+		KDReports::Cell& userCell = infoTableElement.cell(0, 0);
+		KDReports::TextElement t(userStr);
+		t.setPointSize(10);
+		userCell.addElement(t, Qt::AlignLeft);
+	}
 
-		report.addElement(infoTableElement);
-		report.addVerticalSpacing(5);
+	report.addElement(infoTableElement);
+	report.addVerticalSpacing(5);
 
-		KDReports::TableElement tableElement;
-		tableElement.setHeaderColumnCount(9);
-		tableElement.setBorder(1);
-		tableElement.setWidth(100, KDReports::Percent);
+	KDReports::TableElement tableElement;
+	tableElement.setHeaderColumnCount(9);
+	tableElement.setBorder(1);
+	tableElement.setWidth(100, KDReports::Percent);
 
+	{
+		KDReports::Cell& cell = tableElement.cell(0, 0);
+		KDReports::TextElement cTextElement("Cash");
+		cTextElement.setPointSize(11);
+		cTextElement.setBold(true);
+		cell.addElement(cTextElement, Qt::AlignCenter);
+	}
+	{
+		KDReports::Cell& cell = tableElement.cell(0, 1);
+		KDReports::TextElement cTextElement("Credit");
+		cTextElement.setPointSize(11);
+		cTextElement.setBold(true);
+		cell.addElement(cTextElement, Qt::AlignCenter);
+	}
+	{
+		KDReports::Cell& cell = tableElement.cell(0, 2);
+		KDReports::TextElement cTextElement("Cheque");
+		cTextElement.setPointSize(11);
+		cTextElement.setBold(true);
+		cell.addElement(cTextElement, Qt::AlignCenter);
+	}
+	{
+		KDReports::Cell& cell = tableElement.cell(0, 3);
+		KDReports::TextElement cTextElement("Card");
+		cTextElement.setPointSize(11);
+		cTextElement.setBold(true);
+		cell.addElement(cTextElement, Qt::AlignCenter);
+	}
+	{
+		KDReports::Cell& cell = tableElement.cell(0, 4);
+		KDReports::TextElement cTextElement("Return");
+		cTextElement.setPointSize(11);
+		cTextElement.setBold(true);
+		cell.addElement(cTextElement, Qt::AlignCenter);
+	}
+	{
+		KDReports::Cell& cell = tableElement.cell(0, 5);
+		KDReports::TextElement cTextElement("P/C Income");
+		cTextElement.setPointSize(11);
+		cTextElement.setBold(true);
+		cell.addElement(cTextElement, Qt::AlignCenter);
+	}
+	{
+		KDReports::Cell& cell = tableElement.cell(0, 6);
+		KDReports::TextElement cTextElement("P/C Expenses");
+		cTextElement.setPointSize(11);
+		cTextElement.setBold(true);
+		cell.addElement(cTextElement, Qt::AlignCenter);
+	}
+	{
+		KDReports::Cell& cell = tableElement.cell(0, 7);
+		KDReports::TextElement cTextElement("Outstanding Collection Cash");
+		cTextElement.setPointSize(11);
+		cTextElement.setBold(true);
+		cell.addElement(cTextElement, Qt::AlignCenter);
+	}{
+		KDReports::Cell& cell = tableElement.cell(0, 8);
+		KDReports::TextElement cTextElement("Outstanding Collection Cheque");
+		cTextElement.setPointSize(11);
+		cTextElement.setBold(true);
+		cell.addElement(cTextElement, Qt::AlignCenter);
+	}
+	int row = 1;
+	double cashSales = 0, creditSales = 0, chequeSales = 0, cardSales = 0;
+	QString userBillQryStr;
+	if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
+		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
+	{
+		userBillQryStr = "SELECT * FROM bill WHERE status = 1 AND bill.user_id = " + userId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+	}
+	else
+	{
+		userBillQryStr = "SELECT * FROM bill WHERE status = 1 AND visible = 1 AND bill.user_id = " + userId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+	}
+	QSqlQuery userBillQry(userBillQryStr);
+	while (userBillQry.next())
+	{
+		QSqlQuery paymentQry("SELECT * FROM payment WHERE valid = 1 AND bill_id = " + userBillQry.value("bill_id").toString());
+		while (paymentQry.next())
 		{
-			KDReports::Cell& cell = tableElement.cell(0, 0);
-			KDReports::TextElement cTextElement("Cash");
-			cTextElement.setPointSize(11);
-			cTextElement.setBold(true);
-			cell.addElement(cTextElement, Qt::AlignCenter);
-		}
-		{
-			KDReports::Cell& cell = tableElement.cell(0, 1);
-			KDReports::TextElement cTextElement("Credit");
-			cTextElement.setPointSize(11);
-			cTextElement.setBold(true);
-			cell.addElement(cTextElement, Qt::AlignCenter);
-		}
-		{
-			KDReports::Cell& cell = tableElement.cell(0, 2);
-			KDReports::TextElement cTextElement("Cheque");
-			cTextElement.setPointSize(11);
-			cTextElement.setBold(true);
-			cell.addElement(cTextElement, Qt::AlignCenter);
-		}
-		{
-			KDReports::Cell& cell = tableElement.cell(0, 3);
-			KDReports::TextElement cTextElement("Card");
-			cTextElement.setPointSize(11);
-			cTextElement.setBold(true);
-			cell.addElement(cTextElement, Qt::AlignCenter);
-		}
-		{
-			KDReports::Cell& cell = tableElement.cell(0, 4);
-			KDReports::TextElement cTextElement("Return");
-			cTextElement.setPointSize(11);
-			cTextElement.setBold(true);
-			cell.addElement(cTextElement, Qt::AlignCenter);
-		}
-		{
-			KDReports::Cell& cell = tableElement.cell(0, 5);
-			KDReports::TextElement cTextElement("P/C Income");
-			cTextElement.setPointSize(11);
-			cTextElement.setBold(true);
-			cell.addElement(cTextElement, Qt::AlignCenter);
-		}
-		{
-			KDReports::Cell& cell = tableElement.cell(0, 6);
-			KDReports::TextElement cTextElement("P/C Expenses");
-			cTextElement.setPointSize(11);
-			cTextElement.setBold(true);
-			cell.addElement(cTextElement, Qt::AlignCenter);
-		}
-		{
-			KDReports::Cell& cell = tableElement.cell(0, 7);
-			KDReports::TextElement cTextElement("Outstanding Collection Cash");
-			cTextElement.setPointSize(11);
-			cTextElement.setBold(true);
-			cell.addElement(cTextElement, Qt::AlignCenter);
-		}{
-			KDReports::Cell& cell = tableElement.cell(0, 8);
-			KDReports::TextElement cTextElement("Outstanding Collection Cheque");
-			cTextElement.setPointSize(11);
-			cTextElement.setBold(true);
-			cell.addElement(cTextElement, Qt::AlignCenter);
-		}
-		int row = 1;
-		double cashSales = 0, creditSales = 0, chequeSales = 0, cardSales = 0;
-		QString userBillQryStr;
-		if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
-			ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
-		{
-			userBillQryStr = "SELECT * FROM bill WHERE status = 1 AND bill.user_id = " + userId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
-		}
-		else
-		{
-			userBillQryStr = "SELECT * FROM bill WHERE status = 1 AND visible = 1 AND bill.user_id = " + userId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
-		}
-		QSqlQuery userBillQry(userBillQryStr);
-		while (userBillQry.next())
-		{
-			QSqlQuery paymentQry("SELECT * FROM payment WHERE valid = 1 AND bill_id = " + userBillQry.value("bill_id").toString());
-			while (paymentQry.next())
+			QString paymentType = paymentQry.value("payment_type").toString();
+			QString paymentId = paymentQry.value("payment_id").toString();
+			double tot = paymentQry.value("total_amount").toDouble();
+
+			if (paymentType == "CASH")
 			{
-				QString paymentType = paymentQry.value("payment_type").toString();
-				QString paymentId = paymentQry.value("payment_id").toString();
-				double tot = paymentQry.value("total_amount").toDouble();
-
-				if (paymentType == "CASH")
+				cashSales += tot;
+			}
+			else if (paymentType == "CREDIT")
+			{
+				QSqlQuery creditSaleQry("SELECT * FROM credit WHERE payment_id = " + paymentId);
+				while (creditSaleQry.next())
 				{
-					cashSales += tot;
-				}
-				else if (paymentType == "CREDIT")
-				{
-					QSqlQuery creditSaleQry("SELECT * FROM credit WHERE payment_id = " + paymentId);
-					while (creditSaleQry.next())
-					{
-						double amount = creditSaleQry.value("amount").toDouble();
-						double interest = creditSaleQry.value("interest").toDouble();
-						amount = (amount * (100 + interest) / 100);
-						creditSales += amount;
-					}
-				}
-				else if (paymentType == "CHEQUE")
-				{
-					QSqlQuery chequeSaleQry("SELECT * FROM cheque WHERE payment_id = " + paymentId);
-					while (chequeSaleQry.next())
-					{
-						double amount = chequeSaleQry.value("amount").toDouble();
-						double interest = chequeSaleQry.value("interest").toDouble();
-						amount = (amount * (100 + interest) / 100);
-						chequeSales += amount;
-					}
-				}
-				else if (paymentType == "CARD")
-				{
-					QSqlQuery cardSaleQry("SELECT * FROM card WHERE payment_id = " + paymentId);
-					while (cardSaleQry.next())
-					{
-						double amount = cardSaleQry.value("amount").toDouble();
-						double interest = cardSaleQry.value("interest").toDouble();
-						amount = (amount * (100 + interest) / 100);
-						cardSales += amount;
-					}
-				}
-				else if (paymentType == "LOYALTY")
-				{
+					double amount = creditSaleQry.value("amount").toDouble();
+					double interest = creditSaleQry.value("interest").toDouble();
+					amount = (amount * (100 + interest) / 100);
+					creditSales += amount;
 				}
 			}
+			else if (paymentType == "CHEQUE")
+			{
+				QSqlQuery chequeSaleQry("SELECT * FROM cheque WHERE payment_id = " + paymentId);
+				while (chequeSaleQry.next())
+				{
+					double amount = chequeSaleQry.value("amount").toDouble();
+					double interest = chequeSaleQry.value("interest").toDouble();
+					amount = (amount * (100 + interest) / 100);
+					chequeSales += amount;
+				}
+			}
+			else if (paymentType == "CARD")
+			{
+				QSqlQuery cardSaleQry("SELECT * FROM card WHERE payment_id = " + paymentId);
+				while (cardSaleQry.next())
+				{
+					double amount = cardSaleQry.value("amount").toDouble();
+					double interest = cardSaleQry.value("interest").toDouble();
+					amount = (amount * (100 + interest) / 100);
+					cardSales += amount;
+				}
+			}
+			else if (paymentType == "LOYALTY")
+			{
+			}
 		}
-		double returnTotal = 0;
-		QSqlQuery queryReturn("SELECT SUM(return_total) as rTotal FROM return_item WHERE user_id=" + userId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "' AND deleted =0");
-		if (queryReturn.next())
+	}
+	double returnTotal = 0;
+	QSqlQuery queryReturn("SELECT SUM(return_total) as rTotal FROM return_item WHERE user_id=" + userId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "' AND deleted =0");
+	if (queryReturn.next())
+	{
+		returnTotal = queryReturn.value("rTotal").toDouble();
+		QTableWidgetItem *cardReturnWidget = new QTableWidgetItem(QString::number(returnTotal, 'f', 2));
+		cardReturnWidget->setTextAlignment(Qt::AlignRight);
+		ui.tableWidgetByUser->setItem(row, 4, cardReturnWidget);
+	}
+
+	double income = 0, expense = 0;
+	QSqlQuery queryPettyCash("SELECT * FROM petty_cash WHERE user_id = " + userId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+	while (queryPettyCash.next())
+	{
+		QString uId = queryPettyCash.value("user_id").toString();
+		int type = queryPettyCash.value("type").toInt();
+		double amount = queryPettyCash.value("amount").toDouble();
+		if (type == 1)
 		{
-			returnTotal = queryReturn.value("rTotal").toDouble();
-			QTableWidgetItem *cardReturnWidget = new QTableWidgetItem(QString::number(returnTotal, 'f', 2));
-			cardReturnWidget->setTextAlignment(Qt::AlignRight);
-			ui.tableWidgetByUser->setItem(row, 4, cardReturnWidget);
+			//income
+			income += amount;
 		}
-
-		double income = 0, expense = 0;
-		QSqlQuery queryPettyCash("SELECT * FROM petty_cash WHERE user_id = " + userId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
-		while (queryPettyCash.next())
+		else if (type == 0)
 		{
-			QString uId = queryPettyCash.value("user_id").toString();
-			int type = queryPettyCash.value("type").toInt();
-			double amount = queryPettyCash.value("amount").toDouble();
-			if (type == 1)
-			{
-				//income
-				income += amount;
-			}
-			else if (type == 0)
-			{
-				//expense
-				expense += amount;
-			}
+			//expense
+			expense += amount;
 		}
+	}
 
-		QSqlQuery outstandingCashCollectionQry("SELECT * FROM customer_outstanding_settlement WHERE user_id = " + userId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
-		double cashSettlementGrandTotal = 0, chequeSettlementGrandTotal = 0;
-		while (outstandingCashCollectionQry.next())
+	QSqlQuery outstandingCashCollectionQry("SELECT * FROM customer_outstanding_settlement WHERE user_id = " + userId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+	double cashSettlementGrandTotal = 0, chequeSettlementGrandTotal = 0;
+	while (outstandingCashCollectionQry.next())
+	{
+		double amount = outstandingCashCollectionQry.value("amount").toDouble();
+		int cashFlag = outstandingCashCollectionQry.value("settled_by_cash").toInt();
+		if (cashFlag == 1)
 		{
-			double amount = outstandingCashCollectionQry.value("amount").toDouble();
-			int cashFlag = outstandingCashCollectionQry.value("settled_by_cash").toInt();
-			if (cashFlag == 1)
-			{
-				cashSettlementGrandTotal += amount;
-			}
-			else if (cashFlag == 0)
-			{
-				//cheque
-				chequeSettlementGrandTotal += amount;
-			}
+			cashSettlementGrandTotal += amount;
 		}
-		printRow(tableElement, row, 0, QString::number(cashSales, 'f', 2));
-		printRow(tableElement, row, 1, QString::number(creditSales, 'f', 2));
-		printRow(tableElement, row, 2, QString::number(chequeSales, 'f', 2));
-		printRow(tableElement, row, 3, QString::number(cardSales, 'f', 2));
-		printRow(tableElement, row, 4, QString::number(returnTotal, 'f', 2));
-		printRow(tableElement, row, 5, QString::number(income, 'f', 2));
-		printRow(tableElement, row, 6, QString::number(expense, 'f', 2));
-		printRow(tableElement, row, 7, QString::number(cashSettlementGrandTotal, 'f', 2));
-		printRow(tableElement, row, 8, QString::number(chequeSettlementGrandTotal, 'f', 2));
-		report.addElement(tableElement);
+		else if (cashFlag == 0)
+		{
+			//cheque
+			chequeSettlementGrandTotal += amount;
+		}
+	}
+	printRow(tableElement, row, 0, QString::number(cashSales, 'f', 2));
+	printRow(tableElement, row, 1, QString::number(creditSales, 'f', 2));
+	printRow(tableElement, row, 2, QString::number(chequeSales, 'f', 2));
+	printRow(tableElement, row, 3, QString::number(cardSales, 'f', 2));
+	printRow(tableElement, row, 4, QString::number(returnTotal, 'f', 2));
+	printRow(tableElement, row, 5, QString::number(income, 'f', 2));
+	printRow(tableElement, row, 6, QString::number(expense, 'f', 2));
+	printRow(tableElement, row, 7, QString::number(cashSettlementGrandTotal, 'f', 2));
+	printRow(tableElement, row, 8, QString::number(chequeSettlementGrandTotal, 'f', 2));
+	report.addElement(tableElement);
 
-		QPrinter printer;
-		printer.setPaperSize(QPrinter::A4);
+	QPrinter printer;
+	printer.setPaperSize(QPrinter::A4);
 
-		printer.setFullPage(false);
-		printer.setOrientation(QPrinter::Landscape);
+	printer.setFullPage(false);
+	printer.setOrientation(QPrinter::Landscape);
 
-		QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
-		QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
-		dialog->setWindowTitle(tr("Print Document"));
-		ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
-		dialog->exec();
+	QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
+	QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
+	dialog->setWindowTitle(tr("Print Document"));
+	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
+	dialog->exec();
 }
 
 void OverallSalesSummary::slotGenerateReport()
@@ -855,17 +855,16 @@ void OverallSalesSummary::slotGenerateReport()
 			}
 		}
 	}
-
-	QSqlQuery queryReturn("SELECT * FROM return_item WHERE DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "' AND deleted = 0");
 	double returnTotal = 0;
+	QSqlQuery queryReturn("SELECT SUM(return_total) as rTotal FROM return_item WHERE deleted=0 AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
 	if (queryReturn.next())
 	{
-		QString uId = queryReturn.value("user_id").toString();
-		QSqlQuery queryUserType("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE user.active = 1 AND user.user_id = " + uId + " AND usertype.usertype_name <> 'DEV'");
-		if (queryUserType.next())
-		{
-			returnTotal = queryReturn.value("rTotal").toDouble();
-		}
+		// 		QString uId = queryReturn.value("user_id").toString();
+		// 		QSqlQuery queryUserType("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE user.active = 1 AND user.user_id = " + uId + " AND usertype.usertype_name <> 'DEV'");
+		// 		if (queryUserType.next())
+		// 		{
+		returnTotal = queryReturn.value("rTotal").toDouble();
+		//		}
 	}
 	double income = 0, expense = 0;
 	QSqlQuery queryPettyCash("SELECT * FROM petty_cash WHERE DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");

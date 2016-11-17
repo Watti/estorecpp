@@ -176,11 +176,12 @@ void ESRevenueMasterReport::slotSearch()
 			QTableWidgetItem *returnCostWidget = new QTableWidgetItem(QString::number(returnCost, 'f', 2));
 			returnCostWidget->setTextAlignment(Qt::AlignRight);
 			ui.tableWidget->setItem(row, 9, returnCostWidget);
-
+			float tempProfit = (sdh.lineTotal - returnLineTotal) - (totalCost - returnCost);
 		}
 	}
 	double profit = (grandSalesTotal - returnGrandTotal) - (salesGrandCost - returnGrandCost);
 	ui.profitLbl->setText(QString::number(profit,'f', 2));
+	ui.salesLbl->setText(QString::number((grandSalesTotal - returnGrandTotal), 'f', 2));
 // 	headerLabels.append("Item");
 // 	headerLabels.append("Sale Price");
 // 	headerLabels.append("Sale Qty");
