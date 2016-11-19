@@ -15,6 +15,7 @@
 #include "esauthentication.h"
 #include "utility/esmainwindowholder.h"
 #include "essecondarydisplay.h"
+#include "QSqlDatabase"
 
 namespace
 {
@@ -185,24 +186,28 @@ void ESAddBill::slotStartNewBill()
 {
 	if (!ES::Session::getInstance()->isBillStarted())
 	{
-		ES::Session::getInstance()->startBill();
 		QString insertBillQuery("INSERT INTO bill (user_id) VALUES(");
 		QString userID;
 		userID.setNum(ES::Session::getInstance()->getUser()->getId());
 		insertBillQuery.append(userID);
 		insertBillQuery.append(")");
 
+		QSqlDatabase::database().transaction();
 		QSqlQuery insertNewBill(insertBillQuery);
 		int id = (insertNewBill.lastInsertId()).value<int>();
+		bool success = QSqlDatabase::database().commit();
+		if (success)
+		{
+			QString billID;
+			billID.setNum(id);
+			ES::Session::getInstance()->setBillId(billID);
+			ES::Session::getInstance()->startBill();
 
-		QString billID;
-		billID.setNum(id);
-		ES::Session::getInstance()->setBillId(billID);
+			bool secondDisplayOn = ES::Session::getInstance()->isSecondDisplayOn();
 
-		bool secondDisplayOn = ES::Session::getInstance()->isSecondDisplayOn();
-
-		ui.billIdLabel->setText(billID);
-		ui.billedByLabel->setText(ES::Session::getInstance()->getUser()->getName());
+			ui.billIdLabel->setText(billID);
+			ui.billedByLabel->setText(ES::Session::getInstance()->getUser()->getName());
+		}
 	}
 }
 
