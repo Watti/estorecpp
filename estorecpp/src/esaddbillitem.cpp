@@ -187,12 +187,22 @@ void ESAddBillItem::addToBill(QString stockId)
 		{
 			wCost = getWCost.value("w_cost").toString();
 		}
+		QSqlDatabase::database().transaction();
 		QString q = "INSERT INTO sale (stock_id, bill_id, discount, item_price, w_cost) VALUES(" + stockId + ", " + 
 			billId + ", " + discount + ", " + itemPrice + ", " + wCost + ")";
 		QSqlQuery query;
 		if (query.exec(q))
 		{
 			lastInsertedID = query.lastInsertId().value<QString>();
+		}
+
+		bool success = QSqlDatabase::database().commit();
+		if (!success)
+		{
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Warning);
+			mbox.setText(QString("Database server is busy ! You may have to add this item again"));
+			mbox.exec();
 		}
 	}
 

@@ -356,6 +356,23 @@ void ESCurrentBills::slotVoidBill(QString billId)
 					QSqlQuery updateStock("UPDATE stock set qty = " + QString::number(newQty) + " WHERE stock_id = " + stockId);
 				}
 			}
+			QSqlQuery queryUpdateSales("UPDATE sale set deleted =1 WHERE bill_id = " + billId);
+			QSqlQuery queryReturnSelect("SELECT * FROM return_item WHERE deleted = 0 AND new_bill_id = " + billId);
+			while (queryReturnSelect.next())
+			{
+				float retQty = queryReturnSelect.value("qty").toFloat();
+				QString itemId = queryReturnSelect.value("item_id").toString();
+				QString stockQryStr("SELECT * FROM stock WHERE item_id = " + itemId);
+				QSqlQuery queryStock(stockQryStr);
+				if (queryStock.next())
+				{
+					double currentQty = queryStock.value("qty").toDouble();
+					QString stockId = queryStock.value("stock_id").toString();
+					double newQty = currentQty - retQty;
+					QSqlQuery updateStock("UPDATE stock set qty = " + QString::number(newQty) + " WHERE stock_id = " + stockId);
+				}
+			}
+			QSqlQuery queryUpdateReturnItems("UPDATE return_item set deleted =1 WHERE new_bill_id = " + billId);
 		}
 		slotSearch();
 	}

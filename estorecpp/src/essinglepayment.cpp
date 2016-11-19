@@ -185,7 +185,7 @@ void ESSinglePayment::handleCashPayment(int billId, double netAmount)
 		{
 			QMessageBox mbox;
 			mbox.setIcon(QMessageBox::Critical);
-			mbox.setText(QString("Failed"));
+			mbox.setText(QString("Failed to insert cash amount to the database"));
 			mbox.exec();
 		}
 		else
