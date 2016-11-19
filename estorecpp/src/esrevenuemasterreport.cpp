@@ -12,6 +12,7 @@
 #include "QObject"
 #include "esmainwindow.h"
 #include <memory>
+#include "QString"
 
 struct SaleDataHolder
 {
@@ -69,132 +70,121 @@ void ESRevenueMasterReport::slotPrint(QPrinter* printer)
 	this->close();
 }
 
-void ESRevenueMasterReport::slotSearch()
-{
-	while (ui.tableWidget->rowCount() > 0)
-	{
-		ui.tableWidget->removeRow(0);
-	}
-	QVector<SaleDataHolder> salesData;
-	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
-	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
-	double grandSalesTotal = 0, salesGrandCost=0, returnGrandTotal =0 , returnGrandCost = 0;
-	QString qSaleStr = "SELECT stock_id, discount, item_price, w_cost, SUM(total) as total, SUM(quantity) as qty FROM sale WHERE deleted= 0 AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "' GROUP BY stock_id";
-	QSqlQuery querySale;
-	querySale.prepare(qSaleStr);
-	querySale.setForwardOnly(true);
-	if (querySale.exec())
-	{
-		while (querySale.next())
-		{
-			SaleDataHolder dh;
-			dh.priceStr = querySale.value("item_price").toString();
-			dh.discountStr = querySale.value("discount").toString();
-			dh.cost = querySale.value("w_cost").toDouble();
-			dh.lineTotal = querySale.value("total").toDouble();
-			dh.lineTotalQty = querySale.value("qty").toDouble();
-			dh.stockId = querySale.value("stock_id").toString();
-			salesData.push_back(dh);
-			
-		}
-	}
-	int row = 0;
-	for (SaleDataHolder sdh : salesData)
-	{
-		QString queryStockItemStr = "SELECT item.item_name, item.w_cost, item.item_id FROM stock, item WHERE stock.item_id = item.item_id AND stock.deleted=0 AND item.deleted = 0 AND stock.stock_id = " + sdh.stockId;
-		QSqlQuery queryStockItem;
-		queryStockItem.prepare(queryStockItemStr);
-		queryStockItem.setForwardOnly(true);
-		queryStockItem.exec();
-		if (queryStockItem.first())
-		{
-			if (sdh.cost == -1)
-			{
-				sdh.cost = queryStockItem.value("w_cost").toDouble();
-			}
-			double totalCost = sdh.cost*sdh.lineTotalQty;
-			grandSalesTotal += sdh.lineTotal;
-			salesGrandCost += totalCost;
-			row = ui.tableWidget->rowCount();
-			ui.tableWidget->insertRow(row);
-
-			QString itemName = queryStockItem.value("item_name").toString();
-			QString itemId = queryStockItem.value("item_id").toString();
-
-			QString returnQryStr = "SELECT SUM(qty) as totalQty, SUM(return_total) as retTotal FROM return_item WHERE item_id = " + itemId + " AND deleted = 0 AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
-			QSqlQuery queryReturn;
-			queryReturn.prepare(returnQryStr);
-			queryReturn.setForwardOnly(true);
-			queryReturn.exec();
-
-			float returnLineQty = 0, returnLineTotal = 0;
-			if (queryReturn.first())
-			{
-				returnLineQty = queryReturn.value("totalQty").toFloat();
-				returnLineTotal = queryReturn.value("retTotal").toFloat();
-			}
-			float returnCost = returnLineQty * sdh.cost;
-			returnGrandCost += returnCost;
-			returnGrandTotal += returnLineTotal;
-
-			QTableWidgetItem *itemNameWidget = new QTableWidgetItem(itemName);
-			itemNameWidget->setTextAlignment(Qt::AlignLeft);
-			ui.tableWidget->setItem(row, 0, itemNameWidget);
-
-			QTableWidgetItem *itemPriceWidget = new QTableWidgetItem(sdh.priceStr);
-			itemPriceWidget->setTextAlignment(Qt::AlignRight);
-			ui.tableWidget->setItem(row, 1, itemPriceWidget);
-
-			QTableWidgetItem *itemQtyWidget = new QTableWidgetItem(QString::number(sdh.lineTotalQty));
-			itemQtyWidget->setTextAlignment(Qt::AlignRight);
-			ui.tableWidget->setItem(row, 2, itemQtyWidget);
-
-			QTableWidgetItem *discountWidget = new QTableWidgetItem(sdh.discountStr);
-			discountWidget->setTextAlignment(Qt::AlignRight);
-			ui.tableWidget->setItem(row, 3, discountWidget);
-
-			QTableWidgetItem *totalSalesWidget = new QTableWidgetItem(QString::number(sdh.lineTotal, 'f', 2));
-			totalSalesWidget->setTextAlignment(Qt::AlignRight);
-			ui.tableWidget->setItem(row, 4, totalSalesWidget);
-
-			QTableWidgetItem *itemCostWidget = new QTableWidgetItem(QString::number(sdh.cost, 'f', 2));
-			itemCostWidget->setTextAlignment(Qt::AlignRight);
-			ui.tableWidget->setItem(row, 5, itemCostWidget);
-
-			QTableWidgetItem *totalItemCostWidget = new QTableWidgetItem(QString::number(totalCost, 'f', 2));
-			totalItemCostWidget->setTextAlignment(Qt::AlignRight);
-			ui.tableWidget->setItem(row, 6, totalItemCostWidget);
-
-			QTableWidgetItem *returnQtyWidget = new QTableWidgetItem(QString::number(returnLineQty));
-			returnQtyWidget->setTextAlignment(Qt::AlignRight);
-			ui.tableWidget->setItem(row, 7, returnQtyWidget);
-
-			QTableWidgetItem *returnTotalWidget = new QTableWidgetItem(QString::number(returnLineTotal, 'f', 2));
-			returnTotalWidget->setTextAlignment(Qt::AlignRight);
-			ui.tableWidget->setItem(row, 8, returnTotalWidget);
-
-			QTableWidgetItem *returnCostWidget = new QTableWidgetItem(QString::number(returnCost, 'f', 2));
-			returnCostWidget->setTextAlignment(Qt::AlignRight);
-			ui.tableWidget->setItem(row, 9, returnCostWidget);
-			float tempProfit = (sdh.lineTotal - returnLineTotal) - (totalCost - returnCost);
-		}
-	}
-	double profit = (grandSalesTotal - returnGrandTotal) - (salesGrandCost - returnGrandCost);
-	ui.profitLbl->setText(QString::number(profit,'f', 2));
-	ui.salesLbl->setText(QString::number((grandSalesTotal - returnGrandTotal), 'f', 2));
-// 	headerLabels.append("Item");
-// 	headerLabels.append("Sale Price");
-// 	headerLabels.append("Sale Qty");
-// 	headerLabels.append("Total Sales");
-// 	headerLabels.append("Discount");
-// 	headerLabels.append("Item Cost");
-// 	headerLabels.append("Total Cost");
-// 	headerLabels.append("Return Qty");
-// 	headerLabels.append("Return Total");
-// 	headerLabels.append("Return Cost");
-
-
-}
+ void ESRevenueMasterReport::slotSearch()
+ {
+ 	while (ui.tableWidget->rowCount() > 0)
+ 	{
+ 		ui.tableWidget->removeRow(0);
+ 	}
+ 	QVector<SaleDataHolder> salesData;
+ 	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
+ 	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
+ 	double grandSalesTotal = 0, salesGrandCost=0, returnGrandTotal =0 , returnGrandCost = 0;
+ 	QString qSaleStr = "SELECT stock_id, discount, item_price, w_cost, SUM(total) as total, SUM(quantity) as qty FROM sale WHERE deleted= 0 AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "' GROUP BY stock_id";
+ 	QSqlQuery querySale;
+ 	querySale.prepare(qSaleStr);
+ 	querySale.setForwardOnly(true);
+ 	if (querySale.exec())
+ 	{
+ 		while (querySale.next())
+ 		{
+ 			SaleDataHolder dh;
+ 			dh.priceStr = querySale.value("item_price").toString();
+ 			dh.discountStr = querySale.value("discount").toString();
+ 			dh.cost = querySale.value("w_cost").toDouble();
+ 			dh.lineTotal = querySale.value("total").toDouble();
+ 			dh.lineTotalQty = querySale.value("qty").toDouble();
+ 			dh.stockId = querySale.value("stock_id").toString();
+ 			salesData.push_back(dh);
+ 			
+ 		}
+ 	}
+ 	int row = 0;
+ 	for (SaleDataHolder sdh : salesData)
+ 	{
+ 		QString queryStockItemStr = "SELECT item.item_name, item.w_cost, item.item_id FROM stock, item WHERE stock.item_id = item.item_id AND stock.deleted=0 AND item.deleted = 0 AND stock.stock_id = " + sdh.stockId;
+ 		QSqlQuery queryStockItem;
+ 		queryStockItem.prepare(queryStockItemStr);
+ 		queryStockItem.setForwardOnly(true);
+ 		queryStockItem.exec();
+ 		if (queryStockItem.first())
+ 		{
+ 			if (sdh.cost == -1)
+ 			{
+ 				sdh.cost = queryStockItem.value("w_cost").toDouble();
+ 			}
+ 			double totalCost = sdh.cost*sdh.lineTotalQty;
+ 			grandSalesTotal += sdh.lineTotal;
+ 			salesGrandCost += totalCost;
+ 			row = ui.tableWidget->rowCount();
+ 			ui.tableWidget->insertRow(row);
+ 
+ 			QString itemName = queryStockItem.value("item_name").toString();
+ 			QString itemId = queryStockItem.value("item_id").toString();
+ 
+ 			QString returnQryStr = "SELECT SUM(qty) as totalQty, SUM(return_total) as retTotal FROM return_item WHERE item_id = " + itemId + " AND deleted = 0 AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+ 			QSqlQuery queryReturn;
+ 			queryReturn.prepare(returnQryStr);
+ 			queryReturn.setForwardOnly(true);
+ 			queryReturn.exec();
+ 
+ 			float returnLineQty = 0, returnLineTotal = 0;
+ 			if (queryReturn.first())
+ 			{
+ 				returnLineQty = queryReturn.value("totalQty").toFloat();
+ 				//returnLineTotal = queryReturn.value("retTotal").toFloat();
+ 			}
+			returnLineTotal = (sdh.priceStr).toFloat() * returnLineQty;
+ 			float returnCost = returnLineQty * sdh.cost;
+ 			returnGrandCost += returnCost;
+ 			returnGrandTotal += returnLineTotal;
+ 
+ 			QTableWidgetItem *itemNameWidget = new QTableWidgetItem(itemName);
+ 			itemNameWidget->setTextAlignment(Qt::AlignLeft);
+ 			ui.tableWidget->setItem(row, 0, itemNameWidget);
+ 
+ 			QTableWidgetItem *itemPriceWidget = new QTableWidgetItem(sdh.priceStr);
+ 			itemPriceWidget->setTextAlignment(Qt::AlignRight);
+ 			ui.tableWidget->setItem(row, 1, itemPriceWidget);
+ 
+ 			QTableWidgetItem *itemQtyWidget = new QTableWidgetItem(QString::number(sdh.lineTotalQty));
+ 			itemQtyWidget->setTextAlignment(Qt::AlignRight);
+ 			ui.tableWidget->setItem(row, 2, itemQtyWidget);
+ 
+ 			QTableWidgetItem *discountWidget = new QTableWidgetItem(sdh.discountStr);
+ 			discountWidget->setTextAlignment(Qt::AlignRight);
+ 			ui.tableWidget->setItem(row, 3, discountWidget);
+ 
+ 			QTableWidgetItem *totalSalesWidget = new QTableWidgetItem(QString::number(sdh.lineTotal, 'f', 2));
+ 			totalSalesWidget->setTextAlignment(Qt::AlignRight);
+ 			ui.tableWidget->setItem(row, 4, totalSalesWidget);
+ 
+ 			QTableWidgetItem *itemCostWidget = new QTableWidgetItem(QString::number(sdh.cost, 'f', 2));
+ 			itemCostWidget->setTextAlignment(Qt::AlignRight);
+ 			ui.tableWidget->setItem(row, 5, itemCostWidget);
+ 
+ 			QTableWidgetItem *totalItemCostWidget = new QTableWidgetItem(QString::number(totalCost, 'f', 2));
+ 			totalItemCostWidget->setTextAlignment(Qt::AlignRight);
+ 			ui.tableWidget->setItem(row, 6, totalItemCostWidget);
+ 
+ 			QTableWidgetItem *returnQtyWidget = new QTableWidgetItem(QString::number(returnLineQty));
+ 			returnQtyWidget->setTextAlignment(Qt::AlignRight);
+ 			ui.tableWidget->setItem(row, 7, returnQtyWidget);
+ 
+ 			QTableWidgetItem *returnTotalWidget = new QTableWidgetItem(QString::number(returnLineTotal, 'f', 2));
+ 			returnTotalWidget->setTextAlignment(Qt::AlignRight);
+ 			ui.tableWidget->setItem(row, 8, returnTotalWidget);
+ 
+ 			QTableWidgetItem *returnCostWidget = new QTableWidgetItem(QString::number(returnCost, 'f', 2));
+ 			returnCostWidget->setTextAlignment(Qt::AlignRight);
+ 			ui.tableWidget->setItem(row, 9, returnCostWidget);
+ 			float tempProfit = (sdh.lineTotal - returnLineTotal) - (totalCost - returnCost);
+ 		}
+ 	}
+ 	double profit = (grandSalesTotal - returnGrandTotal) - (salesGrandCost - returnGrandCost);
+ 	ui.profitLbl->setText(QString::number(profit,'f', 2));
+ 	ui.salesLbl->setText(QString::number((grandSalesTotal - returnGrandTotal), 'f', 2));
+ }
 
 void ESRevenueMasterReport::printRow(KDReports::TableElement* tableElement, int row, int col, QString elementStr, Qt::AlignmentFlag alignment /*= Qt::AlignLeft*/)
 {
@@ -541,8 +531,9 @@ void ESRevenueMasterReport::slotGenerateReport()
 			if (queryReturn.first())
 			{
 				returnLineQty = queryReturn.value("totalQty").toFloat();
-				returnLineTotal = queryReturn.value("retTotal").toFloat();
+				//returnLineTotal = queryReturn.value("retTotal").toFloat();
 			}
+			returnLineTotal = (sdh->priceStr).toFloat() * returnLineQty;
 			float returnCost = returnLineQty * sdh->cost;
 			returnGrandCost += returnCost;
 			returnGrandTotal += returnLineTotal;
