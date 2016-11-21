@@ -779,9 +779,24 @@ void ESReturnItems::updateDatabase()
 	float returnQty = 0;
 
 	// update return_bill table
-	QSqlQuery rbQuery("INSERT INTO return_bill (return_bill_id, bill_id, ts) VALUES (" + 
+	QString returnInterest = "0", newInterest = "0";
+	bool ok = false;
+	ui.returnInterest->text().toFloat(&ok);
+	if (ok)
+	{
+		returnInterest = ui.returnInterest->text();
+	}
+	ui.newInterest->text().toFloat(&ok);
+	if (ok)
+	{
+		newInterest = ui.newInterest->text();
+	}
+	QString s = "INSERT INTO return_bill (return_bill_id, bill_id, ts, return_interest, new_interest) VALUES (" +
+		QString::number(m_bill.getBillId()) + "," +
+		QString::number(m_bill.getOldBillId()) + ", NOW() , " + returnInterest + " , " + newInterest + ")";
+	QSqlQuery rbQuery("INSERT INTO return_bill (return_bill_id, bill_id, ts, return_interest, new_interest) VALUES (" + 
 		QString::number(m_bill.getBillId()) + "," + 
-		QString::number(m_bill.getOldBillId()) + ", NOW())");
+		QString::number(m_bill.getOldBillId()) + ", NOW() , " + returnInterest + " , " + newInterest + ")");
 
 	// process return items
 	for (int i = 0; i < ui.tableWidget->rowCount(); ++i)

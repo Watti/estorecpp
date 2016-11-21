@@ -1059,17 +1059,18 @@ void ESCurrentBills::printReturnBill(QString billIdStr)
 {
 	QSqlQuery rbQuery("SELECT * FROM return_bill WHERE return_bill_id = " + billIdStr);
 	QString oldBillId = "-1";
-
+	QString customerId = "";
 	if (rbQuery.next())
 	{
 		oldBillId = rbQuery.value("bill_id").toString();
 
 		QString billedUser = "Billed Cashier : ";
-		QString qStrUserQry("SELECT display_name FROM user JOIN bill ON user.user_id = bill.user_id WHERE bill.bill_id = " + oldBillId);
+		QString qStrUserQry("SELECT user.display_name, bill.customer_id FROM user JOIN bill ON user.user_id = bill.user_id WHERE bill.bill_id = " + oldBillId);
 		QSqlQuery q(qStrUserQry);
 		if (q.next())
 		{
 			billedUser.append(q.value("display_name").toString());
+			customerId = q.value("customer_id").toString();
 		}
 		QString titleStr = "Return Bill";
 		KDReports::TextElement titleElement(titleStr);
@@ -1188,7 +1189,8 @@ void ESCurrentBills::printReturnBill(QString billIdStr)
 			row++;
 		}
 
-		float interest = 0;
+		float returnInterest = 0;
+		float newInterest = 0;
 // 		QString returnInterestStr = m_returnItemsWidget->getUI().returnInterest->text();
 // 		double returnInterest = returnInterestStr.toDouble();
 // 		if (returnInterest > 0)
@@ -1225,32 +1227,14 @@ void ESCurrentBills::printReturnBill(QString billIdStr)
 			total.addElement(totalTxt, Qt::AlignRight);
 		}
 		{
-			KDReports::Cell& total = dataTableElement.cell(row, 4);
-			//total.setColumnSpan(5);
-			QSqlQuery queryPayement("SELECT * FROM payment WHERE bill_id = " + oldBillId);
-			while (queryPayement.next())
+			QSqlQuery returnBillQuery("SELECT * FROM return_bill WHERE return_bill_id = " + billIdStr);
+			if (returnBillQuery.next())
 			{
-				QString paymentType = queryPayement.value("payment_type").toString();
-				QString paymentId = queryPayement.value("payment_id").toString();
-				if (paymentType == "CREDIT")
-				{
-					QSqlQuery creditSaleQry("SELECT * FROM credit WHERE payment_id = " + paymentId);
-					if (creditSaleQry.next())
-					{
-						
-						interest = creditSaleQry.value("interest").toFloat();
-					}
-				}
-				else if (paymentType == "CHEQUE")
-				{
-					QSqlQuery chequeSaleQry("SELECT * FROM cheque WHERE payment_id = " + paymentId);
-					if (chequeSaleQry.next())
-					{
-						interest = chequeSaleQry.value("interest").toFloat();
-					}
-				}
+				returnInterest = returnBillQuery.value("return_interest").toFloat();
+				newInterest = returnBillQuery.value("new_interest").toFloat();
 			}
-			KDReports::TextElement totalValue(QString::number(interest, 'f', 2)); // todo
+			KDReports::Cell& total = dataTableElement.cell(row, 4);
+			KDReports::TextElement totalValue(QString::number(returnInterest, 'f', 2)); 
 			totalValue.setPointSize(10);
 			totalValue.setBold(true);
 			total.addElement(totalValue, Qt::AlignRight);
@@ -1345,7 +1329,43 @@ void ESCurrentBills::printReturnBill(QString billIdStr)
 			totalValue.setBold(true);
 			total.addElement(totalValue, Qt::AlignRight);
 		}
-
+		row2++;
+		{
+			KDReports::Cell& total = newdataTableElement.cell(row2, 3);
+			//total.setColumnSpan(5);
+			KDReports::TextElement totalTxt("Interest(NEW) :");
+			totalTxt.setPointSize(10);
+			totalTxt.setBold(true);
+			total.addElement(totalTxt, Qt::AlignRight);
+		}
+		{
+			KDReports::Cell& total = newdataTableElement.cell(row2, 4);
+			//total.setColumnSpan(5);
+			QString totalStr = QString::number(newInterest, 'f', 2);
+			KDReports::TextElement totalValue(totalStr);
+			totalValue.setPointSize(10);
+			totalValue.setBold(true);
+			total.addElement(totalValue, Qt::AlignRight);
+		}
+		row2++;
+		{
+			KDReports::Cell& total = newdataTableElement.cell(row2, 3);
+			//total.setColumnSpan(5);
+			KDReports::TextElement totalTxt("Total(NEW) :");
+			totalTxt.setPointSize(10);
+			totalTxt.setBold(true);
+			total.addElement(totalTxt, Qt::AlignRight);
+		}
+		{
+			KDReports::Cell& total = newdataTableElement.cell(row2, 4);
+			//total.setColumnSpan(5);
+			retTotal2 = (100 + newInterest)*retTotal2 / 100;
+			QString totalStr = QString::number(retTotal2, 'f', 2);
+			KDReports::TextElement totalValue(totalStr);
+			totalValue.setPointSize(10);
+			totalValue.setBold(true);
+			total.addElement(totalValue, Qt::AlignRight);
+		}
 		//////////////////////////////////////////////////////////////////////////
 		row2 += 2; // sub total
 		{
@@ -1378,9 +1398,10 @@ void ESCurrentBills::printReturnBill(QString billIdStr)
 			totalTxt.setBold(true);
 			total.addElement(totalTxt, Qt::AlignRight);
 		}
+		double subTotal = 0;
 		{
 			//double interest = 0.0; // m_returnItemsWidget->getUI().returnInterest->text().toDouble();
-			double subTotal = (retTotal + retTotal * interest * 0.01) * -1 + retTotal2;
+			subTotal = (retTotal) * -1 + retTotal2;
 
 			KDReports::Cell& total = newdataTableElement.cell(row2, 4);
 			//total.setColumnSpan(5);
@@ -1399,19 +1420,30 @@ void ESCurrentBills::printReturnBill(QString billIdStr)
 			totalTxt.setBold(true);
 			total.addElement(totalTxt, Qt::AlignLeft);
 		}
+		float outstanding = 0;
 		{
+			outstanding = ES::Utility::getTotalCreditOutstanding(customerId);
+			outstanding += (subTotal*-1);
 			KDReports::Cell& total = newdataTableElement.cell(row2, 1);
 			//total.setColumnSpan(5);
-			KDReports::TextElement totalTxt("0.0"); // ui.outstandingText->text());
+			KDReports::TextElement totalTxt(QString::number(outstanding,'f',2)); // ui.outstandingText->text());
 			totalTxt.setPointSize(10);
 			totalTxt.setBold(true);
 			total.addElement(totalTxt, Qt::AlignLeft);
 		}
 		
-		QString paymentMethod = "CASH";
-		QSqlQuery paymentTypeQuery("SELECT payment_type FROM payment WHERE bill_id = " + oldBillId);
-		if (paymentMethod == "CREDIT")
+ 		QString paymentMethod = "CASH";
+ 		QSqlQuery paymentTypeQuery("SELECT payment_type FROM payment WHERE bill_id = " + oldBillId);
+		while (paymentTypeQuery.next())
 		{
+			paymentMethod = paymentTypeQuery.value("payment_type").toString();
+			if (paymentMethod ==  "CREDIT")
+			{
+				break;
+			}
+		}
+ 		if (paymentMethod == "CREDIT")
+ 		{
 			{
 				KDReports::Cell& total = newdataTableElement.cell(row2, 3);
 				//total.setColumnSpan(5);
@@ -1423,9 +1455,9 @@ void ESCurrentBills::printReturnBill(QString billIdStr)
 			{
 				KDReports::Cell& total = newdataTableElement.cell(row2, 4);
 				//total.setColumnSpan(5);
-				double interest = 0.0;// m_returnItemsWidget->getUI().returnInterest->text().toDouble();
-				double subTotal = (retTotal + retTotal * interest * 0.01) * -1 + retTotal2;
-				double notPaid = 0.0;// ui.outstandingText->text().toDouble() + subTotal;
+				/*double interest = 0.0;// m_returnItemsWidget->getUI().returnInterest->text().toDouble();*/
+				double subTotal = (retTotal) * -1 + retTotal2;
+				double notPaid = outstanding + subTotal;
 				KDReports::TextElement totalTxt(QString::number(notPaid, 'f', 2));
 				totalTxt.setPointSize(10);
 				totalTxt.setBold(true);
