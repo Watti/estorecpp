@@ -437,7 +437,34 @@ void ESAddBill::slotCancel()
 			QSqlQuery query(queryUpdateStr);
 		}
 	}*/
+	QString billId = ES::Session::getInstance()->getBillId();
+	QString billQryStr = "SELECT * FROM bill WHERE bill_id  = " + billId;
+	QSqlQuery BillQry(billQryStr);
+	if (BillQry.next())
+	{
+		QString queryUpdateStr("UPDATE bill set status = 3 WHERE bill_id = " + billId);
+		QSqlQuery query(queryUpdateStr);
 
+		QString saleQryStr("SELECT * FROM sale WHERE deleted = 0 AND bill_id = " + billId);
+		QSqlQuery querySale(saleQryStr);
+		while (querySale.next())
+		{
+			QString stockId = querySale.value("stock_id").toString();
+			double qty = querySale.value("quantity").toDouble();
+
+
+			QString stockQryStr("SELECT * FROM stock WHERE stock_id = " + stockId);
+			QSqlQuery queryStock(stockQryStr);
+			if (queryStock.next())
+			{
+				double currentQty = queryStock.value("qty").toDouble();
+				double newQty = currentQty + qty;
+
+				QSqlQuery updateStock("UPDATE stock set qty = " + QString::number(newQty) + " WHERE stock_id = " + stockId);
+			}
+		}
+		QSqlQuery queryUpdateSales("UPDATE sale set deleted =1 WHERE bill_id = " + billId);
+	}
 	resetBill();
 }
 

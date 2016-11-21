@@ -90,7 +90,7 @@ void ESItemWiseSalesSummary::slotSearch()
 					float netSoldQty = qty.toFloat() - retQty;
 					//qty = QString::number(netSoldQty, 'f', 2);
 
-					QTableWidgetItem* returnedItem = new QTableWidgetItem(QString::number(retQty, 'f', 2));
+					QTableWidgetItem* returnedItem = new QTableWidgetItem(QString::number(retQty));
 					returnedItem->setTextAlignment(Qt::AlignRight);
 					ui.tableWidgetByItems->setItem(row, 3, returnedItem);
 				}
@@ -212,7 +212,7 @@ void ESItemWiseSalesSummary::slotGenerateReport()
 					float retQty = qryReturn.value("retTotal").toFloat();
 					float netSoldQty = qty.toFloat() - retQty;
 					//qty = QString::number(netSoldQty, 'f', 2);
-					ES::Utility::printRow(tableElement, row, 3, QString::number(retQty, 'f', 2));
+					ES::Utility::printRow(tableElement, row, 3, QString::number(retQty));
 				}
 			}
 			ES::Utility::printRow(tableElement, row, 0, itemCode);

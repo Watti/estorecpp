@@ -205,8 +205,8 @@ void ESOverallStockItemReport::slotGenerate()
 		QString itemCode = q.value("item_code").toString();
 		QString itemName = q.value("item_name").toString();
 		QString floorNo = q.value("floor").toString();
-		QString qtyStr = QString::number(qty, 'f', 2);
-		QString minQtyStr = QString::number(minQty, 'f', 2);
+		QString qtyStr = QString::number(qty);
+		QString minQtyStr = QString::number(minQty);
 
 		ES::Utility::printRow(tableElement, row, 0, itemCode);
 		ES::Utility::printRow(tableElement, row, 1, itemName);
