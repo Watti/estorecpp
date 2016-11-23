@@ -80,7 +80,7 @@ void ESItemWiseSalesSummary::slotSearch()
 			name = stockItemQry.value("item_name").toString();
 			itemCode = stockItemQry.value("item_code").toString();
 			QString itemId = stockItemQry.value("item_id").toString();
-			QString qryStrReturn("SELECT SUM(qty) as retTotal FROM return_item WHERE item_id = " + itemId + " AND date BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+			QString qryStrReturn("SELECT SUM(qty) as retTotal FROM return_item WHERE item_id = " + itemId + " AND Date(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
 			QSqlQuery qryReturn;
 			if (qryReturn.exec(qryStrReturn))
 			{
@@ -203,7 +203,7 @@ void ESItemWiseSalesSummary::slotGenerateReport()
 			itemCode = stockItemQry.value("item_code").toString();
 
 			QString itemId = stockItemQry.value("item_id").toString();
-			QString qryStrReturn("SELECT SUM(qty) as retTotal FROM return_item WHERE item_id = " + itemId + " AND date BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+			QString qryStrReturn("SELECT SUM(qty) as retTotal FROM return_item WHERE item_id = " + itemId + " AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
 			QSqlQuery qryReturn;
 			if (qryReturn.exec(qryStrReturn))
 			{

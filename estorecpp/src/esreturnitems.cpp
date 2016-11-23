@@ -791,9 +791,6 @@ void ESReturnItems::updateDatabase()
 	{
 		newInterest = ui.newInterest->text();
 	}
-	QString s = "INSERT INTO return_bill (return_bill_id, bill_id, ts, return_interest, new_interest) VALUES (" +
-		QString::number(m_bill.getBillId()) + "," +
-		QString::number(m_bill.getOldBillId()) + ", NOW() , " + returnInterest + " , " + newInterest + ")";
 	QSqlQuery rbQuery("INSERT INTO return_bill (return_bill_id, bill_id, ts, return_interest, new_interest) VALUES (" + 
 		QString::number(m_bill.getBillId()) + "," + 
 		QString::number(m_bill.getOldBillId()) + ", NOW() , " + returnInterest + " , " + newInterest + ")");

@@ -76,7 +76,7 @@ void MDFSalesSummary::slotSearch()
 	}
 
 	float grandReturnTotal, grandReturnCost = 0, grandSaleCost = 0, grandSalesTotal = 0;
-	float totalProfit =0 ;
+	float totalProfit = 0;
 	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
 	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
 	double netTotalIncome = 0;
@@ -89,7 +89,7 @@ void MDFSalesSummary::slotSearch()
 	{
 		QString itemId = categoryQry.value("item_id").toString();
 		QString itemName = categoryQry.value("item_name").toString();
-		QString stockQryStr = "SELECT * FROM stock_purchase_order_item JOIN stock ON stock_purchase_order_item.stock_id = stock.stock_id WHERE stock.deleted = 0 AND stock.item_id = " + itemId;
+		QString stockQryStr = "SELECT stock.stock_id FROM stock_purchase_order_item JOIN stock ON stock_purchase_order_item.stock_id = stock.stock_id WHERE stock.deleted = 0 AND stock.item_id = " + itemId;
 		QSqlQuery qryStock;
 		qryStock.setForwardOnly(true);
 		qryStock.exec(stockQryStr);
@@ -100,14 +100,14 @@ void MDFSalesSummary::slotSearch()
 			midh.itemName = itemName;
 			midh.stockId = stockId;
 			midh.itemId = itemId;
-			dataHolderVec.push_back(midh);			
+			dataHolderVec.push_back(midh);
 		}
 	}
 
 	for (auto midh : dataHolderVec)
 	{
 		int row = 0;
-		
+
 		float itemCost = 0;
 		float lineTotal = 0;
 		float lineQty = 0;
@@ -128,38 +128,38 @@ void MDFSalesSummary::slotSearch()
 
 				QTableWidgetItem* nameItem = new QTableWidgetItem(midh.itemName);
 				ui.tableWidget->setVerticalHeaderItem(row, nameItem);
-			grandSalesTotal += lineTotal;
-			float discount = salesQry.value("discount").toFloat();
-			lineQty = salesQry.value("totalQty").toFloat();
-			lineCost = salesQry.value("w_cost").toFloat()*lineQty;
+				grandSalesTotal += lineTotal;
+				float discount = salesQry.value("discount").toFloat();
+				lineQty = salesQry.value("totalQty").toFloat();
+				lineCost = salesQry.value("w_cost").toFloat()*lineQty;
 
-			grandReturnCost += lineCost;
-			itemCost = lineCost / lineQty;
-			float avgSellingPrice = lineTotal / lineQty;
+				grandReturnCost += lineCost;
+				itemCost = lineCost / lineQty;
+				float avgSellingPrice = lineTotal / lineQty;
 
-			QTableWidgetItem *purchasePriceWidget = new QTableWidgetItem(QString::number(itemCost, 'f', 2));
-			purchasePriceWidget->setTextAlignment(Qt::AlignRight);
-			ui.tableWidget->setItem(row, 0, purchasePriceWidget);
+				QTableWidgetItem *purchasePriceWidget = new QTableWidgetItem(QString::number(itemCost, 'f', 2));
+				purchasePriceWidget->setTextAlignment(Qt::AlignRight);
+				ui.tableWidget->setItem(row, 0, purchasePriceWidget);
 
-			// 				QTableWidgetItem *discountWidget = new QTableWidgetItem(QString::number(discount, 'f', 2));
-			// 				discountWidget->setTextAlignment(Qt::AlignRight);
-			// 				ui.tableWidget->setItem(row, 1, discountWidget);
+				// 				QTableWidgetItem *discountWidget = new QTableWidgetItem(QString::number(discount, 'f', 2));
+				// 				discountWidget->setTextAlignment(Qt::AlignRight);
+				// 				ui.tableWidget->setItem(row, 1, discountWidget);
 
-			QTableWidgetItem *avgPriceWidget = new QTableWidgetItem(QString::number(avgSellingPrice, 'f', 2));
-			avgPriceWidget->setTextAlignment(Qt::AlignRight);
-			ui.tableWidget->setItem(row, 1, avgPriceWidget);
+				QTableWidgetItem *avgPriceWidget = new QTableWidgetItem(QString::number(avgSellingPrice, 'f', 2));
+				avgPriceWidget->setTextAlignment(Qt::AlignRight);
+				ui.tableWidget->setItem(row, 1, avgPriceWidget);
 
-			QTableWidgetItem *totalQtyWidget = new QTableWidgetItem(QString::number(lineQty));
-			totalQtyWidget->setTextAlignment(Qt::AlignRight);
-			ui.tableWidget->setItem(row, 2, totalQtyWidget);
+				QTableWidgetItem *totalQtyWidget = new QTableWidgetItem(QString::number(lineQty));
+				totalQtyWidget->setTextAlignment(Qt::AlignRight);
+				ui.tableWidget->setItem(row, 2, totalQtyWidget);
 
-			QTableWidgetItem *totalSalesWidget = new QTableWidgetItem(QString::number(lineTotal, 'f', 2));
-			totalSalesWidget->setTextAlignment(Qt::AlignRight);
-			ui.tableWidget->setItem(row, 3, totalSalesWidget);
+				QTableWidgetItem *totalSalesWidget = new QTableWidgetItem(QString::number(lineTotal, 'f', 2));
+				totalSalesWidget->setTextAlignment(Qt::AlignRight);
+				ui.tableWidget->setItem(row, 3, totalSalesWidget);
 
-			QTableWidgetItem *totalSalesCostWidget = new QTableWidgetItem(QString::number(lineCost, 'f', 2));
-			totalSalesCostWidget->setTextAlignment(Qt::AlignRight);
-			ui.tableWidget->setItem(row, 4, totalSalesCostWidget);
+				QTableWidgetItem *totalSalesCostWidget = new QTableWidgetItem(QString::number(lineCost, 'f', 2));
+				totalSalesCostWidget->setTextAlignment(Qt::AlignRight);
+				ui.tableWidget->setItem(row, 4, totalSalesCostWidget);
 			}
 
 		}
@@ -536,7 +536,7 @@ void MDFSalesSummary::slotGenerateReport()
 	KDReports::TableElement tableElement;
 	tableElement.setHeaderColumnCount(10);
 	tableElement.setBorder(1);
-	
+
 	tableElement.setWidth(100, KDReports::Percent);
 	{
 		KDReports::Cell& cell = tableElement.cell(0, 0);
