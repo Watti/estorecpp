@@ -121,7 +121,7 @@ void MDFSalesSummary::slotSearch()
 		{
 
 			lineTotal = salesQry.value("totalAmount").toFloat();
-			if (lineTotal > 0)
+			if (lineTotal >= 0)
 			{
 				row = ui.tableWidget->rowCount();
 				ui.tableWidget->insertRow(row);
