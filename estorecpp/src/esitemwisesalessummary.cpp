@@ -57,7 +57,7 @@ void ESItemWiseSalesSummary::slotSearch()
 
 	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
 	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
-
+	//QString stardDateStr = QDate::currentDate().addDays(-14).toString("yyyy-MM-dd");
 	QSqlQuery q("SELECT stock_id, SUM(quantity) as totalQty, item_price, discount FROM sale JOIN bill ON sale.bill_id = bill.bill_id WHERE sale.deleted = 0 AND DATE(bill.date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'" + "GROUP BY stock_id");
 	while (q.next())
 	{

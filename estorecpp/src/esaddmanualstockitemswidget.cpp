@@ -311,9 +311,29 @@ void ESAddManualStockItems::slotAddToStock()
 		//item is already available in the stock
 		stockId = itemStock.value("stock_id").toString();
 		QString currentSellingPrice = itemStock.value("selling_price").toString();
+		float currQty = itemStock.value("qty").toFloat();
 
 		//currentQty += itemStock.value("qty").toDouble();
 		double currentQty = newlyAddedQty + ui.currentQty->text().toDouble();
+		QSqlQuery queryGetWCost("SELECT w_cost FROM item WHERE item_id = " + itemId);
+		if (queryGetWCost.first())
+		{
+			double oldWCost = queryGetWCost.value("w_cost").toDouble();
+			if (oldWCost < 0)
+			{
+				QSqlQuery updateWCost("UPDATE item SET w_cost = " + purchasingPriceStr + " WHERE item_id = " + itemId);
+			}
+			else
+			{
+				if (currQty > 0)
+				{
+					double a = oldWCost * currQty;
+					double b = purchasingPriceStr.toDouble() * newlyAddedQty;
+					double wCost = (a + b) / (currQty + newlyAddedQty);
+					QSqlQuery updateWCost("UPDATE item SET w_cost = " + QString::number(wCost, 'f', 2) + " WHERE item_id = " + itemId);
+				}
+			}
+		}
 		QString qtyStr;
 		qtyStr.setNum(currentQty);
 		QString q("UPDATE stock SET  qty = " + qtyStr + " , selling_price = " + newSellingPrice + " , discount = "
@@ -389,6 +409,23 @@ void ESAddManualStockItems::slotAddToStock()
 	}
 	else
 	{
+		QSqlQuery queryGetWCost("SELECT w_cost FROM item WHERE item_id = " + itemId);
+		if (queryGetWCost.first())
+		{
+			double oldWCost = queryGetWCost.value("w_cost").toDouble();
+			if (oldWCost < 0)
+			{
+				QSqlQuery updateWCost("UPDATE item SET w_cost = " + purchasingPriceStr + " WHERE item_id = " + itemId);
+			}
+			else
+			{
+				if (newlyAddedQty > 0)
+				{
+					double wCost = purchasingPriceStr.toDouble();
+					QSqlQuery updateWCost("UPDATE item SET w_cost = " + QString::number(wCost, 'f', 2) + " WHERE item_id = " + itemId);
+				}
+			}
+		}
 		QString qtyStr;
 		qtyStr.setNum(newlyAddedQty);
 		QString q("INSERT INTO stock (item_id, qty, min_qty, selling_price, discount, floor, user_id) VALUES (" +
@@ -436,6 +473,7 @@ void ESAddManualStockItems::slotAddToStock()
 		}
 		if (success)
 		{
+
 			QMessageBox mbox;
 			mbox.setIcon(QMessageBox::Information);
 			mbox.setText(QString("Operation is success"));
