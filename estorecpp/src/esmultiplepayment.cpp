@@ -741,6 +741,8 @@ void ESMultiplePayment::finishBill(double netAmount, int billId)
 				}
 
 			}
+
+			QSqlQuery queryDeleteBillSession("DELETE FROM bill_session WHERE bill_id = " + QString::number(billId));
 		}
 
 		m_addBill->resetBill();

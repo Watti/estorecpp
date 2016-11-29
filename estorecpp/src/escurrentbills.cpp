@@ -362,6 +362,8 @@ void ESCurrentBills::slotVoidBill(QString billId)
 				}
 			}
 			QSqlQuery queryUpdateSales("UPDATE sale set deleted =1 WHERE bill_id = " + billId);
+			QSqlQuery queryDeleteBillSession("DELETE FROM bill_session WHERE bill_id = " + billId);
+
 			QSqlQuery queryReturnSelect("SELECT * FROM return_item WHERE deleted = 0 AND new_bill_id = " + billId);
 			while (queryReturnSelect.next())
 			{

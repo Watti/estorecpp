@@ -583,8 +583,8 @@ void ESSinglePayment::finishBill(double netAmount, int billId)
 				}
 
 			}
+			QSqlQuery queryDeleteBillSession("DELETE FROM bill_session WHERE bill_id = " + QString::number(billId));
 		}
-
 		if (m_addBill)
 		{
 			m_addBill->resetBill();

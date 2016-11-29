@@ -18,6 +18,7 @@
 
 INITIALIZE_EASYLOGGINGPP
 
+#define  NETWORK_SYSTEM 1
 //#define SECOND_DISPLAY 0
 
 void readSettings()

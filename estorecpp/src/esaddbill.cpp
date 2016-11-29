@@ -284,7 +284,7 @@ void ESAddBill::slotReturnPressed(QString saleId, int row)
 			double quantity = le->text().toDouble();
 
 			QString requestedQtyStr = le->text();
-			QSqlQuery query("SELECT stock.selling_price, stock.discount, stock.qty FROM stock JOIN sale ON stock.stock_id = sale.stock_id WHERE sale.deleted = 0 AND sale.sale_id = " + saleId);
+			QSqlQuery query("SELECT stock.selling_price, stock.discount, stock.qty, stock.stock_id FROM stock JOIN sale ON stock.stock_id = sale.stock_id WHERE sale.deleted = 0 AND sale.sale_id = " + saleId);
 			if (query.first())
 			{
 				if (!requestedQtyStr.isNull() && !requestedQtyStr.isEmpty())
@@ -300,15 +300,29 @@ void ESAddBill::slotReturnPressed(QString saleId, int row)
 						return;
 					}
 					double currentQty = query.value("qty").toDouble();
-					if (requestedQty > currentQty)
+					QString stockId = query.value("stock_id").toString();
+					QString qSessionStr("SELECT SUM(qty) as sessionQty FROM bill_session WHERE stock_id = " + stockId);
+					double sessionQty = 0;
+					QSqlQuery querySession(qSessionStr);
+					if (querySession.next())
+					{
+						sessionQty = querySession.value("sessionQty").toDouble();
+
+					}
+					double availableQty = currentQty + sessionQty;
+					if (requestedQty > availableQty)
 					{
 						QMessageBox mbox;
 						mbox.setIcon(QMessageBox::Critical);
-						mbox.setText(QString("Low stock"));
+						mbox.setText(QString("Low Stock"));
 						mbox.exec();
-						requestedQty = currentQty;
+						requestedQty = currentQty-sessionQty;
+						quantity = requestedQty;
 						requestedQtyStr = QString::number(requestedQty);//cannot add more than the available stock
-						return;
+						if (quantity <= 0)
+						{
+							return;
+						}
 					}
 				}
 
@@ -467,6 +481,7 @@ void ESAddBill::slotCancel()
 			}
 		}
 		QSqlQuery queryUpdateSales("UPDATE sale set deleted =1 WHERE bill_id = " + billId);
+		QSqlQuery queryDeleteBillSession("DELETE FROM bill_session WHERE bill_id = "+billId);
 	}
 	resetBill();
 }
@@ -493,7 +508,7 @@ void ESAddBill::slotRemoveItem(QString saleId)
 		QString billId = ES::Session::getInstance()->getBillId();
 		QString queary("UPDATE sale set deleted = 1 WHERE sale_id = " + saleId + " AND bill_id = " + billId);
 		QSqlQuery q(queary);
-
+		QSqlQuery queryDeleteBillSession("DELETE FROM bill_session WHERE bill_id = " + billId + " AND sale_id = "+saleId);
 		// Clear table
 		while (ui.tableWidget->rowCount() > 0)
 		{
@@ -578,7 +593,7 @@ void ESAddBill::slotQuantityCellUpdated(QString txt, int row, int col)
 		QString saleId = item->text();
 		double quantity = txt.toDouble();
 
-		QSqlQuery query("SELECT stock.discount, stock.qty, sale.item_price FROM stock JOIN sale ON stock.stock_id = sale.stock_id WHERE sale.deleted = 0 AND sale.sale_id = " + saleId);
+		QSqlQuery query("SELECT stock.discount, stock.qty, sale.item_price, stock.stock_id FROM stock JOIN sale ON stock.stock_id = sale.stock_id WHERE sale.deleted = 0 AND sale.sale_id = " + saleId);
 		if (query.first())
 		{
 			if (!txt.isNull() && !txt.isEmpty())
@@ -594,15 +609,28 @@ void ESAddBill::slotQuantityCellUpdated(QString txt, int row, int col)
 					return;
 				}
 				double currentQty = query.value("qty").toDouble();
-				if (requestedQty > currentQty)
+				double sessionQty = 0;
+				QString stockId = query.value("stock_id").toString();
+				QSqlQuery querySession("SELECT SUM(qty) as sessionQty FROM bill_session WHERE stock_id = " + stockId+" AND sale_id <>"+saleId);
+				if (querySession.next())
 				{
+					sessionQty = querySession.value("sessionQty").toDouble();
+				}
+				double availableQty = currentQty - sessionQty;
+				if (requestedQty > availableQty)
+				{
+					quantity = availableQty;
+
 					QMessageBox mbox;
 					mbox.setIcon(QMessageBox::Critical);
 					mbox.setText(QString("Low stock"));
 					mbox.exec();
-					txt = QString::number(currentQty);
+					txt = QString::number(availableQty);
 					ui.tableWidget->item(row, 3)->setText(txt);
-					return;
+					if (availableQty<=0)
+					{
+						return;
+					}
 				}
 			}
 
@@ -615,6 +643,7 @@ void ESAddBill::slotQuantityCellUpdated(QString txt, int row, int col)
 			ui.tableWidget->item(row, 5)->setText(st);
 
 			QSqlQuery q("UPDATE sale SET quantity = " + txt + ", total = " + QString::number(grossTotal) + " WHERE sale_id = " + saleId);
+			QSqlQuery qUpdateBillSession("UPDATE bill_session SET qty ="+txt+" WHERE sale_id = "+saleId);
 			calculateAndDisplayTotal();
 		}
 	}

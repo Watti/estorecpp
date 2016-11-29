@@ -181,8 +181,9 @@ void ESAddBillItem::addToBill(QString stockId)
 	{
 		QString discount = queryStock.value("discount").toString();
 		QString itemPrice = queryStock.value("selling_price").toString();
+		QString itemId = queryStock.value("item_id").toString();
 		QString wCost = "-1.0";
-		QSqlQuery getWCost("SELECT w_cost FROM item WHERE item_id = " + queryStock.value("item_id").toString());
+		QSqlQuery getWCost("SELECT w_cost FROM item WHERE item_id = " + itemId);
 		if (getWCost.first())
 		{
 			wCost = getWCost.value("w_cost").toString();
@@ -197,6 +198,21 @@ void ESAddBillItem::addToBill(QString stockId)
 		}
 
 		bool success = QSqlDatabase::database().commit();
+		if (!success)
+		{
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Warning);
+			mbox.setText(QString("Database server is busy ! You may have to add this item again"));
+			mbox.exec();
+		}
+		if (success)
+		{
+			QString qSession = "INSERT INTO bill_session (stock_id, bill_id, qty, item_id, sale_id) VALUES(" + stockId + ", " +
+				billId + ", 0 ,"+ itemId+ ","+lastInsertedID+")";
+			QSqlDatabase::database().transaction();
+			QSqlQuery querySession(qSession);
+			success = QSqlDatabase::database().commit();
+		}
 		if (!success)
 		{
 			QMessageBox mbox;
