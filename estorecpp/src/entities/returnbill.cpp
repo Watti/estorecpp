@@ -32,15 +32,18 @@ bool ES::ReturnBill::start()
 	m_started = true;
 
 	QSqlQuery insertBillQuery;
+
+
 	insertBillQuery.prepare("INSERT INTO bill (user_id) VALUES(?)");
 	insertBillQuery.addBindValue(ES::Session::getInstance()->getUser()->getId());
-	
+
+	QSqlDatabase::database().transaction();
 	if (insertBillQuery.exec())
 	{
 		m_billId = (insertBillQuery.lastInsertId()).value<int>();
-		return true;
 	}
-	return false;
+	bool success = QSqlDatabase::database().commit();
+	return success;
 }
 
 void ES::ReturnBill::end()
@@ -178,7 +181,20 @@ void ES::ReturnBill::addNewItem(QString stockId)
 		ni.itemPrice = itemPrice;
 		ni.discount = discount;
 		ni.quantity = 0;
-		
+#if NETWORK_SYSTEM
+			QString qSession = "INSERT INTO bill_session (stock_id, bill_id, qty, item_id, sale_id) VALUES(" + stockId + ", " +
+				QString::number(m_billId) + ", 0 ," + itemId + ", -1)";
+			QSqlDatabase::database().transaction();
+			QSqlQuery querySession(qSession);
+			bool success = QSqlDatabase::database().commit();
+		if (!success)
+		{
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Warning);
+			mbox.setText(QString("Database server is busy ! You may have to add this item again"));
+			mbox.exec();
+		}
+#endif
 		QSqlQuery itemQ("SELECT * FROM item WHERE item_id=" + itemId);
 		if (itemQ.next())
 		{
@@ -197,6 +213,9 @@ void ES::ReturnBill::removeNewItem(int rowId)
 	std::map<int, NewItemInfo>::iterator iter = m_newItems.find(rowId);
 	if (iter != m_newItems.end())
 	{
+#if NETWORK_SYSTEM
+		QSqlQuery queryDeleteBillSession("DELETE FROM bill_session WHERE bill_id = " + QString::number(m_billId) + " AND stock_id = " + QString::number(iter->second.stockId));
+#endif
 		m_newItems.erase(iter);
 	}
 	for (std::map<int, NewItemInfo>::iterator it = m_newItems.begin(), ite = m_newItems.end(); it != ite; ++it)
@@ -327,21 +346,32 @@ bool ES::ReturnBill::updateNewItemQuantity(long rowId, QString qtyStr)
 		if (query.first())
 		{
 			double currentQty = query.value("qty").toDouble();
-			if (requestedQty > currentQty)
+			double sessionQty = 0;
+#if NETWORK_SYSTEM
+			QSqlQuery querySession("SELECT SUM(qty) as sessionQty FROM bill_session WHERE stock_id = " + QString::number(ni.stockId) + " AND bill_id <>" + QString::number(m_billId));
+			if (querySession.next())
 			{
-				ni.quantity = currentQty;
-				calculateTotal();
+				sessionQty = querySession.value("sessionQty").toDouble();
+			}
+#endif // NETWORK_SYSTEM
+			double availableQty = currentQty - sessionQty;
+			if (requestedQty > availableQty)
+			{
+				requestedQty = availableQty;
+				QString txt = QString::number(availableQty);
 				QMessageBox mbox;
 				mbox.setIcon(QMessageBox::Critical);
 				mbox.setText(QString("Low stock"));
-				mbox.exec();
-				return false;
+				mbox.exec(); 
+				//return false;
 			}
 		}
 
 		ni.quantity = requestedQty;
 		calculateTotal();
-
+#if NETWORK_SYSTEM
+		QSqlQuery qUpdateBillSession("UPDATE bill_session SET qty =" + QString::number(requestedQty) + " WHERE sale_id = -1 AND bill_id = " + QString::number(m_billId)+" AND stock_id = "+QString::number(ni.stockId));
+#endif
 		return true;
 	}
 	return false;

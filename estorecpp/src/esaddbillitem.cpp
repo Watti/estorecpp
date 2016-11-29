@@ -205,6 +205,8 @@ void ESAddBillItem::addToBill(QString stockId)
 			mbox.setText(QString("Database server is busy ! You may have to add this item again"));
 			mbox.exec();
 		}
+
+#if NETWORK_SYSTEM
 		if (success)
 		{
 			QString qSession = "INSERT INTO bill_session (stock_id, bill_id, qty, item_id, sale_id) VALUES(" + stockId + ", " +
@@ -220,6 +222,7 @@ void ESAddBillItem::addToBill(QString stockId)
 			mbox.setText(QString("Database server is busy ! You may have to add this item again"));
 			mbox.exec();
 		}
+#endif
 	}
 
 	// Clear table

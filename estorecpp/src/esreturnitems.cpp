@@ -449,13 +449,13 @@ void ESReturnItems::slotNewItemQuantityCellUpdated(QString txt, int row, int col
 				QTableWidgetItem* subtotalItem = new QTableWidgetItem(QString::number(subtotal, 'f', 2));
 				subtotalItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
 				ui.billTableWidget->setItem(row, 5, subtotalItem);
-				if (!success)
+				//if (!success)
 				{
-					QSqlQuery query("SELECT qty FROM stock WHERE stock_id = " + QString::number(ni.stockId));
-					if (query.first())
+					//QSqlQuery query("SELECT qty FROM stock WHERE stock_id = " + QString::number(ni.stockId));
+					//if (query.first())
 					{
-						QString currentQty = query.value("qty").toString();
-						QTableWidgetItem* qtyItem = new QTableWidgetItem(currentQty);
+						//QString currentQty = query.value("qty").toString();
+						QTableWidgetItem* qtyItem = new QTableWidgetItem(QString::number(ni.quantity));
 						qtyItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
 						ui.billTableWidget->setItem(row, 3, qtyItem);
 					}
@@ -473,7 +473,6 @@ void ESReturnItems::showTotal()
 
 	ui.newSubTotal->setText(QString::number(m_bill.getNewSubTotal(), 'f', 2));
 	ui.newTotal->setText(QString::number(m_bill.getNewTotal(), 'f', 2));
-
 // 	if (m_bill.getNewTotal() >= m_bill.getTotal())
 // 	{
 // 		ui.commitBtn->setEnabled(true);
