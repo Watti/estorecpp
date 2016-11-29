@@ -14,6 +14,9 @@
 #include "utility/utility.h"
 #include "utility/esdbconnection.h"
 #include "QMessageBox"
+#include <iostream>
+#include <fstream>
+#include <string>
 
 ESOverallStockItemReport::ESOverallStockItemReport(QWidget *parent /*= 0*/) : QWidget(parent),
 m_startingLimit(0), m_pageOffset(100), m_nextCounter(0), m_maxNextCount(0), m_report(NULL)
@@ -94,6 +97,7 @@ void ESOverallStockItemReport::slotGenerate()
 	// 		report.addVerticalSpacing(1);
 
 	// Add a text element for the title
+	
 	m_report = new KDReports::Report;
 	KDReports::TextElement titleElement("Stock Items Report");
 	titleElement.setPointSize(15);
@@ -122,6 +126,25 @@ void ESOverallStockItemReport::slotGenerate()
 	tableElement.setHeaderColumnCount(7);
 	tableElement.setBorder(1);
 	tableElement.setWidth(100, KDReports::Percent);
+	QString dateTimeStr = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+	std::ofstream stream;
+	bool generateCSV = ui.csv->isChecked();
+	//QFile file;;
+	if (generateCSV)
+	{
+		QString filename = "I://development//estorecpp//Output//x64//Debug//Stock Items Report-";
+		filename.append(dateTimeStr).append(".csv");
+		//file.setFileName(filename);
+		stream.open(filename.toLatin1().toStdString().c_str(), std::ios::out | std::ios::app);
+		//if (file.open(QIODevice::ReadWrite))
+		{
+			//QTextStream stream(&file);
+			stream << "Stock Items Report" <<  "\n";
+			stream << "Date Time : ,"<<dateTimeStr.toLatin1().toStdString() << "\n";
+			stream << "Code , Item, Qty, Min Qty, Floor, Purchasing Price, Selling Price, Stock Value"<<"\n";
+		}
+		
+	}
 
 	//////////////////////////////////////////////////////////////////////////
 	int row = 0;
@@ -208,6 +231,7 @@ void ESOverallStockItemReport::slotGenerate()
 		QString qtyStr = QString::number(qty);
 		QString minQtyStr = QString::number(minQty);
 
+		
 		ES::Utility::printRow(tableElement, row, 0, itemCode);
 		ES::Utility::printRow(tableElement, row, 1, itemName);
 		ES::Utility::printRow(tableElement, row, 2, qtyStr, Qt::AlignRight);
@@ -219,10 +243,21 @@ void ESOverallStockItemReport::slotGenerate()
 		subTotal += stockValue;
 		ES::Utility::printRow(tableElement, row, 6, QString::number(stockValue, 'f', 2), Qt::AlignRight);
 		row++;
+		if (generateCSV)
+		{
+			//if (file.open(QIODevice::WriteOnly | QIODevice::Append))
+			{
+				//QTextStream stream(&file);
+				stream << itemCode.toLatin1().toStdString() << ", " << itemName.toLatin1().toStdString()<< "," << qtyStr.toLatin1().toStdString() << ", " << minQtyStr.toLatin1().toStdString() << "," << floorNo.toLatin1().toStdString() << ", " << QString::number(purchasingPrice, 'f', 2).toLatin1().toStdString() << ", " << QString::number(sellingPrice, 'f', 2).toLatin1().toStdString() << ", " << QString::number(stockValue, 'f', 2).toLatin1().toStdString() << "\n";
+			}
+		}
 	}
 	ES::Utility::printRow(tableElement, row, 5, "Sub Total ");
 	ES::Utility::printRow(tableElement, row, 6, QString::number(subTotal, 'f', 2), Qt::AlignRight);
-
+	if (generateCSV)
+	{
+		stream.close();
+	}
 	m_report->addElement(tableElement);
 
 	QPrinter printer;

@@ -14,6 +14,7 @@
 #include "utility/session.h"
 #include "esbackuprestore.h"
 #include "essecondarydisplay.h"
+#include "utility/utility.h"
 
 INITIALIZE_EASYLOGGINGPP
 
@@ -139,7 +140,7 @@ int main(int argc, char *argv[])
 	QApplication a(argc, argv);
 
 	readSettings();
-
+	ES::Utility::createFolderWithCurrentDate();
 	ESMainWindow mainWindow;
 
 	QRect rect1 = QApplication::desktop()->screenGeometry(0);
