@@ -18,7 +18,6 @@
 
 INITIALIZE_EASYLOGGINGPP
 
-#define  NETWORK_SYSTEM 1
 //#define SECOND_DISPLAY 0
 
 void readSettings()
@@ -141,7 +140,6 @@ int main(int argc, char *argv[])
 	QApplication a(argc, argv);
 
 	readSettings();
-	ES::Utility::createFolderWithCurrentDate();
 	ESMainWindow mainWindow;
 
 	QRect rect1 = QApplication::desktop()->screenGeometry(0);
