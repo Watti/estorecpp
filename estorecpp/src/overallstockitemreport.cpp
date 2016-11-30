@@ -128,23 +128,19 @@ void ESOverallStockItemReport::slotGenerate()
 	tableElement.setBorder(1);
 	tableElement.setWidth(100, KDReports::Percent);
 	std::ofstream stream;
+	QString filename = "";
 	bool generateCSV = ui.csv->isChecked();
-	//QFile file;;
 	if (generateCSV)
 	{
 		QString dateTimeStr = QDateTime::currentDateTime().toString(QLatin1String("yyyyMMdd-hhmmss"));
 		QString pathToFile = ES::Session::getInstance()->getReportPath();
-		QString filename = pathToFile.append("\\Stock Items Report-");
+		filename = pathToFile.append("\\Stock Items Report-");
 		filename.append(dateTimeStr).append(".csv");
 		std::string s(filename.toStdString());
 		stream.open(s, std::ios::out | std::ios::app);
-		//if (file.open(QIODevice::ReadWrite))
-		{
-			//QTextStream stream(&file);
-			stream << "Stock Items Report" << "\n";
-			stream << "Date Time : ," << dateTimeStr.toLatin1().toStdString() << "\n";
-			stream << "Code , Item, Qty, Min Qty, Floor, Purchasing Price, Selling Price, Stock Value" << "\n";
-		}
+		stream << "Stock Items Report" << "\n";
+		stream << "Date Time : ," << dateTimeStr.toLatin1().toStdString() << "\n";
+		stream << "Code , Item, Qty, Min Qty, Floor, Purchasing Price, Selling Price, Stock Value" << "\n";
 
 	}
 
@@ -248,11 +244,7 @@ void ESOverallStockItemReport::slotGenerate()
 		row++;
 		if (generateCSV)
 		{
-			//if (file.open(QIODevice::WriteOnly | QIODevice::Append))
-			{
-				//QTextStream stream(&file);
-				stream << itemCode.toLatin1().data() << ", " << itemName.toLatin1().data() << "," << qtyStr.toLatin1().data() << ", " << minQtyStr.toLatin1().data() << "," << floorNo.toLatin1().data() << ", " << QString::number(purchasingPrice, 'f', 2).toLatin1().data() << ", " << QString::number(sellingPrice, 'f', 2).toLatin1().data() << ", " << QString::number(stockValue, 'f', 2).toLatin1().data() << "\n";
-			}
+			stream << itemCode.toLatin1().data() << ", " << itemName.toLatin1().data() << "," << qtyStr.toLatin1().data() << ", " << minQtyStr.toLatin1().data() << "," << floorNo.toLatin1().data() << ", " << QString::number(purchasingPrice, 'f', 2).toLatin1().data() << ", " << QString::number(sellingPrice, 'f', 2).toLatin1().data() << ", " << QString::number(stockValue, 'f', 2).toLatin1().data() << "\n";
 		}
 	}
 	ES::Utility::printRow(tableElement, row, 5, "Sub Total ");
@@ -261,6 +253,10 @@ void ESOverallStockItemReport::slotGenerate()
 	{
 		stream.close();
 		ui.csv->setChecked(false);
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Information);
+		mbox.setText(QString("Stock Items Report has been saved in : ").append(filename));
+		mbox.exec();
 	}
 	else
 	{
