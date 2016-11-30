@@ -89,6 +89,13 @@ void readSettings()
 					address = address.substr(1, address.size() - 2);
 					ES::Session::getInstance()->setBillAddress(QString::fromUtf8(address.data(), address.size()));
 				}
+				if (settingsVal.compare("REPORT_FILE_FOLDER") == 0)
+				{
+					std::string reportPath;
+					std::getline(is, reportPath, '=');
+					reportPath = reportPath.substr(1, reportPath.size() - 2);
+					ES::Session::getInstance()->setReportPath(QString::fromUtf8(reportPath.data(), reportPath.size()));
+				}
 			}
 			
 		}

@@ -17,6 +17,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include "QString"
 
 ESOverallStockItemReport::ESOverallStockItemReport(QWidget *parent /*= 0*/) : QWidget(parent),
 m_startingLimit(0), m_pageOffset(100), m_nextCounter(0), m_maxNextCount(0), m_report(NULL)
@@ -97,7 +98,7 @@ void ESOverallStockItemReport::slotGenerate()
 	// 		report.addVerticalSpacing(1);
 
 	// Add a text element for the title
-	
+
 	m_report = new KDReports::Report;
 	KDReports::TextElement titleElement("Stock Items Report");
 	titleElement.setPointSize(15);
@@ -115,8 +116,8 @@ void ESOverallStockItemReport::slotGenerate()
 	QString itemOffset = QString::number(m_startingLimit) + " - " + QString::number(m_startingLimit + m_pageOffset);
 	KDReports::TextElement itemCount(itemOffset);
 	m_report->addElement(itemCount, Qt::AlignLeft);
-// 	KDReports::TextElement time(timeStr);
-// 	m_report->addElement(time, Qt::AlignLeft);
+	// 	KDReports::TextElement time(timeStr);
+	// 	m_report->addElement(time, Qt::AlignLeft);
 
 	// add 20 mm of vertical space:
 	m_report->addVerticalSpacing(10);
@@ -126,24 +127,25 @@ void ESOverallStockItemReport::slotGenerate()
 	tableElement.setHeaderColumnCount(7);
 	tableElement.setBorder(1);
 	tableElement.setWidth(100, KDReports::Percent);
-	QString dateTimeStr = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
 	std::ofstream stream;
 	bool generateCSV = ui.csv->isChecked();
 	//QFile file;;
 	if (generateCSV)
 	{
-		QString filename = "I://development//estorecpp//Output//x64//Debug//Stock Items Report-";
+		QString dateTimeStr = QDateTime::currentDateTime().toString(QLatin1String("yyyyMMdd-hhmmss"));
+		QString pathToFile = ES::Session::getInstance()->getReportPath();
+		QString filename = pathToFile.append("Stock Items Report-");
 		filename.append(dateTimeStr).append(".csv");
-		//file.setFileName(filename);
-		stream.open(filename.toLatin1().toStdString().c_str(), std::ios::out | std::ios::app);
+		std::string s(filename.toStdString());
+		stream.open(s, std::ios::out | std::ios::app);
 		//if (file.open(QIODevice::ReadWrite))
 		{
 			//QTextStream stream(&file);
-			stream << "Stock Items Report" <<  "\n";
-			stream << "Date Time : ,"<<dateTimeStr.toLatin1().toStdString() << "\n";
-			stream << "Code , Item, Qty, Min Qty, Floor, Purchasing Price, Selling Price, Stock Value"<<"\n";
+			stream << "Stock Items Report" << "\n";
+			stream << "Date Time : ," << dateTimeStr.toLatin1().toStdString() << "\n";
+			stream << "Code , Item, Qty, Min Qty, Floor, Purchasing Price, Selling Price, Stock Value" << "\n";
 		}
-		
+
 	}
 
 	//////////////////////////////////////////////////////////////////////////
@@ -219,11 +221,11 @@ void ESOverallStockItemReport::slotGenerate()
 		double sellingPrice = q.value("selling_price").toDouble();
 		double purchasingPrice = 0;
 		QString stockId = q.value("stock_id").toString();
-// 		QSqlQuery qryPurchaseOrder("SELECT * FROM stock_purchase_order_item JOIN stock ON stock_purchase_order_item.stock_id = stock.stock_id WHERE stock.deleted = 0 AND stock.stock_id = " + stockId);
-// 		if (qryPurchaseOrder.next())
-// 		{
-// 			purchasingPrice = qryPurchaseOrder.value("purchasing_price").toDouble();
-// 		}
+		// 		QSqlQuery qryPurchaseOrder("SELECT * FROM stock_purchase_order_item JOIN stock ON stock_purchase_order_item.stock_id = stock.stock_id WHERE stock.deleted = 0 AND stock.stock_id = " + stockId);
+		// 		if (qryPurchaseOrder.next())
+		// 		{
+		// 			purchasingPrice = qryPurchaseOrder.value("purchasing_price").toDouble();
+		// 		}
 		purchasingPrice = q.value("w_cost").toDouble();
 		QString itemCode = q.value("item_code").toString();
 		QString itemName = q.value("item_name").toString();
@@ -231,7 +233,8 @@ void ESOverallStockItemReport::slotGenerate()
 		QString qtyStr = QString::number(qty);
 		QString minQtyStr = QString::number(minQty);
 
-		
+		itemName = itemName.simplified();
+		itemName.replace(" ", "");
 		ES::Utility::printRow(tableElement, row, 0, itemCode);
 		ES::Utility::printRow(tableElement, row, 1, itemName);
 		ES::Utility::printRow(tableElement, row, 2, qtyStr, Qt::AlignRight);
@@ -248,7 +251,7 @@ void ESOverallStockItemReport::slotGenerate()
 			//if (file.open(QIODevice::WriteOnly | QIODevice::Append))
 			{
 				//QTextStream stream(&file);
-				stream << itemCode.toLatin1().toStdString() << ", " << itemName.toLatin1().toStdString()<< "," << qtyStr.toLatin1().toStdString() << ", " << minQtyStr.toLatin1().toStdString() << "," << floorNo.toLatin1().toStdString() << ", " << QString::number(purchasingPrice, 'f', 2).toLatin1().toStdString() << ", " << QString::number(sellingPrice, 'f', 2).toLatin1().toStdString() << ", " << QString::number(stockValue, 'f', 2).toLatin1().toStdString() << "\n";
+				stream << itemCode.toLatin1().data() << ", " << itemName.toLatin1().data() << "," << qtyStr.toLatin1().data() << ", " << minQtyStr.toLatin1().data() << "," << floorNo.toLatin1().data() << ", " << QString::number(purchasingPrice, 'f', 2).toLatin1().data() << ", " << QString::number(sellingPrice, 'f', 2).toLatin1().data() << ", " << QString::number(stockValue, 'f', 2).toLatin1().data() << "\n";
 			}
 		}
 	}
@@ -257,23 +260,27 @@ void ESOverallStockItemReport::slotGenerate()
 	if (generateCSV)
 	{
 		stream.close();
+		ui.csv->setChecked(false);
 	}
-	m_report->addElement(tableElement);
+	else
+	{
+		m_report->addElement(tableElement);
 
-	QPrinter printer;
-	//printer.setOutputFormat(QPrinter::PdfFormat);
-	//printer.setOutputFileName("reports/" + reportName + ".pdf");
-	printer.setPaperSize(QPrinter::A4);
+		QPrinter printer;
+		//printer.setOutputFormat(QPrinter::PdfFormat);
+		//printer.setOutputFileName("reports/" + reportName + ".pdf");
+		printer.setPaperSize(QPrinter::A4);
 
-	printer.setFullPage(false);
-	//printer.setResolution(QPrinter::HighResolution);
-	printer.setOrientation(QPrinter::Portrait);
+		printer.setFullPage(false);
+		//printer.setResolution(QPrinter::HighResolution);
+		printer.setOrientation(QPrinter::Portrait);
 
-	QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
-	QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
-	dialog->setWindowTitle(tr("Print Document"));
-	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
-	dialog->exec();
+		QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
+		QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
+		dialog->setWindowTitle(tr("Print Document"));
+		ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
+		dialog->exec();
+	}
 }
 
 void ESOverallStockItemReport::slotPrint(QPrinter* printer)
@@ -299,7 +306,7 @@ void ESOverallStockItemReport::displayResults()
 	{
 		qStr = "SELECT stock.stock_id, stock.qty, stock.min_qty, stock.floor, item.item_code, item.item_name, item.w_cost , stock.selling_price FROM stock JOIN item ON stock.item_id = item.item_id JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id WHERE stock.deleted = 0 AND item.deleted = 0  AND item_category.deleted =0 ";
 		qRecordCountStr = "SELECT COUNT(*) as c FROM stock JOIN item ON stock.item_id = item.item_id JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id WHERE stock.deleted = 0 AND item.deleted=0 AND item_category.deleted =0 ";
-		
+
 	}
 	else
 	{
@@ -351,10 +358,10 @@ void ESOverallStockItemReport::displayResults()
 			double purchasingPrice = 0;
 			QString stockId = q.value("stock_id").toString();
 			QSqlQuery qryPurchaseOrder("SELECT * FROM stock_purchase_order_item JOIN stock ON stock_purchase_order_item.stock_id = stock.stock_id WHERE stock.deleted = 0 AND stock.stock_id = " + stockId);
-// 			if (qryPurchaseOrder.next())
-// 			{
-// 				purchasingPrice = qryPurchaseOrder.value("purchasing_price").toDouble();
-// 			}
+			// 			if (qryPurchaseOrder.next())
+			// 			{
+			// 				purchasingPrice = qryPurchaseOrder.value("purchasing_price").toDouble();
+			// 			}
 			purchasingPrice = q.value("w_cost").toDouble();
 			QTableWidgetItem* item = NULL;
 			item = new QTableWidgetItem(q.value("item_code").toString());
@@ -377,12 +384,12 @@ void ESOverallStockItemReport::displayResults()
 			item->setTextAlignment(Qt::AlignRight);
 			ui.tableWidget->setItem(row, 4, item);
 
-			item = new QTableWidgetItem(QString::number(purchasingPrice,'f',2));
+			item = new QTableWidgetItem(QString::number(purchasingPrice, 'f', 2));
 			item->setTextAlignment(Qt::AlignRight);
 			ui.tableWidget->setItem(row, 5, item);
 
 			double stockValue = purchasingPrice* qty;
-			item = new QTableWidgetItem(QString::number(stockValue,'f',2));
+			item = new QTableWidgetItem(QString::number(stockValue, 'f', 2));
 			item->setTextAlignment(Qt::AlignRight);
 			ui.tableWidget->setItem(row, 6, item);
 		}

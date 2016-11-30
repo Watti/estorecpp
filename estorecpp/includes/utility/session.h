@@ -40,6 +40,8 @@ namespace ES
 		void setBillEmail(QString val);
 		bool isSecondDisplayOn() const;
 		void setSecondDisplayOn(bool val);
+		QString getReportPath() const;
+		void setReportPath(QString val);
 	private:
 		Session();
 		static Session* m_session;
@@ -56,6 +58,7 @@ namespace ES
 		int m_billItemFontSize;
 		QString m_billEmail;
 		bool m_secondDisplayOn;
+		QString m_reportPath;
 	};
 
 }

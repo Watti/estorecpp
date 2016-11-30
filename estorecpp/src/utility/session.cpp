@@ -176,4 +176,14 @@ namespace ES
 		m_secondDisplayOn = val;
 	}
 
+	QString Session::getReportPath() const
+	{
+		return m_reportPath;
+	}
+
+	void Session::setReportPath(QString val)
+	{
+		m_reportPath = val;
+	}
+
 }
