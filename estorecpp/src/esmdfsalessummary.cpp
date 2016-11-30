@@ -12,6 +12,11 @@
 #include "QObject"
 #include "esmainwindow.h"
 #include "QString"
+#include <string>
+#include "QDateTime"
+#include <iostream>
+#include <fstream>
+#include "QMessageBox"
 
 struct MDFItemDataHolder
 {
@@ -133,17 +138,21 @@ void MDFSalesSummary::slotSearch()
 				lineQty = salesQry.value("totalQty").toFloat();
 				lineCost = salesQry.value("w_cost").toFloat()*lineQty;
 
+				float avgSellingPrice = 0;
 				grandReturnCost += lineCost;
-				itemCost = lineCost / lineQty;
-				float avgSellingPrice = lineTotal / lineQty;
+				if (lineQty > 0)
+				{
+					itemCost = lineCost / lineQty;
+					avgSellingPrice = lineTotal / lineQty;
+				}
+				else if (lineQty == 0)
+				{
+					itemCost = salesQry.value("w_cost").toFloat();
+				}
 
 				QTableWidgetItem *purchasePriceWidget = new QTableWidgetItem(QString::number(itemCost, 'f', 2));
 				purchasePriceWidget->setTextAlignment(Qt::AlignRight);
 				ui.tableWidget->setItem(row, 0, purchasePriceWidget);
-
-				// 				QTableWidgetItem *discountWidget = new QTableWidgetItem(QString::number(discount, 'f', 2));
-				// 				discountWidget->setTextAlignment(Qt::AlignRight);
-				// 				ui.tableWidget->setItem(row, 1, discountWidget);
 
 				QTableWidgetItem *avgPriceWidget = new QTableWidgetItem(QString::number(avgSellingPrice, 'f', 2));
 				avgPriceWidget->setTextAlignment(Qt::AlignRight);
@@ -173,6 +182,7 @@ void MDFSalesSummary::slotSearch()
 			float lineReturn = queryReturn.value("retTotal").toFloat();
 			grandReturnTotal += lineReturn;
 
+
 			QTableWidgetItem *returnQtyWidget = new QTableWidgetItem(QString::number(lineReturnQty));
 			returnQtyWidget->setTextAlignment(Qt::AlignRight);
 			ui.tableWidget->setItem(row, 5, returnQtyWidget);
@@ -183,6 +193,7 @@ void MDFSalesSummary::slotSearch()
 
 			totalReturnCost = lineReturnQty * itemCost;
 			grandReturnCost += totalReturnCost;
+			returnTotal += lineReturn;
 
 			QTableWidgetItem *totalReturnCostWidget = new QTableWidgetItem(QString::number(totalReturnCost, 'f', 2));
 			totalReturnCostWidget->setTextAlignment(Qt::AlignRight);
@@ -610,6 +621,25 @@ void MDFSalesSummary::slotGenerateReport()
 		cTextElement.setBold(true);
 		cell.addElement(cTextElement, Qt::AlignCenter);
 	}
+	std::ofstream stream;
+	QString filename = "";
+	bool generateCSV = ui.csv->isChecked();
+	if (generateCSV)
+	{
+		QString dateTimeStr = QDateTime::currentDateTime().toString(QLatin1String("yyyyMMdd-hhmmss"));
+		QString pathToFile = ES::Session::getInstance()->getReportPath();
+		filename = pathToFile.append("\\MDF Profit Loss Report-");
+		filename.append(dateTimeStr).append(".csv");
+		std::string s(filename.toStdString());
+		stream.open(s, std::ios::out | std::ios::app);
+		stream << "MDF Profit/Loss Report" << "\n";
+		QString sDate = stardDateStr;
+		QString eDate = endDateStr;
+		QString dateRange = sDate.append(" - ").append(eDate);
+		stream << "Date : ," << dateRange.toLatin1().toStdString() << "\n \n";
+		stream << "Item , Cost, Price, Sold Qty, Total Sales, Sales Cost, Return Qty, Return Total, Return Cost, Profit" << "\n";
+
+	}
 	int row = 1;
 	float grandReturnTotal, grandReturnCost = 0, grandSaleCost = 0, grandSalesTotal = 0, totalProfit = 0, netTotalIncome = 0;
 
@@ -658,19 +688,28 @@ void MDFSalesSummary::slotGenerateReport()
 			float cost = salesQry.value("w_cost").toFloat();
 			lineCost = cost*lineQty;
 
-			grandReturnCost += lineCost;
-			itemCost = lineCost / lineQty;
-			float avgSellingPrice = lineTotal / lineQty;
-			if (lineTotal > 0)
+			grandSaleCost += lineCost;
+			float avgSellingPrice = 0;
+			if (lineQty > 0)
 			{
-				printRow(tableElement, row, 1, QString::number(itemCost, 'f', 2));
-				printRow(tableElement, row, 2, QString::number(avgSellingPrice, 'f', 2));
-				printRow(tableElement, row, 3, QString::number(lineQty));
-				printRow(tableElement, row, 4, QString::number(lineTotal, 'f', 2));
-				printRow(tableElement, row, 5, QString::number(lineCost, 'f', 2));
-				printLine = true;
+				itemCost = lineCost / lineQty;
+				avgSellingPrice = lineTotal / lineQty;
 			}
-
+			else
+			{
+				itemCost = cost;
+			}
+			printRow(tableElement, row, 1, QString::number(itemCost, 'f', 2));
+			printRow(tableElement, row, 2, QString::number(avgSellingPrice, 'f', 2));
+			printRow(tableElement, row, 3, QString::number(lineQty));
+			printRow(tableElement, row, 4, QString::number(lineTotal, 'f', 2));
+			printRow(tableElement, row, 5, QString::number(lineCost, 'f', 2));
+			midh.itemName = midh.itemName.simplified();
+			midh.itemName.replace(" ", "");
+			if (generateCSV)
+			{
+				stream << midh.itemName.toLatin1().data() << ", " << QString::number(itemCost, 'f', 2).toLatin1().data() << "," << QString::number(avgSellingPrice, 'f', 2).toLatin1().data()<<"," << QString::number(lineQty).toLatin1().data() << ", " << QString::number(lineTotal, 'f', 2).toLatin1().data() << "," << QString::number(lineCost, 'f', 2).toLatin1().data();
+			}
 		}
 
 		float returnTotal = 0;
@@ -678,47 +717,64 @@ void MDFSalesSummary::slotGenerateReport()
 		QSqlQuery queryReturn("SELECT SUM(qty) as totalQty , SUM(return_total) as retTotal FROM return_item WHERE item_id = " + midh.itemId + " AND deleted = 0 AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
 		if (queryReturn.next())
 		{
-			if (printLine)
+
+			float lineReturnQty = queryReturn.value("totalQty").toFloat();
+			float lineReturn = queryReturn.value("retTotal").toFloat();
+			grandReturnTotal += lineReturn;
+			printRow(tableElement, row, 6, QString::number(lineReturnQty));
+			printRow(tableElement, row, 7, QString::number(lineReturn, 'f', 2));
+
+			totalReturnCost = lineReturnQty * itemCost;
+			grandReturnCost += totalReturnCost;
+			returnTotal += lineReturn;
+			printRow(tableElement, row, 8, QString::number(totalReturnCost, 'f', 2));
+			if (generateCSV)
 			{
-				float lineReturnQty = queryReturn.value("totalQty").toFloat();
-				float lineReturn = queryReturn.value("retTotal").toFloat();
-				grandReturnTotal += lineReturn;
-
-				printRow(tableElement, row, 6, QString::number(lineReturnQty));
-				printRow(tableElement, row, 7, QString::number(lineReturn, 'f', 2));
-
-				totalReturnCost = lineReturnQty * itemCost;
-				grandReturnCost += totalReturnCost;
-
-				printRow(tableElement, row, 8, QString::number(totalReturnCost, 'f', 2));
+				stream << ", " << QString::number(lineReturnQty).toLatin1().data() << ", " << QString::number(lineReturn, 'f', 2).toLatin1().data() << ", " << QString::number(totalReturnCost, 'f', 2).toLatin1().data();
 			}
 		}
-		if (printLine)
+		float itemProfit = (lineTotal - lineCost) - (returnTotal - totalReturnCost);
+		totalProfit += itemProfit;
+		netTotalIncome += (lineTotal - returnTotal);
+		printRow(tableElement, row, 0, midh.itemName);
+		printRow(tableElement, row, 9, QString::number(itemProfit, 'f', 2));
+		if (generateCSV)
 		{
-			float itemProfit = (lineTotal - lineCost) - (returnTotal - totalReturnCost);
-			totalProfit += itemProfit;
-			netTotalIncome += (lineTotal - returnTotal);
-			printRow(tableElement, row, 0, midh.itemName);
-			printRow(tableElement, row, 9, QString::number(itemProfit, 'f', 2));
-			row++;
+			stream << ", " << QString::number(itemProfit, 'f', 2).toLatin1().data() << "\n";
 		}
+		row++;
 	}
 	printRow(tableElement, row, 3, "Net. Sales");
 	printRow(tableElement, row, 4, QString::number(netTotalIncome, 'f', 2));
 	printRow(tableElement, row, 8, "Profit ");
 	printRow(tableElement, row, 9, QString::number(totalProfit, 'f', 2));
+	if (generateCSV)
+	{
+		stream << ", , ,  Net. Sales ," << QString::number(netTotalIncome, 'f', 2).toLatin1().data() << ", , , , Total Profit, " << QString::number(totalProfit, 'f', 2).toLatin1().data() << "\n";
+	}
 	report->addElement(tableElement);
+	if (generateCSV)
+	{
+		stream.close();
+		ui.csv->setChecked(false);
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Information);
+		mbox.setText(QString("MDF Profit/Loss Report has been saved in : ").append(filename));
+		mbox.exec();
+	}
+	else
+	{
+		QPrinter printer;
+		printer.setPaperSize(QPrinter::A4);
 
-	QPrinter printer;
-	printer.setPaperSize(QPrinter::A4);
+		printer.setFullPage(false);
+		printer.setOrientation(QPrinter::Landscape);
 
-	printer.setFullPage(false);
-	printer.setOrientation(QPrinter::Landscape);
-
-	QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
-	QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
-	dialog->setWindowTitle(tr("Print Document"));
-	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
-	dialog->exec();
+		QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
+		QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
+		dialog->setWindowTitle(tr("Print Document"));
+		ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
+		dialog->exec();
+	}
 
 }
