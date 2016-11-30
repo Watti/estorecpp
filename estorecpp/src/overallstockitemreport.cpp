@@ -134,7 +134,7 @@ void ESOverallStockItemReport::slotGenerate()
 	{
 		QString dateTimeStr = QDateTime::currentDateTime().toString(QLatin1String("yyyyMMdd-hhmmss"));
 		QString pathToFile = ES::Session::getInstance()->getReportPath();
-		QString filename = pathToFile.append("Stock Items Report-");
+		QString filename = pathToFile.append("\\Stock Items Report-");
 		filename.append(dateTimeStr).append(".csv");
 		std::string s(filename.toStdString());
 		stream.open(s, std::ios::out | std::ios::app);
