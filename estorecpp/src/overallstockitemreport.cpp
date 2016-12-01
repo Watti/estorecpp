@@ -111,7 +111,7 @@ void ESOverallStockItemReport::slotGenerate()
 	QString timeStr = "Time : ";
 	timeStr.append(QDateTime::currentDateTime().toString("hh : mm"));
 
-	KDReports::TextElement date(dateStr);
+	KDReports::TextElement date(dateStr.append(timeStr));
 	m_report->addElement(date, Qt::AlignLeft);
 	QString itemOffset = QString::number(m_startingLimit) + " - " + QString::number(m_startingLimit + m_pageOffset);
 	KDReports::TextElement itemCount(itemOffset);

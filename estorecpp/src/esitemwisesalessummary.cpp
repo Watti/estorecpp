@@ -12,6 +12,9 @@
 #include "utility/session.h"
 #include "esitemwisesalessummary.h"
 #include "utility/utility.h"
+#include <iostream>
+#include <fstream>
+#include "QMessageBox"
 
 ESItemWiseSalesSummary::ESItemWiseSalesSummary(QWidget *parent /*= 0*/) : QWidget(parent)
 {
@@ -126,7 +129,7 @@ void ESItemWiseSalesSummary::slotGenerateReport()
 	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
 	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
 
-	KDReports::TextElement titleElement("Stock Item Sales Report");
+	KDReports::TextElement titleElement("Stock Item Wise Sales Summary Report");
 	titleElement.setPointSize(13);
 	titleElement.setBold(true);
 	report.addElement(titleElement, Qt::AlignHCenter);
@@ -183,6 +186,23 @@ void ESItemWiseSalesSummary::slotGenerateReport()
 		cTextElement.setBold(true);
 		cell.addElement(cTextElement, Qt::AlignCenter);
 	}
+	std::ofstream stream;
+	QString filename = "";
+	bool generateCSV = ui.csv->isChecked();
+	if (generateCSV)
+	{
+		QString dateTimeStr = QDateTime::currentDateTime().toString(QLatin1String("yyyyMMdd-hhmmss"));
+		QString pathToFile = ES::Session::getInstance()->getReportPath();
+		filename = pathToFile.append("\\Item Wise Sales Summary Report -");
+		filename.append(dateTimeStr).append(".csv");
+		std::string s(filename.toStdString());
+		stream.open(s, std::ios::out | std::ios::app);
+		stream << "Item Wise Sales Summary Report" << "\n";
+		stream << "Generated Date Time : ," << dateTimeStr.toLatin1().toStdString() << "\n";
+		stream << ", ,From : " << stardDateStr.toLatin1().toStdString() << ", To : "<< endDateStr.toLatin1().toStdString()<<"\n\n";
+		stream << "Code , Item, Sold Qty, Returned Qty" << "\n";
+
+	}
 	int row = 1;
 	int itemCount = 0;
 	QSqlQuery q("SELECT stock_id, SUM(quantity) as totalQty, item_price, discount FROM sale JOIN bill ON sale.bill_id = bill.bill_id WHERE sale.deleted = 0 AND DATE(bill.date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'" + "GROUP BY stock_id");
@@ -200,8 +220,13 @@ void ESItemWiseSalesSummary::slotGenerateReport()
 		if (stockItemQry.next())
 		{
 			name = stockItemQry.value("item_name").toString();
+			name = name.simplified();
+			name.replace(" ", "");
 			itemCode = stockItemQry.value("item_code").toString();
-
+			ES::Utility::printRow(tableElement, row, 0, itemCode);
+			ES::Utility::printRow(tableElement, row, 1, name);
+			ES::Utility::printRow(tableElement, row, 2, qty);
+			float retQty = 0;
 			QString itemId = stockItemQry.value("item_id").toString();
 			QString qryStrReturn("SELECT SUM(qty) as retTotal FROM return_item WHERE item_id = " + itemId + " AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
 			QSqlQuery qryReturn;
@@ -209,32 +234,46 @@ void ESItemWiseSalesSummary::slotGenerateReport()
 			{
 				if (qryReturn.next())
 				{
-					float retQty = qryReturn.value("retTotal").toFloat();
+					retQty = qryReturn.value("retTotal").toFloat();
 					float netSoldQty = qty.toFloat() - retQty;
 					//qty = QString::number(netSoldQty, 'f', 2);
 					ES::Utility::printRow(tableElement, row, 3, QString::number(retQty));
 				}
 			}
-			ES::Utility::printRow(tableElement, row, 0, itemCode);
-			ES::Utility::printRow(tableElement, row, 1, name);
-			ES::Utility::printRow(tableElement, row, 2, qty);
+
+			if (generateCSV)
+			{
+				stream << itemCode.toLatin1().data() << ", " << name.toLatin1().data() << ", " << qty.toLatin1().data() << ", " << QString::number(retQty).toLatin1().data()<<"\n";
+			}
 			row++;
 		}
 	}
 	
-	report.addElement(tableElement);
+	if (generateCSV)
+	{
+		stream.close();
+		ui.csv->setChecked(false);
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Information);
+		mbox.setText(QString("Stock Items Sales Report has been saved in : ").append(filename));
+		mbox.exec();
+	}
+	else
+	{
+		report.addElement(tableElement);
 
-	QPrinter printer;
-	printer.setPaperSize(QPrinter::A4);
+		QPrinter printer;
+		printer.setPaperSize(QPrinter::A4);
 
-	printer.setFullPage(false);
-	printer.setOrientation(QPrinter::Portrait);
+		printer.setFullPage(false);
+		printer.setOrientation(QPrinter::Portrait);
 
-	QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
-	QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
-	dialog->setWindowTitle(tr("Print Document"));
-	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
-	dialog->exec();
+		QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
+		QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
+		dialog->setWindowTitle(tr("Print Document"));
+		ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
+		dialog->exec();
+	}
 }
 
 void ESItemWiseSalesSummary::slotPrint(QPrinter* printer)

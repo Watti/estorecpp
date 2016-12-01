@@ -14,6 +14,8 @@
 #include "QMessageBox"
 #include "utility/esdbconnection.h"
 #include "utility/utility.h"
+#include <iostream>
+#include <fstream>
 
 ESStockReport::ESStockReport(QWidget *parent /*= 0*/) : QWidget(parent), m_report(NULL)
 {
@@ -149,6 +151,23 @@ void ESStockReport::slotGenerate()
 		t4.setPointSize(12);
 		//t4.setTextColor(Qt::gray);
 		c4.addElement(t4);
+
+		std::ofstream stream;
+		QString filename = "";
+		bool generateCSV = ui.csv->isChecked();
+		if (generateCSV)
+		{
+			QString dateTimeStr = QDateTime::currentDateTime().toString(QLatin1String("yyyyMMdd-hhmmss"));
+			QString pathToFile = ES::Session::getInstance()->getReportPath();
+			filename = pathToFile.append("\\Stock Items Re-Order Report-");
+			filename.append(dateTimeStr).append(".csv");
+			std::string s(filename.toStdString());
+			stream.open(s, std::ios::out | std::ios::app);
+			stream << "Stock Items Re-Order Report" << "\n";
+			stream << "Date Time : ," << dateTimeStr.toLatin1().toStdString() << "\n";
+			stream << "Code , Item, Existing Qty, Min Qty, Status" << "\n";
+
+		}
 		int categoryId = ui.categoryCombo->currentData().toInt();
 		bool categorySelected = false;
 		if (categoryId != -1)
@@ -194,7 +213,8 @@ void ESStockReport::slotGenerate()
 			QString qtyStr = QString::number(qty);
 			QString minQtyStr = QString::number(minQty);
 			QString s, reorder = "No";
-
+			itemName = itemName.simplified();
+			itemName.replace(" ", "");
 			if (excess > 0)
 			{
 				s = QString::number(excess);
@@ -238,23 +258,38 @@ void ESStockReport::slotGenerate()
 			t4.setPointSize(12);
 			//if (excess < 0) t4.setTextColor(Qt::red);
 			c4.addElement(t4);
+
+			if (generateCSV)
+			{
+				stream << itemCode.toLatin1().data() << ", " << itemName.toLatin1().data() << ", " << qtyStr.toLatin1().data() << ", " << minQtyStr.toLatin1().data()<< ", " << s.toLatin1().data() << "\n";
+			}
 			row++;
 		}
+		if (generateCSV)
+		{
+			stream.close();
+			ui.csv->setChecked(false);
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Information);
+			mbox.setText(QString("Stock Items Re-Order Report has been saved in : ").append(filename));
+			mbox.exec();
+		}
+		{
+			m_report->addElement(tableElement);
 
-		m_report->addElement(tableElement);
+			QPrinter printer;
 
-		QPrinter printer;
+			printer.setPaperSize(QPrinter::A4);
 
-		printer.setPaperSize(QPrinter::A4);
+			printer.setFullPage(false);
+			printer.setOrientation(QPrinter::Portrait);
 
-		printer.setFullPage(false);
-		printer.setOrientation(QPrinter::Portrait);
-
-		QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
-		QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
-		dialog->setWindowTitle(tr("Print Document"));
-		ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
-		dialog->exec();
+			QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
+			QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
+			dialog->setWindowTitle(tr("Print Document"));
+			ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
+			dialog->exec();
+		}
 	}
 }
 
