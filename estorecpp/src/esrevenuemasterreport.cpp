@@ -13,6 +13,9 @@
 #include "esmainwindow.h"
 #include <memory>
 #include "QString"
+#include <iostream>
+#include <fstream>
+#include "QMessageBox"
 
 struct SaleDataHolder
 {
@@ -475,7 +478,27 @@ void ESRevenueMasterReport::slotGenerateReport()
 		cTextElement.setBold(true);
 		cell.addElement(cTextElement, Qt::AlignCenter);
 	}
-	
+	std::ofstream stream;
+	QString filename = "";
+	bool generateCSV = ui.csv->isChecked();
+	if (generateCSV)
+	{
+		QString dateTimeStr = QDateTime::currentDateTime().toString(QLatin1String("yyyyMMdd-hhmmss"));
+		QString pathToFile = ES::Session::getInstance()->getReportPath();
+		filename = pathToFile.append("\\Revenue Master Report-");
+		filename.append(dateTimeStr).append(".csv");
+		std::string s(filename.toStdString());
+		stream.open(s, std::ios::out | std::ios::app);
+		stream << "Revenue Master Report" << "\n";
+		stream << "Date Time : ," << dateTimeStr.toLatin1().toStdString() << "\n";
+		QString sDate = stardDateStr;
+		QString eDate = endDateStr;
+		QString dateRange = sDate.append(" - ").append(eDate);
+		stream << "Date Range : ," << dateRange.toLatin1().toStdString() << "\n \n";
+		stream << "Item , Selling Price, Qty, Discount, Total Sales, Item Cost, Total Cost, Return Qty, Return Total, Total Return Cost, Profit" << "\n";
+
+	}
+
 	QVector<std::shared_ptr<SaleDataHolder>> salesData;
 	double grandSalesTotal = 0, salesGrandCost = 0, returnGrandTotal = 0, returnGrandCost = 0;
 	QString qSaleStr = "SELECT stock_id, discount, item_price, w_cost, SUM(total) as total, SUM(quantity) as qty FROM sale WHERE deleted= 0 AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "' GROUP BY stock_id";
@@ -515,10 +538,10 @@ void ESRevenueMasterReport::slotGenerateReport()
 			{
 				sdh->cost = queryStockItem.value("w_cost").toDouble();
 			}
+			QString itemName = queryStockItem.value("item_name").toString();
 			double totalCost = sdh->cost*sdh->lineTotalQty;
 			grandSalesTotal += sdh->lineTotal;
 			salesGrandCost += totalCost;
-			QString itemName = queryStockItem.value("item_name").toString();
 			QString itemId = queryStockItem.value("item_id").toString();
 
 			QString returnQryStr = "SELECT SUM(qty) as totalQty, SUM(return_total) as retTotal FROM return_item WHERE item_id = " + itemId + " AND deleted = 0 AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
@@ -537,29 +560,56 @@ void ESRevenueMasterReport::slotGenerateReport()
 			float returnCost = returnLineQty * sdh->cost;
 			returnGrandCost += returnCost;
 			returnGrandTotal += returnLineTotal;
+			double lineProfit = (sdh->lineTotal - returnLineTotal) - (totalCost - returnCost);
+			if (generateCSV)
+			{
+				itemName = itemName.simplified();
+				itemName.replace(" ", "");
+				stream << itemName.toLatin1().data() << "," << sdh->priceStr.toLatin1().data() << ", " << 
+					QString::number(sdh->lineTotalQty).toLatin1().data() << "," << sdh->discountStr.toLatin1().data() << "," 
+					<< QString::number(sdh->lineTotal, 'f', 2).toLatin1().data() << "," << QString::number(sdh->cost,'f',2).toLatin1().data()<<
+					"," << QString::number(totalCost, 'f', 2).toLatin1().data() << "," << QString::number(returnLineQty).toLatin1().data() << ","
+					<< QString::number(returnLineTotal, 'f', 2).toLatin1().data() << "," << QString::number(returnCost, 'f', 2).toLatin1().data() << ","
+					<< QString::number(lineProfit, 'f', 2).toLatin1().data() << "\n";
+			}
 		}
 	}
 	double profit = (grandSalesTotal - returnGrandTotal) - (salesGrandCost - returnGrandCost);
-	printRow(tableElement, row, 0, QString::number(grandSalesTotal, 'f', 2));
-	printRow(tableElement, row, 1, QString::number(salesGrandCost, 'f', 2));
-	printRow(tableElement, row, 2, QString::number(returnGrandTotal, 'f', 2));
-	printRow(tableElement, row, 3, QString::number(returnGrandCost, 'f', 2));
-	printRow(tableElement, row, 4, QString::number(profit, 'f', 2));
+	if (generateCSV)
+	{
+		stream << "Total ,,,," << QString::number(grandSalesTotal, 'f', 2).toLatin1().data() << ",," <<
+			QString::number(salesGrandCost, 'f', 2).toLatin1().data() << ", ," << QString::number(returnGrandTotal, 'f', 2).toLatin1().data() << ","<<
+			QString::number(returnGrandCost, 'f', 2).toLatin1().data() << ","<< QString::number(profit, 'f', 2).toLatin1().data() << "\n";
+		stream.close();
+		ui.csv->setChecked(false);
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Information);
+		mbox.setText(QString("Revenue Master Report has been saved in : ").append(filename));
+		mbox.exec();
+	}
+	else
+	{
+		printRow(tableElement, row, 0, QString::number(grandSalesTotal, 'f', 2));
+		printRow(tableElement, row, 1, QString::number(salesGrandCost, 'f', 2));
+		printRow(tableElement, row, 2, QString::number(returnGrandTotal, 'f', 2));
+		printRow(tableElement, row, 3, QString::number(returnGrandCost, 'f', 2));
+		printRow(tableElement, row, 4, QString::number(profit, 'f', 2));
 
 
-	report->addElement(*tableElement);
+		report->addElement(*tableElement);
 
-	QPrinter* printer = new QPrinter();
-	printer->setPaperSize(QPrinter::A4);
+		QPrinter* printer = new QPrinter();
+		printer->setPaperSize(QPrinter::A4);
 
-	printer->setFullPage(false);
-	printer->setOrientation(QPrinter::Landscape);
+		printer->setFullPage(false);
+		printer->setOrientation(QPrinter::Landscape);
 
-	QPrintPreviewDialog *dialog = new QPrintPreviewDialog(printer, this);
-	QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
-	dialog->setWindowTitle(tr("Print Document"));
-	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
-	dialog->exec();
+		QPrintPreviewDialog *dialog = new QPrintPreviewDialog(printer, this);
+		QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
+		dialog->setWindowTitle(tr("Print Document"));
+		ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
+		dialog->exec();
+	}
 // 	delete dialog;
 // 	delete printer;
 // 	delete report;
