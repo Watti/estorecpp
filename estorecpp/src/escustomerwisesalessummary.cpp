@@ -59,6 +59,18 @@ void ESCustomerWiseSalesSummary::slotSearch()
 	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
 	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
 
+	QString fromDateStr = stardDateStr;
+	int dayscount = ui.fromDate->date().daysTo(QDate::currentDate());
+	bool hasPermission = (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
+		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV);
+	int maxBackDays = ES::Session::getInstance()->getMaximumDaysToShowRecords();
+	if (ES::Session::getInstance()->isEnableTaxSupport() && !hasPermission && dayscount > maxBackDays)
+	{
+		maxBackDays = maxBackDays*-1;
+		QString maxBackDateStr = QDate::currentDate().addDays(maxBackDays).toString("yyyy-MM-dd");
+		fromDateStr = maxBackDateStr;
+	}
+
 	while (ui.tableWidget->rowCount() > 0)
 	{
 		ui.tableWidget->removeRow(0);
@@ -78,7 +90,7 @@ void ESCustomerWiseSalesSummary::slotSearch()
 		QString comments = customerQry.value("comments").toString();
 
 		QSqlQuery totalBillQry;
-		totalBillQry.prepare("SELECT SUM(amount) as TotalAmount FROM bill WHERE deleted = 0 AND status = 1 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "' AND customer_id = " + customerId);
+		totalBillQry.prepare("SELECT SUM(amount) as TotalAmount FROM bill WHERE deleted = 0 AND status = 1 AND  DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "' AND customer_id = " + customerId);
 		totalBillQry.setForwardOnly(true);
 		totalBillQry.exec();
 		if (totalBillQry.next())
@@ -130,6 +142,18 @@ void ESCustomerWiseSalesSummary::slotGenerateReport()
 {
 	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
 	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
+
+	QString fromDateStr = stardDateStr;
+	int dayscount = ui.fromDate->date().daysTo(QDate::currentDate());
+	bool hasPermission = (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
+		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV);
+	int maxBackDays = ES::Session::getInstance()->getMaximumDaysToShowRecords();
+	if (ES::Session::getInstance()->isEnableTaxSupport() && !hasPermission && dayscount > maxBackDays)
+	{
+		maxBackDays = maxBackDays*-1;
+		QString maxBackDateStr = QDate::currentDate().addDays(maxBackDays).toString("yyyy-MM-dd");
+		fromDateStr = maxBackDateStr;
+	}
 
 	report = new KDReports::Report;
 
@@ -207,7 +231,7 @@ void ESCustomerWiseSalesSummary::slotGenerateReport()
 		QString comments = customerQry.value("comments").toString();
 
 		QSqlQuery totalBillQry;
-		totalBillQry.prepare("SELECT SUM(amount) as TotalAmount FROM bill WHERE deleted = 0 AND status = 1 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "' AND customer_id = " + customerId);
+		totalBillQry.prepare("SELECT SUM(amount) as TotalAmount FROM bill WHERE deleted = 0 AND status = 1 AND  DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "' AND customer_id = " + customerId);
 		totalBillQry.setForwardOnly(true);
 		totalBillQry.exec();
 		if (totalBillQry.next())

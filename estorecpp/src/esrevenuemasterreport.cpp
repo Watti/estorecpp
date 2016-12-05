@@ -82,8 +82,21 @@ void ESRevenueMasterReport::slotPrint(QPrinter* printer)
  	QVector<SaleDataHolder> salesData;
  	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
  	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
+
+	QString fromDateStr = stardDateStr;
+	int dayscount = ui.fromDate->date().daysTo(QDate::currentDate());
+	bool hasPermission = (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
+		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV);
+	int maxBackDays = ES::Session::getInstance()->getMaximumDaysToShowRecords();
+	if (ES::Session::getInstance()->isEnableTaxSupport() && !hasPermission && dayscount > maxBackDays)
+	{
+		maxBackDays = maxBackDays*-1;
+		QString maxBackDateStr = QDate::currentDate().addDays(maxBackDays).toString("yyyy-MM-dd");
+		fromDateStr = maxBackDateStr;
+	}
+
  	double grandSalesTotal = 0, salesGrandCost=0, returnGrandTotal =0 , returnGrandCost = 0;
- 	QString qSaleStr = "SELECT stock_id, discount, item_price, w_cost, SUM(total) as total, SUM(quantity) as qty FROM sale WHERE deleted= 0 AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "' GROUP BY stock_id";
+	QString qSaleStr = "SELECT stock_id, discount, item_price, w_cost, SUM(total) as total, SUM(quantity) as qty FROM sale WHERE deleted= 0 AND DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "' GROUP BY stock_id";
  	QSqlQuery querySale;
  	querySale.prepare(qSaleStr);
  	querySale.setForwardOnly(true);
@@ -125,7 +138,7 @@ void ESRevenueMasterReport::slotPrint(QPrinter* printer)
  			QString itemName = queryStockItem.value("item_name").toString();
  			QString itemId = queryStockItem.value("item_id").toString();
  
- 			QString returnQryStr = "SELECT SUM(qty) as totalQty, SUM(return_total) as retTotal FROM return_item WHERE item_id = " + itemId + " AND deleted = 0 AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+			QString returnQryStr = "SELECT SUM(qty) as totalQty, SUM(return_total) as retTotal FROM return_item WHERE item_id = " + itemId + " AND deleted = 0 AND DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "'";
  			QSqlQuery queryReturn;
  			queryReturn.prepare(returnQryStr);
  			queryReturn.setForwardOnly(true);
@@ -417,6 +430,18 @@ void ESRevenueMasterReport::slotGenerateReport()
 	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
 	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
 
+	QString fromDateStr = stardDateStr;
+	int dayscount = ui.fromDate->date().daysTo(QDate::currentDate());
+	bool hasPermission = (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
+		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV);
+	int maxBackDays = ES::Session::getInstance()->getMaximumDaysToShowRecords();
+	if (ES::Session::getInstance()->isEnableTaxSupport() && !hasPermission && dayscount > maxBackDays)
+	{
+		maxBackDays = maxBackDays*-1;
+		QString maxBackDateStr = QDate::currentDate().addDays(maxBackDays).toString("yyyy-MM-dd");
+		fromDateStr = maxBackDateStr;
+	}
+
 	QString dateStr = "Date : ";
 	dateStr.append(stardDateStr).append(" - ").append(endDateStr);
 
@@ -501,7 +526,7 @@ void ESRevenueMasterReport::slotGenerateReport()
 
 	QVector<std::shared_ptr<SaleDataHolder>> salesData;
 	double grandSalesTotal = 0, salesGrandCost = 0, returnGrandTotal = 0, returnGrandCost = 0;
-	QString qSaleStr = "SELECT stock_id, discount, item_price, w_cost, SUM(total) as total, SUM(quantity) as qty FROM sale WHERE deleted= 0 AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "' GROUP BY stock_id";
+	QString qSaleStr = "SELECT stock_id, discount, item_price, w_cost, SUM(total) as total, SUM(quantity) as qty FROM sale WHERE deleted= 0 AND DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "' GROUP BY stock_id";
 	QSqlQuery querySale;
 	querySale.prepare(qSaleStr);
 	querySale.setForwardOnly(true);
@@ -544,7 +569,7 @@ void ESRevenueMasterReport::slotGenerateReport()
 			salesGrandCost += totalCost;
 			QString itemId = queryStockItem.value("item_id").toString();
 
-			QString returnQryStr = "SELECT SUM(qty) as totalQty, SUM(return_total) as retTotal FROM return_item WHERE item_id = " + itemId + " AND deleted = 0 AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+			QString returnQryStr = "SELECT SUM(qty) as totalQty, SUM(return_total) as retTotal FROM return_item WHERE item_id = " + itemId + " AND deleted = 0 AND DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "'";
 			QSqlQuery queryReturn;
 			queryReturn.prepare(returnQryStr);
 			queryReturn.setForwardOnly(true);

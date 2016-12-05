@@ -90,6 +90,18 @@ void OverallSalesSummary::slotSearch()
 	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
 	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
 
+	QString fromDateStr = stardDateStr;
+	int dayscount = ui.fromDate->date().daysTo(QDate::currentDate());
+	bool hasPermission = (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
+		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV);
+	int maxBackDays = ES::Session::getInstance()->getMaximumDaysToShowRecords();
+	if (ES::Session::getInstance()->isEnableTaxSupport() && !hasPermission && dayscount > maxBackDays)
+	{
+		maxBackDays = maxBackDays*-1;
+		QString maxBackDateStr = QDate::currentDate().addDays(maxBackDays).toString("yyyy-MM-dd");
+		fromDateStr = maxBackDateStr;
+	}
+
 	double cashSales = 0, creditSales = 0, chequeSales = 0, cardSales = 0;
 	QSqlQuery userQry("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE user.active = 1");
 	while (userQry.next())
@@ -110,11 +122,11 @@ void OverallSalesSummary::slotSearch()
 			if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
 				ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
 			{
-				userBillQryStr = "SELECT * FROM bill WHERE status = 1 AND bill.user_id = " + uId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+				userBillQryStr = "SELECT * FROM bill WHERE status = 1 AND bill.user_id = " + uId + " AND  DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "'";
 			}
 			else
 			{
-				userBillQryStr = "SELECT * FROM bill WHERE status = 1 AND visible = 1 AND user_id = " + uId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+				userBillQryStr = "SELECT * FROM bill WHERE status = 1 AND visible = 1 AND user_id = " + uId + " AND  DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "'";
 			}
 			QSqlQuery userBillQry(userBillQryStr);
 			while (userBillQry.next())
@@ -185,7 +197,7 @@ void OverallSalesSummary::slotSearch()
 			cardSalesWidget->setTextAlignment(Qt::AlignRight);
 			ui.tableWidgetByUser->setItem(row, 3, cardSalesWidget);
 
-			QSqlQuery queryReturn("SELECT SUM(return_total) as rTotal FROM return_item WHERE user_id=" + uId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "' AND deleted = 0");
+			QSqlQuery queryReturn("SELECT SUM(return_total) as rTotal FROM return_item WHERE user_id=" + uId + " AND  DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "' AND deleted = 0");
 			if (queryReturn.next())
 			{
 				double returnTotal = queryReturn.value("rTotal").toDouble();
@@ -194,7 +206,7 @@ void OverallSalesSummary::slotSearch()
 				ui.tableWidgetByUser->setItem(row, 4, cardReturnWidget);
 			}
 			double income = 0, expense = 0;
-			QSqlQuery queryPettyCash("SELECT * FROM petty_cash WHERE user_id = " + uId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+			QSqlQuery queryPettyCash("SELECT * FROM petty_cash WHERE user_id = " + uId + " AND  DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "'");
 			while (queryPettyCash.next())
 			{
 				QString uId = queryPettyCash.value("user_id").toString();
@@ -221,7 +233,7 @@ void OverallSalesSummary::slotSearch()
 			// todo :loyalty
 
 			//outstanding settlement related stuff
-			QSqlQuery outstandingCashCollectionQry("SELECT * FROM customer_outstanding_settlement WHERE user_id = " + uId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+			QSqlQuery outstandingCashCollectionQry("SELECT * FROM customer_outstanding_settlement WHERE user_id = " + uId + " AND  DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "'");
 			double cashSettlementTotal = 0, chequeSettlementTotal = 0;
 			while (outstandingCashCollectionQry.next())
 			{
@@ -280,11 +292,11 @@ void OverallSalesSummary::slotSearch()
 	if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
 		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
 	{
-		qBillQryStr = "SELECT* FROM bill WHERE deleted = 0 AND status = 1 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+		qBillQryStr = "SELECT* FROM bill WHERE deleted = 0 AND status = 1 AND  DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "'";
 	}
 	else
 	{
-		qBillQryStr = "SELECT* FROM bill WHERE deleted = 0 AND visible = 1 AND status = 1 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+		qBillQryStr = "SELECT* FROM bill WHERE deleted = 0 AND visible = 1 AND status = 1 AND  DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "'";
 	}
 	QSqlQuery totalBillQry(qBillQryStr);
 	while (totalBillQry.next())
@@ -453,6 +465,18 @@ void OverallSalesSummary::slotGenerateReportForGivenUser(QString userId)
 	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
 	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
 
+	QString fromDateStr = stardDateStr;
+	int dayscount = ui.fromDate->date().daysTo(QDate::currentDate());
+	bool hasPermission = (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
+		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV);
+	int maxBackDays = ES::Session::getInstance()->getMaximumDaysToShowRecords();
+	if (ES::Session::getInstance()->isEnableTaxSupport() && !hasPermission && dayscount > maxBackDays)
+	{
+		maxBackDays = maxBackDays*-1;
+		QString maxBackDateStr = QDate::currentDate().addDays(maxBackDays).toString("yyyy-MM-dd");
+		fromDateStr = maxBackDateStr;
+	}
+
 	QString dateStr = "Date : ";
 	dateStr.append(stardDateStr).append(" - ").append(endDateStr);
 
@@ -560,11 +584,11 @@ void OverallSalesSummary::slotGenerateReportForGivenUser(QString userId)
 	if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
 		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
 	{
-		userBillQryStr = "SELECT * FROM bill WHERE status = 1 AND bill.user_id = " + userId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+		userBillQryStr = "SELECT * FROM bill WHERE status = 1 AND bill.user_id = " + userId + " AND  DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "'";
 	}
 	else
 	{
-		userBillQryStr = "SELECT * FROM bill WHERE status = 1 AND visible = 1 AND bill.user_id = " + userId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+		userBillQryStr = "SELECT * FROM bill WHERE status = 1 AND visible = 1 AND bill.user_id = " + userId + " AND  DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "'";
 	}
 	QSqlQuery userBillQry(userBillQryStr);
 	while (userBillQry.next())
@@ -619,7 +643,7 @@ void OverallSalesSummary::slotGenerateReportForGivenUser(QString userId)
 		}
 	}
 	double returnTotal = 0;
-	QSqlQuery queryReturn("SELECT SUM(return_total) as rTotal FROM return_item WHERE user_id=" + userId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "' AND deleted =0");
+	QSqlQuery queryReturn("SELECT SUM(return_total) as rTotal FROM return_item WHERE user_id=" + userId + " AND  DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "' AND deleted =0");
 	if (queryReturn.next())
 	{
 		returnTotal = queryReturn.value("rTotal").toDouble();
@@ -629,7 +653,7 @@ void OverallSalesSummary::slotGenerateReportForGivenUser(QString userId)
 	}
 
 	double income = 0, expense = 0;
-	QSqlQuery queryPettyCash("SELECT * FROM petty_cash WHERE user_id = " + userId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+	QSqlQuery queryPettyCash("SELECT * FROM petty_cash WHERE user_id = " + userId + " AND  DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "'");
 	while (queryPettyCash.next())
 	{
 		QString uId = queryPettyCash.value("user_id").toString();
@@ -647,7 +671,7 @@ void OverallSalesSummary::slotGenerateReportForGivenUser(QString userId)
 		}
 	}
 
-	QSqlQuery outstandingCashCollectionQry("SELECT * FROM customer_outstanding_settlement WHERE user_id = " + userId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+	QSqlQuery outstandingCashCollectionQry("SELECT * FROM customer_outstanding_settlement WHERE user_id = " + userId + " AND  DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "'");
 	double cashSettlementGrandTotal = 0, chequeSettlementGrandTotal = 0;
 	while (outstandingCashCollectionQry.next())
 	{
@@ -697,6 +721,18 @@ void OverallSalesSummary::slotGenerateReport()
 
 	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
 	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
+
+	QString fromDateStr = stardDateStr;
+	int dayscount = ui.fromDate->date().daysTo(QDate::currentDate());
+	bool hasPermission = (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
+		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV);
+	int maxBackDays = ES::Session::getInstance()->getMaximumDaysToShowRecords();
+	if (ES::Session::getInstance()->isEnableTaxSupport() && !hasPermission && dayscount > maxBackDays)
+	{
+		maxBackDays = maxBackDays*-1;
+		QString maxBackDateStr = QDate::currentDate().addDays(maxBackDays).toString("yyyy-MM-dd");
+		fromDateStr = maxBackDateStr;
+	}
 
 	QString dateStr = "Date : ";
 	dateStr.append(stardDateStr).append(" - ").append(endDateStr);
@@ -793,11 +829,11 @@ void OverallSalesSummary::slotGenerateReport()
 	if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
 		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
 	{
-		qBillQryStr = "SELECT* FROM bill WHERE deleted = 0 AND status = 1 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+		qBillQryStr = "SELECT* FROM bill WHERE deleted = 0 AND status = 1 AND  DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "'";
 	}
 	else
 	{
-		qBillQryStr = "SELECT* FROM bill WHERE deleted = 0 AND visible = 1 AND status = 1 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+		qBillQryStr = "SELECT* FROM bill WHERE deleted = 0 AND visible = 1 AND status = 1 AND  DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "'";
 	}
 	QSqlQuery totalBillQry(qBillQryStr);
 	/*QSqlQuery totalBillQry("SELECT* FROM bill WHERE deleted = 0 AND status = 1 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");*/
@@ -856,7 +892,7 @@ void OverallSalesSummary::slotGenerateReport()
 		}
 	}
 	double returnTotal = 0;
-	QSqlQuery queryReturn("SELECT SUM(return_total) as rTotal FROM return_item WHERE deleted=0 AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+	QSqlQuery queryReturn("SELECT SUM(return_total) as rTotal FROM return_item WHERE deleted=0 AND DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "'");
 	if (queryReturn.next())
 	{
 		// 		QString uId = queryReturn.value("user_id").toString();
@@ -867,7 +903,7 @@ void OverallSalesSummary::slotGenerateReport()
 		//		}
 	}
 	double income = 0, expense = 0;
-	QSqlQuery queryPettyCash("SELECT * FROM petty_cash WHERE DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+	QSqlQuery queryPettyCash("SELECT * FROM petty_cash WHERE DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "'");
 	while (queryPettyCash.next())
 	{
 		QString uId = queryPettyCash.value("user_id").toString();
@@ -889,7 +925,7 @@ void OverallSalesSummary::slotGenerateReport()
 		}
 	}
 
-	QSqlQuery outstandingCashCollectionQry("SELECT * FROM customer_outstanding_settlement WHERE DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+	QSqlQuery outstandingCashCollectionQry("SELECT * FROM customer_outstanding_settlement WHERE DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "'");
 	double cashSettlementGrandTotal = 0, chequeSettlementGrandTotal = 0;
 	while (outstandingCashCollectionQry.next())
 	{

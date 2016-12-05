@@ -60,7 +60,19 @@ void ESReturnSummary::slotSearch()
 	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
 	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
 
-	QSqlQuery q("SELECT user_id, COUNT(bill_id) AS bills, SUM(return_total) AS total FROM return_item WHERE DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "' AND deleted = 0 " + "GROUP BY(user_id)");
+	QString fromDateStr = stardDateStr;
+	int dayscount = ui.fromDate->date().daysTo(QDate::currentDate());
+	bool hasPermission = (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
+		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV);
+	int maxBackDays = ES::Session::getInstance()->getMaximumDaysToShowRecords();
+	if (ES::Session::getInstance()->isEnableTaxSupport() && !hasPermission && dayscount > maxBackDays)
+	{
+		maxBackDays = maxBackDays*-1;
+		QString maxBackDateStr = QDate::currentDate().addDays(maxBackDays).toString("yyyy-MM-dd");
+		fromDateStr = maxBackDateStr;
+	}
+
+	QSqlQuery q("SELECT user_id, COUNT(bill_id) AS bills, SUM(return_total) AS total FROM return_item WHERE DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "' AND deleted = 0 " + "GROUP BY(user_id)");
 	while (q.next())
 	{
 		QString userId = q.value("user_id").toString();
@@ -124,6 +136,18 @@ void ESReturnSummary::slotGenerateReport()
 
 	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
 	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
+
+	QString fromDateStr = stardDateStr;
+	int dayscount = ui.fromDate->date().daysTo(QDate::currentDate());
+	bool hasPermission = (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
+		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV);
+	int maxBackDays = ES::Session::getInstance()->getMaximumDaysToShowRecords();
+	if (ES::Session::getInstance()->isEnableTaxSupport() && !hasPermission && dayscount > maxBackDays)
+	{
+		maxBackDays = maxBackDays*-1;
+		QString maxBackDateStr = QDate::currentDate().addDays(maxBackDays).toString("yyyy-MM-dd");
+		fromDateStr = maxBackDateStr;
+	}
 
 	m_report = new KDReports::Report;
 
@@ -208,7 +232,7 @@ void ESReturnSummary::slotGenerateReport()
 		cell.addElement(cTextElement, Qt::AlignCenter);
 	}
 	int row = 1;
-	QSqlQuery q("SELECT * FROM return_item WHERE DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "' AND deleted = 0");
+	QSqlQuery q("SELECT * FROM return_item WHERE DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "' AND deleted = 0");
 	while (q.next())
 	{
 		QString userId = q.value("user_id").toString();

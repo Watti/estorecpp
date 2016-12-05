@@ -59,9 +59,19 @@ void ESItemWiseSalesSummary::slotSearch()
 	int itemCount = 0;
 
 	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
+	QString fromDateStr = stardDateStr;
 	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
-	//QString stardDateStr = QDate::currentDate().addDays(-14).toString("yyyy-MM-dd");
-	QSqlQuery q("SELECT stock_id, SUM(quantity) as totalQty, item_price, discount FROM sale JOIN bill ON sale.bill_id = bill.bill_id WHERE sale.deleted = 0 AND DATE(bill.date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'" + "GROUP BY stock_id");
+	int dayscount = ui.fromDate->date().daysTo(QDate::currentDate());
+	bool hasPermission = (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
+		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV);
+	int maxBackDays = ES::Session::getInstance()->getMaximumDaysToShowRecords();
+	if (ES::Session::getInstance()->isEnableTaxSupport() && !hasPermission && dayscount > maxBackDays)
+	{
+		maxBackDays = maxBackDays*-1;
+		QString maxBackDateStr = QDate::currentDate().addDays(maxBackDays).toString("yyyy-MM-dd");
+		fromDateStr = maxBackDateStr;
+	}
+	QSqlQuery q("SELECT stock_id, SUM(quantity) as totalQty, item_price, discount FROM sale JOIN bill ON sale.bill_id = bill.bill_id WHERE sale.deleted = 0 AND DATE(bill.date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "'" + "GROUP BY stock_id");
 	while (q.next())
 	{
 		itemCount++;
@@ -83,7 +93,7 @@ void ESItemWiseSalesSummary::slotSearch()
 			name = stockItemQry.value("item_name").toString();
 			itemCode = stockItemQry.value("item_code").toString();
 			QString itemId = stockItemQry.value("item_id").toString();
-			QString qryStrReturn("SELECT SUM(qty) as retTotal FROM return_item WHERE item_id = " + itemId + " AND Date(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+			QString qryStrReturn("SELECT SUM(qty) as retTotal FROM return_item WHERE item_id = " + itemId + " AND Date(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "'");
 			QSqlQuery qryReturn;
 			if (qryReturn.exec(qryStrReturn))
 			{
@@ -128,6 +138,18 @@ void ESItemWiseSalesSummary::slotGenerateReport()
 
 	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
 	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
+
+	QString fromDateStr = stardDateStr;
+	int dayscount = ui.fromDate->date().daysTo(QDate::currentDate());
+	bool hasPermission = (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
+		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV);
+	int maxBackDays = ES::Session::getInstance()->getMaximumDaysToShowRecords();
+	if (ES::Session::getInstance()->isEnableTaxSupport() && !hasPermission && dayscount > maxBackDays)
+	{
+		maxBackDays = maxBackDays*-1;
+		QString maxBackDateStr = QDate::currentDate().addDays(maxBackDays).toString("yyyy-MM-dd");
+		fromDateStr = maxBackDateStr;
+	}
 
 	KDReports::TextElement titleElement("Stock Item Wise Sales Summary Report");
 	titleElement.setPointSize(13);
@@ -205,7 +227,7 @@ void ESItemWiseSalesSummary::slotGenerateReport()
 	}
 	int row = 1;
 	int itemCount = 0;
-	QSqlQuery q("SELECT stock_id, SUM(quantity) as totalQty, item_price, discount FROM sale JOIN bill ON sale.bill_id = bill.bill_id WHERE sale.deleted = 0 AND DATE(bill.date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'" + "GROUP BY stock_id");
+	QSqlQuery q("SELECT stock_id, SUM(quantity) as totalQty, item_price, discount FROM sale JOIN bill ON sale.bill_id = bill.bill_id WHERE sale.deleted = 0 AND DATE(bill.date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "'" + "GROUP BY stock_id");
 	while (q.next())
 	{
 		itemCount++;
@@ -228,7 +250,7 @@ void ESItemWiseSalesSummary::slotGenerateReport()
 			ES::Utility::printRow(tableElement, row, 2, qty);
 			float retQty = 0;
 			QString itemId = stockItemQry.value("item_id").toString();
-			QString qryStrReturn("SELECT SUM(qty) as retTotal FROM return_item WHERE item_id = " + itemId + " AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+			QString qryStrReturn("SELECT SUM(qty) as retTotal FROM return_item WHERE item_id = " + itemId + " AND DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "'");
 			QSqlQuery qryReturn;
 			if (qryReturn.exec(qryStrReturn))
 			{

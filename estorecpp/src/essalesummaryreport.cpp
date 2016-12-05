@@ -92,7 +92,18 @@ void ESSalesSummary::slotGenerate()
 
 	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
 	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
-
+	
+	QString fromDateStr = stardDateStr;
+	int dayscount = ui.fromDate->date().daysTo(QDate::currentDate());
+	bool hasPermission = (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
+		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV);
+	int maxBackDays = ES::Session::getInstance()->getMaximumDaysToShowRecords();
+	if (ES::Session::getInstance()->isEnableTaxSupport() && !hasPermission && dayscount > maxBackDays)
+	{
+		maxBackDays = maxBackDays*-1;
+		QString maxBackDateStr = QDate::currentDate().addDays(maxBackDays).toString("yyyy-MM-dd");
+		fromDateStr = maxBackDateStr;
+	}
 	QString dateStr = "Date : ";
 	dateStr.append(stardDateStr).append(" - ").append(endDateStr);
 
@@ -136,11 +147,11 @@ void ESSalesSummary::slotGenerate()
 	if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
 		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
 	{
-		qStr = "SELECT* FROM bill WHERE deleted = 0 AND status = 1 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+		qStr = "SELECT* FROM bill WHERE deleted = 0 AND status = 1 AND  DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "'";
 	}
 	else
 	{
-		qStr = "SELECT* FROM bill WHERE deleted = 0 AND status = 1 AND visible = 1 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+		qStr = "SELECT* FROM bill WHERE deleted = 0 AND status = 1 AND visible = 1 AND  DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "'";
 	}
 
 	QSqlQuery totalBillQry(qStr);
@@ -261,15 +272,27 @@ void ESSalesSummary::displayResults()
 
 	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
 	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
+
+	QString fromDateStr = stardDateStr;
+	int dayscount = ui.fromDate->date().daysTo(QDate::currentDate());
+	bool hasPermission = (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
+		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV);
+	int maxBackDays = ES::Session::getInstance()->getMaximumDaysToShowRecords();
+	if (ES::Session::getInstance()->isEnableTaxSupport() && !hasPermission && dayscount > maxBackDays)
+	{
+		maxBackDays = maxBackDays*-1;
+		QString maxBackDateStr = QDate::currentDate().addDays(maxBackDays).toString("yyyy-MM-dd");
+		fromDateStr = maxBackDateStr;
+	}
 	QString qStr;
 	if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
 		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
 	{
-		qStr = "SELECT* FROM bill WHERE deleted = 0 AND status = 1 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+		qStr = "SELECT* FROM bill WHERE deleted = 0 AND status = 1 AND  DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "'";
 	}
 	else
 	{
-		qStr = "SELECT* FROM bill WHERE deleted = 0 AND status = 1 AND visible = 1 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+		qStr = "SELECT* FROM bill WHERE deleted = 0 AND status = 1 AND visible = 1 AND  DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "'";
 	}
 
 	QSqlQuery totalBillQry(qStr);
@@ -368,11 +391,11 @@ void ESSalesSummary::displayResults()
 			if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
 				ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
 			{
-				qUserStr = "SELECT * FROM bill WHERE status = 1 AND deleted = 0 AND user_id = " + uId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+				qUserStr = "SELECT * FROM bill WHERE status = 1 AND deleted = 0 AND user_id = " + uId + " AND  DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "'";
 			}
 			else
 			{
-				qUserStr = "SELECT * FROM bill WHERE status = 1 AND deleted = 0 AND visible = 1 AND user_id = " + uId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+				qUserStr = "SELECT * FROM bill WHERE status = 1 AND deleted = 0 AND visible = 1 AND user_id = " + uId + " AND  DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "'";
 			}
 
 			QSqlQuery userBillQry(qUserStr);
@@ -477,6 +500,17 @@ void ESSalesSummary::slotGenerateReportForGivenUser(QString userId)
 	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
 	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
 
+	QString fromDateStr = stardDateStr;
+	int dayscount = ui.fromDate->date().daysTo(QDate::currentDate());
+	bool hasPermission = (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
+		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV);
+	int maxBackDays = ES::Session::getInstance()->getMaximumDaysToShowRecords();
+	if (ES::Session::getInstance()->isEnableTaxSupport() && !hasPermission && dayscount > maxBackDays)
+	{
+		maxBackDays = maxBackDays*-1;
+		QString maxBackDateStr = QDate::currentDate().addDays(maxBackDays).toString("yyyy-MM-dd");
+		fromDateStr = maxBackDateStr;
+	}
 	QString dateStr = "Date : ";
 	dateStr.append(stardDateStr).append(" - ").append(endDateStr);
 
@@ -551,11 +585,11 @@ void ESSalesSummary::slotGenerateReportForGivenUser(QString userId)
 	if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
 		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
 	{
-		qStr = "SELECT * FROM bill WHERE status = 1 AND deleted = 0 AND bill.user_id = " + userId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+		qStr = "SELECT * FROM bill WHERE status = 1 AND deleted = 0 AND bill.user_id = " + userId + " AND  DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "'";
 	}
 	else
 	{
-		qStr = "SELECT * FROM bill WHERE status = 1 AND deleted = 0 AND visible = 1 AND bill.user_id = " + userId + " AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+		qStr = "SELECT * FROM bill WHERE status = 1 AND deleted = 0 AND visible = 1 AND bill.user_id = " + userId + " AND  DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "'";
 	}
 
 	QSqlQuery userBillQry(qStr);

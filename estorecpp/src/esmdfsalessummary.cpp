@@ -84,6 +84,19 @@ void MDFSalesSummary::slotSearch()
 	float totalProfit = 0;
 	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
 	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
+
+	QString fromDateStr = stardDateStr;
+	int dayscount = ui.fromDate->date().daysTo(QDate::currentDate());
+	bool hasPermission = (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
+		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV);
+	int maxBackDays = ES::Session::getInstance()->getMaximumDaysToShowRecords();
+	if (ES::Session::getInstance()->isEnableTaxSupport() && !hasPermission && dayscount > maxBackDays)
+	{
+		maxBackDays = maxBackDays*-1;
+		QString maxBackDateStr = QDate::currentDate().addDays(maxBackDays).toString("yyyy-MM-dd");
+		fromDateStr = maxBackDateStr;
+	}
+
 	double netTotalIncome = 0;
 	QVector<MDFItemDataHolder> dataHolderVec;
 	QString qMDFStr = "SELECT * FROM Item JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id WHERE item.deleted = 0 AND item_category.itemcategory_name ='MDF'";
@@ -117,7 +130,7 @@ void MDFSalesSummary::slotSearch()
 		float lineTotal = 0;
 		float lineQty = 0;
 		float lineCost = 0;
-		QString salesQryStr = "SELECT discount, SUM(total) as totalAmount, SUM(quantity) as totalQty, w_cost FROM sale WHERE stock_id = " + midh.stockId + " AND deleted = 0 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+		QString salesQryStr = "SELECT discount, SUM(total) as totalAmount, SUM(quantity) as totalQty, w_cost FROM sale WHERE stock_id = " + midh.stockId + " AND deleted = 0 AND  DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "'";
 		QSqlQuery salesQry;
 		salesQry.setForwardOnly(true);
 		salesQry.exec(salesQryStr);
@@ -175,7 +188,7 @@ void MDFSalesSummary::slotSearch()
 
 		float returnTotal = 0;
 		float totalReturnCost = 0;
-		QSqlQuery queryReturn("SELECT SUM(qty) as totalQty , SUM(return_total) as retTotal FROM return_item WHERE item_id = " + midh.itemId + " AND deleted = 0 AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+		QSqlQuery queryReturn("SELECT SUM(qty) as totalQty , SUM(return_total) as retTotal FROM return_item WHERE item_id = " + midh.itemId + " AND deleted = 0 AND DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "'");
 		if (queryReturn.next())
 		{
 			float lineReturnQty = queryReturn.value("totalQty").toFloat();
@@ -524,6 +537,18 @@ void MDFSalesSummary::slotGenerateReport()
 	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
 	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
 
+	QString fromDateStr = stardDateStr;
+	int dayscount = ui.fromDate->date().daysTo(QDate::currentDate());
+	bool hasPermission = (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
+		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV);
+	int maxBackDays = ES::Session::getInstance()->getMaximumDaysToShowRecords();
+	if (ES::Session::getInstance()->isEnableTaxSupport() && !hasPermission && dayscount > maxBackDays)
+	{
+		maxBackDays = maxBackDays*-1;
+		QString maxBackDateStr = QDate::currentDate().addDays(maxBackDays).toString("yyyy-MM-dd");
+		fromDateStr = maxBackDateStr;
+	}
+
 	QString dateStr = "Date : ";
 	dateStr.append(stardDateStr).append(" - ").append(endDateStr);
 
@@ -674,7 +699,7 @@ void MDFSalesSummary::slotGenerateReport()
 		float lineTotal = 0;
 		float lineQty = 0;
 		float lineCost = 0;
-		QString salesQryStr = "SELECT discount, SUM(total) as totalAmount, SUM(quantity) as totalQty, w_cost FROM sale WHERE stock_id = " + midh.stockId + " AND deleted = 0 AND  DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'";
+		QString salesQryStr = "SELECT discount, SUM(total) as totalAmount, SUM(quantity) as totalQty, w_cost FROM sale WHERE stock_id = " + midh.stockId + " AND deleted = 0 AND  DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "'";
 		QSqlQuery salesQry;
 		salesQry.setForwardOnly(true);
 		salesQry.exec(salesQryStr);
@@ -714,7 +739,7 @@ void MDFSalesSummary::slotGenerateReport()
 
 		float returnTotal = 0;
 		float totalReturnCost = 0;
-		QSqlQuery queryReturn("SELECT SUM(qty) as totalQty , SUM(return_total) as retTotal FROM return_item WHERE item_id = " + midh.itemId + " AND deleted = 0 AND DATE(date) BETWEEN '" + stardDateStr + "' AND '" + endDateStr + "'");
+		QSqlQuery queryReturn("SELECT SUM(qty) as totalQty , SUM(return_total) as retTotal FROM return_item WHERE item_id = " + midh.itemId + " AND deleted = 0 AND DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "'");
 		if (queryReturn.next())
 		{
 

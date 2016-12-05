@@ -42,6 +42,10 @@ namespace ES
 		void setSecondDisplayOn(bool val);
 		QString getReportPath() const;
 		void setReportPath(QString val);
+		bool isEnableTaxSupport() const;
+		void setEnableTaxSupport(bool val);
+		int getMaximumDaysToShowRecords() const;
+		void setMaximumDaysToShowRecords(int val);
 	private:
 		Session();
 		static Session* m_session;
@@ -59,6 +63,8 @@ namespace ES
 		QString m_billEmail;
 		bool m_secondDisplayOn;
 		QString m_reportPath;
+		bool m_enableTaxSupport;
+		int m_maximumDaysToShowRecords;
 	};
 
 }
