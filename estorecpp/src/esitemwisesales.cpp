@@ -20,7 +20,7 @@ ItemWiseSales::ItemWiseSales(QWidget *parent /*= 0*/) : QWidget(parent), report(
 	m_generateReportSignalMapper = new QSignalMapper(this);
 	ui.fromDate->setDate(QDate::currentDate());
 	ui.toDate->setDate(QDate::currentDate().addDays(1));
-
+	ui.pdf->hide();
 	QStringList headerLabels;
 	headerLabels.append("Quantity");
 	headerLabels.append("Avg. Price");

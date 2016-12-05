@@ -11,13 +11,16 @@
 #include "QString"
 #include "qnamespace.h"
 #include "utility/session.h"
+#include <iostream>
+#include <fstream>
+#include "QMessageBox"
 
 ESReturnSummary::ESReturnSummary(QWidget *parent /*= 0*/) : QWidget(parent), m_report(NULL)
 {
 	ui.setupUi(this);
 
 	m_detailButtonSignalMapper = new QSignalMapper(this);
-
+	ui.pdf->hide();
 	QStringList headerLabels;
 	headerLabels.append("# of Bills");
 	headerLabels.append("Total");
@@ -149,6 +152,25 @@ void ESReturnSummary::slotGenerateReport()
 		fromDateStr = maxBackDateStr;
 	}
 
+	std::ofstream stream;
+	QString filename = "";
+	bool generateCSV = ui.csv->isChecked();
+	if (generateCSV)
+	{
+		QString dateTimeStr = QDateTime::currentDateTime().toString(QLatin1String("yyyyMMdd-hhmmss"));
+		QString pathToFile = ES::Session::getInstance()->getReportPath();
+		filename = pathToFile.append("\\Return Summary Report-");
+		filename.append(dateTimeStr).append(".csv");
+		std::string s(filename.toStdString());
+		stream.open(s, std::ios::out | std::ios::app);
+		stream << "Return Summary Report" << "\n";
+		stream << "Generated TimeStamp : ," << dateTimeStr.toLatin1().toStdString() << "\n";
+		QString sDate = stardDateStr;
+		QString eDate = endDateStr;
+		QString dateRange = sDate.append(" - ").append(eDate);
+		stream << "Date , User, Bill Id, Item, Qty, Price, Line Total" << "\n";
+	}
+
 	m_report = new KDReports::Report;
 
 	KDReports::TextElement titleElement("Return Summary Report");
@@ -257,48 +279,56 @@ void ESReturnSummary::slotGenerateReport()
 			{
 				printRow(tableElement, row, 3, queryItem.value("item_name").toString());
 			}
+			QString itemName = queryItem.value("item_name").toString();
+			itemName = itemName.simplified();
+			itemName.replace(" ", "");
+
 			printRow(tableElement, row, 4, qty);
 			printRow(tableElement, row, 5, QString::number(paidPrice, 'f', 2), Qt::AlignRight);
 			printRow(tableElement, row, 6, QString::number(subTotal, 'f', 2), Qt::AlignRight);
+			if (generateCSV)
+			{
+				stream << dateStr.toLatin1().data() << ", " << userName.toLatin1().data() << "," << billId.toLatin1().data() << "," <<
+					itemName.toLatin1().data()<<","<<qty.toLatin1().data() << ", " << QString::number(paidPrice, 'f', 2).toLatin1().data() << "," <<
+					QString::number(subTotal, 'f', 2).toLatin1().data()<<"\n";
+			}
 			totalBillCount++;
 			row++;
 		}
 	}
 
-	printRow(tableElement, row, 5, "Total", Qt::AlignRight);
-	printRow(tableElement, row++, 6, QString::number(totalReturnAmount, 'f', 2), Qt::AlignRight);
-	printRow(tableElement, row, 5, "Bill Count", Qt::AlignRight);
-	printRow(tableElement, row, 6, QString::number(totalBillCount), Qt::AlignRight);
+	if (generateCSV)
+	{
+		stream << ",,,,,Total," << QString::number(totalReturnAmount, 'f', 2).toLatin1().data() << "\n";
+		stream << ",,,,,Bill Count," << QString::number(totalBillCount).toLatin1().data() << "\n";
+		stream.close();
+		ui.csv->setChecked(false);
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Information);
+		mbox.setText(QString("Return Item Summary Report has been saved in : ").append(filename));
+		mbox.exec();
+	}
+	else
+	{
+		printRow(tableElement, row, 5, "Total", Qt::AlignRight);
+		printRow(tableElement, row++, 6, QString::number(totalReturnAmount, 'f', 2), Qt::AlignRight);
+		printRow(tableElement, row, 5, "Bill Count", Qt::AlignRight);
+		printRow(tableElement, row, 6, QString::number(totalBillCount), Qt::AlignRight);
 
-	m_report->addElement(tableElement);
-// 	report.addVerticalSpacing(2);
-// 
-// 	KDReports::TableElement bottomTable;
-// 	bottomTable.setHeaderRowCount(2);
-// 	bottomTable.setHeaderColumnCount(2);
-// 	bottomTable.setBorder(0);
-// 	bottomTable.setWidth(100, KDReports::Percent);
-// 
-// 	{
-// 		KDReports::Cell& dateCell = bottomTable.cell(0, 1);
-// 		KDReports::TextElement t(dateStr);
-// 		t.setPointSize(10);
-// 		dateCell.addElement(t, Qt::AlignRight);
-// 	}
+		m_report->addElement(tableElement);
 
-//	report.addElement(bottomTable);
+		QPrinter printer;
+		printer.setPaperSize(QPrinter::A4);
 
-	QPrinter printer;
-	printer.setPaperSize(QPrinter::A4);
+		printer.setFullPage(false);
+		printer.setOrientation(QPrinter::Portrait);
 
-	printer.setFullPage(false);
-	printer.setOrientation(QPrinter::Portrait);
-
-	QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
-	QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
-	dialog->setWindowTitle(tr("Print Document"));
-	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
-	dialog->exec();
+		QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
+		QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
+		dialog->setWindowTitle(tr("Print Document"));
+		ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
+		dialog->exec();
+	}
 }
 
 void ESReturnSummary::printRow(KDReports::TableElement& tableElement, int row, int col, QString elementStr, Qt::AlignmentFlag alignment /*= Qt::AlignLeft*/)

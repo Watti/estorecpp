@@ -11,6 +11,9 @@
 #include "QMainWindow"
 #include "QObject"
 #include "esmainwindow.h"
+#include <iostream>
+#include <fstream>
+#include "QMessageBox"
 
 OverallSalesSummary::OverallSalesSummary(QWidget *parent /*= 0*/) : QWidget(parent)
 {
@@ -18,6 +21,7 @@ OverallSalesSummary::OverallSalesSummary(QWidget *parent /*= 0*/) : QWidget(pare
 	m_generateReportSignalMapper = new QSignalMapper(this);
 	ui.fromDate->setDate(QDate::currentDate());
 	ui.toDate->setDate(QDate::currentDate().addDays(1));
+	ui.pdf->hide();
 
 	QStringList headerLabels;
 	headerLabels.append("Sales Cash Total");
@@ -378,7 +382,7 @@ void OverallSalesSummary::slotSearch()
 		// 		QSqlQuery queryUserType("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE user.active = 1 AND user.user_id = " + uId + " AND usertype.usertype_name <> 'DEV'");
 		// 		if (queryUserType.next())
 		// 		{
-			returnTotal = queryReturn.value("rTotal").toDouble();
+		returnTotal = queryReturn.value("rTotal").toDouble();
 		//		}
 	}
 	QTableWidgetItem *cardReturnWidget = new QTableWidgetItem(QString::number(returnTotal, 'f', 2));
@@ -737,6 +741,25 @@ void OverallSalesSummary::slotGenerateReport()
 	QString dateStr = "Date : ";
 	dateStr.append(stardDateStr).append(" - ").append(endDateStr);
 
+	std::ofstream stream;
+	QString filename = "";
+	bool generateCSV = ui.csv->isChecked();
+	if (generateCSV)
+	{
+		QString dateTimeStr = QDateTime::currentDateTime().toString(QLatin1String("yyyyMMdd-hhmmss"));
+		QString pathToFile = ES::Session::getInstance()->getReportPath();
+		filename = pathToFile.append("\\Overall Summary Report-");
+		filename.append(dateTimeStr).append(".csv");
+		std::string s(filename.toStdString());
+		stream.open(s, std::ios::out | std::ios::app);
+		stream << "Overall Summary Report" << "\n";
+		stream << "Generated TimeStamp : ," << dateTimeStr.toLatin1().toStdString() << "\n";
+		QString sDate = stardDateStr;
+		QString eDate = endDateStr;
+		QString dateRange = sDate.append(" - ").append(eDate);
+		stream << "Cash , Credit, Cheque, Card, Return, Income, Expenses, Outstanding Collections Cash, Outstanding Collection Cheque" << "\n";
+
+	}
 
 	KDReports::TableElement infoTableElement;
 	infoTableElement.setHeaderRowCount(2);
@@ -796,14 +819,14 @@ void OverallSalesSummary::slotGenerateReport()
 	}
 	{
 		KDReports::Cell& cell = tableElement.cell(0, 5);
-		KDReports::TextElement cTextElement("P/C Income");
+		KDReports::TextElement cTextElement("Income");
 		cTextElement.setPointSize(11);
 		cTextElement.setBold(true);
 		cell.addElement(cTextElement, Qt::AlignCenter);
 	}
 	{
 		KDReports::Cell& cell = tableElement.cell(0, 6);
-		KDReports::TextElement cTextElement("P/C Expenses");
+		KDReports::TextElement cTextElement("Expenses");
 		cTextElement.setPointSize(11);
 		cTextElement.setBold(true);
 		cell.addElement(cTextElement, Qt::AlignCenter);
@@ -941,28 +964,46 @@ void OverallSalesSummary::slotGenerateReport()
 			chequeSettlementGrandTotal += amount;
 		}
 	}
-	printRow(tableElement, row, 0, QString::number(cashSales, 'f', 2));
-	printRow(tableElement, row, 1, QString::number(creditSales, 'f', 2));
-	printRow(tableElement, row, 2, QString::number(chequeSales, 'f', 2));
-	printRow(tableElement, row, 3, QString::number(cardSales, 'f', 2));
-	printRow(tableElement, row, 4, QString::number(returnTotal, 'f', 2));
-	printRow(tableElement, row, 5, QString::number(income, 'f', 2));
-	printRow(tableElement, row, 6, QString::number(expense, 'f', 2));
-	printRow(tableElement, row, 7, QString::number(cashSettlementGrandTotal, 'f', 2));
-	printRow(tableElement, row, 8, QString::number(chequeSettlementGrandTotal, 'f', 2));
+	if (generateCSV)
+	{
+		stream << QString::number(cashSales, 'f', 2).toLatin1().data() << ", " << QString::number(creditSales, 'f', 2).toLatin1().data() <<
+			"," << QString::number(chequeSales, 'f', 2).toLatin1().data() << "," << QString::number(cardSales, 'f', 2).toLatin1().data() <<
+			", " << QString::number(returnTotal, 'f', 2).toLatin1().data() << "," << QString::number(income, 'f', 2).toLatin1().data() <<
+			"," << QString::number(expense, 'f', 2).toLatin1().data() << "," << QString::number(cashSettlementGrandTotal, 'f', 2).toLatin1().data() <<
+			"," << QString::number(chequeSettlementGrandTotal, 'f', 2).toLatin1().data();
+		stream.close();
+		ui.csv->setChecked(false);
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Information);
+		mbox.setText(QString("Overall Sales Summary Report has been saved in : ").append(filename));
+		mbox.exec();
+	}
+	else
+	{
+		printRow(tableElement, row, 0, QString::number(cashSales, 'f', 2));
+		printRow(tableElement, row, 1, QString::number(creditSales, 'f', 2));
+		printRow(tableElement, row, 2, QString::number(chequeSales, 'f', 2));
+		printRow(tableElement, row, 3, QString::number(cardSales, 'f', 2));
+		printRow(tableElement, row, 4, QString::number(returnTotal, 'f', 2));
+		printRow(tableElement, row, 5, QString::number(income, 'f', 2));
+		printRow(tableElement, row, 6, QString::number(expense, 'f', 2));
+		printRow(tableElement, row, 7, QString::number(cashSettlementGrandTotal, 'f', 2));
+		printRow(tableElement, row, 8, QString::number(chequeSettlementGrandTotal, 'f', 2));
 
-	report.addElement(tableElement);
+		report.addElement(tableElement);
 
-	QPrinter printer;
-	printer.setPaperSize(QPrinter::A4);
+		QPrinter printer;
+		printer.setPaperSize(QPrinter::A4);
 
-	printer.setFullPage(false);
-	printer.setOrientation(QPrinter::Landscape);
+		printer.setFullPage(false);
+		printer.setOrientation(QPrinter::Landscape);
 
-	QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
-	QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
-	dialog->setWindowTitle(tr("Print Document"));
-	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
-	dialog->exec();
+		QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
+		QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
+		dialog->setWindowTitle(tr("Print Document"));
+		ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
+		dialog->exec();
+	}
+
 
 }

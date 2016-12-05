@@ -16,7 +16,7 @@
 ESSalesSummary::ESSalesSummary(QWidget *parent /*= 0*/) : QWidget(parent)
 {
 	ui.setupUi(this);
-
+	ui.pdf->hide();
 	m_generateUserReportMapper = new QSignalMapper(this);
 
 

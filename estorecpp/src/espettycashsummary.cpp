@@ -19,7 +19,8 @@ PettyCashSummary::PettyCashSummary(QWidget *parent) : QWidget(parent)
 	ui.setupUi(this);
 
 	m_generateReportSignalMapper = new QSignalMapper(this);
-
+	ui.pdf->hide();
+	ui.csv->hide();
 	ui.fromDate->setDate(QDate::currentDate());
 	ui.toDate->setDate(QDate::currentDate().addDays(1));
 

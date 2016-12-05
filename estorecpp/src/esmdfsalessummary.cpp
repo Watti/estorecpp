@@ -30,6 +30,7 @@ MDFSalesSummary::MDFSalesSummary(QWidget *parent /*= 0*/) : QWidget(parent), rep
 	m_generateReportSignalMapper = new QSignalMapper(this);
 	ui.fromDate->setDate(QDate::currentDate());
 	ui.toDate->setDate(QDate::currentDate().addDays(1));
+	ui.pdf->hide();
 
 	QStringList headerLabels;
 	headerLabels.append("Item Cost");

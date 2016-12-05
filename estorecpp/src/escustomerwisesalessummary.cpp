@@ -12,11 +12,15 @@
 #include "esmainwindow.h"
 #include "utility\utility.h"
 #include "escustomerwisesalessummary .h"
+#include <iostream>
+#include <fstream>
+#include "QMessageBox"
 
 ESCustomerWiseSalesSummary::ESCustomerWiseSalesSummary(QWidget *parent /*= 0*/) : QWidget(parent), report(NULL)
 {
 	ui.setupUi(this);
 	m_generateReportSignalMapper = new QSignalMapper(this);
+	ui.pdf->hide();
 
 	QStringList headerLabels;
 	headerLabels.append("Name");
@@ -155,6 +159,25 @@ void ESCustomerWiseSalesSummary::slotGenerateReport()
 		fromDateStr = maxBackDateStr;
 	}
 
+	std::ofstream stream;
+	QString filename = "";
+	bool generateCSV = ui.csv->isChecked();
+	if (generateCSV)
+	{
+		QString dateTimeStr = QDateTime::currentDateTime().toString(QLatin1String("yyyyMMdd-hhmmss"));
+		QString pathToFile = ES::Session::getInstance()->getReportPath();
+		filename = pathToFile.append("\\Customer Wise Sales Summary-");
+		filename.append(dateTimeStr).append(".csv");
+		std::string s(filename.toStdString());
+		stream.open(s, std::ios::out | std::ios::app);
+		stream << "Customer Wise Sales Summary Report" << "\n";
+		stream << "Generated TimeStamp : ," << dateTimeStr.toLatin1().toStdString() << "\n";
+		QString sDate = stardDateStr;
+		QString eDate = endDateStr;
+		QString dateRange = sDate.append(" - ").append(eDate);
+		stream << "Name , Phone, Address, Total Amount" << "\n";
+
+	}
 	report = new KDReports::Report;
 
 	KDReports::TextElement titleElement("Customer Wise Sales Summary Report");
@@ -230,6 +253,16 @@ void ESCustomerWiseSalesSummary::slotGenerateReport()
 		QString address = customerQry.value("address").toString();
 		QString comments = customerQry.value("comments").toString();
 
+		cName = cName.simplified();
+		cName.replace(" ", "");
+
+		address = address.simplified();
+		address.replace(" ", "");
+
+		phone = phone.simplified();
+		phone.replace(" ", "");
+
+		
 		QSqlQuery totalBillQry;
 		totalBillQry.prepare("SELECT SUM(amount) as TotalAmount FROM bill WHERE deleted = 0 AND status = 1 AND  DATE(date) BETWEEN '" + fromDateStr + "' AND '" + endDateStr + "' AND customer_id = " + customerId);
 		totalBillQry.setForwardOnly(true);
@@ -245,26 +278,42 @@ void ESCustomerWiseSalesSummary::slotGenerateReport()
 				printRow(tableElement, row, 1, phone);
 				printRow(tableElement, row, 2, address);
 				printRow(tableElement, row, 3, QString::number(customerTotalAmount, 'f', 2));
+				if (generateCSV)
+				{
+					stream << cName.toLatin1().data() << ", " << phone.toLatin1().data() << "," << address.toLatin1().data() << "," << QString::number(customerTotalAmount, 'f', 2).toLatin1().data() << "\n";
+				}
 				row++;
 			}
 		}
 	}
+	if (generateCSV)
+	{
+		stream << ",,Total," << QString::number(grandTotal, 'f', 2).toLatin1().data() << "\n";
+		stream.close();
+		ui.csv->setChecked(false);
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Information);
+		mbox.setText(QString("Customer Wise Sales Report has been saved in : ").append(filename));
+		mbox.exec();
+	}
+	else
+	{
+		printRow(tableElement, row, 2, "Total ");
+		printRow(tableElement, row, 3, QString::number(grandTotal, 'f', 2));
 
-	printRow(tableElement, row, 2, "Total ");
-	printRow(tableElement, row, 3, QString::number(grandTotal, 'f', 2));
+		report->addElement(tableElement);
 
-	report->addElement(tableElement);
+		QPrinter printer;
+		printer.setPaperSize(QPrinter::A4);
 
-	QPrinter printer;
-	printer.setPaperSize(QPrinter::A4);
+		printer.setFullPage(false);
+		printer.setOrientation(QPrinter::Portrait);
 
-	printer.setFullPage(false);
-	printer.setOrientation(QPrinter::Portrait);
-
-	QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
-	QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
-	dialog->setWindowTitle(tr("Print Document"));
-	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
-	dialog->exec();
+		QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
+		QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
+		dialog->setWindowTitle(tr("Print Document"));
+		ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
+		dialog->exec();
+	}
 
 }

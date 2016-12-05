@@ -20,7 +20,7 @@
 ESStockReport::ESStockReport(QWidget *parent /*= 0*/) : QWidget(parent), m_report(NULL)
 {
 	ui.setupUi(this);
-
+	ui.pdf->hide();
 	QStringList headerLabels;
 	headerLabels.append("Item Code");
 	headerLabels.append("Current Stock Qty");

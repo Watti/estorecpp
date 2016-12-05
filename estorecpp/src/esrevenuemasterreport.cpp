@@ -32,7 +32,7 @@ ESRevenueMasterReport::ESRevenueMasterReport(QWidget *parent /*= 0*/) : QWidget(
 	m_generateReportSignalMapper = new QSignalMapper(this);
 	ui.fromDate->setDate(QDate::currentDate());
 	ui.toDate->setDate(QDate::currentDate().addDays(1));
-
+	ui.pdf->hide();
 	QStringList headerLabels;
 	headerLabels.append("Item");
 	headerLabels.append("Sale Price");

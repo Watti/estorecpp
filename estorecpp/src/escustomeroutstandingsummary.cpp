@@ -12,12 +12,15 @@
 #include "QObject"
 #include "esmainwindow.h"
 #include "utility\utility.h"
+#include <iostream>
+#include <fstream>
+#include "QMessageBox"
 
 ESCustomerOutstandingSummary::ESCustomerOutstandingSummary(QWidget *parent /*= 0*/) : QWidget(parent), report(NULL)
 {
 	ui.setupUi(this);
 	m_generateReportSignalMapper = new QSignalMapper(this);
-
+	ui.pdf->hide();
 	QStringList headerLabels;
 	headerLabels.append("Name");
 	headerLabels.append("Phone");
@@ -170,7 +173,23 @@ void ESCustomerOutstandingSummary::slotGenerateReport()
 		cTextElement.setBold(true);
 		cell.addElement(cTextElement, Qt::AlignCenter);
 	}
+	std::ofstream stream;
+	QString filename = "";
+	bool generateCSV = ui.csv->isChecked();
+	if (generateCSV)
+	{
+		QString dateTimeStr = QDateTime::currentDateTime().toString(QLatin1String("yyyyMMdd-hhmmss"));
+		QString pathToFile = ES::Session::getInstance()->getReportPath();
+		filename = pathToFile.append("\\Customer Outstanding Report-");
+		filename.append(dateTimeStr).append(".csv");
+		std::string s(filename.toStdString());
+		stream.open(s, std::ios::out | std::ios::app);
+		stream << "Customer Outstanding Report" << "\n";
+		stream << "Generated TimeStamp : ," << dateTimeStr.toLatin1().toStdString() << "\n";
+		
+		stream << "Name , Phone, Address, Outstanding Amount" << "\n";
 
+	}
 	QSqlQuery customerQry("SELECT * FROM customer WHERE deleted = 0 ORDER BY name");
 	int row = 1;
 	double totalOutstanding = 0;
@@ -186,29 +205,56 @@ void ESCustomerOutstandingSummary::slotGenerateReport()
 			QString address = customerQry.value("address").toString();
 			QString comments = customerQry.value("comments").toString();
 
+			cName = cName.simplified();
+			cName.replace(" ", "");
+
+			address = address.simplified();
+			address.replace(" ", "");
+
+			phone = phone.simplified();
+			phone.replace(" ", "");
+
 			printRow(tableElement, row, 0, cName);
 			printRow(tableElement, row, 1, phone);
 			printRow(tableElement, row, 2, address);
 			printRow(tableElement, row, 3, QString::number(outstandingAmount, 'f', 2));
+
+			if (generateCSV)
+			{
+				stream << cName.toLatin1().data() << ", " << phone.toLatin1().data() << "," << address.toLatin1().data() << "," << QString::number(outstandingAmount, 'f', 2).toLatin1().data() << "\n";
+			}
+
 			row++;
 		}
 	}
+	if (generateCSV)
+	{
+		stream << ",,Total," << QString::number(totalOutstanding, 'f', 2).toLatin1().data()<<"\n";
+		stream.close();
+		ui.csv->setChecked(false);
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Information);
+		mbox.setText(QString("Customer Outstanding Report has been saved in : ").append(filename));
+		mbox.exec();
+	}
+	else
+	{
+		printRow(tableElement, row, 2, "Total ");
+		printRow(tableElement, row, 3, QString::number(totalOutstanding, 'f', 2));
 
-	printRow(tableElement, row, 2, "Total ");
-	printRow(tableElement, row, 3, QString::number(totalOutstanding, 'f', 2));
+		report->addElement(tableElement);
 
-	report->addElement(tableElement);
-	
-	QPrinter printer;
-	printer.setPaperSize(QPrinter::A4);
+		QPrinter printer;
+		printer.setPaperSize(QPrinter::A4);
 
-	printer.setFullPage(false);
-	printer.setOrientation(QPrinter::Portrait);
+		printer.setFullPage(false);
+		printer.setOrientation(QPrinter::Portrait);
 
-	QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
-	QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
-	dialog->setWindowTitle(tr("Print Document"));
-	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
-	dialog->exec();
+		QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
+		QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
+		dialog->setWindowTitle(tr("Print Document"));
+		ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
+		dialog->exec();
+	}
 	
 }
