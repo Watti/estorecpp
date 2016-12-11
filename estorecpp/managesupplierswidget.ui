@@ -664,6 +664,20 @@
          </widget>
         </item>
         <item>
+         <widget class="QPushButton" name="prevBtn">
+          <property name="text">
+           <string>&lt;&lt; Prev</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="noOfRecordsLbl">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item>
          <spacer name="horizontalSpacer">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -675,6 +689,13 @@
            </size>
           </property>
          </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="nextBtn">
+          <property name="text">
+           <string>Next &gt;&gt;</string>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>

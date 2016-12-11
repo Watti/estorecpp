@@ -8,7 +8,7 @@
 #include "utility/utility.h"
 
 ESManageSuppliers::ESManageSuppliers(QWidget *parent /*= 0*/)
-: QWidget(parent)
+: QWidget(parent), m_startingLimit(0), m_pageOffset(15), m_nextCounter(0), m_maxNextCount(0)
 {
 	ui.setupUi(this);
 	ui.tableArea->show();
@@ -170,17 +170,55 @@ void ESManageSuppliers::slotSearch()
 	if (categoryId == -1)
 	{
 		QString qry("SELECT * FROM supplier WHERE deleted = 0 ");
+		QString countQueryStr("SELECT COUNT(*) AS c FROM supplier WHERE deleted = 0 ");
 		if (!searchText.isEmpty())
 		{
 			qry.append(" AND (supplier_code LIKE '%" + searchText + "%' OR supplier_name LIKE '%" + searchText + "%')");
+			countQueryStr.append(" AND (supplier_code LIKE '%" + searchText + "%' OR supplier_name LIKE '%" + searchText + "%')");
 		}
 
 		while (ui.tableWidget->rowCount() > 0)
 		{
 			ui.tableWidget->removeRow(0);
 		}
-
+		//pagination start
+		QSqlQuery queryCount(countQueryStr);
+		if (queryCount.next())
+		{
+			m_totalRecords = queryCount.value("c").toInt();
+		}
+		qry.append(" LIMIT ").append(QString::number(m_startingLimit));
+		qry.append(" , ").append(QString::number(m_pageOffset));
+		//pagination end
 		QSqlQuery q(qry);
+
+		//pagination start
+		m_maxNextCount = m_totalRecords / m_pageOffset;
+
+		if (m_maxNextCount > m_nextCounter)
+		{
+			ui.nextBtn->setEnabled(true);
+		}
+		int currentlyShowdItemCount = (m_nextCounter + 1)*m_pageOffset;
+		int displayMaxBound = (m_nextCounter + 1)*m_pageOffset;
+		if (m_nextCounter == 0)
+		{
+			displayMaxBound = m_pageOffset;
+		}
+		int displayMinBound = 0;
+		if (m_nextCounter >= 1)
+		{
+			displayMinBound = (m_nextCounter)* m_pageOffset;
+		}
+		if (currentlyShowdItemCount >= m_totalRecords)
+		{
+			displayMaxBound = m_totalRecords;
+			ui.nextBtn->setDisabled(true);
+		}
+		QString displayPaginationStr = QString::number(displayMinBound);
+		displayPaginationStr.append(" to ").append(QString::number(displayMaxBound));
+		ui.noOfRecordsLbl->setText(displayPaginationStr);
+		//pagination end
 		while (q.next())
 		{
 			int row = ui.tableWidget->rowCount();
@@ -432,6 +470,32 @@ void ESManageSuppliers::slotUpdateSupplier()
 		slotSearch();
 	}
 
+}
+
+void ESManageSuppliers::slotPrev()
+{
+	if (m_nextCounter == 1)
+	{
+		ui.prevBtn->setDisabled(true);
+	}
+	if (m_nextCounter > 0)
+	{
+		m_nextCounter--;
+		m_startingLimit -= m_pageOffset;
+		ui.nextBtn->setEnabled(true);
+	}
+	slotSearch();
+}
+
+void ESManageSuppliers::slotNext()
+{
+	if (m_nextCounter < m_maxNextCount)
+	{
+		m_nextCounter++;
+		ui.prevBtn->setEnabled(true);
+		m_startingLimit += m_pageOffset;
+	}
+	slotSearch();
 }
 
 // void ESManageSuppliers::slotRemoveItem(QString supplierId, QString itemId)
