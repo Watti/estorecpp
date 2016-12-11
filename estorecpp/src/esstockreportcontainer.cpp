@@ -8,6 +8,7 @@
 
 ESStockReportContainer::ESStockReportContainer(QWidget *parent /*= 0*/) : QWidget(parent)
 {
+	
 	ui.setupUi(this);
 	connect(ui.tabWidget, SIGNAL(currentChanged(int)), this, SLOT(onTabChanged(int)));
 

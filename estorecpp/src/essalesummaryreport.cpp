@@ -217,7 +217,9 @@ void ESSalesSummary::slotGenerate()
 	printRow(tableElement, row++, 1, QString::number(chequeSales, 'f', 2));
 	printRow(tableElement, row, 0, "CARD");
 	printRow(tableElement, row++, 1, QString::number(cardSales, 'f', 2));
-
+	printRow(tableElement, row, 0, "TOTAL");
+	double grandTotal = cardSales + chequeSales + creditSales + cashSales;
+	printRow(tableElement, row++, 1, QString::number(grandTotal, 'f', 2));
 	report.addElement(tableElement);
 
 	QPrinter printer;

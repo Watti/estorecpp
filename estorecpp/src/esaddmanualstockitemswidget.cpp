@@ -315,10 +315,12 @@ void ESAddManualStockItems::slotAddToStock()
 
 		//currentQty += itemStock.value("qty").toDouble();
 		double currentQty = newlyAddedQty + ui.currentQty->text().toDouble();
-		QSqlQuery queryGetWCost("SELECT w_cost FROM item WHERE item_id = " + itemId);
+		QSqlQuery queryGetWCost("SELECT w_cost, item_name FROM item WHERE item_id = " + itemId);
+		QString itemNameStr = "";
 		if (queryGetWCost.first())
 		{
 			double oldWCost = queryGetWCost.value("w_cost").toDouble();
+			itemNameStr = queryGetWCost.value("item_name").toString();
 			if (oldWCost < 0)
 			{
 				QSqlQuery updateWCost("UPDATE item SET w_cost = " + purchasingPriceStr + " WHERE item_id = " + itemId);
@@ -353,6 +355,12 @@ void ESAddManualStockItems::slotAddToStock()
 		}
 		if (success)
 		{
+			QString logError("[ManualStockUpdate] [Stock updated item = ");
+			logError.append(itemNameStr).append(" By Adding = ");
+			logError.append(QString::number(newlyAddedQty));
+			ES::Session::getInstance()->getUser()->getName();
+			logError.append(", User = ").append(ES::Session::getInstance()->getUser()->getName());
+			LOG(INFO) << logError.toLatin1().data();
 			QSqlQuery qSelectPO("SELECT * FROM stock_purchase_order_item WHERE  purchaseorder_id = -1 AND stock_id = " + stockId + " AND item_id = " + itemId);
 			if (qSelectPO.next())
 			{

@@ -99,6 +99,13 @@ void ESOverallStockItemReport::slotGenerate()
 
 	// Add a text element for the title
 
+	int categoryId = ui.categoryCombo->currentData().toInt();
+	bool categorySelected = false;
+	if (categoryId != -1)
+	{
+		categorySelected = true;
+	}
+	
 	m_report = new KDReports::Report;
 	KDReports::TextElement titleElement("Stock Items Report");
 	titleElement.setPointSize(15);
@@ -184,12 +191,6 @@ void ESOverallStockItemReport::slotGenerate()
 	}
 	row++;
 	double subTotal = 0;
-	int categoryId = ui.categoryCombo->currentData().toInt();
-	bool categorySelected = false;
-	if (categoryId != -1)
-	{
-		categorySelected = true;
-	}
 	QString qStr;
 	if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
 		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
@@ -205,8 +206,11 @@ void ESOverallStockItemReport::slotGenerate()
 		qStr.append(" AND item_category.itemcategory_id = " + QString::number(categoryId));
 	}
 	//pagination start
-	qStr.append(" LIMIT ").append(QString::number(m_startingLimit));
-	qStr.append(" , ").append(QString::number(m_pageOffset));
+	if (!generateCSV)
+	{
+		qStr.append(" LIMIT ").append(QString::number(m_startingLimit));
+		qStr.append(" , ").append(QString::number(m_pageOffset));
+	}
 	//pagination end
 	QSqlQuery q(qStr);
 	while (q.next())
@@ -335,10 +339,24 @@ void ESOverallStockItemReport::displayResults()
 			ui.nextBtn->setEnabled(true);
 		}
 		int currentlyShowdItemCount = (m_nextCounter + 1)*m_pageOffset;
+		int displayMaxBound = (m_nextCounter+1)*m_pageOffset;
+		if (m_nextCounter == 0)
+		{
+			displayMaxBound = m_pageOffset;
+		}
+		int displayMinBound = 0;
+		if (m_nextCounter >= 1)
+		{
+			displayMinBound = (m_nextCounter )* m_pageOffset;
+		}
 		if (currentlyShowdItemCount >= m_totalRecords)
 		{
+			displayMaxBound = m_totalRecords;
 			ui.nextBtn->setDisabled(true);
 		}
+		QString displayPaginationStr = QString::number(displayMinBound);
+		displayPaginationStr.append(" to ").append(QString::number(displayMaxBound));
+		ui.noOfRecordsLbl->setText(displayPaginationStr);
 		//pagination end
 
 		while (q.next())

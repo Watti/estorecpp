@@ -99,6 +99,13 @@
       </widget>
      </item>
      <item>
+      <widget class="QLabel" name="noOfRecordsLbl">
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item>
       <spacer name="horizontalSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
@@ -115,13 +122,6 @@
       <widget class="QPushButton" name="generateButton">
        <property name="text">
         <string> Generate Report </string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QCheckBox" name="pdf">
-       <property name="text">
-        <string>PDF</string>
        </property>
       </widget>
      </item>

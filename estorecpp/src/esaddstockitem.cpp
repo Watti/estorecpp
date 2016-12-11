@@ -7,6 +7,7 @@
 #include "esmainwindow.h"
 #include "utility/utility.h"
 #include "utility/session.h"
+#include "easylogging++.h"
 
 AddStockItem::AddStockItem(QWidget *parent /*= 0*/)
 : QWidget(parent), m_existingQuantityInMainStock(0), m_update(false), m_existingQuantityInStock(0)
@@ -132,6 +133,7 @@ void AddStockItem::slotAddStockItem()
 			}
 			if (isValid)
 			{
+				QString itemNameStr = "";
 				QString q;
 				if (isUpdate())
 				{
@@ -149,10 +151,10 @@ void AddStockItem::slotAddStockItem()
 						newQty = currentStockQty + quantity;
 						q = "UPDATE stock SET qty = '" + QString::number(newQty) + "', min_qty = '" + minQtyStr + "' ,selling_price = '" + price + "', discount ='" + discount + "', visible = '" + visible + "', floor = '" + floorNo + "' WHERE stock_id = " + m_stockId;
 					}
-
-					QSqlQuery queryGetWCost("SELECT w_cost FROM item WHERE item_id = " + itemId);
+					QSqlQuery queryGetWCost("SELECT w_cost, item_name FROM item WHERE item_id = " + itemId);
 					if (queryGetWCost.first())
 					{
+						itemNameStr = queryGetWCost.value("item_name").toString();
 						double oldWCost = queryGetWCost.value("w_cost").toDouble();
 						if (oldWCost < 0)
 						{
@@ -192,6 +194,13 @@ void AddStockItem::slotAddStockItem()
 						mbox.setText(QString("insertion error :: cannot reduce this quantity from the main stock order"));
 						mbox.exec();
 					}
+
+					QString logError("[ManualStockUpdate] [Stock updated item = ");
+					logError.append(itemNameStr).append(" By Adding = ");
+					logError.append(qtyStr);
+					ES::Session::getInstance()->getUser()->getName();
+					logError.append(", User = ").append(ES::Session::getInstance()->getUser()->getName());
+					LOG(INFO) << logError.toLatin1().data();
 
 					QSqlQuery qSelectPO("SELECT * FROM stock_purchase_order_item WHERE  purchaseorder_id = -1 AND stock_id = " + m_stockId + " AND item_id = " + itemId);
 					if (qSelectPO.next())

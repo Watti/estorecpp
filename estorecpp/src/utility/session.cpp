@@ -23,7 +23,7 @@ namespace ES
 	}
 
 	Session::Session() : m_user(NULL), m_billStarted(false), m_lowerPriceBlocked(true), m_serverIP("192.168.1.6"), 
-		m_billItemFontSize(11), m_billEmail(""), m_secondDisplayOn(false), m_billId(-1), m_enableTaxSupport(true), m_maximumDaysToShowRecords(30)
+		m_billItemFontSize(11), m_billEmail(""), m_secondDisplayOn(false), m_billId(-1), m_enableTaxSupport(false), m_maximumDaysToShowRecords(30)
 	{
 
 	}
