@@ -154,10 +154,24 @@ void ESManageItems::displayItems(QSqlQuery& queryItems)
 		ui.nextBtn->setEnabled(true);
 	}
 	int currentlyShowdItemCount = (m_nextCounter + 1)*m_pageOffset;
+	int displayMaxBound = (m_nextCounter + 1)*m_pageOffset;
+	if (m_nextCounter == 0)
+	{
+		displayMaxBound = m_pageOffset;
+	}
+	int displayMinBound = 0;
+	if (m_nextCounter >= 1)
+	{
+		displayMinBound = (m_nextCounter)* m_pageOffset;
+	}
 	if (currentlyShowdItemCount >= m_totalRecords)
 	{
+		displayMaxBound = m_totalRecords;
 		ui.nextBtn->setDisabled(true);
 	}
+	QString displayPaginationStr = QString::number(displayMinBound);
+	displayPaginationStr.append(" to ").append(QString::number(displayMaxBound));
+	ui.noOfRecordsLbl->setText(displayPaginationStr);
 	//pagination end
 	int row = 0;
 	while (queryItems.next())
