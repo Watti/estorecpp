@@ -17,11 +17,11 @@ ESManageSuppliers::ESManageSuppliers(QWidget *parent /*= 0*/)
 
 	m_updateButtonSignalMapper = new QSignalMapper(this);
 	m_removeButtonSignalMapper = new QSignalMapper(this);
-	//m_itemRemoveButtonSignalMapper = new QSignalMapper(this);
+	m_itemRemoveButtonSignalMapper = new QSignalMapper(this);
 
 	QObject::connect(m_updateButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotUpdate(QString)));
 	QObject::connect(m_removeButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotRemove(QString)));
-	//QObject::connect(m_itemRemoveButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotRemoveItem(QString, QString)));
+	QObject::connect(m_itemRemoveButtonSignalMapper, SIGNAL(mapped(QString)), this, SLOT(slotRemoveItem(QString)));
 	QObject::connect(ui.addNewSupplier, SIGNAL(clicked()), this, SLOT(slotShowAddSupplierView()));
 	QObject::connect(ui.addButton, SIGNAL(clicked()), this, SLOT(slotAddSupplier()));
 	QObject::connect(ui.updateButton, SIGNAL(clicked()), this, SLOT(slotUpdateSupplier()));
@@ -371,8 +371,8 @@ void ESManageSuppliers::slotUpdate(QString id)
 				QPushButton* removeBtn = new QPushButton("Remove", base);
 				removeBtn->setMaximumWidth(100);
 
-// 				QObject::connect(removeBtn, SIGNAL(clicked()), m_itemRemoveButtonSignalMapper, SLOT(map()));
-// 				m_itemRemoveButtonSignalMapper->setMapping(removeBtn, m_supplierId, itemId);
+ 				QObject::connect(removeBtn, SIGNAL(clicked()), m_itemRemoveButtonSignalMapper, SLOT(map()));
+				m_itemRemoveButtonSignalMapper->setMapping(removeBtn, itemId.append(";").append(m_supplierId));
 
 				QHBoxLayout *layout = new QHBoxLayout;
 				layout->setContentsMargins(0, 0, 0, 0);
@@ -498,8 +498,23 @@ void ESManageSuppliers::slotNext()
 	slotSearch();
 }
 
-// void ESManageSuppliers::slotRemoveItem(QString supplierId, QString itemId)
-// {
-// 	QString queryStr = "UPDATE supplier_item SET deleted = 0 WHERE item_id = "+itemId+" AND supplier_id = "+supplierId;
-// 	QSqlQuery q(queryStr);
-// }
+
+
+ void ESManageSuppliers::slotRemoveItem(QString itemId)
+ {
+	 if (ES::Utility::verifyUsingMessageBox(this, "Progex", "Do you really want to remove this?"))
+	 {
+		 QStringList tokens = itemId.split(";");
+
+		 if (tokens.count() == 2) {
+			 QString iId = tokens.at(0);
+			 QString supplierId = tokens.at(1);
+			 QString queryStr = "DELETE FROM supplier_item WHERE item_id = " + iId + " AND supplier_id =" + supplierId;
+			 QSqlQuery q(queryStr);
+			 slotUpdate(m_supplierId);
+
+			 
+		 }
+
+	 }
+}

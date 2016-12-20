@@ -22,11 +22,12 @@ public slots:
 	void slotRemove(QString id);
 	void slotPrev();
 	void slotNext();
-
+	void slotRemoveItem(QString itemId);
 private:
 	Ui::ManageSuppliers ui;
 	QSignalMapper* m_updateButtonSignalMapper;
 	QSignalMapper* m_removeButtonSignalMapper;
+	QSignalMapper* m_itemRemoveButtonSignalMapper;
 	QString m_supplierId;
 	int m_pageOffset;
 	int m_startingLimit;
