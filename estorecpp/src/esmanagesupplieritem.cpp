@@ -90,7 +90,7 @@ void ESManageSupplierItem::slotSearch()
 	{
 		ui.itemTableWidget->removeRow(0);
 	}
-
+	bool complexSearch = false;
 	QString searchQuery = "SELECT * FROM item ";
 	bool categorySelected = false;
 	if (categoryId != -1)
@@ -100,6 +100,7 @@ void ESManageSupplierItem::slotSearch()
 		catId.setNum(categoryId);
 		searchQuery.append(catId);
 		categorySelected = true;
+		complexSearch = true;
 	}
 
 	if (!searchText.isEmpty())
@@ -113,6 +114,7 @@ void ESManageSupplierItem::slotSearch()
 			searchQuery.append(" WHERE deleted = 0 AND ");
 		}
 		searchQuery.append(" (item_code LIKE '%" + searchText + "%' OR item_name LIKE '%" + searchText + "%')");
+		complexSearch = true;
 	}
 	else
 	{
@@ -120,6 +122,10 @@ void ESManageSupplierItem::slotSearch()
 		{
 			searchQuery.append(" WHERE deleted = 0");
 		}
+	}
+	if (!complexSearch)
+	{
+		searchQuery.append(" LIMIT 30");
 	}
 	ui.itemTableWidget->setSortingEnabled(false);
 	QSqlQuery queryItems(searchQuery);
