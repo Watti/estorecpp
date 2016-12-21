@@ -35,7 +35,7 @@ private:
 	QString m_orderId;
 	QString m_selectedSupplierId;
 	QSignalMapper* m_removeButtonSignalMapper;
-	KDReports::Report report;
+	KDReports::Report m_report;
 
 };
 

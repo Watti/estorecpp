@@ -12,7 +12,22 @@
 #include <KDReportsTextElement.h>
 #include <QPrintPreviewDialog>
 #include <set>
+#include "KDReportsCell.h"
+#include "KDReportsTableElement.h"
+#include "KDReportsHeader.h"
+#include "KDReportsReport.h"
+#include "KDReportsUnit.h"
+#include "qnamespace.h"
+struct PurchaseOrderItemData
+{
+	QString item;
+	QString price;
+	QString qty;
+	PurchaseOrderItemData() : item(""), price("0"), qty("0")
+	{
 
+	}
+};
 AddOrderItem::AddOrderItem(QWidget *parent/* = 0*/)
 {
 	m_update = false;
@@ -117,7 +132,7 @@ AddOrderItem::AddOrderItem(QWidget *parent/* = 0*/)
 			ui.supplierTableWidget->setItem(row, 2, new QTableWidgetItem(querySuppliers.value("supplier_name").toString()));
 		}
 	}
-	
+
 }
 
 AddOrderItem::~AddOrderItem()
@@ -143,7 +158,7 @@ void AddOrderItem::slotPlaceNewOrder()
 
 	QString supplierId = idCell->text();
 	QDateTime d = QDateTime::fromString(ui.dateEdit->text(), Qt::ISODate);
-	
+
 	// Add data to 'purchase_order' table
 	QString q = "INSERT INTO purchase_order (user_id, supplier_id, order_date, comments) VALUES (" +
 		userIdStr + "," + supplierId + ",'" + d.toString("yyyy-MM-dd") + "','" + ui.comments->toPlainText() + "')";
@@ -158,28 +173,31 @@ void AddOrderItem::slotPlaceNewOrder()
 	}
 
 	QString purchaseOrderId = query.lastInsertId().value<QString>();
-
+	std::vector<PurchaseOrderItemData> itemList;
 	// Add data to 'purchase_order_item' table
 	int rowCount = ui.selectedItemTableWidget->rowCount();
 	for (int i = 0; i < rowCount; ++i)
 	{
+		PurchaseOrderItemData itemData;
 		QTableWidgetItem* idCell = ui.selectedItemTableWidget->item(i, 0);
 		if (!idCell) continue;
 
 		QString itemId = idCell->text();
-
+		itemData.item = ui.selectedItemTableWidget->item(i, 2)->text();
 		ES::SaleLineEdit* le = NULL;
 		le = static_cast<ES::SaleLineEdit*>(ui.selectedItemTableWidget->cellWidget(i, 4));
 		if (!le) continue;
 
 		QString price = le->text();
+		itemData.price = price;
 
 		le = static_cast<ES::SaleLineEdit*>(ui.selectedItemTableWidget->cellWidget(i, 5));
 		if (!le) continue;
 
 		QString quantity = le->text();
+		itemData.qty = quantity;
 
-		QString qry = "INSERT INTO purchase_order_item (purchaseorder_id, item_id, qty, order_price) VALUES (" + 
+		QString qry = "INSERT INTO purchase_order_item (purchaseorder_id, item_id, qty, order_price) VALUES (" +
 			purchaseOrderId + "," + itemId + "," + quantity + "," + price + ")";
 
 		QSqlQuery insertQuery;
@@ -190,20 +208,204 @@ void AddOrderItem::slotPlaceNewOrder()
 			mbox.setText(QString("Something goes wrong: order items cannot be saved"));
 			mbox.exec();
 		}
+		itemList.push_back(itemData);
 	}
 
-	if (ui.doPrint->isChecked() && false)
+	if (ui.doPrint->isChecked())
 	{
-		//KDReports::TextElement titleElement("Test");
-		//titleElement.setPointSize(15);
-		//report.addElement(titleElement, Qt::AlignHCenter);
+		KDReports::Header& header = m_report.header(KDReports::FirstPage);
+		KDReports::TextElement titleElement("Purchase Order");
+		titleElement.setPointSize(12);
+		titleElement.setBold(true);
+		header.addElement(titleElement, Qt::AlignCenter);
 
+		KDReports::TableElement infoElement;
+		infoElement.setHeaderColumnCount(3);
+		infoElement.setBorder(0);
+		infoElement.setWidth(100, KDReports::Percent);
+		{
+
+			KDReports::Cell& cell = infoElement.cell(0, 0);
+			QString titleStr = ES::Session::getInstance()->getBillTitle();
+			KDReports::TextElement t(titleStr);
+			t.setPointSize(10);
+			t.setBold(true);
+			cell.addElement(t, Qt::AlignLeft);
+		}
+		{
+
+			KDReports::Cell& cell = infoElement.cell(1, 0);
+			QString addressStr = ES::Session::getInstance()->getBillAddress();
+			KDReports::TextElement t(addressStr);
+			t.setPointSize(9);
+			cell.addElement(t, Qt::AlignLeft);
+		}
+		{
+
+			KDReports::Cell& cell = infoElement.cell(2, 0);
+			QString phoneStr = ES::Session::getInstance()->getBillPhone();
+			KDReports::TextElement t(phoneStr);
+			t.setPointSize(9);
+			cell.addElement(t, Qt::AlignLeft);
+		}
+		{
+			QString emailStr = ES::Session::getInstance()->getBillEmail();
+			if (emailStr != "")
+			{
+				KDReports::Cell& cell = infoElement.cell(3, 0);
+				KDReports::TextElement t(emailStr);
+				t.setPointSize(9);
+				cell.addElement(t, Qt::AlignLeft);
+			}
+		}
+		
+		{
+			QSqlQuery querySupplier("SELECT supplier_name, address, phone, email FROM supplier WHERE supplier_id = " + supplierId + " AND deleted = 0");
+			if (querySupplier.next())
+			{
+				{
+					KDReports::Cell& cell = infoElement.cell(0, 2);
+					KDReports::TextElement t(querySupplier.value("supplier_name").toString());
+					t.setPointSize(10);
+					t.setBold(true);
+					cell.addElement(t, Qt::AlignLeft);
+				}
+				{
+				KDReports::Cell& cell = infoElement.cell(1, 2);
+				KDReports::TextElement t(querySupplier.value("address").toString());
+				t.setPointSize(9);
+				cell.addElement(t, Qt::AlignLeft);
+			}
+				{
+					KDReports::Cell& cell = infoElement.cell(2, 2);
+					KDReports::TextElement t(querySupplier.value("phone").toString());
+					t.setPointSize(9);
+					cell.addElement(t, Qt::AlignLeft);
+				}
+				{
+					KDReports::Cell& cell = infoElement.cell(3, 2);
+					KDReports::TextElement t(querySupplier.value("email").toString());
+					t.setPointSize(9);
+					cell.addElement(t, Qt::AlignLeft);
+				}
+			}
+		}
+		m_report.addElement(infoElement);
+		m_report.addVerticalSpacing(1);
+
+		KDReports::TableElement tableElement;
+		tableElement.setHeaderColumnCount(4);
+		tableElement.setWidth(100, KDReports::Percent);
+		{
+			KDReports::Cell& cell = tableElement.cell(0, 0);
+			KDReports::TextElement t("Item");
+			t.setPointSize(10);
+			cell.addElement(t, Qt::AlignCenter);
+		}
+		{
+			KDReports::Cell& cell = tableElement.cell(0, 1);
+			KDReports::TextElement t("Qty");
+			t.setPointSize(9);
+			cell.addElement(t, Qt::AlignCenter);
+		}
+		{
+			KDReports::Cell& cell = tableElement.cell(0, 2);
+			KDReports::TextElement t("Unit Price");
+			t.setPointSize(9);
+			cell.addElement(t, Qt::AlignCenter);
+		}
+		{
+			KDReports::Cell& cell = tableElement.cell(0, 3);
+			KDReports::TextElement t("Line Total");
+			t.setPointSize(9);
+			cell.addElement(t, Qt::AlignCenter);
+		}
+		int i = 1;
+		float total = 0;
+		for (auto iData : itemList)
+		{
+			float qty = 0, uPrice = 0;
+			{
+				KDReports::Cell& cell = tableElement.cell(i, 0);
+				KDReports::TextElement t(iData.item);
+				t.setPointSize(9);
+				cell.addElement(t, Qt::AlignCenter);
+			}
+			{
+			KDReports::Cell& cell = tableElement.cell(i, 1);
+			KDReports::TextElement t(iData.qty);
+			t.setPointSize(9);
+			cell.addElement(t, Qt::AlignCenter);
+			qty = iData.qty.toDouble();
+
+		}
+			{
+				KDReports::Cell& cell = tableElement.cell(i, 2);
+				KDReports::TextElement t(iData.price);
+				t.setPointSize(9);
+				cell.addElement(t, Qt::AlignRight);
+				uPrice = iData.price.toDouble();
+			}
+			{
+				float lineTotal = uPrice*qty;
+				total += lineTotal;
+				KDReports::Cell& cell = tableElement.cell(i, 3);
+				KDReports::TextElement t(QString::number(lineTotal,'f',2));
+				t.setPointSize(9);
+				cell.addElement(t, Qt::AlignRight);
+			}
+			i++;
+		}
+		{
+			KDReports::Cell& cell = tableElement.cell(i, 2);
+			KDReports::TextElement t("Total");
+			t.setPointSize(9);
+			t.setBold(true);
+			cell.addElement(t, Qt::AlignRight);
+		}
+		{
+			KDReports::Cell& cell = tableElement.cell(i, 3);
+			KDReports::TextElement t(QString::number(total, 'f', 2));
+			t.setPointSize(9);
+			t.setBold(true);
+			cell.addElement(t, Qt::AlignRight);
+		}
+		m_report.addElement(tableElement, Qt::AlignCenter);
+
+		m_report.addVerticalSpacing(5);
+
+		KDReports::TableElement signatureElement;
+		signatureElement.setHeaderRowCount(2);
+		signatureElement.setHeaderColumnCount(2);
+		signatureElement.setBorder(0);
+		signatureElement.setWidth(100, KDReports::Percent);
+
+		{
+			KDReports::Cell& cell = signatureElement.cell(0, 0);
+			KDReports::TextElement t("________________________");
+			t.setPointSize(9);
+			cell.addElement(t, Qt::AlignLeft);
+		}
+		{
+			KDReports::Cell& cell = signatureElement.cell(1, 0);
+			KDReports::TextElement t("Signature");
+			t.setPointSize(9);
+			cell.addElement(t, Qt::AlignLeft);
+		}
+		{
+			KDReports::Cell& cell = signatureElement.cell(2, 0);
+			KDReports::TextElement t(QDateTime::currentDateTime().toString("yyyy-MM-dd"));
+			t.setPointSize(9);
+			cell.addElement(t, Qt::AlignLeft);
+		}
+		m_report.addElement(signatureElement, Qt::AlignLeft);
+
+		m_report.setMargins(10, 15, 10, 15);
 		QPrinter printer;
 		printer.setPaperSize(QPrinter::A4);
 
 		printer.setFullPage(false);
 		printer.setOrientation(QPrinter::Portrait);
-
 		QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, 0);
 		QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
 		dialog->setWindowTitle(tr("Print Document"));
@@ -428,7 +630,7 @@ void AddOrderItem::slotItemDoubleClicked(int rowi, int col)
 		mbox.exec();
 		return;
 	}
-		
+
 	QSqlQuery queryItems("SELECT * FROM item WHERE item_id = " + idCell->text());
 	if (queryItems.next())
 	{
@@ -500,6 +702,6 @@ void AddOrderItem::slotRemove(QString itemId)
 
 void AddOrderItem::slotPrint(QPrinter* printer)
 {
-	report.print(printer);
+	m_report.print(printer);
 }
 
