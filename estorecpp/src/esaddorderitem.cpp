@@ -265,25 +265,34 @@ void AddOrderItem::slotPlaceNewOrder()
 			{
 				{
 					KDReports::Cell& cell = infoElement.cell(0, 2);
+					QString pOIdStr = "PO NO : ";
+					pOIdStr.append(purchaseOrderId);
+					KDReports::TextElement t(pOIdStr);
+					t.setPointSize(10);
+					t.setBold(true);
+					cell.addElement(t, Qt::AlignLeft);
+				}
+				{
+					KDReports::Cell& cell = infoElement.cell(1, 2);
 					KDReports::TextElement t(querySupplier.value("supplier_name").toString());
 					t.setPointSize(10);
 					t.setBold(true);
 					cell.addElement(t, Qt::AlignLeft);
 				}
 				{
-				KDReports::Cell& cell = infoElement.cell(1, 2);
+				KDReports::Cell& cell = infoElement.cell(2, 2);
 				KDReports::TextElement t(querySupplier.value("address").toString());
 				t.setPointSize(9);
 				cell.addElement(t, Qt::AlignLeft);
 			}
 				{
-					KDReports::Cell& cell = infoElement.cell(2, 2);
+					KDReports::Cell& cell = infoElement.cell(3, 2);
 					KDReports::TextElement t(querySupplier.value("phone").toString());
 					t.setPointSize(9);
 					cell.addElement(t, Qt::AlignLeft);
 				}
 				{
-					KDReports::Cell& cell = infoElement.cell(3, 2);
+					KDReports::Cell& cell = infoElement.cell(4, 2);
 					KDReports::TextElement t(querySupplier.value("email").toString());
 					t.setPointSize(9);
 					cell.addElement(t, Qt::AlignLeft);
@@ -400,23 +409,25 @@ void AddOrderItem::slotPlaceNewOrder()
 		}
 		m_report.addElement(signatureElement, Qt::AlignLeft);
 
-		m_report.setMargins(10, 15, 10, 15);
 		QPrinter printer;
 		printer.setPaperSize(QPrinter::A4);
 
 		printer.setFullPage(false);
 		printer.setOrientation(QPrinter::Portrait);
-		QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, 0);
+		QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
 		QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
 		dialog->setWindowTitle(tr("Print Document"));
-
+		ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
 		dialog->exec();
 	}
+	else
+	{
+		ESManageOrderItems* manageItems = new ESManageOrderItems(ES::MainWindowHolder::instance()->getMainWindow());
+		ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(manageItems);
+		this->close();
+		manageItems->show();
+	}
 
-	ESManageOrderItems* manageItems = new ESManageOrderItems(ES::MainWindowHolder::instance()->getMainWindow());
-	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(manageItems);
-	this->close();
-	manageItems->show();
 
 }
 

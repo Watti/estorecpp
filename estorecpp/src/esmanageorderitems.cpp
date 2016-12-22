@@ -82,7 +82,7 @@ void ESManageOrderItems::slotSearch()
 
 	QString uId = nullptr;
 	bool userGiven = false, supplierGiven = false;
-	if (searchUser != nullptr && !searchSupplier.isEmpty())
+	if (searchUser != nullptr && !searchUser.isEmpty())
 	{
 		userGiven = true;
 	}
@@ -112,8 +112,8 @@ void ESManageOrderItems::slotSearch()
 	}
 	else if (supplierGiven && !userGiven)
 	{
-		searchQuery = "(SELECT * FROM purchase_order so, item i WHERE so.item_id = i.item_id AND i.item_code LIKE '%" + searchSupplier + "%' AND so.deleted = 0 ";
-		countQueryStr = "SELECT COUNT(*) as c FROM purchase_order so, item i WHERE so.item_id = i.item_id AND i.item_code LIKE '%" + searchSupplier + "%' AND so.deleted = 0 ";
+		searchQuery = "(SELECT * FROM purchase_order so, supplier i WHERE so.supplier_id = i.supplier_id AND i.supplier_name LIKE '%" + searchSupplier + "%' AND so.deleted = 0 ";
+		countQueryStr = "SELECT COUNT(*) as c  FROM purchase_order so, supplier i WHERE so.supplier_id = i.supplier_id AND i.supplier_name LIKE '%" + searchSupplier + "%' AND so.deleted = 0 ";
 		if (!ui.showAllOrders->isChecked())
 		{
 			searchQuery.append("AND checked_in = 0");
@@ -122,8 +122,8 @@ void ESManageOrderItems::slotSearch()
 	}
 	else if (supplierGiven && userGiven)
 	{
-		searchQuery = "(SELECT * FROM purchase_order so, user u , item i WHERE (so.user_id = u.user_id AND so.item_id = i.item_id) AND u.username LIKE '%" + searchUser + "%' AND i.item_code LIKE '%" + searchSupplier + "%' AND so.deleted = 0 ";
-		countQueryStr = "SELECT COUNT(*) as c FROM purchase_order so, user u , item i WHERE (so.user_id = u.user_id AND so.item_id = i.item_id) AND u.username LIKE '%" + searchUser + "%' AND i.item_code LIKE '%" + searchSupplier + "%' AND so.deleted = 0 ";
+		searchQuery = "(SELECT * FROM purchase_order so, user u , supplier i WHERE (so.user_id = u.user_id AND so.supplier_id = i.supplier_id) AND u.username LIKE '%" + searchUser + "%' AND i.supplier_name LIKE '%" + searchSupplier + "%' AND so.deleted = 0 ";
+		countQueryStr = "SELECT COUNT(*) as c FROM purchase_order so, user u , supplier i WHERE (so.user_id = u.user_id AND so.supplier_id = i.supplier_id) AND u.username LIKE '%" + searchUser + "%' AND i.supplier_name LIKE '%" + searchSupplier + "%' AND so.deleted = 0 ";
 		if (!ui.showAllOrders->isChecked())
 		{
 			searchQuery.append("AND checked_in = 0");
