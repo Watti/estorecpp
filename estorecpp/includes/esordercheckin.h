@@ -19,7 +19,8 @@ public:
 	void slotRemoveFromStock();
 	void slotHoldOrder();
 	void slotFinalizeOrder();
-
+	void slotGenerateGRN();
+	void slotCellDoubleClicked(int, int);
 private:
 	Ui::OrderCheckInWidget ui;
 	QString m_orderId;

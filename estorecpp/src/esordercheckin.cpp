@@ -4,7 +4,30 @@
 #include "QDateTime"
 #include "utility\session.h"
 #include <QSqlError>
+#include "QString"
+#include <iostream>
+#include <fstream>
+#include "QMessageBox"
+#include "QScopedPointer"
+#include "entities\tabletextwidget.h"
+#include "QTableWidget"
+namespace
+{
+	QString convertToQTYFormat(QString text, int row, int col, QTableWidget* table)
+	{
+		bool isValid = false;
+		double qty = text.toDouble(&isValid);
 
+		QTableWidgetItem* item = table->item(row, 0);
+
+		if (!isValid)
+		{
+			qty = 0;
+		}
+		return QString::number(qty);
+
+	}
+}
 ESOrderCheckIn::ESOrderCheckIn(QString orderId, QWidget *parent /*= 0*/)
 :QWidget(parent), m_orderId(orderId)
 {
@@ -17,8 +40,8 @@ ESOrderCheckIn::ESOrderCheckIn(QString orderId, QWidget *parent /*= 0*/)
 	headerLabels.append("Item Name");
 	headerLabels.append("Category");
 	headerLabels.append("Order Price");
-	headerLabels.append("Qty");
-	headerLabels.append("Cur. Qty");
+	headerLabels.append("Ordered Qty");
+	headerLabels.append("Received Qty");
 	headerLabels.append("Unit");
 
 	ui.itemTableWidget->setHorizontalHeaderLabels(headerLabels);
@@ -27,11 +50,13 @@ ESOrderCheckIn::ESOrderCheckIn(QString orderId, QWidget *parent /*= 0*/)
 	ui.itemTableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	ui.itemTableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
 	ui.itemTableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
-	ui.itemTableWidget->hideColumn(0);
+	ui.itemTableWidget->hideColumn(0); 
 
 	QObject::connect(ui.itemTableWidget, SIGNAL(cellClicked(int, int)), this, SLOT(slotItemSelected(int, int)));
 	QObject::connect(ui.addToStockBtn, SIGNAL(clicked()), this, SLOT(slotAddToStock()));
 	QObject::connect(ui.finalizeOrder, SIGNAL(clicked()), this, SLOT(slotFinalizeOrder()));
+	QObject::connect(ui.generateGRN, SIGNAL(clicked()), this, SLOT(slotGenerateGRN())); 
+	QObject::connect(ui.itemTableWidget, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(slotCellDoubleClicked(int, int)));
 
 	if (!ES::DbConnection::instance()->open())
 	{
@@ -390,5 +415,60 @@ void ESOrderCheckIn::slotItemSelected(int row, int col)
 	{
 		double price = queryStockPOItem.value("selling_price").toDouble();
 		ui.sellingPrice->setText(QString::number(price, 'f', 2));
+	}
+}
+
+void ESOrderCheckIn::slotGenerateGRN()
+{
+	QSqlQuery qPO("SELECT * FROM supplier, purchase_order WHERE purchase_order.supplier_id = supplier.supplier_id AND  purchase_order.purchaseorder_id = "+m_orderId);
+	if (qPO.next())
+	{
+		QString supplier = qPO.value("supplier_name").toString();
+		QString dateTimeStr = QDateTime::currentDateTime().toString(QLatin1String("yyyyMMdd-hhmmss"));
+		QString pathToFile = ES::Session::getInstance()->getReportPath();
+		std::ofstream stream;
+		QString filename = pathToFile.append("\\Good Received Note-");
+		filename.append(dateTimeStr).append(".csv");
+		std::string s(filename.toStdString());
+		stream.open(s, std::ios::out | std::ios::app);
+		stream << ",,Good Received Note" << "\n\n";
+		stream << "Supplier : "<<supplier.toLatin1().toStdString()<<",,, PO NO :"<<m_orderId.toLatin1().toStdString()<<"\n";
+		stream << "Date Time : ," << dateTimeStr.toLatin1().toStdString() << "\n";
+		stream << "Item , Price, Order Qty, Delivered Qty" << "\n";
+
+		int itemCount = ui.itemTableWidget->rowCount();
+		for (int i = 0; i < itemCount; i++)
+		{
+			QString itemName = ui.itemTableWidget->item(i, 2)->text();
+			QString  price = ui.itemTableWidget->item(i, 4)->text();
+			QString  orderedQty = ui.itemTableWidget->item(i, 5)->text();
+			QString  recQty = ui.itemTableWidget->item(i, 6)->text();
+			stream << itemName.toLatin1().toStdString() << "," << price.toLatin1().toStdString() << "," << orderedQty.toLatin1().toStdString() << "," << recQty.toLatin1().toStdString() << "\n";
+		}
+		stream.close();
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Information);
+		mbox.setText(QString("Good Received Note has been saved in : ").append(filename));
+		mbox.exec();
+	}
+}
+
+void ESOrderCheckIn::slotCellDoubleClicked(int row, int col)
+{
+	if (col == 6)
+	{
+		QTableWidgetItem* item = ui.itemTableWidget->item(row, col);
+		QString receivedQty = (item) ? item->text() : "";
+		bool valid = false;
+		receivedQty.toDouble(&valid);
+		if (!valid)
+		{
+			receivedQty = "0";
+		}
+		TableTextWidget* textWidget = new TableTextWidget(ui.itemTableWidget, row, col, ui.itemTableWidget);
+		textWidget->setText(receivedQty);
+		textWidget->setTextFormatterFunc(convertToQTYFormat);
+		textWidget->selectAll();
+		ui.itemTableWidget->setCellWidget(row, col, textWidget);
 	}
 }
