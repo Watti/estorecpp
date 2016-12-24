@@ -26,6 +26,7 @@ namespace ES
 		static void printRow(KDReports::TableElement& tableElement, int row, int col,
 			QString elementStr, Qt::AlignmentFlag alignment = Qt::AlignLeft);
 		static QString getReturnBillForBill(QString& billId);
+		static float getOutstandingLimit(QString customerId);
 	private:
 
 	};

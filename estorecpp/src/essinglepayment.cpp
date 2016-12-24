@@ -16,7 +16,7 @@
 #include "utility\utility.h"
 
 ESSinglePayment::ESSinglePayment(ESAddBill* addBill, QWidget *parent /*= 0*/, bool isReturnBill) : 
-QWidget(parent), m_addBill(addBill), m_isReturnBill(isReturnBill)
+QWidget(parent), m_addBill(addBill), m_isReturnBill(isReturnBill), outstandingLimit(-1)
 {
 	m_customerId = "-1";
 	ui.setupUi(this);
@@ -1280,6 +1280,16 @@ void ESSinglePayment::slotDiscountPercentage()
 		netAmount = netAmount - discount;
 	}
 	ui.netAmountLbl->setText(QString::number(netAmount, 'f', 2));
+}
+
+float ESSinglePayment::getOutstandingLimit() const
+{
+	return outstandingLimit;
+}
+
+void ESSinglePayment::setOutstandingLimit(float val)
+{
+	outstandingLimit = val;
 }
 
 

@@ -129,13 +129,14 @@ void ESPayment::slotSinglePayment()
 	singlePayment->setAttribute(Qt::WA_DeleteOnClose);
 	singlePayment->setCustomerId(m_customerId);
 	//outstanding start
-	float totalAmount = 0;
+	float totalAmount = 0, outstandingLimit = -1;
 	int customerId = m_customerId.toInt();
 	if (customerId > -1)
 	{
 		totalAmount = ES::Utility::getTotalCreditOutstanding(m_customerId);
+		outstandingLimit = ES::Utility::getOutstandingLimit(m_customerId);
+		singlePayment->setOutstandingLimit(outstandingLimit);
 	}
-
 	singlePayment->getUI().nameText->setText(m_name);
 	singlePayment->getUI().outstandingText->setText(QString::number(totalAmount, 'f', 2));
 	singlePayment->getUI().addressText->setText(m_address);

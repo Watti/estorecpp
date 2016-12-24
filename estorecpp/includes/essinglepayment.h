@@ -30,6 +30,8 @@ public:
 	float getInitialNetAmount() const;
 	void setInitialNetAmount(float val);
 	void slotDiscountPercentage();
+	float getOutstandingLimit() const;
+	void setOutstandingLimit(float val);
 
 protected:
 	void keyPressEvent(QKeyEvent * event);
@@ -53,7 +55,7 @@ private:
 	float m_initialNetAmount;
 	QString m_paymentMethod;
 	bool m_isReturnBill;
-
+	float outstandingLimit;
 	//KDReports::Report report;
 
 };

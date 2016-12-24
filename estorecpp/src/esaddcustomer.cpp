@@ -20,7 +20,9 @@ ESAddCustomer::ESAddCustomer(QWidget *parent /*= 0*/) : QWidget(parent), m_updat
 	{
 		ui.button->setText(QString(" Add "));
 		ui.outstandingAmount->setHidden(true);
+		ui.outstandingLimit->setHidden(true);
 		ui.label_5->setHidden(true);
+		ui.label_6->setHidden(true);
 		
 	}
 
@@ -44,7 +46,27 @@ void ESAddCustomer::slotProcess()
 	QString phone = ui.phoneText->text();
 	QString address = ui.addressText->text();
 	QString comments = ui.commentsText->toPlainText();
+	QString outstandingLimitStr = ui.outstandingLimit->text();
 	float outstandingAmount = 0;
+	float outstandingLimit = -1;
+	if (outstandingLimitStr != nullptr && !outstandingLimitStr.isEmpty())
+	{
+		bool valid = true;
+		outstandingLimitStr.toFloat(&valid);
+		if (valid)
+		{
+			outstandingLimit = outstandingLimitStr.toFloat();
+		}
+		else
+		{
+
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Warning);
+			mbox.setText(QString("Invalid value for Outstanding Limit"));
+			mbox.exec();
+			return;
+		}
+	}
 	bool active = ui.active;
 
 	if (name == nullptr || name.isEmpty())
@@ -101,8 +123,9 @@ void ESAddCustomer::slotProcess()
 			if (q.next())
 			{
 				QSqlQuery qry;
-				qry.prepare("UPDATE customer_outstanding SET current_outstanding = ? WHERE customer_id = ? ");
-				qry.addBindValue(outstandingAmount);
+				qry.prepare("UPDATE customer_outstanding SET current_outstanding = ?, outstanding_limit = ? WHERE customer_id = ? ");
+				qry.addBindValue(outstandingAmount);	
+				qry.addBindValue(outstandingLimit);
 				qry.addBindValue(m_id);
 				if (!qry.exec())
 				{
@@ -115,12 +138,13 @@ void ESAddCustomer::slotProcess()
 			else
 			{
 
-				QString qrt("INSERT INTO customer_outstanding(customer_id, current_outstanding, settled, comments) VALUES('" + m_id + "' ,' " + QString::number(outstandingAmount) + "' , 0, '')");
+				//QString qrt("INSERT INTO customer_outstanding(customer_id, current_outstanding, settled, comments, outstanding_limit) VALUES('" + m_id + "' ,' " + QString::number(outstandingAmount) + "' , 0, '')");
 			
 				QSqlQuery qry;
-				qry.prepare("INSERT INTO customer_outstanding (customer_id, current_outstanding, settled, comments) VALUES (?, ?, 0, '')");
+				qry.prepare("INSERT INTO customer_outstanding (customer_id, current_outstanding, settled, comments, outstanding_limit) VALUES (?, ?, 0, '', ?)");
 				qry.addBindValue(m_id);
 				qry.addBindValue(outstandingAmount);
+				qry.addBindValue(outstandingLimit);
 				if (!qry.exec())
 				{
 					QMessageBox mbox;

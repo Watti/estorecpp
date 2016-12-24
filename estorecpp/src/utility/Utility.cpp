@@ -140,6 +140,22 @@ namespace ES
 		return outstandingAmount;
 	}
 
+	float Utility::getOutstandingLimit(QString customerId)
+	{
+		if (customerId == "-1")
+		{
+			return 0.f;
+		}
+		float outstandingLimit = 0;
+		QSqlQuery queryOutstanding("SELECT * FROM outstanding_limit WHERE customer_id = " + customerId);
+		if (queryOutstanding.next())
+		{
+			outstandingLimit = queryOutstanding.value("outstanding_limit").toFloat();
+
+		}
+		return outstandingLimit;
+	}
+
 	float Utility::getTotalChequeOutstanding(QString customerId)
 	{
 		float outstandingAmount = 0;
