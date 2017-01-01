@@ -28,7 +28,7 @@ ESManageUsers::ESManageUsers(QWidget *parent) : QWidget(parent)
 			int usertype_id = userRoleQuery.value(0).toInt();
 			QString usertype_name = userRoleQuery.value(1).toString();
 
-			if (usertype_name == "DEV") continue;
+			if (usertype_name == "DEV" || usertype_name == "SENIOR MANAGER") continue;
 
 			ui.roleCombo->addItem(usertype_name, usertype_id);
 			ui.roleComboSearch->addItem(usertype_name, usertype_id);
@@ -148,10 +148,14 @@ void ESManageUsers::slotRoleSearch()
 	QSqlQuery userQuery("SELECT * FROM user");
 	while (userQuery.next())
 	{
+		int userrole = userQuery.value(3).toInt();
 		if (role > 0)
-		{
-			int userrole = userQuery.value(3).toInt();
+		{			
 			if (role != userrole) continue;
+		}
+		if (userrole == 5)
+		{
+			continue;
 		}
 
 		QListWidgetItem* item = new QListWidgetItem(userQuery.value(1).toString());

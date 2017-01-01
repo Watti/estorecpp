@@ -113,7 +113,7 @@ void OverallSalesSummary::slotSearch()
 		cashSales = 0, creditSales = 0, chequeSales = 0, cardSales = 0;
 		QString uId = userQry.value("user_id").toString();
 		QString uName = userQry.value("display_name").toString();
-		QSqlQuery queryUserType("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE user.user_id = " + uId + " AND usertype.usertype_name <> 'DEV'");
+		QSqlQuery queryUserType("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE user.user_id = " + uId + " AND usertype.usertype_name <> 'DEV' AND usertype.usertype_name <> 'SENIOR MANAGER'");
 		if (queryUserType.next())
 		{
 
@@ -305,7 +305,7 @@ void OverallSalesSummary::slotSearch()
 	QSqlQuery totalBillQry(qBillQryStr);
 	while (totalBillQry.next())
 	{
-		QSqlQuery queryUserType("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE user.active = 1 AND user.user_id = " + totalBillQry.value("user_id").toString() + " AND usertype.usertype_name <> 'DEV'");
+		QSqlQuery queryUserType("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE user.active = 1 AND user.user_id = " + totalBillQry.value("user_id").toString() + " AND usertype.usertype_name <> 'DEV' AND usertype.usertype_name <> 'SENIOR MANAGER'");
 		if (queryUserType.next())
 		{
 			QSqlQuery paymentQry("SELECT * FROM payment WHERE valid = 1 AND bill_id = " + totalBillQry.value("bill_id").toString());

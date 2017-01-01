@@ -82,7 +82,7 @@ void PettyCashSummary::displayResults()
 	QString stardDateStr = ui.fromDate->date().toString("yyyy-MM-dd");
 	QString endDateStr = ui.toDate->date().toString("yyyy-MM-dd");
 
-	QSqlQuery queryUserType("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE user.active = 1 AND usertype.usertype_name <> 'DEV'");
+	QSqlQuery queryUserType("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE user.active = 1 AND usertype.usertype_name <> 'DEV' AND usertype.usertype_name <> 'SENIOR MANAGER'");
 	while (queryUserType.next())
 	{
 		QString uId = queryUserType.value("user_id").toString();
@@ -150,7 +150,7 @@ void PettyCashSummary::displayResults()
 	double income = 0, expense = 0;
 	while (totalQuery.next())
 	{
-		QSqlQuery queryUserType("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE user.active = 1 AND user.user_id = " + totalQuery.value("user_id").toString() + " AND usertype.usertype_name <> 'DEV'");
+		QSqlQuery queryUserType("SELECT * FROM user JOIN usertype ON user.usertype_id = usertype.usertype_id WHERE user.active = 1 AND user.user_id = " + totalQuery.value("user_id").toString() + " AND usertype.usertype_name <> 'DEV' AND usertype.usertype_name <> 'SENIOR MANAGER'");
 		if (queryUserType.next())
 		{
 			int type = totalQuery.value("type").toUInt();
