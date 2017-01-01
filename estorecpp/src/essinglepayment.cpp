@@ -15,7 +15,7 @@
 #include <memory>
 #include "utility\utility.h"
 
-ESSinglePayment::ESSinglePayment(ESAddBill* addBill, QWidget *parent /*= 0*/, bool isReturnBill) : 
+ESSinglePayment::ESSinglePayment(ESAddBill* addBill, QWidget *parent /*= 0*/, bool isReturnBill) :
 QWidget(parent), m_addBill(addBill), m_isReturnBill(isReturnBill), outstandingLimit(-1)
 {
 	m_customerId = "-1";
@@ -70,6 +70,8 @@ QWidget(parent), m_addBill(addBill), m_isReturnBill(isReturnBill), outstandingLi
 	QObject::connect(ui.cashText, SIGNAL(textChanged(QString)), this, SLOT(slotCalculateBalance()));
 	QObject::connect(ui.lineEdit, SIGNAL(textChanged(QString)), this, SLOT(slotInterestChanged()));
 	QObject::connect(ui.okBtn, SIGNAL(clicked()), this, SLOT(slotFinalizeBill()));
+// 	QObject::connect(ui.holdBtn, SIGNAL(clicked()), this, SLOT(slotHold()));
+// 	QObject::connect(ui.cancelBtn, SIGNAL(clicked()), this, SLOT(slotCancel()));
 	//QObject::connect(ui.discountText, SIGNAL(textChanged(QString)), this, SLOT(slotDiscountPercentage()));
 
 	new QShortcut(QKeySequence(Qt::Key_Escape), this, SLOT(close()));
@@ -122,12 +124,11 @@ void ESSinglePayment::slotFinalizeBill()
 {
 	if (!validate())
 		return;
-
+	
 	QString billIdStr = ES::Session::getInstance()->getBillId();
 	QString netAmountStr = ui.netAmountLbl->text();
 	//QString paymentType = "CASH";// ui.paymentMethodCombo->currentText();
 	bool isValid = false;
-
 	double netAmount = netAmountStr.toDouble(&isValid);
 	if (!isValid || netAmount < 0)
 	{
@@ -139,13 +140,28 @@ void ESSinglePayment::slotFinalizeBill()
 		return;
 	}
 
+	float currentOutstanding = ui.outstandingText->text().toFloat();
+	float totalOutstanding = (netAmount + currentOutstanding);
+	bool exeedingOutstanding = (totalOutstanding > outstandingLimit);
+
 	if (m_paymentMethod == "CASH")
 	{
 		handleCashPayment(billId, netAmount);
 	}
 	else if (m_paymentMethod == "CREDIT")
 	{
-		handleCreditPayment(billId, netAmount);
+		if (exeedingOutstanding)
+		{
+			ui.okBtn->setDisabled(true);
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Warning);
+			mbox.setText(QString("Outstanding Limit has been exceeded ! ! ! Cannot Proceed without settling the outstanding amount"));
+			mbox.exec();
+		}
+		else
+		{
+			handleCreditPayment(billId, netAmount);
+		}
 	}
 	else if (m_paymentMethod == "CHEQUE")
 	{
@@ -248,7 +264,7 @@ void ESSinglePayment::handleChequePayment(int billId, double netAmount)
 {
 	QString initialNetAmount = QString::number(m_initialNetAmount);
 	float interest = ui.lineEdit->text().toFloat();
-	QString totalChequeOutstanding = QString::number(m_initialNetAmount* (100+interest)/100);
+	QString totalChequeOutstanding = QString::number(m_initialNetAmount* (100 + interest) / 100);
 	QString chequeNo = ui.txt1->text();
 	QString bank = ui.txt2->text();
 	QString dueDate = ui.dateEdit->text();
@@ -278,8 +294,8 @@ void ESSinglePayment::handleChequePayment(int billId, double netAmount)
 		else
 		{
 			float chequeAmount = initialNetAmount.toFloat() * ((100 + interest) / 100);
-			QString qStr("INSERT INTO cheque_information (customer_id, cheque_number, bank, due_date, amount) VALUES (" + 
-				m_customerId + ",'" + chequeNo + "','" + bank + "','" + dueDate +"', '"+ QString::number(chequeAmount)+"')");
+			QString qStr("INSERT INTO cheque_information (customer_id, cheque_number, bank, due_date, amount) VALUES (" +
+				m_customerId + ",'" + chequeNo + "','" + bank + "','" + dueDate + "', '" + QString::number(chequeAmount) + "')");
 			QSqlQuery outstandingQry;
 			if (!outstandingQry.exec(qStr))
 			{
@@ -1166,11 +1182,11 @@ void ESSinglePayment::printBill(int billId, float total)
 	printer.setOrientation(QPrinter::Portrait);
 
 	//preview start
-// 	QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
-// 	QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
-// 	dialog->setWindowTitle(tr("Print Document"));
-// 	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
-// 	dialog->exec();
+	// 	QPrintPreviewDialog *dialog = new QPrintPreviewDialog(&printer, this);
+	// 	QObject::connect(dialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(slotPrint(QPrinter*)));
+	// 	dialog->setWindowTitle(tr("Print Document"));
+	// 	ES::MainWindowHolder::instance()->getMainWindow()->setCentralWidget(dialog);
+	// 	dialog->exec();
 	//preview end
 
 	KDReports::Header& header2 = report.header(KDReports::FirstPage);
@@ -1291,7 +1307,6 @@ void ESSinglePayment::setOutstandingLimit(float val)
 {
 	outstandingLimit = val;
 }
-
 
 // float ESSinglePayment::getTotalOutstanding(QString customerId)
 // {

@@ -147,7 +147,7 @@ namespace ES
 			return 0.f;
 		}
 		float outstandingLimit = 0;
-		QSqlQuery queryOutstanding("SELECT * FROM outstanding_limit WHERE customer_id = " + customerId);
+		QSqlQuery queryOutstanding("SELECT * FROM customer_outstanding WHERE customer_id = " + customerId);
 		if (queryOutstanding.next())
 		{
 			outstandingLimit = queryOutstanding.value("outstanding_limit").toFloat();

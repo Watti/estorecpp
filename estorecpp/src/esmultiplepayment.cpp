@@ -23,7 +23,7 @@
 #include "utility\utility.h"
 
 ESMultiplePayment::ESMultiplePayment(ESAddBill* addBill, QWidget *parent /*= 0*/, bool isReturnBill) : 
-QWidget(parent), m_addBill(addBill), m_isReturnBill(isReturnBill)
+QWidget(parent), m_addBill(addBill), m_isReturnBill(isReturnBill), m_outstandingLimit(0)
 {
 	m_customerId = "-1";
 	ui.setupUi(this);
@@ -477,13 +477,38 @@ void ESMultiplePayment::slotFinalizeBill()
 	// 	headerLabels.append("Actions");
 	QString billIdStr = ES::Session::getInstance()->getBillId();
 	int billId = billIdStr.toInt();
-	double totalNetAmount = 0, payingAmount = 0;
+	bool hasCreditPayment = false;
+	double totalNetAmount = 0, payingAmount = 0, creditAmount = 0;;
 	{
 		int rowCount = ui.tableWidget->rowCount();
 		for (int i = 0; i < rowCount; ++i)
 		{
 			totalNetAmount += ui.tableWidget->item(i, 1)->text().toDouble();
 			payingAmount += ui.tableWidget->item(i, 3)->text().toDouble();
+			QTableWidgetItem* paymentTypeItem = ui.tableWidget->item(i, 0);
+			if (paymentTypeItem)
+			{
+				if (paymentTypeItem->text() == "CREDIT")
+				{
+					creditAmount += ui.tableWidget->item(i, 3)->text().toDouble();
+					hasCreditPayment = true;
+				}
+			}
+		}
+	}
+	if (hasCreditPayment)
+	{
+		float currentOutstanding = ui.outstandingText->text().toFloat();
+		float totalOutstanding = (creditAmount + currentOutstanding);
+		bool exeedingOutstanding = (totalOutstanding > m_outstandingLimit);
+		if (exeedingOutstanding)
+		{
+			QMessageBox mbox;
+			mbox.setIcon(QMessageBox::Warning);
+			mbox.setText(QString("Outstanding Limit has been exceeded ! ! ! Cannot Proceed without settling the outstanding amount"));
+			mbox.exec();
+			this->close();
+			return;
 		}
 	}
 
@@ -1386,5 +1411,15 @@ float ESMultiplePayment::getInitialNetAmount() const
 void ESMultiplePayment::setInitialNetAmount(float val)
 {
 	m_initialNetAmount = val;
+}
+
+float ESMultiplePayment::getOutstandingLimit() const
+{
+	return m_outstandingLimit;
+}
+
+void ESMultiplePayment::setOutstandingLimit(float val)
+{
+	m_outstandingLimit = val;
 }
 

@@ -30,6 +30,8 @@ public:
 	void slotPrint(QPrinter* printer);
 	float getInitialNetAmount() const;
 	void setInitialNetAmount(float val);
+	float getOutstandingLimit() const;
+	void setOutstandingLimit(float val);
 	//void slotInterestChanged();
 
 private:
@@ -46,7 +48,7 @@ private:
 	float m_initialNetAmount;
 	//KDReports::Report report;
 	bool m_isReturnBill;
-
+	float m_outstandingLimit;
 };
 
 #endif // esmultiplepayment_h__

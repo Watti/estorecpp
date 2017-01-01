@@ -32,7 +32,6 @@ public:
 	void slotDiscountPercentage();
 	float getOutstandingLimit() const;
 	void setOutstandingLimit(float val);
-
 protected:
 	void keyPressEvent(QKeyEvent * event);
 

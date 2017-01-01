@@ -22,8 +22,8 @@ QWidget(parent), m_addBill(addBill), m_isReturnBill(isReturnBill)
 	headerLabels.append("CustomerID");
 	headerLabels.append("Name");
 	headerLabels.append("Address");
-	headerLabels.append("Comments");
 	headerLabels.append("Outstanding");
+	headerLabels.append("Limit");
 
 	ui.customers->setHorizontalHeaderLabels(headerLabels);
 	ui.customers->horizontalHeader()->setStretchLastSection(true);
@@ -75,11 +75,13 @@ void ESPayment::slotSearch()
 		ui.customers->setItem(row, 0, new QTableWidgetItem(customerId));
 		ui.customers->setItem(row, 1, new QTableWidgetItem(queryCustomers.value("name").toString()));
 		ui.customers->setItem(row, 2, new QTableWidgetItem(queryCustomers.value("address").toString()));
-		ui.customers->setItem(row, 3, new QTableWidgetItem(queryCustomers.value("comments").toString()));
+		//ui.customers->setItem(row, 3, new QTableWidgetItem(queryCustomers.value("comments").toString()));
 		//ui.customers->setItem(row, 4, new QTableWidgetItem(queryCustomers.value("phone").toString()));
 
 		float outstanding = ES::Utility::getTotalCreditOutstanding(customerId);
-		ui.customers->setItem(row, 4, new QTableWidgetItem(QString::number(outstanding, 'f', 2)));
+		float outstandingLimit = ES::Utility::getOutstandingLimit(customerId);
+		ui.customers->setItem(row, 3, new QTableWidgetItem(QString::number(outstanding, 'f', 2)));
+		ui.customers->setItem(row, 4, new QTableWidgetItem(QString::number(outstandingLimit, 'f', 2)));
 
 		row++;
 	}
@@ -108,7 +110,19 @@ void ESPayment::slotCustomerSeleced(int row, int col)
 			m_phone = ui.phoneText->text();
 			m_address = ui.addressText->text();
 			m_comments = ui.commentsText->text();
-		}
+		}	
+
+// 		float outstandingLimit = ES::Utility::getOutstandingLimit(m_customerId);
+// 		float currentOutstanding = ES::Utility::getTotalCreditOutstanding(m_customerId);
+// 		bool possibleToExeedOutstandingLimit = outstandingLimit < (currentOutstanding + m_totalAmount.toFloat());
+// 		if (possibleToExeedOutstandingLimit)
+// 		{
+// 			if (!ES::Utility::verifyUsingMessageBox(this, "Progex", "Outstanding Limit Seems to be exceeding! Do you really want to proceed ?"))
+// 			{
+// 				return;
+// 				this->close();
+// 			}
+// 		}
 	}
 	else
 	{
@@ -159,7 +173,7 @@ void ESPayment::slotMultiplePayment()
 	multiplePayment->setWindowModality(Qt::ApplicationModal);
 	multiplePayment->setAttribute(Qt::WA_DeleteOnClose);
 	multiplePayment->setCustomerId(m_customerId);
-	float totalAmount = 0;
+	float totalAmount = 0, outstandingLimit = -1;;
 
 	//outstanding start
 
@@ -167,6 +181,8 @@ void ESPayment::slotMultiplePayment()
 	if (customerId > -1)
 	{
 		totalAmount = ES::Utility::getTotalCreditOutstanding(m_customerId);
+		outstandingLimit = ES::Utility::getOutstandingLimit(m_customerId);
+		multiplePayment->setOutstandingLimit(outstandingLimit);
 	}
 	//outstanding end
 
