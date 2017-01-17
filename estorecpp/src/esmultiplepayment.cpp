@@ -498,17 +498,20 @@ void ESMultiplePayment::slotFinalizeBill()
 	}
 	if (hasCreditPayment)
 	{
-		float currentOutstanding = ui.outstandingText->text().toFloat();
-		float totalOutstanding = (creditAmount + currentOutstanding);
-		bool exeedingOutstanding = (totalOutstanding > m_outstandingLimit);
-		if (exeedingOutstanding)
+		if (m_outstandingLimit != -1 && m_outstandingLimit >0)
 		{
-			QMessageBox mbox;
-			mbox.setIcon(QMessageBox::Warning);
-			mbox.setText(QString("Outstanding Limit has been exceeded ! ! ! Cannot Proceed without settling the outstanding amount"));
-			mbox.exec();
-			this->close();
-			return;
+			float currentOutstanding = ui.outstandingText->text().toFloat();
+			float totalOutstanding = (creditAmount + currentOutstanding);
+			bool exeedingOutstanding = (totalOutstanding > m_outstandingLimit);
+			if (exeedingOutstanding)
+			{
+				QMessageBox mbox;
+				mbox.setIcon(QMessageBox::Warning);
+				mbox.setText(QString("Outstanding Limit has been exceeded ! ! ! Cannot Proceed without settling the outstanding amount"));
+				mbox.exec();
+				this->close();
+				return;
+			}
 		}
 	}
 

@@ -150,13 +150,16 @@ void ESSinglePayment::slotFinalizeBill()
 	}
 	else if (m_paymentMethod == "CREDIT")
 	{
-		if (exeedingOutstanding)
+		if ((outstandingLimit != -1) && (outstandingLimit > 0))
 		{
-			ui.okBtn->setDisabled(true);
-			QMessageBox mbox;
-			mbox.setIcon(QMessageBox::Warning);
-			mbox.setText(QString("Outstanding Limit has been exceeded ! ! ! Cannot Proceed without settling the outstanding amount"));
-			mbox.exec();
+			if (exeedingOutstanding)
+			{
+				ui.okBtn->setDisabled(true);
+				QMessageBox mbox;
+				mbox.setIcon(QMessageBox::Warning);
+				mbox.setText(QString("Outstanding Limit has been exceeded ! ! ! Cannot Proceed without settling the outstanding amount"));
+				mbox.exec();
+			}
 		}
 		else
 		{

@@ -155,7 +155,26 @@ void ESSinglePayment2::slotFinalizeBill()
 	}
 	else if (m_paymentMethod == "CREDIT")
 	{
-		handleCreditPayment(billId, netAmount);
+		double outstandingAmount = ES::Utility::getTotalCreditOutstanding(m_customerId);
+		double outstandingLimit = ES::Utility::getOutstandingLimit(m_customerId);
+		outstandingAmount += netAmount;
+		bool exeedingOutstanding = (outstandingAmount > outstandingLimit);
+		if (outstandingLimit != -1 && outstandingLimit > 0)
+		{
+			if (exeedingOutstanding)
+			{
+				QMessageBox mbox;
+				mbox.setIcon(QMessageBox::Warning);
+				mbox.setText(QString("Outstanding Limit has been exceeded ! ! ! Cannot Proceed without settling the outstanding amount"));
+				mbox.exec();
+				this->close();
+				return;
+			}
+		}
+		else
+		{
+			handleCreditPayment(billId, netAmount);
+		}
 	}
 	else if (m_paymentMethod == "CHEQUE")
 	{
