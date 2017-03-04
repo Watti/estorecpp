@@ -1185,7 +1185,7 @@ void ESMultiplePayment::printBill(int billId, float total)
 	{
 		KDReports::Cell& cell = tableElement.cell(row, 0);
 		KDReports::TextElement te("Total Due");
-		te.setPointSize(10);
+		te.setPointSize(12);
 		te.setBold(false);
 		cell.addElement(te, Qt::AlignLeft);
 	}
@@ -1194,7 +1194,7 @@ void ESMultiplePayment::printBill(int billId, float total)
 		double totalOutstanding = prevOutstanding + billOutstanding;
 		KDReports::Cell& cell = tableElement.cell(row, 1);
 		KDReports::TextElement te(QString::number(totalOutstanding, 'f', 2));
-		te.setPointSize(10);
+		te.setPointSize(12);
 		te.setBold(false);
 		cell.addElement(te, Qt::AlignLeft);
 	}
@@ -1329,9 +1329,49 @@ void ESMultiplePayment::printBill(int billId, float total)
 			}
 			count++;
 		}
-		report.addElement(paymentSummaryElement);
+		report.addElement(paymentSummaryElement); 
+		
+		report.addVerticalSpacing(3);
+		{
+			//
+			KDReports::TableElement signingElement;
+			signingElement.setHeaderRowCount(2);
+			signingElement.setHeaderColumnCount(5);
+			signingElement.setBorder(0);
+			signingElement.setWidth(100, KDReports::Percent);
+			//
+			{
+				KDReports::Cell& cell = signingElement.cell(0, 0);
+				KDReports::TextElement issuedByTxt("_________________");
+				issuedByTxt.setPointSize(10);
+				issuedByTxt.setBold(false);
+				cell.addElement(issuedByTxt, Qt::AlignCenter);
+			}
+			{
+				KDReports::Cell& cell = signingElement.cell(1, 0);
+				KDReports::TextElement issuedByTxt("    Issued By");
+				issuedByTxt.setPointSize(10);
+				issuedByTxt.setBold(false);
+				cell.addElement(issuedByTxt, Qt::AlignCenter);
+			}
+			{
+				KDReports::Cell& cell = signingElement.cell(0, 4);
+				KDReports::TextElement issuedByTxt("________________");
+				issuedByTxt.setPointSize(10);
+				issuedByTxt.setBold(false);
+				cell.addElement(issuedByTxt, Qt::AlignCenter);
+			}
+			{
+				KDReports::Cell& cell = signingElement.cell(1, 4);
+				KDReports::TextElement issuedByTxt("    Checked By");
+				issuedByTxt.setPointSize(10);
+				issuedByTxt.setBold(false);
+				cell.addElement(issuedByTxt, Qt::AlignCenter);
+			}
+			report.addElement(signingElement);
+		}
 	}
-
+	
 	report.addVerticalSpacing(1);
 
 	KDReports::TextElement customerInfo2("Thank You!");

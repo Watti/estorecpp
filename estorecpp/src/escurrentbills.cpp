@@ -20,7 +20,7 @@
 #include <memory>
 
 ESCurrentBills::ESCurrentBills(QWidget *parent)
-: QWidget(parent), m_startingLimit(0), m_pageOffset(15), m_nextCounter(0), m_maxNextCount(0)
+: QWidget(parent), m_startingLimit(0), m_pageOffset(50), m_nextCounter(0), m_maxNextCount(0)
 {
 	ui.setupUi(this);
 	m_proceedButtonSignalMapper = new QSignalMapper(this);
@@ -108,6 +108,20 @@ void ESCurrentBills::slotSearch()
 	QDateTime endDate = QDateTime::fromString(ui.endDate->text(), Qt::ISODate);
 	endDate.setTime(QTime(23, 59, 59));
 
+	QString stardDateStr = ui.startDate->date().toString("yyyy-MM-dd");
+	QString endDateStr = ui.endDate->date().toString("yyyy-MM-dd");
+	QString fromDateStr = stardDateStr;
+	int dayscount = ui.startDate->date().daysTo(QDate::currentDate());
+	bool hasPermission = (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
+		ES::Session::getInstance()->getUser()->getType() == ES::User::DEV);
+	int maxBackDays = ES::Session::getInstance()->getMaximumDaysToShowRecords();
+	if (ES::Session::getInstance()->isEnableTaxSupport() && !hasPermission && dayscount > maxBackDays)
+	{
+		maxBackDays = maxBackDays*-1;
+		QString maxBackDateStr = QDate::currentDate().addDays(maxBackDays).toString("yyyy-MM-dd");
+		fromDateStr = maxBackDateStr;
+	}
+
 	int row = 0;
 	QString qStr, qRecordCountStr;
 	qStr = "SELECT * FROM bill WHERE deleted = 0";
@@ -129,6 +143,7 @@ void ESCurrentBills::slotSearch()
 		qStr.append(" AND visible = 1");
 		qRecordCountStr.append(" AND visible = 1");
 	}
+	qStr.append(" AND DATE(date) BETWEEN '").append(stardDateStr).append("' AND '").append(endDateStr).append("'");
 	qStr.append(" ORDER BY date DESC");
 	QSqlQuery queryRecordCount(qRecordCountStr);
 	if (queryRecordCount.next())
@@ -164,10 +179,14 @@ void ESCurrentBills::slotSearch()
 				}
 			}
 			QDateTime billedDate = QDateTime::fromString(allBillQuery.value("date").toString(), Qt::ISODate);
-			if (billedDate < startDate || billedDate > endDate)
-			{
-				continue;
-			}
+			int todatecount = startDate.daysTo(billedDate);
+			int fromdatecount = billedDate.daysTo(endDate);
+			QString billDateStr = allBillQuery.value("date").toString();
+			QString startdateStr = ui.startDate->text();
+// 			if (startDate.daysTo(billedDate) < 0 || billedDate.daysTo(endDate) < 0)
+// 			{
+// 				continue;
+// 			}
 			int statusId = allBillQuery.value("status").toInt();
 			if (selectedStatus > 0)
 			{
@@ -803,7 +822,7 @@ void ESCurrentBills::slotReprint(QString billIdStr)
 		{
 			KDReports::Cell& cell = tableElement.cell(row, 0);
 			KDReports::TextElement te("Total Due");
-			te.setPointSize(10);
+			te.setPointSize(12);
 			te.setBold(false);
 			cell.addElement(te, Qt::AlignLeft);
 		}
@@ -811,7 +830,7 @@ void ESCurrentBills::slotReprint(QString billIdStr)
 		{
 			KDReports::Cell& cell = tableElement.cell(row, 1);
 			KDReports::TextElement te(QString::number(totalOutstanding, 'f', 2));
-			te.setPointSize(10);
+			te.setPointSize(12);
 			te.setBold(false);
 			cell.addElement(te, Qt::AlignLeft);
 		}
@@ -947,6 +966,46 @@ void ESCurrentBills::slotReprint(QString billIdStr)
 				count++;
 			}
 			report.addElement(paymentSummaryElement);
+
+			report.addVerticalSpacing(3);
+			{
+				//
+				KDReports::TableElement signingElement;
+				signingElement.setHeaderRowCount(2);
+				signingElement.setHeaderColumnCount(5);
+				signingElement.setBorder(0);
+				signingElement.setWidth(100, KDReports::Percent);
+				//
+				{
+					KDReports::Cell& cell = signingElement.cell(0, 0);
+					KDReports::TextElement issuedByTxt("_________________");
+					issuedByTxt.setPointSize(10);
+					issuedByTxt.setBold(false);
+					cell.addElement(issuedByTxt, Qt::AlignCenter);
+				}
+				{
+					KDReports::Cell& cell = signingElement.cell(1, 0);
+					KDReports::TextElement issuedByTxt("    Issued By");
+					issuedByTxt.setPointSize(10);
+					issuedByTxt.setBold(false);
+					cell.addElement(issuedByTxt, Qt::AlignCenter);
+				}
+				{
+					KDReports::Cell& cell = signingElement.cell(0, 4);
+					KDReports::TextElement issuedByTxt("________________");
+					issuedByTxt.setPointSize(10);
+					issuedByTxt.setBold(false);
+					cell.addElement(issuedByTxt, Qt::AlignCenter);
+				}
+				{
+					KDReports::Cell& cell = signingElement.cell(1, 4);
+					KDReports::TextElement issuedByTxt("    Checked By");
+					issuedByTxt.setPointSize(10);
+					issuedByTxt.setBold(false);
+					cell.addElement(issuedByTxt, Qt::AlignCenter);
+				}
+				report.addElement(signingElement);
+			}
 		}
 
 		report.addVerticalSpacing(1);
