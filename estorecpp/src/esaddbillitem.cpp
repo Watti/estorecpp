@@ -32,6 +32,7 @@ ESAddBillItem::ESAddBillItem(ESAddBill* cart, QWidget *parent)
 	headerLabels.append("Item Name");
 	headerLabels.append("Item Image");
 	headerLabels.append("Price");
+	headerLabels.append("Qty");
 	headerLabels.append("Discount");
 
 	ui.tableWidget->setHorizontalHeaderLabels(headerLabels);
@@ -84,7 +85,7 @@ void ESAddBillItem::slotSearch()
 
 	QString q;
 	//q.append("SELECT stock.stock_id, item.item_code, item.item_name, item.item_image, stock.selling_price FROM item JOIN stock ON item.item_id = stock.item_id WHERE stock.deleted = 0 ");
-	q.append("SELECT stock.stock_id, item.item_code, item.item_name, item.item_image, item.itemcategory_id, item_category.itemcategory_code , stock.selling_price, stock.discount FROM item JOIN stock ON item.item_id = stock.item_id  JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id WHERE item.deleted = 0 AND stock.qty > 0");
+	q.append("SELECT stock.stock_id, item.item_code, item.item_name, item.item_image, item.itemcategory_id, item_category.itemcategory_code , stock.selling_price, stock.discount, stock.qty FROM item JOIN stock ON item.item_id = stock.item_id  JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id WHERE item.deleted = 0 AND stock.qty > 0");
 	if (!searchText.isEmpty())
 	{
 		//q.append(" AND (item.item_code LIKE '%" + searchText + "%' OR item_category.itemcategory_code LIKE '%" + searchText + "%')");
@@ -130,7 +131,14 @@ void ESAddBillItem::slotSearch()
 		QTableWidgetItem* discountWidget = new QTableWidgetItem();
 		discountWidget->setTextAlignment(Qt::AlignRight);
 		discountWidget->setText(formattedDiscount);
-		ui.tableWidget->setItem(row, 5, discountWidget);
+		ui.tableWidget->setItem(row, 6, discountWidget);
+
+		double qty = queryStocks.value("qty").toDouble();
+		QString formattedQty = QString::number(qty);
+		QTableWidgetItem* qtyWidget = new QTableWidgetItem();
+		qtyWidget->setTextAlignment(Qt::AlignRight);
+		qtyWidget->setText(formattedQty);
+		ui.tableWidget->setItem(row, 5, qtyWidget);
 	}
 	ui.tableWidget->setSortingEnabled(true);
 	ui.tableWidget->selectRow(0);
