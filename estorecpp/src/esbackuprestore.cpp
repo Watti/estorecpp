@@ -169,7 +169,18 @@ void ESBackupRestore::slotRestore()
 	// 	args << "--user=root" << "--password=123" << "--host=localhost";
 
 	poc->start(cmd);
-	poc->waitForFinished(-1);
+	bool success = poc->waitForFinished(-1);
+	QProcess::ExitStatus status = poc->exitStatus();
+	QProcess::ProcessError error = poc->error();
+	if (status == QProcess::ExitStatus::NormalExit)
+	{
+		int userId = ES::Session::getInstance()->getUser()->getId();
+		QString userIdStr;
+		userIdStr.setNum(userId);
+		QString auditQryStr("INSERT INTO backup_reset_audit (userId, action) VALUES('");
+		auditQryStr.append(userIdStr).append("', 'Restore')");
+		QSqlQuery qAudit(auditQryStr);
+	}
 	qDebug() << poc->errorString();
 	this->close();
 }

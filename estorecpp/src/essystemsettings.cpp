@@ -41,6 +41,7 @@ void ESSystemSettings::resetDatabase()
 				  QSqlQuery q7("DELETE FROM credit");
 				  QSqlQuery q8("DELETE FROM payment");
 				  QSqlQuery q9("DELETE FROM card");
+				  QSqlQuery q("DELETE FROM stock_audit");
 				  QSqlQuery q10("ALTER TABLE bill AUTO_INCREMENT = 1");
 				  QSqlQuery q11("ALTER TABLE sale AUTO_INCREMENT = 1");
 				  QSqlQuery q12("ALTER TABLE return_item AUTO_INCREMENT = 1");
@@ -50,6 +51,14 @@ void ESSystemSettings::resetDatabase()
 				  QSqlQuery q16("ALTER TABLE credit AUTO_INCREMENT = 1");
 				  QSqlQuery q17("ALTER TABLE card AUTO_INCREMENT = 1");
 				  QSqlQuery q18("ALTER TABLE payment AUTO_INCREMENT = 1");
+				  QSqlQuery q19("ALTER TABLE stock_audit AUTO_INCREMENT = 1");
+
+				  int userId = ES::Session::getInstance()->getUser()->getId();
+				  QString userIdStr;
+				  userIdStr.setNum(userId);
+				  QString auditQryStr("INSERT INTO backup_reset_audit (userId, action) VALUES('");
+				  auditQryStr.append(userIdStr).append("', 'Reset')");
+				  QSqlQuery qAudit(auditQryStr);
 				  this->close();
 				  LOG(INFO) << "Database has been reset by = " << ES::Session::getInstance()->getUser()->getName().toLatin1().toStdString();
 			  }
