@@ -185,7 +185,7 @@ void AddStockItem::slotAddStockItem()
 					{
 						remainingQtyInMainStock = newQty;
 					}
-					QString updateOrder("UPDATE stock SET qty = " + QString::number(remainingQtyInMainStock) + " WHERE stock_id = " + itemId);
+					QString updateOrder("UPDATE stock SET qty = " + QString::number(remainingQtyInMainStock) + " WHERE stock_id = " + m_stockId);
 					QSqlQuery qUpdateOrder;
 					if (!qUpdateOrder.exec(updateOrder))
 					{
@@ -194,6 +194,13 @@ void AddStockItem::slotAddStockItem()
 						mbox.setText(QString("insertion error :: cannot reduce this quantity from the main stock order"));
 						mbox.exec();
 					}
+					int userId = ES::Session::getInstance()->getUser()->getId();
+					QString userIdStr;
+					userIdStr.setNum(userId);
+					QString qStockAuditStr("INSERT INTO stock_audit (userId, stockId, newQty, prevQty, itemId) VALUES ('");
+					qStockAuditStr.append(userIdStr).append("(', '").append(m_stockId).append("','").append(qtyStr).append
+						("','").append(ui.currentQty->text()).append("','").append(itemId).append("')");
+					QSqlQuery qAuditQuery(qStockAuditStr);
 
 					QString logError("[ManualStockUpdate] [Stock updated item = ");
 					logError.append(itemNameStr).append(" By Adding = ");

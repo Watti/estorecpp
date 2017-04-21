@@ -355,6 +355,11 @@ void ESAddManualStockItems::slotAddToStock()
 		}
 		if (success)
 		{
+			QString qStockAuditStr("INSERT INTO stock_audit (userId, stockId, newQty, prevQty, itemId) VALUES ('");
+			qStockAuditStr.append(userIdStr).append("', '").append(stockId).append("','").append(QString::number(newlyAddedQty)).append
+				("','").append(ui.currentQty->text()).append("','").append(itemId).append("')");
+			QSqlQuery qAuditQuery(qStockAuditStr);
+
 			QString logError("[ManualStockUpdate] [Stock updated item = ");
 			logError.append(itemNameStr).append(" By Adding = ");
 			logError.append(QString::number(newlyAddedQty));
