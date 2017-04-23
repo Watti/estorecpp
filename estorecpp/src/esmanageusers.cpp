@@ -55,6 +55,14 @@ void ESManageUsers::slotClear()
 
 void ESManageUsers::slotUpdate()
 {
+	if (ui.usernameText->text() == nullptr || ui.usernameText->text().isEmpty() || ui.passwordText->text() == nullptr || ui.passwordText->text().isEmpty())
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Warning);
+		mbox.setText(QString("Username or Password cannot be empty"));
+		mbox.exec();
+		return;
+	}
 	QSqlQuery userQuery;
 	userQuery.prepare("UPDATE user SET username = ?, usertype_id = ?, display_name = ?, active = ? WHERE user_id = ?");
 	userQuery.addBindValue(ui.usernameText->text());
@@ -110,6 +118,14 @@ void ESManageUsers::slotUpdate()
 
 void ESManageUsers::slotAdd()
 {
+	if (ui.usernameText->text() == nullptr || ui.usernameText->text().isEmpty() || ui.passwordText->text() == nullptr || ui.passwordText->text().isEmpty())
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Warning);
+		mbox.setText(QString("Username or Password cannot be empty"));
+		mbox.exec();
+		return;
+	}
 	QSqlQuery userQuery;
 	userQuery.prepare("INSERT INTO user (username, password, usertype_id, display_name, active) \
 		VALUES(?, MD5(?), ?, ?, ?)");

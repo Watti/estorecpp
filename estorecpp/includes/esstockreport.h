@@ -23,6 +23,7 @@ public:
 	void slotGenerate();
 	void slotPrint(QPrinter* printer);
 	void displayResults();
+	void PrintReOrderItemInformationOnly();
 	
 private:
 	Ui::StockReportWidget ui;

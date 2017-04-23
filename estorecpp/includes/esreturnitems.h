@@ -33,6 +33,8 @@ public:
 	void slotShowAddItem();
 	void slotStartBill();
 	void slotCommit();
+	void slotNewPriceCellUpdated(QString, int, int);
+	void slotItemDoubleClickedOnNewItems(int row, int col);
 
 	void slotPrint(QPrinter* printer);
 
@@ -43,7 +45,6 @@ private:
 	void showTotal();
 	void updateReturnItemTable();
 	void setEnabled(bool enable);
-
 	Ui::ReturnItems ui;
 	QSignalMapper* m_removeButtonSignalMapper;
 	QSignalMapper* m_removeNewItemButtonSignalMapper;

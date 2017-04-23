@@ -128,6 +128,13 @@
       </spacer>
      </item>
      <item>
+      <widget class="QPushButton" name="printItemInfoOnlyBtn">
+       <property name="text">
+        <string>Print Item Info</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="generateButton">
        <property name="text">
         <string> Generate Report </string>

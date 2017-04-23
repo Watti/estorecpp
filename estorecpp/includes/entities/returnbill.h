@@ -45,6 +45,7 @@ namespace ES
 		void setNewInterest(QString interest);
 		bool updateItemQuantity(long rowId, QString qtyStr, double& billedQty, double& returnPrice);
 		bool updateNewItemQuantity(long rowId, QString qtyStr);
+		bool updateNewItemPrice(long rowId, QString priceStr);
 
 		void removeReturnItem(QString rowId);
 		void removeNewItem(int rowId);
