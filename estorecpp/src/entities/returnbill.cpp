@@ -399,3 +399,22 @@ double ES::ReturnBill::getNewTotal()
 {
 	return m_newTotal;
 }
+
+bool ES::ReturnBill::updateNewItemPrice(long rowId, QString priceStr)
+{
+	std::map<int, NewItemInfo>::iterator iter = m_newItems.find(rowId);
+	if (iter != m_newItems.end())
+	{
+		NewItemInfo& ni = iter->second;
+		bool valid = false;
+		double requestedPrice = priceStr.toDouble(&valid);
+		if (!valid)
+		{
+			return false;
+		}
+		ni.itemPrice = requestedPrice;
+		calculateTotal();
+		return true;
+	}
+	return false;
+}

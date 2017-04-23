@@ -48,6 +48,7 @@ ESReturnItems::ESReturnItems(QWidget *parent /*= 0*/) : QWidget(parent), m_hasIn
 	QObject::connect(ui.addItemBtn, SIGNAL(clicked()), this, SLOT(slotShowAddItem()));
 	QObject::connect(ui.startBillBtn, SIGNAL(clicked()), this, SLOT(slotStartBill()));
 	QObject::connect(ui.commitBtn, SIGNAL(clicked()), this, SLOT(slotCommit()));
+	QObject::connect(ui.billTableWidget, SIGNAL(cellClicked(int, int)), this, SLOT(slotItemDoubleClickedOnNewItems(int, int)));
 
 	if (!ES::DbConnection::instance()->open())
 	{
@@ -367,6 +368,7 @@ void ESReturnItems::slotSelect()
 		mbox.setIcon(QMessageBox::Critical);
 		mbox.setText(QString("Invalid bill id. Current Bill is : " + oldBill));
 		mbox.exec();
+		ui.billIdSearchText->setText("");
 	}
 }
 
@@ -865,4 +867,60 @@ void ESReturnItems::updateDatabase()
 void ESReturnItems::finishBill()
 {
 	m_bill.end();
+}
+
+void ESReturnItems::slotNewPriceCellUpdated(QString price, int row, int col)
+{
+	QTableWidgetItem* item = ui.billTableWidget->item(row, col);
+	if (item)
+	{
+		QString rowIdStr = item->text();
+		std::string s = rowIdStr.toStdString();
+		long rowId = rowIdStr.toLong();
+		bool success = m_bill.updateNewItemPrice(rowId, price);
+		const std::map<int, ES::ReturnBill::NewItemInfo>& newItems = m_bill.getNewItemTable();
+		std::map<int, ES::ReturnBill::NewItemInfo>::const_iterator iter = newItems.find(rowId);
+		if (iter != newItems.end())
+		{
+			const ES::ReturnBill::NewItemInfo& ni = iter->second;
+
+			double subtotal = ni.itemPrice * ni.quantity;
+			QTableWidgetItem* subtotalItem = new QTableWidgetItem(QString::number(subtotal, 'f', 2));
+			subtotalItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+			ui.billTableWidget->setItem(row, 5, subtotalItem);
+			
+			QTableWidgetItem* qtyItem = new QTableWidgetItem(QString::number(ni.quantity));
+			qtyItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+			ui.billTableWidget->setItem(row, 3, qtyItem);	
+		}
+	}
+
+	showTotal();
+}
+
+void ESReturnItems::slotItemDoubleClickedOnNewItems(int row, int col)
+{
+	if (col == 2) /* Price */
+	{
+		QString price = "";
+		QTableWidgetItem* item = ui.billTableWidget->item(row, 2);
+		if (item)
+		{
+			bool valid = true;
+			item->text().toDouble(&valid);
+			if (!valid)
+			{
+				return;
+			}
+			price = item->text();
+		}
+
+		TableTextWidget* textWidget = new TableTextWidget(ui.billTableWidget, row, 2, ui.billTableWidget);
+		QObject::connect(textWidget, SIGNAL(notifyEnterPressed(QString, int, int)), this, SLOT(slotNewPriceCellUpdated(QString, int, int)));
+		textWidget->setTextFormatterFunc(convertToQuantityFormat);
+		textWidget->setText(price);
+		textWidget->selectAll();
+		ui.billTableWidget->setCellWidget(row, 2, textWidget);
+		textWidget->setFocus();
+	}
 }
