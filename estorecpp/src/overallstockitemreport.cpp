@@ -105,7 +105,7 @@ void ESOverallStockItemReport::slotGenerate()
 	{
 		categorySelected = true;
 	}
-	
+
 	m_report = new KDReports::Report;
 	KDReports::TextElement titleElement("Stock Items Report");
 	titleElement.setPointSize(15);
@@ -137,6 +137,11 @@ void ESOverallStockItemReport::slotGenerate()
 	std::ofstream stream;
 	QString filename = "";
 	bool generateCSV = ui.csv->isChecked();
+	if (generateCSV && !categorySelected)
+	{
+		generateFullReport();
+		return;
+	}
 	if (generateCSV)
 	{
 		QString dateTimeStr = QDateTime::currentDateTime().toString(QLatin1String("yyyyMMdd-hhmmss"));
@@ -339,7 +344,7 @@ void ESOverallStockItemReport::displayResults()
 			ui.nextBtn->setEnabled(true);
 		}
 		int currentlyShowdItemCount = (m_nextCounter + 1)*m_pageOffset;
-		int displayMaxBound = (m_nextCounter+1)*m_pageOffset;
+		int displayMaxBound = (m_nextCounter + 1)*m_pageOffset;
 		if (m_nextCounter == 0)
 		{
 			displayMaxBound = m_pageOffset;
@@ -347,7 +352,7 @@ void ESOverallStockItemReport::displayResults()
 		int displayMinBound = 0;
 		if (m_nextCounter >= 1)
 		{
-			displayMinBound = (m_nextCounter )* m_pageOffset;
+			displayMinBound = (m_nextCounter)* m_pageOffset;
 		}
 		if (currentlyShowdItemCount >= m_totalRecords)
 		{
@@ -434,4 +439,81 @@ void ESOverallStockItemReport::slotNext()
 		m_startingLimit += m_pageOffset;
 	}
 	displayResults();
+}
+
+void ESOverallStockItemReport::generateFullReport()
+{
+	int categoryId = ui.categoryCombo->currentData().toInt();
+	bool categorySelected = false;
+
+
+	std::ofstream stream;
+	QString filename = "";
+	bool generateCSV = ui.csv->isChecked();
+	if (generateCSV)
+	{
+		QString dateTimeStr = QDateTime::currentDateTime().toString(QLatin1String("yyyyMMdd-hhmmss"));
+		QString pathToFile = ES::Session::getInstance()->getReportPath();
+		filename = pathToFile.append("\\Category Wise Stock Items Report-");
+		filename.append(dateTimeStr).append(".csv");
+		std::string s(filename.toStdString());
+		stream.open(s, std::ios::out | std::ios::app);
+		stream << "Category Wise Stock Items Report" << "\n";
+		stream << "Date Time : ," << dateTimeStr.toLatin1().toStdString() << "\n";
+		stream << "Category, Code , Item, Qty, Min Qty, Purchasing Price, Selling Price, Stock Value" << "\n";
+
+	}
+	double subTotal = 0;
+	QString qStr;
+	QString qCategoryStr("SELECT * FROM item_category WHERE deleted = 0 ORDER BY itemcategory_name asc");
+	QSqlQuery queryCategory(qCategoryStr);
+	while (queryCategory.next())
+	{
+		QString catId = queryCategory.value("itemcategory_id").toString();
+		QString categoryName = queryCategory.value("itemcategory_name").toString();
+		stream << categoryName.toLatin1().data() << ", " << ","  << ", "  << ", " <<", "  << "\n";
+		if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
+			ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
+		{
+			qStr = "SELECT stock.stock_id, stock.qty, stock.min_qty, stock.floor, item.item_code, item.item_name, item.w_cost , stock.selling_price FROM stock JOIN item ON stock.item_id = item.item_id JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id WHERE stock.deleted = 0 AND item.deleted = 0  AND item_category.itemcategory_id= " + catId + " ORDER BY item.item_name asc";
+		}
+		else
+		{
+			qStr = "SELECT stock.stock_id, stock.qty, stock.min_qty, stock.floor, stock.selling_price, item.item_code, item.item_name , item.w_cost FROM stock JOIN item ON stock.item_id = item.item_id JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id WHERE stock.deleted = 0 AND item.deleted = 0 AND stock.visible = 1  AND item_category.itemcategory_id= " + catId + " ORDER BY item.item_name asc";
+		}
+
+		QSqlQuery q(qStr);
+		while (q.next())
+		{
+			double qty = q.value("qty").toDouble();
+			double minQty = q.value("min_qty").toDouble();
+			double excess = qty - minQty;
+			double sellingPrice = q.value("selling_price").toDouble();
+			double purchasingPrice = 0;
+			QString stockId = q.value("stock_id").toString();
+
+			purchasingPrice = q.value("w_cost").toDouble();
+			QString itemCode = q.value("item_code").toString();
+			QString itemName = q.value("item_name").toString();
+			QString floorNo = q.value("floor").toString();
+			QString qtyStr = QString::number(qty);
+			QString minQtyStr = QString::number(minQty);
+
+			itemName = itemName.simplified();
+			itemName.replace(" ", "");
+
+
+			double stockValue = purchasingPrice* qty;
+			subTotal += stockValue;
+
+			stream << ","<<itemCode.toLatin1().data() << ", " << itemName.toLatin1().data() << "," << qtyStr.toLatin1().data() << ", " << minQtyStr.toLatin1().data() << ", " << QString::number(purchasingPrice, 'f', 2).toLatin1().data() << ", " << QString::number(sellingPrice, 'f', 2).toLatin1().data() << ", " << QString::number(stockValue, 'f', 2).toLatin1().data() << "\n";
+
+		}
+	}
+	stream.close();
+	ui.csv->setChecked(false);
+	QMessageBox mbox;
+	mbox.setIcon(QMessageBox::Information);
+	mbox.setText(QString("Stock Items Report has been saved in : ").append(filename));
+	mbox.exec();
 }

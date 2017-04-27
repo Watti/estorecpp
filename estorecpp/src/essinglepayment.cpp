@@ -160,6 +160,10 @@ void ESSinglePayment::slotFinalizeBill()
 				mbox.setText(QString("Outstanding Limit has been exceeded ! ! ! Cannot Proceed without settling the outstanding amount"));
 				mbox.exec();
 			}
+			else
+			{
+				handleCreditPayment(billId, netAmount);
+			}
 		}
 		else
 		{

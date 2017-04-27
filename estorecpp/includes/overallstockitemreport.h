@@ -25,6 +25,7 @@ public:
 	void slotPrev();
 	void slotNext();
 	void displayResults();
+	void generateFullReport();
 
 private:
 	Ui::OverallStockItemsReportWidget ui;
