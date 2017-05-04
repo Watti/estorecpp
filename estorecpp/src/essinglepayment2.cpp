@@ -170,6 +170,10 @@ void ESSinglePayment2::slotFinalizeBill()
 				this->close();
 				return;
 			}
+			else
+			{
+				handleCreditPayment(billId, netAmount);
+			}
 		}
 		else
 		{
