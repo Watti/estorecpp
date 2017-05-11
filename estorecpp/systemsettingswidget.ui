@@ -367,6 +367,13 @@
         </layout>
        </item>
        <item>
+        <widget class="QPushButton" name="clearBillSessionBtn">
+         <property name="text">
+          <string>Clear Bill Session</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>

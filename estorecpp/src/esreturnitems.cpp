@@ -33,7 +33,7 @@ ESReturnItems::ESReturnItems(QWidget *parent /*= 0*/) : QWidget(parent), m_hasIn
 {
 	ui.setupUi(this);
 
-	m_removeButtonSignalMapper = new QSignal Mapper(this);
+	m_removeButtonSignalMapper = new QSignalMapper(this);
 	m_removeNewItemButtonSignalMapper = new QSignalMapper(this);
 	m_idGenerator = 0;
 	m_oldBillId = -1;
