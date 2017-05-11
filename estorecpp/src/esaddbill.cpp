@@ -52,10 +52,13 @@ namespace
 						}
 						else
 						{
-							bool success = false;
-							
-							ESAuthentication* auth = new ESAuthentication(success, 0);
-							auth->exec();
+							bool success = true;
+							if (ES::Session::getInstance()->isSecondDisplayOn())
+							{
+								success = false;
+								ESAuthentication* auth = new ESAuthentication(success, 0);
+								auth->exec();
+							}
 
 							if (!success)
 							{
