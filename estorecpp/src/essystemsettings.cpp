@@ -13,9 +13,10 @@ ESSystemSettings::ESSystemSettings(QWidget *parent /*= 0*/)
 : QWidget(parent)
 {
 	ui.setupUi(this);
-
+	
 	QObject::connect(ui.resetButton, SIGNAL(clicked()), this, SLOT(resetDatabase()));
 	QObject::connect(ui.clearBillSessionBtn, SIGNAL(clicked()), this, SLOT(clearBillSession()));
+	QObject::connect(ui.clearStockAuditBtn, SIGNAL(clicked()), this, SLOT(clearStockAudit()));
 }
 
 ESSystemSettings::~ESSystemSettings()
@@ -72,12 +73,24 @@ void ESSystemSettings::resetDatabase()
 
 void ESSystemSettings::clearBillSession()
 {
-	if (ES::Utility::verifyUsingMessageBox(this, "Progex", "Do you really want to reset the database this?"))
+	if (ES::Utility::verifyUsingMessageBox(this, "Progex", "Do you really want to clean bill session data?"))
 	{
 		QSqlQuery q1("DELETE FROM bill_session");
 		QSqlQuery q2("ALTER TABLE bill_session AUTO_INCREMENT = 1");
 
 		this->close();
-		LOG(INFO) << "Database has been reset by = " << ES::Session::getInstance()->getUser()->getName().toLatin1().toStdString();
+		//LOG(INFO) << "Database has been reset by = " << ES::Session::getInstance()->getUser()->getName().toLatin1().toStdString();
+	}
+}
+
+void ESSystemSettings::clearStockAudit()
+{
+	if (ES::Utility::verifyUsingMessageBox(this, "Progex", "Do you really want to clear stock audit information?"))
+	{
+		QSqlQuery q1("DELETE FROM stock_audit");
+		QSqlQuery q2("ALTER TABLE stock_audit AUTO_INCREMENT = 1");
+
+		this->close();
+		//LOG(INFO) << "Database has been reset by = " << ES::Session::getInstance()->getUser()->getName().toLatin1().toStdString();
 	}
 }

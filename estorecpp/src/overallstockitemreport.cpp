@@ -475,11 +475,11 @@ void ESOverallStockItemReport::generateFullReport()
 		if (ES::Session::getInstance()->getUser()->getType() == ES::User::SENIOR_MANAGER ||
 			ES::Session::getInstance()->getUser()->getType() == ES::User::DEV)
 		{
-			qStr = "SELECT stock.stock_id, stock.qty, stock.min_qty, stock.floor, item.item_code, item.item_name, item.w_cost , stock.selling_price FROM stock JOIN item ON stock.item_id = item.item_id JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id WHERE stock.deleted = 0 AND item.deleted = 0  AND item_category.itemcategory_id= " + catId + " ORDER BY item.item_name asc";
+			qStr = "SELECT stock.stock_id, stock.qty, stock.min_qty, stock.floor, item.item_code, item.item_name, item.w_cost , stock.selling_price FROM stock JOIN item ON stock.item_id = item.item_id JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id WHERE stock.deleted = 0 AND item.deleted = 0  AND item_category.itemcategory_id= " + catId + " ORDER BY item.item_code asc";
 		}
 		else
 		{
-			qStr = "SELECT stock.stock_id, stock.qty, stock.min_qty, stock.floor, stock.selling_price, item.item_code, item.item_name , item.w_cost FROM stock JOIN item ON stock.item_id = item.item_id JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id WHERE stock.deleted = 0 AND item.deleted = 0 AND stock.visible = 1  AND item_category.itemcategory_id= " + catId + " ORDER BY item.item_name asc";
+			qStr = "SELECT stock.stock_id, stock.qty, stock.min_qty, stock.floor, stock.selling_price, item.item_code, item.item_name , item.w_cost FROM stock JOIN item ON stock.item_id = item.item_id JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id WHERE stock.deleted = 0 AND item.deleted = 0 AND stock.visible = 1  AND item_category.itemcategory_id= " + catId + " ORDER BY item.item_code asc";
 		}
 
 		QSqlQuery q(qStr);

@@ -17,6 +17,7 @@ public:
 public slots:
 	void resetDatabase();
 	void clearBillSession();
+	void clearStockAudit();
 private:
 	Ui::SystemSettings ui;
 
