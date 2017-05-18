@@ -100,7 +100,7 @@ void MDFSalesSummary::slotSearch()
 
 	double netTotalIncome = 0;
 	QVector<MDFItemDataHolder> dataHolderVec;
-	QString qMDFStr = "SELECT * FROM Item JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id WHERE item.deleted = 0 AND item_category.itemcategory_name ='MDF'";
+	QString qMDFStr = "SELECT * FROM Item JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id WHERE item.deleted = 0 AND item_category.itemcategory_name LIKE '%MDF%'";
 	QSqlQuery categoryQry;
 	categoryQry.setForwardOnly(true);
 	categoryQry.exec(qMDFStr);
@@ -670,7 +670,7 @@ void MDFSalesSummary::slotGenerateReport()
 	float grandReturnTotal, grandReturnCost = 0, grandSaleCost = 0, grandSalesTotal = 0, totalProfit = 0, netTotalIncome = 0;
 
 	QVector<MDFItemDataHolder> dataHolderVec;
-	QString qMDFStr = "SELECT * FROM Item JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id WHERE item.deleted = 0 AND item_category.itemcategory_name ='MDF'";
+	QString qMDFStr = "SELECT * FROM Item JOIN item_category ON item.itemcategory_id = item_category.itemcategory_id WHERE item.deleted = 0 AND item_category.itemcategory_name LIKE '%MDF%'";
 	QSqlQuery categoryQry;
 	categoryQry.setForwardOnly(true);
 	categoryQry.exec(qMDFStr);
