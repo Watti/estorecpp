@@ -800,7 +800,8 @@ void ESReturnItems::updateDatabase()
 	for (int i = 0; i < ui.tableWidget->rowCount(); ++i)
 	{
 		QTableWidgetItem* item = ui.tableWidget->item(i, 0);
-		QSqlQuery itemQuery("SELECT item_id FROM item WHERE item_code = '" + item->text() + "'");
+		QString itemCode = item->text();
+		QSqlQuery itemQuery("SELECT item_id FROM item WHERE item_code = '" + itemCode + "' AND deleted = 0");
 		if (itemQuery.next())
 		{
 			returnQty = ui.tableWidget->item(i, 2)->text().toFloat();

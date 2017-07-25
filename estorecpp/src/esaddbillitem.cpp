@@ -37,11 +37,16 @@ ESAddBillItem::ESAddBillItem(ESAddBill* cart, QWidget *parent)
 
 	ui.tableWidget->setHorizontalHeaderLabels(headerLabels);
 	ui.tableWidget->horizontalHeader()->setStretchLastSection(true);
-	ui.tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+	ui.tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Fixed);
 	ui.tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	ui.tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
 	ui.tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
 	ui.tableWidget->hideColumn(0);
+
+	ui.tableWidget->setColumnWidth(1, 150);
+	ui.tableWidget->setColumnWidth(2, 350);
+	ui.tableWidget->setColumnWidth(4, 150);
+	ui.tableWidget->setColumnWidth(5, 150);
 
 	slotSearch();
 	slotHideImages();

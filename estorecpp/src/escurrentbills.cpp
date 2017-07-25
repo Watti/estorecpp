@@ -259,20 +259,23 @@ void ESCurrentBills::slotSearch()
 					  tableItem->setBackgroundColor(rowColor);
 					  ui.tableWidget->setItem(row, 4, tableItem);
 
-					  QWidget* base = new QWidget(ui.tableWidget);
-					  QPushButton* proceedBtn = new QPushButton("Proceed", base);
-					  proceedBtn->setMaximumWidth(100);
+					  if (ES::Session::getInstance()->getUser()->getId() == allBillQuery.value("user_id").toInt())
+					  {
+						  QWidget* base = new QWidget(ui.tableWidget);
+						  QPushButton* proceedBtn = new QPushButton("Proceed", base);
+						  proceedBtn->setMaximumWidth(100);
 
-					  m_proceedButtonSignalMapper->setMapping(proceedBtn, billId);
-					  QObject::connect(proceedBtn, SIGNAL(clicked()), m_proceedButtonSignalMapper, SLOT(map()));
+						  m_proceedButtonSignalMapper->setMapping(proceedBtn, billId);
+						  QObject::connect(proceedBtn, SIGNAL(clicked()), m_proceedButtonSignalMapper, SLOT(map()));
 
-					  QHBoxLayout *layout = new QHBoxLayout;
-					  layout->setContentsMargins(0, 0, 0, 0);
-					  layout->addWidget(proceedBtn);
-					  layout->insertStretch(2);
-					  base->setLayout(layout);
-					  ui.tableWidget->setCellWidget(row, 5, base);
-					  base->show();
+						  QHBoxLayout *layout = new QHBoxLayout;
+						  layout->setContentsMargins(0, 0, 0, 0);
+						  layout->addWidget(proceedBtn);
+						  layout->insertStretch(2);
+						  base->setLayout(layout);
+						  ui.tableWidget->setCellWidget(row, 5, base);
+						  base->show();
+					  }
 			}
 				break;
 			case 3:
