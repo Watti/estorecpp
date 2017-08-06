@@ -29,10 +29,7 @@ ES::ReturnBill::~ReturnBill()
 
 bool ES::ReturnBill::start()
 {
-	m_started = true;
-
 	QSqlQuery insertBillQuery;
-
 
 	insertBillQuery.prepare("INSERT INTO bill (user_id) VALUES(?)");
 	insertBillQuery.addBindValue(ES::Session::getInstance()->getUser()->getId());
@@ -41,6 +38,7 @@ bool ES::ReturnBill::start()
 	if (insertBillQuery.exec())
 	{
 		m_billId = (insertBillQuery.lastInsertId()).value<int>();
+		m_started = true;
 	}
 	bool success = QSqlDatabase::database().commit();
 	return success;

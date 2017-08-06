@@ -382,8 +382,13 @@ void ESAddBill::slotCommit()
 		payment->setAttribute(Qt::WA_DeleteOnClose);
 		//payment->setWindowFlags(Qt::CustomizeWindowHint | Qt::Window);
 		payment->show();
-
-		payment->setNetAmount(QString::number(ui.netAmountLabel->text().toDouble(), 'f', 2));
+		QSqlQuery queryTotal("SELECT SUM(total) as grandTotal from sale where deleted = 0 AND bill_id=" + ES::Session::getInstance()->getBillId());
+		double netAmount = 0;
+		while (queryTotal.next())
+		{
+			netAmount = queryTotal.value("grandTotal").toDouble();
+		}
+		payment->setNetAmount(QString::number(netAmount, 'f', 2));
 		payment->setNoOfItems(ui.noOfItemLabel->text());
 		payment->setTotalAmount(QString::number(ui.grossAmountLabel->text().toDouble(), 'f', 2));
 		//payment->getUI().balanceLbl->setText("0.00");
