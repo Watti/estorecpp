@@ -151,25 +151,33 @@ void AddStockItem::slotAddStockItem()
 						newQty = currentStockQty + quantity;
 						q = "UPDATE stock SET qty = '" + QString::number(newQty) + "', min_qty = '" + minQtyStr + "' ,selling_price = '" + price + "', discount ='" + discount + "', visible = '" + visible + "', floor = '" + floorNo + "' WHERE stock_id = " + m_stockId;
 					}
-					QSqlQuery queryGetWCost("SELECT w_cost, item_name FROM item WHERE item_id = " + itemId);
-					if (queryGetWCost.first())
+					if (ui.isWeightedAverage->isChecked())
 					{
-						itemNameStr = queryGetWCost.value("item_name").toString();
-						double oldWCost = queryGetWCost.value("w_cost").toDouble();
-						if (oldWCost < 0)
+
+						QSqlQuery queryGetWCost("SELECT w_cost, item_name FROM item WHERE item_id = " + itemId);
+						if (queryGetWCost.first())
 						{
-							QSqlQuery updateWCost("UPDATE item SET w_cost = " + purchasingPrice + " WHERE item_id = " + itemId);
-						}
-						else
-						{
-							if (quantity > 0)
+							itemNameStr = queryGetWCost.value("item_name").toString();
+							double oldWCost = queryGetWCost.value("w_cost").toDouble();
+							if (oldWCost < 0)
 							{
-								double a = oldWCost * currentStockQty;
-								double b = purchasingPrice.toDouble() * quantity;
-								double wCost = (a + b) / (currentStockQty + quantity);
-								QSqlQuery updateWCost("UPDATE item SET w_cost = " + QString::number(wCost, 'f', 2) + " WHERE item_id = " + itemId);
+								QSqlQuery updateWCost("UPDATE item SET w_cost = " + purchasingPrice + " WHERE item_id = " + itemId);
+							}
+							else
+							{
+								if (quantity > 0)
+								{
+									double a = oldWCost * currentStockQty;
+									double b = purchasingPrice.toDouble() * quantity;
+									double wCost = (a + b) / (currentStockQty + quantity);
+									QSqlQuery updateWCost("UPDATE item SET w_cost = " + QString::number(wCost, 'f', 2) + " WHERE item_id = " + itemId);
+								}
 							}
 						}
+					}
+					else
+					{
+						QSqlQuery updateWCost("UPDATE item SET w_cost = " + purchasingPrice + " WHERE item_id = " + itemId);
 					}
 				}
 

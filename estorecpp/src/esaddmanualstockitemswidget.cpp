@@ -315,26 +315,34 @@ void ESAddManualStockItems::slotAddToStock()
 
 		//currentQty += itemStock.value("qty").toDouble();
 		double currentQty = newlyAddedQty + ui.currentQty->text().toDouble();
-		QSqlQuery queryGetWCost("SELECT w_cost, item_name FROM item WHERE item_id = " + itemId);
 		QString itemNameStr = "";
-		if (queryGetWCost.first())
+		if (ui.isWeightedAverage->isChecked())
 		{
-			double oldWCost = queryGetWCost.value("w_cost").toDouble();
-			itemNameStr = queryGetWCost.value("item_name").toString();
-			if (oldWCost < 0)
+			QSqlQuery queryGetWCost("SELECT w_cost, item_name FROM item WHERE item_id = " + itemId);
+
+			if (queryGetWCost.first())
 			{
-				QSqlQuery updateWCost("UPDATE item SET w_cost = " + purchasingPriceStr + " WHERE item_id = " + itemId);
-			}
-			else
-			{
-				if (currQty > 0)
+				double oldWCost = queryGetWCost.value("w_cost").toDouble();
+				itemNameStr = queryGetWCost.value("item_name").toString();
+				if (oldWCost < 0)
 				{
-					double a = oldWCost * currQty;
-					double b = purchasingPriceStr.toDouble() * newlyAddedQty;
-					double wCost = (a + b) / (currQty + newlyAddedQty);
-					QSqlQuery updateWCost("UPDATE item SET w_cost = " + QString::number(wCost, 'f', 2) + " WHERE item_id = " + itemId);
+					QSqlQuery updateWCost("UPDATE item SET w_cost = " + purchasingPriceStr + " WHERE item_id = " + itemId);
+				}
+				else
+				{
+					if (currQty > 0)
+					{
+						double a = oldWCost * currQty;
+						double b = purchasingPriceStr.toDouble() * newlyAddedQty;
+						double wCost = (a + b) / (currQty + newlyAddedQty);
+						QSqlQuery updateWCost("UPDATE item SET w_cost = " + QString::number(wCost, 'f', 2) + " WHERE item_id = " + itemId);
+					}
 				}
 			}
+		}
+		else
+		{
+			QSqlQuery updateWCost("UPDATE item SET w_cost = " + purchasingPriceStr + " WHERE item_id = " + itemId);
 		}
 		QString qtyStr;
 		qtyStr.setNum(currentQty);
@@ -422,22 +430,30 @@ void ESAddManualStockItems::slotAddToStock()
 	}
 	else
 	{
-		QSqlQuery queryGetWCost("SELECT w_cost FROM item WHERE item_id = " + itemId);
-		if (queryGetWCost.first())
+		if (ui.isWeightedAverage->isChecked())
 		{
-			double oldWCost = queryGetWCost.value("w_cost").toDouble();
-			if (oldWCost < 0)
+			QSqlQuery queryGetWCost("SELECT w_cost FROM item WHERE item_id = " + itemId);
+			if (queryGetWCost.first())
 			{
-				QSqlQuery updateWCost("UPDATE item SET w_cost = " + purchasingPriceStr + " WHERE item_id = " + itemId);
-			}
-			else
-			{
-				if (newlyAddedQty > 0)
+				double oldWCost = queryGetWCost.value("w_cost").toDouble();
+				if (oldWCost < 0)
 				{
-					double wCost = purchasingPriceStr.toDouble();
-					QSqlQuery updateWCost("UPDATE item SET w_cost = " + QString::number(wCost, 'f', 2) + " WHERE item_id = " + itemId);
+					QSqlQuery updateWCost("UPDATE item SET w_cost = " + purchasingPriceStr + " WHERE item_id = " + itemId);
+				}
+				else
+				{
+					if (newlyAddedQty > 0)
+					{
+						double wCost = purchasingPriceStr.toDouble();
+						QSqlQuery updateWCost("UPDATE item SET w_cost = " + QString::number(wCost, 'f', 2) + " WHERE item_id = " + itemId);
+					}
 				}
 			}
+		}
+		else
+		{
+			double wCost = purchasingPriceStr.toDouble();
+			QSqlQuery updateWCost("UPDATE item SET w_cost = " + QString::number(wCost, 'f', 2) + " WHERE item_id = " + itemId);
 		}
 		QString qtyStr;
 		qtyStr.setNum(newlyAddedQty);

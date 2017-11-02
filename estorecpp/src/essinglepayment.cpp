@@ -127,62 +127,81 @@ void ESSinglePayment::slotFinalizeBill()
 	
 	QString billIdStr = ES::Session::getInstance()->getBillId();
 	QString netAmountStr = ui.netAmountLbl->text();
-	//QString paymentType = "CASH";// ui.paymentMethodCombo->currentText();
-	bool isValid = false;
-	double netAmount = netAmountStr.toDouble(&isValid);
-	if (!isValid || netAmount < 0)
+	//
+	QSqlQuery queryTotal("SELECT SUM(total) as grandTotal from sale where deleted = 0 AND bill_id=" + ES::Session::getInstance()->getBillId());
+	double itemWiseTotal = 0;
+	bool success = false;
+	if(queryTotal.next())
 	{
-		return;
-	}
-	int billId = billIdStr.toInt(&isValid);
-	if (!isValid)
-	{
-		return;
-	}
+		itemWiseTotal = queryTotal.value("grandTotal").toDouble();
 
-	float currentOutstanding = ui.outstandingText->text().toFloat();
-	float totalOutstanding = (netAmount + currentOutstanding);
-	bool exeedingOutstanding = (totalOutstanding > outstandingLimit);
+		double interest = ui.lineEdit->text().toDouble();
+		double totalBillingAmount = itemWiseTotal + itemWiseTotal * (interest / 100.0);
 
-	if (m_paymentMethod == "CASH")
-	{
-		handleCashPayment(billId, netAmount);
-	}
-	else if (m_paymentMethod == "CREDIT")
-	{
-		if ((outstandingLimit != -1) && (outstandingLimit > 0))
+		double netAmount = totalBillingAmount;//netAmountStr.toDouble(&isValid);
+		if (netAmount < 0)
 		{
-			if (exeedingOutstanding)
+			return;
+		}
+		bool isValid = false;
+		int billId = billIdStr.toInt(&isValid);
+		if (!isValid)
+		{
+			return;
+		}
+		success = true;
+		float currentOutstanding = ui.outstandingText->text().toFloat();
+		float totalOutstanding = (netAmount + currentOutstanding);
+		bool exeedingOutstanding = (totalOutstanding > outstandingLimit);
+
+		if (m_paymentMethod == "CASH")
+		{
+			handleCashPayment(billId, netAmount);
+		}
+		else if (m_paymentMethod == "CREDIT")
+		{
+			if ((outstandingLimit != -1) && (outstandingLimit > 0))
 			{
-				ui.okBtn->setDisabled(true);
-				QMessageBox mbox;
-				mbox.setIcon(QMessageBox::Warning);
-				mbox.setText(QString("Outstanding Limit has been exceeded ! ! ! Cannot Proceed without settling the outstanding amount"));
-				mbox.exec();
+				if (exeedingOutstanding)
+				{
+					ui.okBtn->setDisabled(true);
+					QMessageBox mbox;
+					mbox.setIcon(QMessageBox::Warning);
+					mbox.setText(QString("Outstanding Limit has been exceeded ! ! ! Cannot Proceed without settling the outstanding amount"));
+					mbox.exec();
+				}
+				else
+				{
+					handleCreditPayment(billId, netAmount);
+				}
 			}
 			else
 			{
 				handleCreditPayment(billId, netAmount);
 			}
 		}
-		else
+		else if (m_paymentMethod == "CHEQUE")
 		{
-			handleCreditPayment(billId, netAmount);
+			handleChequePayment(billId, netAmount);
+		}
+		else if (m_paymentMethod == "CARD")
+		{
+			handleCreditCardPayment(billId, netAmount);
+		}
+		else if (m_paymentMethod == "LOYALITY")
+		{
+			handleLoyaltyPayment(billId, netAmount);
 		}
 	}
-	else if (m_paymentMethod == "CHEQUE")
-	{
-		handleChequePayment(billId, netAmount);
-	}
-	else if (m_paymentMethod == "CARD")
-	{
-		handleCreditCardPayment(billId, netAmount);
-	}
-	else if (m_paymentMethod == "LOYALITY")
-	{
-		handleLoyaltyPayment(billId, netAmount);
-	}
 
+	//
+	if (!success)
+	{
+		QMessageBox mbox;
+		mbox.setIcon(QMessageBox::Warning);
+		mbox.setText(QString("Cannot proceed. Something went wrong when calculating total amount"));
+		mbox.exec();
+	}
 	this->close();
 }
 
@@ -631,6 +650,11 @@ void ESSinglePayment::slotInterestChanged()
 	double totalBill = netAmout + netAmout * (interest / 100.0);
 
 	ui.netAmountLbl->setText(QString::number(totalBill, 'f', 2));
+	/*QSqlQuery qq;
+	qq.prepare("UPDATE bill SET amount = ? WHERE bill_id = ?");
+	qq.addBindValue(QString::number(totalBill));
+	qq.addBindValue(ES::Session::getInstance()->getBillId());
+	qq.exec();*/
 }
 
 void ESSinglePayment::printBill(int billId, float total)

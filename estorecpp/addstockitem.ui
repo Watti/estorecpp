@@ -150,7 +150,7 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="0">
+      <item row="5" column="0">
        <widget class="QLabel" name="label">
         <property name="font">
          <font>
@@ -164,7 +164,7 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="1">
+      <item row="5" column="1">
        <widget class="QLineEdit" name="discount">
         <property name="font">
          <font>
@@ -178,7 +178,7 @@
         </property>
        </widget>
       </item>
-      <item row="5" column="0">
+      <item row="7" column="0">
        <widget class="QLabel" name="label_4">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Maximum" vsizetype="Expanding">
@@ -213,7 +213,7 @@
         </property>
        </widget>
       </item>
-      <item row="5" column="1">
+      <item row="7" column="1">
        <widget class="QLineEdit" name="qty">
         <property name="font">
          <font>
@@ -224,7 +224,7 @@
         </property>
        </widget>
       </item>
-      <item row="6" column="0">
+      <item row="8" column="0">
        <widget class="QLabel" name="label_5">
         <property name="font">
          <font>
@@ -238,7 +238,7 @@
         </property>
        </widget>
       </item>
-      <item row="6" column="1">
+      <item row="8" column="1">
        <widget class="QLineEdit" name="minQty">
         <property name="font">
          <font>
@@ -249,7 +249,7 @@
         </property>
        </widget>
       </item>
-      <item row="7" column="0">
+      <item row="9" column="0">
        <widget class="QLabel" name="inVisibleLbl">
         <property name="font">
          <font>
@@ -262,7 +262,7 @@
         </property>
        </widget>
       </item>
-      <item row="7" column="1">
+      <item row="9" column="1">
        <widget class="QCheckBox" name="invisibleCB">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
@@ -275,7 +275,7 @@
         </property>
        </widget>
       </item>
-      <item row="10" column="0">
+      <item row="12" column="0">
        <spacer name="horizontalSpacer_3">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
@@ -288,7 +288,7 @@
         </property>
        </spacer>
       </item>
-      <item row="10" column="1">
+      <item row="12" column="1">
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
          <widget class="QPushButton" name="addItemButton">
@@ -319,7 +319,7 @@
         </item>
        </layout>
       </item>
-      <item row="9" column="0">
+      <item row="11" column="0">
        <widget class="QLabel" name="floorLbl">
         <property name="font">
          <font>
@@ -332,10 +332,10 @@
         </property>
        </widget>
       </item>
-      <item row="9" column="1">
+      <item row="11" column="1">
        <widget class="QLineEdit" name="floorTxt"/>
       </item>
-      <item row="4" column="0">
+      <item row="6" column="0">
        <widget class="QLabel" name="label_7">
         <property name="font">
          <font>
@@ -349,7 +349,7 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="1">
+      <item row="6" column="1">
        <widget class="QLineEdit" name="currentQty">
         <property name="enabled">
          <bool>false</bool>
@@ -366,21 +366,22 @@
         </property>
        </widget>
       </item>
-      <item row="8" column="0">
+      <item row="3" column="0">
        <widget class="QLabel" name="label_8">
         <property name="font">
          <font>
+          <pointsize>11</pointsize>
           <weight>50</weight>
           <bold>false</bold>
          </font>
         </property>
         <property name="text">
-         <string>TextLabel</string>
+         <string>Weighted Average</string>
         </property>
        </widget>
       </item>
-      <item row="8" column="1">
-       <widget class="QCheckBox" name="checkBox">
+      <item row="3" column="1">
+       <widget class="QCheckBox" name="isWeightedAverage">
         <property name="font">
          <font>
           <weight>50</weight>
