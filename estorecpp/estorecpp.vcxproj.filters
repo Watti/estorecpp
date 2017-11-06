@@ -602,6 +602,15 @@
     <ClCompile Include="src\esitemwisesales.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\billwisesalessummary.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_billwisesalessummary.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_billwisesalessummary.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="esmainwindow.ui">
@@ -943,6 +952,12 @@
     <CustomBuild Include="includes\esitemwisesales.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
+    <CustomBuild Include="billwisesalessummary.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="includes\billwisesalessummary.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="includes\utility\esdbconnection.h">
@@ -1120,6 +1135,9 @@
       <Filter>Generated Files</Filter>
     </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_itemwisesales.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GeneratedFiles\ui_billwisesalessummary.h">
       <Filter>Generated Files</Filter>
     </ClInclude>
   </ItemGroup>

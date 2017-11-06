@@ -53,6 +53,8 @@ ESSalesReportContainer::ESSalesReportContainer(QWidget *parent /*= 0*/) : QWidge
  		m_customerWiseSalesSummary = new ESCustomerWiseSalesSummary(ui.tabWidget);
  		ui.tabWidget->addTab(m_customerWiseSalesSummary, "Customer Wise Sales Summary");
 
+		m_billWiseSalesSummary = new ESBillWiseSalesSummary(ui.tabWidget);
+		ui.tabWidget->addTab(m_billWiseSalesSummary, "Bill Wise Sales");
 // 		m_itemWiseSales = new ItemWiseSales(ui.tabWidget);
 // 		ui.tabWidget->addTab(m_itemWiseSales, "Item Wise Sales");
 	}
@@ -122,12 +124,13 @@ void ESSalesReportContainer::onTabChanged(int tabIndex)
 		}
 		else
 		{
-			m_itemWiseSales->slotSearch();
+			m_billWiseSalesSummary->slotSearch();
 		}
 		break;
-// 	case 8:
-// 		m_itemWiseSales->slotSearch();
-// 		break;
+	case 8:
+		
+		m_billWiseSalesSummary->slotSearch();
+		break; 
 	default:
 		break;
 	}
